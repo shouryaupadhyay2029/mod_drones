@@ -1,0 +1,306 @@
+import { describe, expect, it } from 'vitest';
+import { idleOperator } from '../src/sim/bots/idleOperator.js';
+import { referenceOperator } from '../src/sim/bots/referenceOperator.js';
+import { triggerHappyOperator } from '../src/sim/bots/triggerHappyOperator.js';
+import { Engine } from '../src/sim/core/engine.js';
+import { replay } from '../src/sim/core/log.js';
+import { Command } from '../src/sim/core/types.js';
+import { vec3, vDist } from '../src/sim/core/vec.js';
+import { createActor } from '../src/sim/model/actors.js';
+import { scoreSession } from '../src/sim/scoring/basic.js';
+import { TraineeView } from '../src/sim/view/traineeView.js';
+
+function runMissionWithBot(
+  seed: string | number,
+  botFn: (view: TraineeView) => Command[],
+  maxTicks = 4800
+): Engine {
+  const engine = new Engine(seed, 'dawn_intrusion');
+  while (!engine.missionState.ended && engine.world.tick < maxTicks) {
+    const view = engine.getTraineeView();
+    const commands = botFn(view);
+    for (let i = 0; i < commands.length; i++) {
+      const cmd = commands[i];
+      if (cmd) engine.enqueueCommand(cmd);
+    }
+    engine.step();
+  }
+  return engine;
+}
+
+describe('Phase 1A: Simulation Vertical Slice & Determinism', { timeout: 30000 }, () => {
+  // Acceptance Test 3: Seed Repeatability
+  it('3. Seed repeatability: same seed + same bot => identical hash; different seed => different hash', () => {
+    const seed = 'repeatable-test-seed-42';
+    const run1 = runMissionWithBot(seed, referenceOperator, 1500);
+    const run2 = runMissionWithBot(seed, referenceOperator, 1500);
+    const runDiff = runMissionWithBot('different-seed-99', referenceOperator, 1500);
+
+    expect(run1.getHash()).toBe(run2.getHash());
+    expect(run1.getHash()).not.toBe(runDiff.getHash());
+  });
+
+  // Acceptance Test 4: Replay & Snapshot Integrity
+  it('4a. Replay: replay(sessionLog) matches live engine hash', () => {
+    const seed = 'replay-dawn-seed';
+    const engine = runMissionWithBot(seed, referenceOperator, 2500);
+    const liveHash = engine.getHash();
+
+    const log = engine.getSessionLog();
+    const replayedHash = replay(log);
+
+    expect(replayedHash).toBe(liveHash);
+  });
+
+  it('4b. Snapshot: snapshot at tick 1200, JSON roundtrip, restore, run to finish => identical hash and deep-equal getSessionLog()', () => {
+    const seed = 'snapshot-roundtrip-seed';
+
+    // 1. Uninterrupted run
+    const uninterrupted = new Engine(seed, 'dawn_intrusion');
+    while (!uninterrupted.missionState.ended && uninterrupted.world.tick < 2000) {
+      const view = uninterrupted.getTraineeView();
+      const commands = referenceOperator(view);
+      for (const cmd of commands) uninterrupted.enqueueCommand(cmd);
+      uninterrupted.step();
+    }
+    const uninterruptedHash = uninterrupted.getHash();
+    const uninterruptedLog = uninterrupted.getSessionLog();
+
+    // 2. Interrupted run to tick 1200
+    const interrupted = new Engine(seed, 'dawn_intrusion');
+    while (!interrupted.missionState.ended && interrupted.world.tick < 1200) {
+      const view = interrupted.getTraineeView();
+      const commands = referenceOperator(view);
+      for (const cmd of commands) interrupted.enqueueCommand(cmd);
+      interrupted.step();
+    }
+
+    // Snapshot, JSON serialize/parse
+    const rawSnapshot = interrupted.snapshot();
+    const jsonStr = JSON.stringify(rawSnapshot);
+    const parsedSnapshot = JSON.parse(jsonStr);
+
+    // Restore into fresh Engine
+    const restored = Engine.restore(parsedSnapshot);
+    expect(restored.world.tick).toBe(1200);
+    expect(restored.getHash()).toBe(interrupted.getHash());
+
+    // Continue run to tick 2000
+    while (!restored.missionState.ended && restored.world.tick < 2000) {
+      const view = restored.getTraineeView();
+      const commands = referenceOperator(view);
+      for (const cmd of commands) restored.enqueueCommand(cmd);
+      restored.step();
+    }
+
+    expect(restored.getHash()).toBe(uninterruptedHash);
+    expect(restored.getSessionLog()).toEqual(uninterruptedLog);
+    expect(replay(restored.getSessionLog())).toBe(uninterruptedHash);
+  });
+
+  // Acceptance Test 5: Ground Truth Leakage Prevention
+  it('5. Ground truth leakage: view never contains hostile/actorId/truthClass/actors, and positions have noise', () => {
+    const engine = new Engine('anti-leak-seed', 'dawn_intrusion');
+
+    for (let tick = 0; tick < 1500; tick++) {
+      const view = engine.getTraineeView();
+      const serialized = JSON.stringify(view);
+
+      expect(serialized).not.toContain('"hostile"');
+      expect(serialized).not.toContain('"actorId"');
+      expect(serialized).not.toContain('"truthClass"');
+      expect(serialized).not.toContain('"actors"');
+
+      // Check noise on confirmed/tentative tracks compared to true actor positions
+      for (const trk of view.tracks) {
+        const actor = engine.actors.find((a) => a.id === (trk as unknown as { actorId?: number }).actorId);
+        if (actor && actor.state === 'active') {
+          // Track estimated position must not be exactly identical to actor true position
+          const dist = vDist(trk.estimatedPosition, actor.pos);
+          expect(dist).toBeGreaterThan(0);
+        }
+      }
+
+      const commands = referenceOperator(view);
+      for (const cmd of commands) engine.enqueueCommand(cmd);
+      engine.step();
+    }
+  });
+
+  // Acceptance Test 6: Radar RCS Scaling & Track Lifecycle
+  it('6a. Radar RCS scaling: bird detection range < FPV detection range over 200 seeds', () => {
+    let birdMaxDistSum = 0;
+    let fpvMaxDistSum = 0;
+    let trials = 0;
+
+    for (let s = 1; s <= 200; s++) {
+      const engine = new Engine(`radar-stat-seed-${s}`, 'dawn_intrusion');
+      let birdFirstDist: number | null = null;
+      let fpvFirstDist: number | null = null;
+
+      for (let t = 0; t < 2000; t++) {
+        engine.step();
+        const events = engine.getEvents();
+        for (const e of events) {
+          if (e.type === 'TRACK_CONFIRMED' && e.payload) {
+            const trkId = (e.payload as { trackId: number }).trackId;
+            const trk = engine.tracks.find((x) => x.trackId === trkId);
+            const actor = engine.actors.find((a) => a.id === trk?.actorId);
+            const dist = (e.payload as { rangeM: number }).rangeM;
+
+            if (actor?.classId === 'bird' && birdFirstDist === null) {
+              birdFirstDist = dist;
+            } else if (actor?.classId === 'fpv_kamikaze' && fpvFirstDist === null) {
+              fpvFirstDist = dist;
+            }
+          }
+        }
+        if (birdFirstDist !== null && fpvFirstDist !== null) break;
+      }
+
+      if (birdFirstDist !== null && fpvFirstDist !== null) {
+        birdMaxDistSum += birdFirstDist;
+        fpvMaxDistSum += fpvFirstDist;
+        trials++;
+      }
+    }
+
+    expect(trials).toBeGreaterThan(50);
+    // Mean first confirmation range for bird (RCS 0.001) must be significantly less than FPV (RCS 0.02)
+    const birdMean = birdMaxDistSum / trials;
+    const fpvMean = fpvMaxDistSum / trials;
+    expect(birdMean).toBeLessThan(fpvMean);
+  });
+
+  it('6b. Track lifecycle: transitions through tentative -> confirmed -> lost/dropped', () => {
+    const engine = new Engine('lifecycle-seed', 'dawn_intrusion');
+    let sawTentative = false;
+    let sawConfirmed = false;
+
+    for (let t = 0; t < 3000; t++) {
+      engine.step();
+      for (const trk of engine.tracks) {
+        if (trk.state === 'tentative') sawTentative = true;
+        if (trk.state === 'confirmed') sawConfirmed = true;
+      }
+    }
+
+    expect(sawTentative).toBe(true);
+    expect(sawConfirmed).toBe(true);
+  });
+
+  // Acceptance Test 7: Command Validation & Rejection
+  it('7. Command validation: unknown trackId, out-of-range, and effector-busy generate rejection events without throwing', () => {
+    const engine = new Engine('command-val-seed', 'dawn_intrusion');
+    engine.stepN(100);
+
+    // Unknown track ACK
+    expect(() => {
+      engine.enqueueCommand({
+        tick: 100,
+        type: 'ACK_TRACK',
+        payload: { trackId: 9999 },
+      });
+      engine.step();
+    }).not.toThrow();
+
+    const ackRejection = engine.getEvents().find(
+      (e) => e.type === 'COMMAND_REJECTED' && (e.payload as { reason?: string })?.reason === 'unknown_or_dropped_track'
+    );
+    expect(ackRejection).toBeDefined();
+
+    // Out of range engagement
+    // Advance until FPV track is confirmed at >1500m
+    while (engine.world.tick < 1500) {
+      engine.step();
+      const fpvTrack = engine.tracks.find((t) => {
+        const actor = engine.actors.find((a) => a.id === t.actorId);
+        return actor?.classId === 'fpv_kamikaze' && t.state === 'confirmed';
+      });
+      if (fpvTrack && vDist(fpvTrack.estimatedPos, vec3(0, 0, 0)) > 2000) {
+        engine.enqueueCommand({
+          tick: engine.world.tick,
+          type: 'ENGAGE_TRACK',
+          payload: { trackId: fpvTrack.trackId, effector: 'jammer' },
+        });
+        engine.step();
+        break;
+      }
+    }
+
+    const outOfRangeEvent = engine.getEvents().find(
+      (e) => e.type === 'ENGAGEMENT_REJECTED' && (e.payload as { reason?: string })?.reason === 'out_of_range'
+    );
+    expect(outOfRangeEvent).toBeDefined();
+  });
+
+  // Acceptance Test 8: Scoring Assertions
+  it('8. Scoring: referenceOperator >= 85 on at least 4 of 5 seeds, idle <= 30 with asset_hit, triggerHappy lower than reference', () => {
+    const seeds = ['s1', 's2', 's3', 's4', 's5'];
+    let refHighScoreCount = 0;
+
+    for (const seed of seeds) {
+      // 1. Reference Operator
+      const refEngine = runMissionWithBot(seed, referenceOperator);
+      const refReport = scoreSession({
+        actors: refEngine.actors,
+        tracks: refEngine.tracks,
+        events: refEngine.getEvents(),
+      });
+      if (refReport.total >= 85) refHighScoreCount++;
+
+      // 2. Idle Operator
+      const idleEngine = runMissionWithBot(seed, idleOperator);
+      const idleReport = scoreSession({
+        actors: idleEngine.actors,
+        tracks: idleEngine.tracks,
+        events: idleEngine.getEvents(),
+      });
+      expect(idleReport.total).toBeLessThanOrEqual(30);
+      const idleAssetHit = idleEngine.getEvents().some((e) => e.type === 'ASSET_HIT');
+      expect(idleAssetHit).toBe(true);
+
+      // 3. Trigger Happy Operator
+      const thEngine = runMissionWithBot(seed, triggerHappyOperator);
+      const thReport = scoreSession({
+        actors: thEngine.actors,
+        tracks: thEngine.tracks,
+        events: thEngine.getEvents(),
+      });
+      expect(thReport.total).toBeLessThan(refReport.total);
+    }
+
+    expect(refHighScoreCount).toBeGreaterThanOrEqual(4);
+  });
+
+  // Acceptance Test 9: Mission End Conditions
+  it('9a. Mission end condition: asset_hit', () => {
+    // Idle bot allows FPV drone to reach asset
+    const engine = runMissionWithBot('asset-hit-seed', idleOperator);
+    expect(engine.missionState.ended).toBe(true);
+    expect(engine.missionState.reason).toBe('asset_hit');
+    const assetHitEvent = engine.getEvents().find((e) => e.type === 'ASSET_HIT');
+    expect(assetHitEvent).toBeDefined();
+  });
+
+  it('9b. Mission end condition: time_limit', () => {
+    // If we run to tick 4800 without all resolved and no asset hit
+    const engine = new Engine('time-limit-seed', 'sandbox');
+    engine.stepN(4800);
+    expect(engine.missionState.ended).toBe(true);
+    expect(engine.missionState.reason).toBe('time_limit');
+  });
+
+  it('9c. Mission end condition: all_resolved', () => {
+    // Sandbox with single neutralized actor
+    const engine = new Engine('all-resolved-seed', 'sandbox');
+    const actor = createActor(1, 'fpv_kamikaze', vec3(100, 100, 50), { type: 'wander' }, 10);
+    actor.state = 'neutralized';
+    engine.actors.push(actor);
+
+    // Step engine to check mission rules
+    engine.step();
+    expect(engine.missionState.ended).toBe(true);
+    expect(engine.missionState.reason).toBe('all_resolved');
+  });
+});

@@ -1,7 +1,7 @@
 import { Command, EngineSnapshot, SessionLog } from '../core/types.js';
 
 export type WorkerCommand =
-  | { type: 'INIT'; payload: { seed: string | number } }
+  | { type: 'INIT'; payload: { seed: string | number; scenarioId?: string } }
   | { type: 'START' }
   | { type: 'PAUSE' }
   | { type: 'STEP_N'; payload: { n: number } }
@@ -9,7 +9,7 @@ export type WorkerCommand =
   | { type: 'GET_STATE' }
   | { type: 'GET_LOG' }
   | { type: 'SNAPSHOT' }
-  | { type: 'RESTORE'; payload: { snapshot: EngineSnapshot; seed?: string | number } };
+  | { type: 'RESTORE'; payload: { snapshot: EngineSnapshot } };
 
 export type WorkerEvent =
   | {

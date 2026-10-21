@@ -75,8 +75,8 @@ export class SimClient {
     this.worker?.postMessage(cmd);
   }
 
-  public init(seed: string | number): void {
-    this.send({ type: 'INIT', payload: { seed } });
+  public init(seed: string | number, scenarioId = 'sandbox'): void {
+    this.send({ type: 'INIT', payload: { seed, scenarioId } });
   }
 
   public start(): void {
@@ -113,13 +113,12 @@ export class SimClient {
     });
   }
 
-  public restore(snapshot: EngineSnapshot, seed?: string | number): void {
-    this.send({ type: 'RESTORE', payload: { snapshot, seed } });
+  public restore(snapshot: EngineSnapshot): void {
+    this.send({ type: 'RESTORE', payload: { snapshot } });
   }
 
   public onState(listener: (state: SimStateUpdate) => void): () => void {
     this.stateListeners.add(listener);
-    // Emit immediate current state
     listener(this.lastState);
     return () => {
       this.stateListeners.delete(listener);

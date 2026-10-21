@@ -21,7 +21,15 @@ Given the same seed and sequence of scheduled commands, any run on any compliant
    - ESLint rules (`no-restricted-globals`, `no-restricted-syntax`, `no-restricted-imports`) enforce these prohibitions statically on all files under `src/sim/**`.
    - `tsconfig.sim.json` compiles `src/sim` with `lib: ["ES2022"]` strictly without DOM or browser types, preventing accidental leakage of DOM APIs.
 
-3. **Known Caveats and Phase 1 Roadmap**:
+3. **Determinism Audit & Collection Iteration**:
+   - `src/sim/core/hash.ts:26` (`Object.keys(record).sort()`): Iteration order is deterministic because `Object.keys()` is immediately sorted lexicographically via `.sort()` before mapping, guaranteeing identical key order regardless of engine insertion history.
+
+4. **Phase 1A Deterministic Math & Transcendental Functions**:
+   - `Math.sin`, `Math.cos`, `Math.tan`, `Math.atan`, `Math.atan2`, `Math.exp`, `Math.log`, `Math.pow`, `Math.hypot`, and the exponentiation operator (`**`) are strictly banned across all of `src/sim/**` via ESLint rules.
+   - All angular and trigonometric calculations in `src/sim` are provided by `src/sim/core/dmath.ts`, using minimax polynomials with range reduction (+, -, *, / only).
+   - `Math.sqrt`, `Math.abs`, `Math.min`, `Math.max`, and `Math.floor` are verified IEEE-754 compliant and permitted in `src/sim`.
+
+5. **Known Caveats and Phase 1 Roadmap**:
    - **Transcendental Functions**: `Math.sin`, `Math.cos`, and `Math.exp` can exhibit minor cross-platform floating-point discrepancies across different JavaScript runtime engines (V8, JavaScriptCore, SpiderMonkey) or hardware architectures.
    - **Phase 1 Mitigation**: From Phase 1 onward, any kinematic, angular, or sensor calculations will utilize a deterministic lookup table or polynomial approximation for trigonometric functions in `src/sim`.
 

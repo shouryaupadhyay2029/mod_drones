@@ -11,7 +11,7 @@ export default tseslint.config(
     ignores: ['dist/**', 'node_modules/**'],
   },
   {
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'scripts/**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -54,13 +54,28 @@ export default tseslint.config(
           selector: "NewExpression[callee.name='Date']",
           message: 'new Date() is forbidden in src/sim. Simulation time is deterministic.',
         },
+        {
+          selector:
+            "MemberExpression[object.name='Math'][property.name=/^(sin|cos|tan|atan|atan2|exp|log|pow|hypot)$/]",
+          message:
+            'Cross-engine non-deterministic Math functions (sin, cos, tan, atan, atan2, exp, log, pow, hypot) are forbidden in src/sim. Use dmath.ts.',
+        },
+        {
+          selector: "BinaryExpression[operator='**']",
+          message:
+            'Exponentiation operator (**) is forbidden in src/sim due to cross-engine discrepancies. Use multiplication or deterministic helpers.',
+        },
+        {
+          selector: "AssignmentExpression[operator='**=']",
+          message: 'Exponentiation operator (**=) is forbidden in src/sim.',
+        },
       ],
       'no-restricted-imports': [
         'error',
         {
           patterns: [
             {
-              group: ['*app*', '../*app*', '../app/**', '**/app/**'],
+              group: ['*/app/*', '**/app/**', '../*app/**', '../app/**'],
               message: 'src/sim must never import from src/app.',
             },
           ],
@@ -88,6 +103,21 @@ export default tseslint.config(
         {
           selector: "NewExpression[callee.name='Date']",
           message: 'new Date() is forbidden in src/sim. Simulation time is deterministic.',
+        },
+        {
+          selector:
+            "MemberExpression[object.name='Math'][property.name=/^(sin|cos|tan|atan|atan2|exp|log|pow|hypot)$/]",
+          message:
+            'Cross-engine non-deterministic Math functions (sin, cos, tan, atan, atan2, exp, log, pow, hypot) are forbidden in src/sim. Use dmath.ts.',
+        },
+        {
+          selector: "BinaryExpression[operator='**']",
+          message:
+            'Exponentiation operator (**) is forbidden in src/sim due to cross-engine discrepancies. Use multiplication or deterministic helpers.',
+        },
+        {
+          selector: "AssignmentExpression[operator='**=']",
+          message: 'Exponentiation operator (**=) is forbidden in src/sim.',
         },
         {
           selector: "CallExpression[callee.name='setTimeout']",

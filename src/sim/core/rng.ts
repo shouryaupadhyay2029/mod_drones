@@ -19,6 +19,7 @@ function toUint32(seed: string | number): number {
 export class Rng {
   private state: number;
   private readonly initialSeed: string | number;
+  private forks: Map<string, Rng> = new Map();
 
   constructor(seed: string | number) {
     this.initialSeed = seed;
@@ -56,8 +57,13 @@ export class Rng {
   }
 
   public fork(label: string): Rng {
-    const forkKey = `${this.state}:${label}`;
-    return new Rng(forkKey);
+    let child = this.forks.get(label);
+    if (!child) {
+      const forkKey = `${this.state}:${label}`;
+      child = new Rng(forkKey);
+      this.forks.set(label, child);
+    }
+    return child;
   }
 
   public getState(): number {
@@ -66,6 +72,35 @@ export class Rng {
 
   public setState(state: number): void {
     this.state = state >>> 0;
+  }
+
+  public getAllForkStates(): Record<string, number> {
+    const record: Record<string, number> = {};
+    const sortedKeys = Array.from(this.forks.keys()).sort();
+    for (let i = 0; i < sortedKeys.length; i++) {
+      const key = sortedKeys[i];
+      if (key) {
+        const child = this.forks.get(key);
+        if (child) {
+          record[key] = child.getState();
+        }
+      }
+    }
+    return record;
+  }
+
+  public restoreForkStates(states: Record<string, number>): void {
+    const sortedKeys = Object.keys(states).sort();
+    for (let i = 0; i < sortedKeys.length; i++) {
+      const key = sortedKeys[i];
+      if (key) {
+        const st = states[key];
+        if (typeof st === 'number') {
+          const child = this.fork(key);
+          child.setState(st);
+        }
+      }
+    }
   }
 
   public getSeed(): string | number {

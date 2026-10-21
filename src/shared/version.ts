@@ -1,1 +1,1 @@
-export const LOG_FORMAT_VERSION = 1;
+export const LOG_FORMAT_VERSION = 2;

@@ -131,12 +131,12 @@ export function App(): React.JSX.Element {
     const serializedSnapshot = JSON.parse(JSON.stringify(rawSnapshot));
 
     // Baseline: clone original snapshot into Engine A and step 500
-    const engineA = Engine.restore(rawSnapshot, currentSeed);
+    const engineA = Engine.restore(rawSnapshot);
     engineA.stepN(500);
     const hashA = engineA.getHash();
 
     // Restored: restore from JSON round-trip into Engine B and step 500
-    const engineB = Engine.restore(serializedSnapshot, currentSeed);
+    const engineB = Engine.restore(serializedSnapshot);
     engineB.stepN(500);
     const hashB = engineB.getHash();
 

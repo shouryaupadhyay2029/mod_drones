@@ -1,4 +1,7 @@
 import { WorldState } from './types.js';
+import { Actor } from '../model/actors.js';
+import { Track } from '../model/tracks.js';
+import { EffectorState } from '../model/effectors.js';
 
 export function roundFloat(n: number): number {
   if (Number.isInteger(n)) {
@@ -23,7 +26,9 @@ export function canonicalStringify(obj: unknown): string {
   }
   if (typeof obj === 'object') {
     const record = obj as Record<string, unknown>;
-    const keys = Object.keys(record).sort();
+    const keys = Object.keys(record)
+      .filter((k) => record[k] !== undefined)
+      .sort();
     const parts = keys.map((k) => `${JSON.stringify(k)}:${canonicalStringify(record[k])}`);
     return '{' + parts.join(',') + '}';
   }
@@ -46,20 +51,73 @@ export function cyrb53(str: string, seed = 0): string {
   return hash.toString(16).padStart(14, '0');
 }
 
-export function stateHash(world: WorldState, rngState: number): string {
-  const canonical = canonicalStringify({
-    rngState,
-    world: {
-      tick: world.tick,
-      nextEntityId: world.nextEntityId,
-      entities: world.entities.map((e) => ({
-        id: e.id,
-        vx: e.vx,
-        vy: e.vy,
-        x: e.x,
-        y: e.y,
+export interface StateHashPayload {
+  world: WorldState;
+  rngMainState: number;
+  forkStates?: Record<string, number>;
+  actors?: readonly Actor[];
+  tracks?: readonly Track[];
+  effectorState?: EffectorState;
+}
+
+export function stateHash(payloadOrWorld: WorldState | StateHashPayload, rngState?: number): string {
+  let canonicalPayload: unknown;
+
+  if ('entities' in payloadOrWorld && typeof rngState === 'number') {
+    // Phase 0 signature compatibility: stateHash(world, rngState)
+    canonicalPayload = {
+      rngState,
+      world: {
+        tick: payloadOrWorld.tick,
+        nextEntityId: payloadOrWorld.nextEntityId,
+        entities: payloadOrWorld.entities.map((e) => ({
+          id: e.id,
+          vx: e.vx,
+          vy: e.vy,
+          x: e.x,
+          y: e.y,
+        })),
+      },
+    };
+  } else {
+    const full = payloadOrWorld as StateHashPayload;
+    canonicalPayload = {
+      world: {
+        tick: full.world.tick,
+        nextEntityId: full.world.nextEntityId,
+        entities: full.world.entities.map((e) => ({
+          id: e.id,
+          vx: e.vx,
+          vy: e.vy,
+          x: e.x,
+          y: e.y,
+        })),
+      },
+      rngMainState: full.rngMainState,
+      forkStates: full.forkStates || {},
+      actors: (full.actors || []).map((a) => ({
+        id: a.id,
+        classId: a.classId,
+        pos: a.pos,
+        vel: a.vel,
+        state: a.state,
+        speed: a.speed,
       })),
-    },
-  });
-  return cyrb53(canonical);
+      tracks: (full.tracks || []).map((t) => ({
+        trackId: t.trackId,
+        state: t.state,
+        estimatedPos: t.estimatedPos,
+        estimatedVel: t.estimatedVel,
+        consecutiveHits: t.consecutiveHits,
+        consecutiveMisses: t.consecutiveMisses,
+        rcsBucket: t.rcsBucket,
+        acked: t.acked,
+        assessedClass: t.assessedClass,
+        engagementStatus: t.engagementStatus,
+      })),
+      effectorState: full.effectorState,
+    };
+  }
+
+  return cyrb53(canonicalStringify(canonicalPayload));
 }

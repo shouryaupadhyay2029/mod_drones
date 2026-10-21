@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - Phase 1A: Single-Drone Mission Simulation, Radar, Effectors, Basic Scoring
+
+### Changed
+- **SessionLog formatVersion**: Bumped to version 2 to support self-contained snapshots and rich scenario/command models.
+- **Engine Snapshots**: Made fully self-contained with `formatVersion`, `seed`, `scenarioId`, `world`, `tick`, full PRNG fork tree states, `pendingCommands`, `executedCommands`, and `eventLog`. `Engine.restore(snapshot)` updated to a single-argument interface.
+- **Worker Pipeline Test**: Converted to fully deterministic stepping without wall-clock sleeps.
+
+### Added
+- **Deterministic Math (`src/sim/core/dmath.ts`)**: Polynomial approximations for `sin`, `cos`, `atan2` adhering to $\le 10^{-5}$ error for sin/cos and $\le 10^{-4}$ rad for atan2 without cross-engine transcendental drift.
+- **3D Spatial Math (`src/sim/core/vec.ts`)**: Vector helpers and bearing calculations clockwise from North in $[0, 360)^\circ$.
+- **Threat Library (`src/sim/model/threats.ts`)**: Generic training threat classes (`fpv_kamikaze`, `commercial_quad`, `fixed_wing_recon`, `bird`).
+- **Actor & Kinematics (`src/sim/model/actors.ts`)**: Direct ingress, transit, wander, and neutralized flight profiles.
+- **Radar System (`src/sim/systems/radar.ts`)**: Rotating antenna sweep sector, 4th-root radar cross section scaling, Irwin-Hall measurement noise, and tentative/confirmed/lost track lifecycle.
+- **Engagement System (`src/sim/systems/effectors.ts`, `src/sim/systems/engagement.ts`)**: Jammer soft-kill and Gun burst hard-kill mechanics.
+- **Mission "Dawn Intrusion" (`src/sim/scenarios/dawnIntrusion.ts`)**: Scripted three-contact dawn incursion with seeded spatial/timing jitter.
+- **Trainee View (`src/sim/view/traineeView.ts`)**: Ground-truth-isolated situational awareness feed.
+- **Scoring Engine (`src/sim/scoring/basic.ts`, `src/sim/scoring/constants.ts`)**: Traceable scoring based on detection latency, classification accuracy, and engagement decisions.
+- **Automated Bots (`src/sim/bots/`)**: Reference operator, Idle operator, and Trigger-happy operator.
+- **Headless Execution CLI (`scripts/headless.ts`)**: Multi-seed automated bot evaluation runner.
+
 ## [0.1.0] - Phase 0: Deterministic Simulation Foundation
 
 ### Added
