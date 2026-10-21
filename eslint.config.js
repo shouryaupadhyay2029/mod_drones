@@ -1,0 +1,103 @@
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import prettier from 'eslint-config-prettier';
+import globals from 'globals';
+
+export default tseslint.config(
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  prettier,
+  {
+    ignores: ['dist/**', 'node_modules/**'],
+  },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+  {
+    files: ['src/app/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    },
+  },
+  {
+    files: ['src/sim/**/*.ts'],
+    rules: {
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'performance',
+          message: 'Do not use performance in src/sim. Use tick counter for simulation time.',
+        },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "MemberExpression[object.name='Math'][property.name='random']",
+          message: 'Math.random is forbidden in src/sim. Use seeded Rng.',
+        },
+        {
+          selector: "MemberExpression[object.name='Date'][property.name='now']",
+          message: 'Date.now is forbidden in src/sim. Use tick counter.',
+        },
+        {
+          selector: "MemberExpression[object.name='performance'][property.name='now']",
+          message: 'performance.now is forbidden in src/sim. Use tick counter.',
+        },
+        {
+          selector: "NewExpression[callee.name='Date']",
+          message: 'new Date() is forbidden in src/sim. Simulation time is deterministic.',
+        },
+      ],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['*app*', '../*app*', '../app/**', '**/app/**'],
+              message: 'src/sim must never import from src/app.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/sim/core/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "MemberExpression[object.name='Math'][property.name='random']",
+          message: 'Math.random is forbidden in src/sim. Use seeded Rng.',
+        },
+        {
+          selector: "MemberExpression[object.name='Date'][property.name='now']",
+          message: 'Date.now is forbidden in src/sim. Use tick counter.',
+        },
+        {
+          selector: "MemberExpression[object.name='performance'][property.name='now']",
+          message: 'performance.now is forbidden in src/sim. Use tick counter.',
+        },
+        {
+          selector: "NewExpression[callee.name='Date']",
+          message: 'new Date() is forbidden in src/sim. Simulation time is deterministic.',
+        },
+        {
+          selector: "CallExpression[callee.name='setTimeout']",
+          message: 'setTimeout is forbidden in simulation core.',
+        },
+        {
+          selector: "CallExpression[callee.name='setInterval']",
+          message: 'setInterval is forbidden in simulation core.',
+        },
+      ],
+    },
+  }
+);

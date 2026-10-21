@@ -1,0 +1,626 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { Engine } from '../sim/core/engine.js';
+import { replay } from '../sim/core/log.js';
+import { SimClient, SimStateUpdate } from './simClient.js';
+
+export function App(): React.JSX.Element {
+  const [seedInput, setSeedInput] = useState<string>('alpha-omega-42');
+  const [currentSeed, setCurrentSeed] = useState<string>('alpha-omega-42');
+  const [simState, setSimState] = useState<SimStateUpdate>({
+    tick: 0,
+    hash: '----------------',
+    entityCount: 0,
+    isRunning: false,
+  });
+
+  const [tps, setTps] = useState<number>(0);
+  const [replayResult, setReplayResult] = useState<{
+    status: 'IDLE' | 'PASS' | 'FAIL';
+    liveHash?: string;
+    replayHash?: string;
+    ticks?: number;
+  }>({ status: 'IDLE' });
+
+  const [snapshotResult, setSnapshotResult] = useState<{
+    status: 'IDLE' | 'PASS' | 'FAIL';
+    baselineHash?: string;
+    restoredHash?: string;
+    ticksTested?: number;
+  }>({ status: 'IDLE' });
+
+  const clientRef = useRef<SimClient | null>(null);
+  const lastTickCountRef = useRef<number>(0);
+  const lastTpsTimeRef = useRef<number>(performance.now());
+
+  useEffect(() => {
+    const client = new SimClient();
+    clientRef.current = client;
+
+    client.onState((st) => {
+      setSimState(st);
+    });
+
+    client.init(currentSeed);
+
+    // Speed calculation interval (ticks/sec)
+    const tpsTimer = setInterval(() => {
+      const now = performance.now();
+      const dt = (now - lastTpsTimeRef.current) / 1000;
+      if (dt > 0.3) {
+        const curTick = client.getLastState().tick;
+        const tickDelta = curTick - lastTickCountRef.current;
+        setTps(Math.round(tickDelta / dt));
+        lastTickCountRef.current = curTick;
+        lastTpsTimeRef.current = now;
+      }
+    }, 500);
+
+    return () => {
+      clearInterval(tpsTimer);
+      client.terminate();
+    };
+  }, []);
+
+  const handleStart = () => {
+    clientRef.current?.start();
+  };
+
+  const handlePause = () => {
+    clientRef.current?.pause();
+  };
+
+  const handleReset = () => {
+    clientRef.current?.init(seedInput);
+    setCurrentSeed(seedInput);
+    setReplayResult({ status: 'IDLE' });
+    setSnapshotResult({ status: 'IDLE' });
+    lastTickCountRef.current = 0;
+    lastTpsTimeRef.current = performance.now();
+    setTps(0);
+  };
+
+  const handleSpawnEntity = () => {
+    const client = clientRef.current;
+    if (!client) return;
+    const currentTick = client.getLastState().tick;
+    // Enqueue spawn command with omitted x/y so engine RNG picks position deterministically
+    client.enqueue({
+      tick: currentTick,
+      type: 'SPAWN_ENTITY',
+      payload: {},
+    });
+  };
+
+  const handleVerifyReplay = async () => {
+    const client = clientRef.current;
+    if (!client) return;
+
+    // Fetch the session log from the worker
+    const sessionLog = await client.getSessionLog();
+    const liveHash = client.getLastState().hash;
+    const replayHash = replay(sessionLog);
+
+    if (liveHash === replayHash) {
+      setReplayResult({
+        status: 'PASS',
+        liveHash,
+        replayHash,
+        ticks: sessionLog.totalTicks,
+      });
+    } else {
+      setReplayResult({
+        status: 'FAIL',
+        liveHash,
+        replayHash,
+        ticks: sessionLog.totalTicks,
+      });
+    }
+  };
+
+  const handleVerifySnapshot = async () => {
+    const client = clientRef.current;
+    if (!client) return;
+
+    const wasRunning = client.getLastState().isRunning;
+    if (wasRunning) {
+      client.pause();
+    }
+
+    const rawSnapshot = await client.snapshot();
+    // Verify snapshot survives JSON.stringify / JSON.parse round-trip
+    const serializedSnapshot = JSON.parse(JSON.stringify(rawSnapshot));
+
+    // Baseline: clone original snapshot into Engine A and step 500
+    const engineA = Engine.restore(rawSnapshot, currentSeed);
+    engineA.stepN(500);
+    const hashA = engineA.getHash();
+
+    // Restored: restore from JSON round-trip into Engine B and step 500
+    const engineB = Engine.restore(serializedSnapshot, currentSeed);
+    engineB.stepN(500);
+    const hashB = engineB.getHash();
+
+    const pass = hashA === hashB;
+
+    setSnapshotResult({
+      status: pass ? 'PASS' : 'FAIL',
+      baselineHash: hashA,
+      restoredHash: hashB,
+      ticksTested: 500,
+    });
+
+    if (wasRunning) {
+      client.start();
+    }
+  };
+
+  return (
+    <div style={styles.container}>
+      {/* Disclaimer Banner */}
+      <header style={styles.banner}>
+        <div style={styles.bannerTag}>NOTICE</div>
+        <div style={styles.bannerText}>
+          TRAINING SIMULATION — generic open-source parameters only.
+        </div>
+      </header>
+
+      {/* Main Container */}
+      <main style={styles.main}>
+        <div style={styles.titleSection}>
+          <h1 style={styles.title}>MoD Threat Sim: System Check</h1>
+          <span style={styles.versionBadge}>PHASE 0 • DETERMINISTIC CORE</span>
+        </div>
+
+        {/* Live Metrics Grid */}
+        <section style={styles.metricsGrid}>
+          <div style={styles.metricCard}>
+            <div style={styles.metricLabel}>TICK</div>
+            <div style={styles.metricValue}>{simState.tick.toLocaleString()}</div>
+          </div>
+          <div style={styles.metricCard}>
+            <div style={styles.metricLabel}>STATE HASH</div>
+            <div style={{ ...styles.metricValue, ...styles.monoHash }}>
+              {simState.hash || 'COMPUTING...'}
+            </div>
+          </div>
+          <div style={styles.metricCard}>
+            <div style={styles.metricLabel}>ENTITIES</div>
+            <div style={styles.metricValue}>{simState.entityCount}</div>
+          </div>
+          <div style={styles.metricCard}>
+            <div style={styles.metricLabel}>SPEED (TICKS/SEC)</div>
+            <div style={styles.metricValue}>
+              {tps} <span style={styles.unitText}>tps</span>
+            </div>
+          </div>
+          <div style={styles.metricCard}>
+            <div style={styles.metricLabel}>RUN STATE</div>
+            <div
+              style={{
+                ...styles.metricValue,
+                color: simState.isRunning ? '#4ade80' : '#f87171',
+              }}
+            >
+              {simState.isRunning ? 'RUNNING' : 'PAUSED'}
+            </div>
+          </div>
+        </section>
+
+        {/* Controls Section */}
+        <section style={styles.controlPanel}>
+          <div style={styles.seedRow}>
+            <label htmlFor="seedInput" style={styles.fieldLabel}>
+              SIM SEED:
+            </label>
+            <input
+              id="seedInput"
+              type="text"
+              value={seedInput}
+              onChange={(e) => setSeedInput(e.target.value)}
+              style={styles.input}
+              placeholder="Enter seed string or number..."
+            />
+            <button onClick={handleReset} style={styles.buttonSecondary}>
+              Reset With Seed
+            </button>
+          </div>
+
+          <div style={styles.buttonRow}>
+            <button
+              onClick={handleStart}
+              disabled={simState.isRunning}
+              style={{
+                ...styles.buttonPrimary,
+                opacity: simState.isRunning ? 0.5 : 1,
+              }}
+            >
+              Start
+            </button>
+            <button
+              onClick={handlePause}
+              disabled={!simState.isRunning}
+              style={{
+                ...styles.buttonSecondary,
+                opacity: !simState.isRunning ? 0.5 : 1,
+              }}
+            >
+              Pause
+            </button>
+            <button onClick={handleSpawnEntity} style={styles.buttonAction}>
+              Spawn Test Entity
+            </button>
+          </div>
+        </section>
+
+        {/* Verification Checks */}
+        <section style={styles.verificationSection}>
+          <h2 style={styles.sectionHeader}>Deterministic Verification Diagnostics</h2>
+
+          {/* Replay Verification */}
+          <div style={styles.verifyCard}>
+            <div style={styles.verifyHeaderRow}>
+              <div>
+                <h3 style={styles.verifyTitle}>Replay Verification</h3>
+                <p style={styles.verifyDesc}>
+                  Replays the entire command log through a fresh Engine to confirm 100% bit-parity.
+                </p>
+              </div>
+              <button
+                id="btn-verify-replay"
+                onClick={handleVerifyReplay}
+                style={styles.buttonVerify}
+              >
+                Verify Replay
+              </button>
+            </div>
+            {replayResult.status !== 'IDLE' && (
+              <div
+                style={{
+                  ...styles.resultBox,
+                  borderColor: replayResult.status === 'PASS' ? '#22c55e' : '#ef4444',
+                }}
+              >
+                <div style={styles.resultBadgeRow}>
+                  <span
+                    style={{
+                      ...styles.badge,
+                      backgroundColor: replayResult.status === 'PASS' ? '#15803d' : '#b91c1c',
+                    }}
+                  >
+                    {replayResult.status}
+                  </span>
+                  <span style={styles.resultSummary}>
+                    Evaluated across {replayResult.ticks?.toLocaleString()} ticks
+                  </span>
+                </div>
+                <div style={styles.hashCompareRow}>
+                  <div>
+                    <span style={styles.subLabel}>Live Hash: </span>
+                    <code style={styles.codeHash}>{replayResult.liveHash}</code>
+                  </div>
+                  <div>
+                    <span style={styles.subLabel}>Replay Hash: </span>
+                    <code style={styles.codeHash}>{replayResult.replayHash}</code>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Snapshot Verification */}
+          <div style={styles.verifyCard}>
+            <div style={styles.verifyHeaderRow}>
+              <div>
+                <h3 style={styles.verifyTitle}>Snapshot & Restore Verification</h3>
+                <p style={styles.verifyDesc}>
+                  Captures current state, passes through JSON serialization, advances both engines
+                  500 ticks.
+                </p>
+              </div>
+              <button
+                id="btn-verify-snapshot"
+                onClick={handleVerifySnapshot}
+                style={styles.buttonVerify}
+              >
+                Verify Snapshot
+              </button>
+            </div>
+            {snapshotResult.status !== 'IDLE' && (
+              <div
+                style={{
+                  ...styles.resultBox,
+                  borderColor: snapshotResult.status === 'PASS' ? '#22c55e' : '#ef4444',
+                }}
+              >
+                <div style={styles.resultBadgeRow}>
+                  <span
+                    style={{
+                      ...styles.badge,
+                      backgroundColor: snapshotResult.status === 'PASS' ? '#15803d' : '#b91c1c',
+                    }}
+                  >
+                    {snapshotResult.status}
+                  </span>
+                  <span style={styles.resultSummary}>
+                    Advanced both branches by {snapshotResult.ticksTested} ticks
+                  </span>
+                </div>
+                <div style={styles.hashCompareRow}>
+                  <div>
+                    <span style={styles.subLabel}>Baseline Hash: </span>
+                    <code style={styles.codeHash}>{snapshotResult.baselineHash}</code>
+                  </div>
+                  <div>
+                    <span style={styles.subLabel}>Restored Hash: </span>
+                    <code style={styles.codeHash}>{snapshotResult.restoredHash}</code>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    minHeight: '100vh',
+    backgroundColor: '#0b0f17',
+    color: '#e2e8f0',
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  banner: {
+    backgroundColor: '#1e293b',
+    borderBottom: '1px solid #334155',
+    padding: '10px 24px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  bannerTag: {
+    backgroundColor: '#f59e0b',
+    color: '#000',
+    padding: '2px 8px',
+    borderRadius: '4px',
+    fontWeight: 700,
+    fontSize: '11px',
+    letterSpacing: '0.05em',
+  },
+  bannerText: {
+    color: '#cbd5e1',
+    fontSize: '13px',
+    fontWeight: 500,
+  },
+  main: {
+    maxWidth: '1000px',
+    width: '100%',
+    margin: '0 auto',
+    padding: '32px 24px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24px',
+  },
+  titleSection: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: '12px',
+    borderBottom: '1px solid #1e293b',
+    paddingBottom: '16px',
+  },
+  title: {
+    margin: 0,
+    fontSize: '24px',
+    fontWeight: 700,
+    letterSpacing: '-0.02em',
+    color: '#f8fafc',
+  },
+  versionBadge: {
+    backgroundColor: '#0f172a',
+    border: '1px solid #38bdf8',
+    color: '#38bdf8',
+    padding: '4px 10px',
+    borderRadius: '4px',
+    fontSize: '11px',
+    fontWeight: 600,
+    letterSpacing: '0.05em',
+  },
+  metricsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+    gap: '16px',
+  },
+  metricCard: {
+    backgroundColor: '#111827',
+    border: '1px solid #1f2937',
+    borderRadius: '8px',
+    padding: '16px',
+  },
+  metricLabel: {
+    color: '#94a3b8',
+    fontSize: '11px',
+    fontWeight: 600,
+    letterSpacing: '0.08em',
+    marginBottom: '6px',
+  },
+  metricValue: {
+    fontSize: '20px',
+    fontWeight: 700,
+    color: '#f1f5f9',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  monoHash: {
+    fontSize: '14px',
+    color: '#38bdf8',
+  },
+  unitText: {
+    fontSize: '13px',
+    color: '#64748b',
+    fontWeight: 400,
+  },
+  controlPanel: {
+    backgroundColor: '#111827',
+    border: '1px solid #1f2937',
+    borderRadius: '8px',
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  seedRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    flexWrap: 'wrap',
+  },
+  fieldLabel: {
+    fontSize: '12px',
+    fontWeight: 600,
+    color: '#94a3b8',
+    letterSpacing: '0.05em',
+  },
+  input: {
+    backgroundColor: '#030712',
+    border: '1px solid #374151',
+    color: '#f3f4f6',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    fontSize: '13px',
+    fontFamily: 'inherit',
+    flex: '1 1 200px',
+    outline: 'none',
+  },
+  buttonRow: {
+    display: 'flex',
+    gap: '12px',
+    flexWrap: 'wrap',
+  },
+  buttonPrimary: {
+    backgroundColor: '#2563eb',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '8px 18px',
+    fontSize: '13px',
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  buttonSecondary: {
+    backgroundColor: '#1f2937',
+    color: '#e5e7eb',
+    border: '1px solid #374151',
+    borderRadius: '6px',
+    padding: '8px 16px',
+    fontSize: '13px',
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
+  buttonAction: {
+    backgroundColor: '#0d9488',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '8px 18px',
+    fontSize: '13px',
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  buttonVerify: {
+    backgroundColor: '#4338ca',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '8px 16px',
+    fontSize: '13px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    alignSelf: 'flex-start',
+  },
+  verificationSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  sectionHeader: {
+    fontSize: '15px',
+    fontWeight: 600,
+    color: '#94a3b8',
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
+    margin: '8px 0 0 0',
+  },
+  verifyCard: {
+    backgroundColor: '#111827',
+    border: '1px solid #1f2937',
+    borderRadius: '8px',
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '14px',
+  },
+  verifyHeaderRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '16px',
+    flexWrap: 'wrap',
+  },
+  verifyTitle: {
+    margin: '0 0 4px 0',
+    fontSize: '16px',
+    fontWeight: 600,
+    color: '#f8fafc',
+  },
+  verifyDesc: {
+    margin: 0,
+    fontSize: '12px',
+    color: '#94a3b8',
+  },
+  resultBox: {
+    backgroundColor: '#030712',
+    border: '1px solid',
+    borderRadius: '6px',
+    padding: '14px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  resultBadgeRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  badge: {
+    color: '#fff',
+    padding: '2px 8px',
+    borderRadius: '4px',
+    fontSize: '11px',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+  },
+  resultSummary: {
+    fontSize: '12px',
+    color: '#94a3b8',
+  },
+  hashCompareRow: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    fontSize: '12px',
+  },
+  subLabel: {
+    color: '#64748b',
+  },
+  codeHash: {
+    color: '#38bdf8',
+    fontWeight: 600,
+  },
+};
