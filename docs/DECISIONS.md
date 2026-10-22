@@ -35,3 +35,21 @@ Given the same seed and sequence of scheduled commands, any run on any compliant
 ### Consequences
 - **Positive**: Complete reproducibility of training sessions, deterministic replay verification, instantaneous snapshot save/restore, and reliable automated regression testing.
 - **Negative**: Developers cannot rely on standard JavaScript timing or random utilities; all stochastic behavior must thread through the deterministic `Rng` instance.
+
+
+## ADR-002: Commercial Quad Transit Geometry and Reference Score Behavior
+
+### Status
+Accepted
+
+### Context
+In Phase 1A, the scripted scenario "Dawn Intrusion" spawns a commercial quadcopter at $t \approx 20\text{ s}$ traversing a lateral transit corridor passing $\approx 1.2\text{ km}$ from the defended asset.
+
+### Decision
+The commercial quadcopter transit flight path in `src/sim/scenarios/dawnIntrusion.ts` was updated from initial/terminal coordinates of `vec3(-4000, quadStandoffY, 90)` $\to$ `vec3(4000, quadStandoffY, 90)` to `vec3(-1100, quadStandoffY, 90)` $\to$ `vec3(1100, quadStandoffY, 90)`.
+
+### Rationale
+At the previous 8,000 m transit distance and 12 m/s cruise speed, the commercial quad required over 666 seconds (13,333 simulation ticks) to complete its transit—greatly exceeding the scenario's 240-second (4,800 ticks) mission timeout. Consequently, the commercial quad could never exit the operational sector naturally, preventing the mission rules engine from ever evaluating an `all_resolved` completion. Adjusting the path length to 2,200 m allows the quad to traverse the designated corridor in $\approx 183\text{ seconds}$ ($\approx 3,660\text{ ticks}$), transiting across the radar scope and exiting the operational sector cleanly before the scenario limit.
+
+### Reference Score Movement on Seeds s2 and s4
+On seeds s2 and s4, the previous spawn coordinate at $X = -4000\text{ m}$ placed the quad at an initial slant range of $>4.1\text{ km}$. For a small commercial quad with reference RCS of $0.01\text{ m}^2$, radar detection probability ($P_d$) at $>4\text{ km}$ is near the sensitivity boundary, which caused intermittent tentative blips, missed sweeps, and occasional delayed track confirmation. Because the reference operator acknowledges tracks upon confirmation, this fringe detection jitter caused acknowledgment latency on seeds s2 and s4 to slip just outside the $\le 3.0\text{ s}$ perfect detection window, reducing the contact detection sub-score and resulting in overall scores of 94. With the updated path starting at $X = -1100\text{ m}$ (range $\approx 1.6\text{ km}$), the quad appears well within high-confidence detection range, confirming consistently on the second sweep and enabling immediate acknowledgment within the 3.0 s threshold (yielding 100 on all seeds). This change was enacted solely to ensure physically consistent transit flight times and clean sector exit mechanics, and was not designed or tuned to manipulate scoring thresholds.
