@@ -19,7 +19,7 @@ interface Point3D {
   kind?: 'body' | 'arm' | 'motor' | 'propeller' | 'camera' | 'antenna';
 }
 
-const ASCII_RAMP = '   ..:--==++**%%@@##';
+const ASCII_RAMP = ' .:-=+*#%@█';
 
 // Build the procedural 3D Tactical Drone Model with Rotor Guards & Fuselage
 function generateDroneModel(): Point3D[] {
@@ -155,9 +155,9 @@ function generateDroneModel(): Point3D[] {
 export function DroneAsciiSimulation({
   className = '',
   style,
-  color = '#181716',
+  color = '#050505',
   backgroundColor = 'transparent',
-  fontSize = 9,
+  fontSize = 10,
   autoRotate = true,
   rotationSpeed = 0.012,
   enableMouseRotate = true,
@@ -288,15 +288,17 @@ export function DroneAsciiSimulation({
             // Compute lighting / character density
             let charIndex: number;
             if (wireframeOnly) {
-              charIndex = pt.kind === 'propeller' ? 9 : 5;
+              charIndex = pt.kind === 'propeller' ? 9 : 6;
             } else {
               // Depth-based shading gradient with specular highlight on rotors
-              const depthNorm = Math.max(0, Math.min(1, (z2 + 1.8) / 3.6));
-              const rampIdx = Math.floor(depthNorm * (ASCII_RAMP.length - 1));
+              // Minimum base ink is index 4 ('=') so even far-away surfaces have solid dark ink presence
+              const depthNorm = Math.max(0, Math.min(1, (z2 + 1.6) / 3.2));
+              const minInk = 4;
+              const rampIdx = minInk + Math.floor(depthNorm * (ASCII_RAMP.length - 1 - minInk));
               charIndex = pt.kind === 'propeller' ? Math.min(ASCII_RAMP.length - 1, rampIdx + 2) : rampIdx;
             }
 
-            buffer[idx] = ASCII_RAMP[charIndex] || '#';
+            buffer[idx] = ASCII_RAMP[charIndex] || '█';
           }
         }
       }
@@ -413,18 +415,18 @@ export function DroneAsciiSimulation({
         <button
           onClick={() => {
             const nextColor =
-              activeColor === '#181716'
-                ? '#8e5b5d' // Shourya Foundry Terracotta
-                : activeColor === '#8e5b5d'
-                  ? '#6b518c' // Tactical Lavender
-                  : activeColor === '#6b518c'
-                    ? '#4e660e' // Dark Olive
-                    : activeColor === '#4e660e'
-                      ? '#b83327' // Crimson
-                      : '#181716';
+              activeColor === '#050505'
+                ? '#381417' // Deep Dark Terracotta Ink
+                : activeColor === '#381417'
+                  ? '#0d1829' // Deep Tactical Navy Ink
+                  : activeColor === '#0d1829'
+                    ? '#241030' // Deep Obsidian Plum Ink
+                    : activeColor === '#241030'
+                      ? '#10240e' // Deep Tactical Olive Ink
+                      : '#050505';
             setActiveColor(nextColor);
           }}
-          title="Switch Color Theme (Ink / Terracotta / Lavender / Olive / Crimson)"
+          title="Switch Color Theme (Obsidian / Terracotta / Navy / Plum / Olive)"
           style={{
             backgroundColor: '#eae5dc',
             border: `1.5px solid ${activeColor}`,
@@ -447,12 +449,13 @@ export function DroneAsciiSimulation({
         style={{
           margin: 0,
           padding: '16px',
-          fontFamily: 'Courier New, monospace',
+          fontFamily: 'Consolas, "Cascadia Code", "SF Mono", Menlo, ui-monospace, monospace',
           fontSize: `${fontSize}px`,
-          lineHeight: '9px',
-          letterSpacing: '1px',
+          fontWeight: 800,
+          lineHeight: '10px',
+          letterSpacing: '0.5px',
           color: activeColor,
-          textShadow: 'none',
+          textShadow: '0 0 1px rgba(0, 0, 0, 0.45)',
           whiteSpace: 'pre',
           pointerEvents: 'none',
           textAlign: 'center',
