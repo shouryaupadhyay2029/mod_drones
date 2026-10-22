@@ -270,6 +270,12 @@ describe('Console UI Components & Logic Verification', () => {
         'Hostile drone neutralized at 950m (>400m standoff): 100% decision score',
         'Prompt radar acknowledgment latency 1.5s',
       ],
+      effectorUse: {
+        gunBurstsFired: 1,
+        jammerCycles: 0,
+        killsPerEffector: { gun: 1, jammer: 0 },
+        wastedEngagements: { ghost: 0, decoy: 0, neutral: 1 },
+      },
     };
 
     const fixtureLog: SessionLog = {

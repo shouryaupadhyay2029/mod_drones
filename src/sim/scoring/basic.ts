@@ -33,12 +33,27 @@ export interface ScorePenalty {
   points: number;
 }
 
+export interface EffectorUse {
+  gunBurstsFired: number;
+  jammerCycles: number;
+  killsPerEffector: {
+    gun: number;
+    jammer: number;
+  };
+  wastedEngagements: {
+    ghost: number;
+    decoy: number;
+    neutral: number;
+  };
+}
+
 export interface ScoreReport {
   total: number;
   weightedMean: number;
   perContact: ContactScore[];
   penalties: ScorePenalty[];
   reasons: string[];
+  effectorUse: EffectorUse;
 }
 
 function formatTickTime(tick: number): string {
@@ -186,6 +201,11 @@ export function scoreSession(
     if (assessedClass) {
       if (assessedClass === actor.classId) {
         classificationScore = 1.0;
+      } else if (
+        (assessedClass === 'fpv_kamikaze' && actor.classId === 'fpv_fiber') ||
+        (assessedClass === 'fpv_fiber' && actor.classId === 'fpv_kamikaze')
+      ) {
+        classificationScore = 0.5;
       } else {
         classificationScore = 0;
       }
@@ -295,6 +315,24 @@ export function scoreSession(
     }
   }
 
+  // Penalty: Engaged decoy (per actor)
+  for (let i = 0; i < actors.length; i++) {
+    const actor = actors[i];
+    if (actor && actor.classId === 'decoy_drone') {
+      const actorTracks = tracks.filter((t) => t.actorId === actor.id);
+      const engagedEvt = events.find(
+        (e) =>
+          e.type === 'ENGAGEMENT_STARTED' &&
+          actorTracks.some((t) => t.trackId === e.payload?.trackId)
+      );
+      if (engagedEvt) {
+        const penMsg = `Engaged decoy at ${formatTickTime(engagedEvt.tick)}: -${PENALTIES.ENGAGE_DECOY}`;
+        penalties.push({ reason: penMsg, points: PENALTIES.ENGAGE_DECOY });
+        reasons.push(penMsg);
+      }
+    }
+  }
+
   // Penalty 2: Engaged bird (per actor)
   for (let i = 0; i < actors.length; i++) {
     const actor = actors[i];
@@ -355,11 +393,65 @@ export function scoreSession(
 
   const total = Math.max(0, Math.min(100, Math.round(rawWeightedMean - totalPenaltyPoints)));
 
+  // Effector use accounting
+  let gunBurstsFired = 0;
+  let jammerCycles = 0;
+  const killsPerEffector = { gun: 0, jammer: 0 };
+  const wastedEngagements = { ghost: 0, decoy: 0, neutral: 0 };
+
+  for (let i = 0; i < events.length; i++) {
+    const e = events[i];
+    if (!e) continue;
+
+    if (e.type === 'ENGAGEMENT_STARTED') {
+      const effector = e.payload?.effector;
+      if (effector === 'gun') {
+        gunBurstsFired++;
+      } else if (effector === 'jammer') {
+        jammerCycles++;
+      }
+
+      const trackId = e.payload?.trackId;
+      const trk = tracks.find((t) => t.trackId === trackId);
+      if (trk?.isGhost) {
+        wastedEngagements.ghost++;
+      } else {
+        const act = actors.find((a) => a.id === trk?.actorId);
+        if (act?.classId === 'decoy_drone') {
+          wastedEngagements.decoy++;
+        } else if (act?.classId === 'commercial_quad' || act?.classId === 'bird') {
+          wastedEngagements.neutral++;
+        } else if (!act) {
+          wastedEngagements.ghost++;
+        }
+      }
+    } else if (e.type === 'ENGAGEMENT_RESOLVED') {
+      if (e.payload?.result === 'hit') {
+        const effector = e.payload?.effector;
+        const trackId = e.payload?.trackId;
+        const trk = tracks.find((t) => t.trackId === trackId);
+        const act = actors.find((a) => a.id === trk?.actorId);
+        if (act && THREAT_LIBRARY[act.classId]?.hostile) {
+          if (effector === 'gun') killsPerEffector.gun++;
+          if (effector === 'jammer') killsPerEffector.jammer++;
+        }
+      }
+    }
+  }
+
+  const effectorUse: EffectorUse = {
+    gunBurstsFired,
+    jammerCycles,
+    killsPerEffector,
+    wastedEngagements,
+  };
+
   return {
     total,
     weightedMean: Math.round(rawWeightedMean * 10) / 10,
     perContact,
     penalties,
     reasons,
+    effectorUse,
   };
 }

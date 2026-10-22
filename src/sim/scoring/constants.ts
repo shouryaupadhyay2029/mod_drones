@@ -17,6 +17,7 @@ export const DETECTION_THRESHOLDS = {
 export const PENALTIES = {
   ENGAGE_CIVILIAN_QUAD: 25,
   ENGAGE_BIRD: 5,
+  ENGAGE_DECOY: 3,
   WASTED_JAMMER_NON_RF: 5,
   ASSET_HIT: 30,
 } as const;

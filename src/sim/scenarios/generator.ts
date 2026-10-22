@@ -12,7 +12,6 @@ import {
   Weather,
 } from '../model/environment.js';
 import { generateTerrain, TerrainMap } from '../model/terrain.js';
-import { ThreatClassId } from '../model/threats.js';
 import { ScenarioSpawnSchedule } from './dawnIntrusion.js';
 import {
   buildSwarmSpawns,
@@ -103,7 +102,7 @@ export function generateScenario(
 }
 
 function buildSingleScenario(
-  seed: string | number,
+  _seed: string | number,
   tier: Tier,
   rng: Rng
 ): ProceduralScenario {
