@@ -15,6 +15,7 @@ export function ConsolePage(): React.JSX.Element {
   const {
     phase,
     seed,
+    scenarioId,
     speed,
     isPaused,
     autopilot,
@@ -71,6 +72,8 @@ export function ConsolePage(): React.JSX.Element {
         autopilot={autopilot}
         seed={seed}
         phase={phase}
+        scenarioId={scenarioId}
+        environment={view?.environment}
         onTogglePause={togglePause}
         onSetSpeed={setSpeedMultiplier}
         onToggleAutopilot={toggleAutopilot}
@@ -156,7 +159,9 @@ export function ConsolePage(): React.JSX.Element {
           score={scoreReport}
           sessionLog={sessionLog}
           seed={seed}
-          onReplaySameSeed={() => startMission(seed)}
+          scenarioId={scenarioId}
+          environment={view?.environment}
+          onReplaySameSeed={() => startMission(seed, scenarioId)}
           onNewRandomSeed={() => {
             const arr = new Uint8Array(4);
             crypto.getRandomValues(arr);

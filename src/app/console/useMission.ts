@@ -15,6 +15,7 @@ export type MissionPhase = 'setup' | 'running' | 'ended';
 export interface UseMissionReturn {
   phase: MissionPhase;
   seed: string;
+  scenarioId: string;
   speed: 1 | 2 | 4;
   isPaused: boolean;
   autopilot: boolean;
@@ -23,7 +24,7 @@ export interface UseMissionReturn {
   trailHistory: Map<number, Array<{ x: number; y: number; z: number }>>;
   scoreReport: ScoreReport | null;
   sessionLog: SessionLog | null;
-  startMission: (seed: string) => void;
+  startMission: (seed: string, scenarioId?: string) => void;
   togglePause: () => void;
   setSpeedMultiplier: (speed: 1 | 2 | 4) => void;
   toggleAutopilot: () => void;
@@ -38,6 +39,7 @@ export interface UseMissionReturn {
 export function useMission(initialSeed?: string): UseMissionReturn {
   const [phase, setPhase] = useState<MissionPhase>('setup');
   const [seed, setSeed] = useState<string>(initialSeed ?? 'alpha-omega-42');
+  const [scenarioId, setScenarioId] = useState<string>('dawn_intrusion');
   const [speed, setSpeed] = useState<1 | 2 | 4>(1);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [autopilot, setAutopilot] = useState<boolean>(false);
@@ -88,9 +90,12 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   }, []);
 
   const startMission = useCallback(
-    (newSeed: string) => {
+    (newSeed: string, newScenarioId?: string) => {
       const client = clientRef.current;
       if (!client) return;
+
+      const chosenScenario = newScenarioId ?? scenarioId;
+      setScenarioId(chosenScenario);
 
       trailHistoryRef.current.clear();
       setScoreReport(null);
@@ -101,11 +106,11 @@ export function useMission(initialSeed?: string): UseMissionReturn {
       setIsPaused(false);
       setPhase('running');
 
-      client.init(newSeed, 'dawn_intrusion');
+      client.init(newSeed, chosenScenario);
       client.setSpeed(1);
       client.start();
     },
-    []
+    [scenarioId]
   );
 
   const togglePause = useCallback(() => {
@@ -208,6 +213,7 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   return {
     phase,
     seed,
+    scenarioId,
     speed,
     isPaused,
     autopilot,

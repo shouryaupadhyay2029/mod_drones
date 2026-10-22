@@ -124,6 +124,11 @@ export function useHotkeys({
         onClassify(selectedTrackId, 'fixed_wing_recon');
         return;
       }
+      if (e.key === '5') {
+        e.preventDefault();
+        onClassify(selectedTrackId, 'clutter');
+        return;
+      }
       if (e.key === '0') {
         e.preventDefault();
         onClassify(selectedTrackId, 'unknown');

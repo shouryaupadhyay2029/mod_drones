@@ -1,8 +1,43 @@
 import React, { useState } from 'react';
 
 export interface MissionSetupProps {
-  onStart: (seed: string) => void;
+  onStart: (seed: string, scenarioId?: string) => void;
 }
+
+interface ScenarioOption {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  chips: string[];
+}
+
+const SCENARIO_OPTIONS: ScenarioOption[] = [
+  {
+    id: 'dawn_intrusion',
+    title: 'Dawn Intrusion',
+    subtitle: 'Standard Baseline Scenario',
+    description:
+      'Single hostile FPV ingress with civilian quadcopter transit and avian clutter in rural conditions.',
+    chips: ['Rural', 'Clear', 'Dusk', 'EW: None'],
+  },
+  {
+    id: 'ridge_runner',
+    title: 'Ridge Runner',
+    subtitle: 'Terrain Masking & Low Visibility',
+    description:
+      'Dual hostile FPV ingress utilizing terrain ridge masking in hilly fog conditions with light EW.',
+    chips: ['Hilly', 'Fog', 'Vis 2km', 'Dusk', 'EW: Light'],
+  },
+  {
+    id: 'city_edge_night',
+    title: 'City Edge Night',
+    subtitle: 'Dense Urban Clutter & Heavy EW',
+    description:
+      'High-altitude reconnaissance UAV and low-altitude fast strike drone in dense urban clutter with rain and heavy EW.',
+    chips: ['Urban', 'Rain', 'Vis 5km', 'Night', 'EW: Heavy'],
+  },
+];
 
 function generateRandomSeed(): string {
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
@@ -14,6 +49,7 @@ function generateRandomSeed(): string {
 }
 
 export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element {
+  const [selectedScenario, setSelectedScenario] = useState<string>('dawn_intrusion');
   const [seedInput, setSeedInput] = useState<string>(() => generateRandomSeed());
 
   const handleRandomize = () => {
@@ -23,26 +59,63 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
     const clean = seedInput.trim() || 's1';
-    onStart(clean);
+    onStart(clean, selectedScenario);
   };
+
+  const activeScenario =
+    SCENARIO_OPTIONS.find((s) => s.id === selectedScenario) || SCENARIO_OPTIONS[0]!;
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
         <div style={styles.header}>
-          <div style={styles.missionTag}>MISSION BRIEFING</div>
-          <h2 style={styles.title}>Dawn Intrusion</h2>
+          <div style={styles.missionTag}>MISSION SELECTION & BRIEFING</div>
+          <h2 style={styles.title}>{activeScenario.title}</h2>
           <p style={styles.subtitle}>
             Asset Defense Exercise • Radar Surveillance & Threat Interception
           </p>
         </div>
 
+        {/* Scenario Selection Cards */}
+        <div style={styles.scenarioList}>
+          {SCENARIO_OPTIONS.map((sc) => {
+            const isSelected = sc.id === selectedScenario;
+            return (
+              <div
+                key={sc.id}
+                onClick={() => setSelectedScenario(sc.id)}
+                style={{
+                  ...styles.scenarioCard,
+                  borderColor: isSelected ? '#38bdf8' : '#1e293b',
+                  backgroundColor: isSelected ? '#0b1626' : '#080e18',
+                }}
+              >
+                <div style={styles.scenarioCardHeader}>
+                  <input
+                    type="radio"
+                    name="scenarioPicker"
+                    checked={isSelected}
+                    onChange={() => setSelectedScenario(sc.id)}
+                    style={{ cursor: 'pointer', accentColor: '#38bdf8' }}
+                  />
+                  <span style={styles.scenarioCardTitle}>{sc.title}</span>
+                </div>
+                <div style={styles.scenarioCardSubtitle}>{sc.subtitle}</div>
+                <div style={styles.chipsRow}>
+                  {sc.chips.map((chip, idx) => (
+                    <span key={idx} style={styles.chipTag}>
+                      {chip}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         <div style={styles.briefingBox}>
           <h3 style={styles.briefingHeading}>SITUATION REPORT</h3>
-          <p style={styles.briefingText}>
-            Early dawn airspace radar contact monitoring. Unidentified radar tracks have been
-            detected approaching the protected asset sector. Trainee objective:
-          </p>
+          <p style={styles.briefingText}>{activeScenario.description}</p>
           <ul style={styles.briefingList}>
             <li>
               <strong>Detect & Acknowledge:</strong> Swiftly acknowledge incoming radar tracks
@@ -50,11 +123,11 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
             </li>
             <li>
               <strong>Classify:</strong> Assess kinematics, closing rate, altitude, and radar cross
-              section (RCS) to classify bird, civilian quadcopter, or hostile drone.
+              section (RCS) to classify bird, civilian quadcopter, hostile FPV, recon UAV, or clutter.
             </li>
             <li>
               <strong>Decide & Engage:</strong> Neutralize confirmed hostile threats with Jammer
-              (&le;1.5km) or Gun (&le;1.0km). Exercise strict fire discipline for non-hostiles.
+              (&le;1.5km) or Gun (&le;1.0km). Exercise strict fire discipline for non-hostiles and clutter blips.
             </li>
           </ul>
         </div>
@@ -98,136 +171,182 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
 const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex',
-    justifyContent: 'center',
     alignItems: 'center',
-    padding: '40px 20px',
-    minHeight: 'calc(100vh - 120px)',
+    justifyContent: 'center',
+    flex: 1,
+    padding: '20px',
+    backgroundColor: '#050a12',
+    overflowY: 'auto',
   },
   card: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #1e293b',
-    borderRadius: '12px',
-    maxWidth: '640px',
     width: '100%',
-    padding: '32px',
+    maxWidth: '720px',
+    backgroundColor: '#0b111e',
+    border: '1px solid #1e293b',
+    borderRadius: '10px',
+    padding: '24px 28px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '24px',
+    gap: '16px',
     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
   },
   header: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
     borderBottom: '1px solid #1e293b',
-    paddingBottom: '16px',
+    paddingBottom: '12px',
   },
   missionTag: {
-    color: '#38bdf8',
     fontSize: '11px',
     fontWeight: 700,
+    color: '#38bdf8',
     letterSpacing: '0.1em',
-    fontFamily: 'monospace',
+    marginBottom: '4px',
   },
   title: {
-    margin: 0,
-    fontSize: '28px',
+    margin: '0 0 4px 0',
+    fontSize: '22px',
     fontWeight: 700,
     color: '#f8fafc',
-    letterSpacing: '-0.02em',
+    letterSpacing: '0.02em',
   },
   subtitle: {
     margin: 0,
-    fontSize: '14px',
+    fontSize: '12px',
     color: '#94a3b8',
   },
+  scenarioList: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '10px',
+  },
+  scenarioCard: {
+    border: '1px solid',
+    borderRadius: '6px',
+    padding: '10px 12px',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+    transition: 'all 0.15s ease',
+  },
+  scenarioCardHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  scenarioCardTitle: {
+    fontSize: '13px',
+    fontWeight: 700,
+    color: '#f8fafc',
+  },
+  scenarioCardSubtitle: {
+    fontSize: '10px',
+    color: '#94a3b8',
+    marginLeft: '24px',
+  },
+  chipsRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '4px',
+    marginTop: '6px',
+    marginLeft: '24px',
+  },
+  chipTag: {
+    fontSize: '9px',
+    backgroundColor: '#1e293b',
+    color: '#38bdf8',
+    padding: '2px 5px',
+    borderRadius: '3px',
+    fontWeight: 600,
+  },
   briefingBox: {
-    backgroundColor: '#030712',
+    backgroundColor: '#050a12',
     border: '1px solid #1e293b',
-    borderRadius: '8px',
-    padding: '16px 20px',
+    borderRadius: '6px',
+    padding: '12px 16px',
   },
   briefingHeading: {
-    margin: '0 0 8px 0',
-    fontSize: '12px',
+    margin: '0 0 6px 0',
+    fontSize: '11px',
+    fontWeight: 700,
     color: '#38bdf8',
-    letterSpacing: '0.05em',
-    fontFamily: 'monospace',
+    letterSpacing: '0.08em',
   },
   briefingText: {
-    margin: '0 0 10px 0',
-    fontSize: '13px',
-    color: '#cbd5e1',
-    lineHeight: '1.5',
+    margin: '0 0 8px 0',
+    fontSize: '12px',
+    lineHeight: '1.4',
+    color: '#e2e8f0',
   },
   briefingList: {
     margin: 0,
-    paddingLeft: '20px',
-    fontSize: '13px',
+    paddingLeft: '18px',
+    fontSize: '12px',
+    lineHeight: '1.5',
     color: '#94a3b8',
     display: 'flex',
     flexDirection: 'column',
-    gap: '6px',
+    gap: '4px',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: '14px',
   },
   inputGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '6px',
   },
   label: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#94a3b8',
+    color: '#cbd5e1',
     letterSpacing: '0.05em',
-    fontFamily: 'monospace',
   },
   inputRow: {
     display: 'flex',
-    gap: '10px',
+    gap: '8px',
   },
   input: {
     flex: 1,
-    backgroundColor: '#030712',
+    padding: '8px 12px',
+    backgroundColor: '#050a12',
     border: '1px solid #334155',
-    color: '#f8fafc',
-    padding: '10px 14px',
     borderRadius: '6px',
-    fontSize: '14px',
+    color: '#f8fafc',
+    fontSize: '13px',
     fontFamily: 'monospace',
     outline: 'none',
   },
   buttonRandom: {
+    padding: '8px 14px',
     backgroundColor: '#1e293b',
     border: '1px solid #334155',
-    color: '#e2e8f0',
-    padding: '10px 16px',
     borderRadius: '6px',
-    fontSize: '13px',
+    color: '#f8fafc',
+    fontSize: '12px',
     fontWeight: 600,
     cursor: 'pointer',
-    fontFamily: 'monospace',
+    fontFamily: 'inherit',
+    whiteSpace: 'nowrap',
   },
   hint: {
     fontSize: '11px',
     color: '#64748b',
-    fontFamily: 'monospace',
+    fontStyle: 'italic',
   },
   buttonStart: {
+    padding: '12px 18px',
     backgroundColor: '#2563eb',
-    color: '#fff',
+    color: '#ffffff',
     border: 'none',
     borderRadius: '6px',
-    padding: '12px 24px',
     fontSize: '14px',
     fontWeight: 700,
     letterSpacing: '0.05em',
-    fontFamily: 'monospace',
     cursor: 'pointer',
     transition: 'background-color 0.15s ease',
+    fontFamily: 'inherit',
+    marginTop: '4px',
   },
 };

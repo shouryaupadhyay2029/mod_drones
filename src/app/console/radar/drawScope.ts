@@ -18,6 +18,9 @@ export function getAssessedColor(assessedClass?: string): string {
   if (assessedClass === 'fpv_kamikaze' || assessedClass === 'fixed_wing_recon') {
     return '#ef4444'; // red
   }
+  if (assessedClass === 'clutter') {
+    return '#94a3b8'; // gray
+  }
   return '#f59e0b';
 }
 
@@ -31,6 +34,8 @@ export function getAssessedAbbr(assessedClass?: string): string {
       return 'FPV';
     case 'fixed_wing_recon':
       return 'UAV';
+    case 'clutter':
+      return 'CLUT';
     default:
       return '';
   }

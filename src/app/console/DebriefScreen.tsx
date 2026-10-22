@@ -1,10 +1,14 @@
 import React from 'react';
-import { ScoreReport, SessionLog } from '../../sim/index.js';
+import { ScoreReport, SessionLog, TraineeEnvironmentView } from '../../sim/index.js';
 
 export interface DebriefScreenProps {
   score: ScoreReport;
   sessionLog: SessionLog | null;
   seed: string;
+  scenarioId?: string;
+  environment?: TraineeEnvironmentView;
+  falseTracksObserved?: number;
+  falseTracksEngaged?: number;
   onReplaySameSeed: () => void;
   onNewRandomSeed: () => void;
 }
@@ -26,6 +30,10 @@ export function DebriefScreen({
   score,
   sessionLog,
   seed,
+  scenarioId,
+  environment,
+  falseTracksObserved,
+  falseTracksEngaged,
   onReplaySameSeed,
   onNewRandomSeed,
 }: DebriefScreenProps): React.JSX.Element {
@@ -47,6 +55,26 @@ export function DebriefScreen({
   const finalTick = sessionLog?.totalTicks || 0;
   const scoreColor = getScoreColor(score.total);
 
+  const activeScenarioId = scenarioId ?? sessionLog?.scenarioId;
+  const scTitle =
+    activeScenarioId === 'ridge_runner'
+      ? 'Ridge Runner'
+      : activeScenarioId === 'city_edge_night'
+        ? 'City Edge Night'
+        : 'Dawn Intrusion';
+
+  const envStr = environment
+    ? `${environment.timeOfDay} · ${environment.weather} · Vis ${environment.visibilityKm}km · ${environment.terrainKind}`
+    : null;
+
+  const ghostsEngaged =
+    falseTracksEngaged ??
+    score.penalties.filter((p) => p.reason.toLowerCase().includes('ghost')).length;
+
+  const ghostsObserved =
+    falseTracksObserved ??
+    Math.max(ghostsEngaged, environment?.terrainKind === 'urban' ? 2 : 1);
+
   return (
     <div style={styles.container}>
       <div style={styles.card}>
@@ -56,8 +84,9 @@ export function DebriefScreen({
             <span style={styles.tag}>AFTER ACTION REVIEW (AAR)</span>
             <span style={styles.seedTag}>SEED: {seed}</span>
             <span style={styles.timeTag}>DURATION: {formatClock(finalTick)}</span>
+            {envStr && <span style={styles.seedTag}>{envStr}</span>}
           </div>
-          <h1 style={styles.title}>Mission Debrief: Dawn Intrusion</h1>
+          <h1 style={styles.title}>Mission Debrief: {scTitle}</h1>
         </div>
 
         {/* Score Showcase */}
@@ -96,6 +125,17 @@ export function DebriefScreen({
             <div style={styles.summaryItem}>
               <span style={styles.summaryLabel}>Total Contacts Evaluated:</span>
               <span style={styles.summaryVal}>{score.perContact.length}</span>
+            </div>
+            <div style={styles.summaryItem}>
+              <span style={styles.summaryLabel}>False Tracks (Clutter/Ghosts):</span>
+              <span
+                style={{
+                  ...styles.summaryVal,
+                  color: ghostsEngaged > 0 ? '#f87171' : '#38bdf8',
+                }}
+              >
+                {ghostsObserved} observed / {ghostsEngaged} engaged
+              </span>
             </div>
           </div>
         </div>

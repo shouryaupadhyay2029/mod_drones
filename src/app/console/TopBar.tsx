@@ -1,4 +1,5 @@
 import React from 'react';
+import { TraineeEnvironmentView } from '../../sim/index.js';
 
 export interface TopBarProps {
   tick: number;
@@ -7,6 +8,8 @@ export interface TopBarProps {
   autopilot: boolean;
   seed: string;
   phase: 'setup' | 'running' | 'ended';
+  scenarioId?: string;
+  environment?: TraineeEnvironmentView;
   onTogglePause: () => void;
   onSetSpeed: (speed: 1 | 2 | 4) => void;
   onToggleAutopilot: () => void;
@@ -26,10 +29,23 @@ export function TopBar({
   autopilot,
   seed,
   phase,
+  scenarioId,
+  environment,
   onTogglePause,
   onSetSpeed,
   onToggleAutopilot,
 }: TopBarProps): React.JSX.Element {
+  const scTitle =
+    scenarioId === 'ridge_runner'
+      ? 'RIDGE RUNNER'
+      : scenarioId === 'city_edge_night'
+        ? 'CITY EDGE NIGHT'
+        : 'DAWN INTRUSION';
+
+  const envStr = environment
+    ? `${environment.timeOfDay} · ${environment.weather} · Vis ${environment.visibilityKm}km · ${environment.terrainKind}`
+    : null;
+
   return (
     <div style={styles.container}>
       {/* Top Banner */}
@@ -47,7 +63,12 @@ export function TopBar({
       <div style={styles.actionBar}>
         {/* Left: Mission Info & Clock */}
         <div style={styles.leftGroup}>
-          <div style={styles.missionTitle}>DAWN INTRUSION</div>
+          <div style={styles.missionTitle}>{scTitle}</div>
+          {envStr && (
+            <div style={styles.envChipBadge}>
+              {envStr}
+            </div>
+          )}
           <div style={styles.clockBox} id="missionClock">
             <span style={styles.clockLabel}>TICK</span>
             <span style={styles.clockValue} id="missionTick">{tick}</span>
@@ -158,6 +179,16 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '16px',
     flexWrap: 'wrap',
+  },
+  envChipBadge: {
+    backgroundColor: '#0f172a',
+    border: '1px solid #334155',
+    color: '#38bdf8',
+    padding: '3px 8px',
+    borderRadius: '4px',
+    fontSize: '11px',
+    fontWeight: 600,
+    textTransform: 'capitalize',
   },
   missionTitle: {
     color: '#38bdf8',
