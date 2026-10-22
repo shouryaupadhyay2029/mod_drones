@@ -56,21 +56,42 @@ async function run() {
     try {
       const page = await browser.newPage();
       const outDir = path.resolve('docs/screenshots');
+      const artifactDir = 'C:\\Users\\Shourya Upadhyay\\.gemini\\antigravity\\brain\\8764f751-615b-4181-97b2-67211edfa358';
 
-      // 1. Capture Full-Width Hero Section
       await page.goto('http://127.0.0.1:4173/#/', { waitUntil: 'networkidle0' });
       await new Promise((r) => setTimeout(r, 600));
 
-      await page.screenshot({ path: path.join(outDir, 'hero-fullwidth-drone.png') });
-      console.log('Captured hero-fullwidth-drone.png');
+      const buttons = await page.$$('.nav-mega-btn');
+      console.log(`Found ${buttons.length} mega-menu buttons`);
 
-      // 2. Click or Hover the SCENARIOS mega-menu dropdown
-      const scenarioBtn = await page.$('.nav-mega-btn');
-      if (scenarioBtn) {
-        await scenarioBtn.click();
-        await new Promise((r) => setTimeout(r, 400));
-        await page.screenshot({ path: path.join(outDir, 'navbar-mega-menu.png') });
-        console.log('Captured navbar-mega-menu.png');
+      // 1. Scenarios dropdown (Terrain)
+      if (buttons[0]) {
+        await buttons[0].click();
+        await new Promise((r) => setTimeout(r, 500));
+        const p1 = path.join(outDir, 'navbar-mega-scenarios.png');
+        await page.screenshot({ path: p1 });
+        fs.copyFileSync(p1, path.join(artifactDir, 'navbar-mega-scenarios.png'));
+        console.log('Captured navbar-mega-scenarios.png');
+      }
+
+      // 2. Systems dropdown (Radar)
+      if (buttons[1]) {
+        await buttons[1].click();
+        await new Promise((r) => setTimeout(r, 500));
+        const p2 = path.join(outDir, 'navbar-mega-systems.png');
+        await page.screenshot({ path: p2 });
+        fs.copyFileSync(p2, path.join(artifactDir, 'navbar-mega-systems.png'));
+        console.log('Captured navbar-mega-systems.png');
+      }
+
+      // 3. Threats dropdown (FPV)
+      if (buttons[2]) {
+        await buttons[2].click();
+        await new Promise((r) => setTimeout(r, 500));
+        const p3 = path.join(outDir, 'navbar-mega-threats.png');
+        await page.screenshot({ path: p3 });
+        fs.copyFileSync(p3, path.join(artifactDir, 'navbar-mega-threats.png'));
+        console.log('Captured navbar-mega-threats.png');
       }
 
     } finally {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TraineeEnvironmentView } from '../../sim/index.js';
+import { NavMiniAsciiPreview } from '../components/NavMiniAsciiPreview.js';
 import { TextRoll } from '../components/TextRoll.js';
 
 export interface TopBarProps {
@@ -146,6 +147,7 @@ export function TopBar({
                     <span className="mega-preview-tag">SCENARIO INTELLIGENCE</span>
                     <span style={{ fontSize: '11px', color: '#cbb3e8' }}>v2.4</span>
                   </div>
+                  <NavMiniAsciiPreview modelType="terrain" />
                   <div>
                     <h4 className="mega-preview-title">Autonomous Mission Suite</h4>
                     <p className="mega-preview-text">
@@ -231,6 +233,7 @@ export function TopBar({
                     <span className="mega-preview-tag">INTEGRATED C2 SUITE</span>
                     <span style={{ fontSize: '11px', color: '#d4ff3f' }}>ARMED</span>
                   </div>
+                  <NavMiniAsciiPreview modelType="radar" />
                   <div>
                     <h4 className="mega-preview-title">Layered Air Defense</h4>
                     <p className="mega-preview-text">
@@ -316,6 +319,7 @@ export function TopBar({
                     <span className="mega-preview-tag">DOCTRINE & ROE</span>
                     <span style={{ fontSize: '11px', color: '#e34234' }}>STRICT</span>
                   </div>
+                  <NavMiniAsciiPreview modelType="fpv" />
                   <div>
                     <h4 className="mega-preview-title">Rules of Engagement</h4>
                     <p className="mega-preview-text">
