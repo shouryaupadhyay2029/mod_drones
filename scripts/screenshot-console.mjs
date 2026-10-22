@@ -73,14 +73,25 @@ async function run() {
       console.log('Navigating to http://127.0.0.1:4173 ...');
       await page.goto('http://127.0.0.1:4173/#/', { waitUntil: 'networkidle0' });
 
-      // If in setup mode, click Start Mission to enter running console
-      const buttons = await page.$$('button');
-      for (const b of buttons) {
-        const text = await page.evaluate((el) => el.textContent, b);
-        if (text?.includes('START MISSION') || text?.trim() === 'Start Mission') {
-          console.log('Clicking START MISSION...');
-          await b.click();
-          break;
+      // If in setup mode, open briefing modal and click Start Mission to enter running console
+      await page.evaluate(() => {
+        window.dispatchEvent(new CustomEvent('mod:open-briefing'));
+      });
+      await new Promise((resolve) => setTimeout(resolve, 400));
+
+      const startBtn = await page.$('#btn-start-mission');
+      if (startBtn) {
+        console.log('Clicking START MISSION...');
+        await startBtn.click();
+      } else {
+        const buttons = await page.$$('button');
+        for (const b of buttons) {
+          const text = await page.evaluate((el) => el.textContent, b);
+          if (text?.includes('START MISSION') || text?.trim() === 'Start Mission') {
+            console.log('Clicking START MISSION button...');
+            await b.click();
+            break;
+          }
         }
       }
 

@@ -82,3 +82,9 @@ For tracks assessed as `fpv_kamikaze` or `fixed_wing_recon`:
 
 For tracks assessed as `commercial_quad`, `bird`, or `clutter`:
 $\to$ Dispatch `HOLD_FIRE` directive once to record restraint and avoid accidental engagement.
+
+---
+
+## 4. Documented Deviations
+- **Fixed-Wing Reconnaissance Cue Rule (commit 5c19fd9)**: In Phase 2A, `fixed_wing_recon` threats in `city_edge_night` fly at high altitude ($\ge 160\text{ m}$) with cruise speeds ($\ge 18\text{ m/s}$). Rule C1 (`altitudeM >= 160 && speed >= 18`) was added to `referenceOperator` to classify high-altitude reconnaissance threats without relying on scenario-specific bearing-sector hacks.
+

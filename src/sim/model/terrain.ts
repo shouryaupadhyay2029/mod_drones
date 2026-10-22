@@ -242,17 +242,9 @@ export function getClutterFactor(x: number, y: number, kind: TerrainKind): numbe
 export function hasLineOfSight(
   from: Vec3,
   to: Vec3,
-  terrainOrKind: TerrainMap | TerrainKind,
+  terrain: TerrainMap,
   sampleStepM = 50
 ): boolean {
-  let terrain: TerrainMap;
-  if (typeof terrainOrKind === 'string') {
-    const dummyRng = new Rng('fixed-seed');
-    terrain = generateTerrain(terrainOrKind, dummyRng);
-  } else {
-    terrain = terrainOrKind;
-  }
-
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const dz = to.z - from.z;
