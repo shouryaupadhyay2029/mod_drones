@@ -129,19 +129,18 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   }, []);
 
   const toggleAutopilot = useCallback(() => {
-    setAutopilot((prev) => {
-      const next = !prev;
-      autopilotRef.current = next;
-      // If turning on autopilot and we have a current view, dispatch immediately
-      if (next && view && clientRef.current && !view.missionState.ended) {
-        const commands = referenceOperator(view);
-        for (let i = 0; i < commands.length; i++) {
-          const cmd = commands[i];
-          if (cmd) clientRef.current.enqueue(cmd);
-        }
+    const next = !autopilotRef.current;
+    autopilotRef.current = next;
+    setAutopilot(next);
+
+    // Side effect executes strictly outside the setState updater
+    if (next && view && clientRef.current && !view.missionState.ended) {
+      const commands = referenceOperator(view);
+      for (let i = 0; i < commands.length; i++) {
+        const cmd = commands[i];
+        if (cmd) clientRef.current.enqueue(cmd);
       }
-      return next;
-    });
+    }
   }, [view]);
 
   const selectTrack = useCallback((trackId: number | null) => {
