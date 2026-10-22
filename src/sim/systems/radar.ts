@@ -30,15 +30,11 @@ function irwinHall(rng: Rng): number {
  * wrapping properly across 360 degrees.
  */
 function isAngleInSector(angle: number, start: number, end: number): boolean {
-  const normAngle = ((angle % 360) + 360) % 360;
-  const normStart = ((start % 360) + 360) % 360;
-  const normEnd = ((end % 360) + 360) % 360;
-
-  if (normStart <= normEnd) {
-    return normAngle >= normStart && normAngle < normEnd;
-  }
-  // Sector wraps across North (0 deg)
-  return normAngle >= normStart || normAngle < normEnd;
+  let span = (end - start) % 360;
+  if (span <= 0) span += 360;
+  let diff = (angle - start) % 360;
+  if (diff < 0) diff += 360;
+  return diff >= 0 && diff < span;
 }
 
 function computeRcsBucket(measuredRcs: number): RcsBucket {
@@ -84,6 +80,13 @@ export function runRadarSystem(
       continue;
     }
 
+    const existingTrack = tracks.find((t) => t.actorId === actor.id && t.state !== 'dropped');
+    // Sector test is half-open [start, end) with 360 wrap; rotation period is 40 ticks (2.0s).
+    // A target cannot receive two plots on consecutive ticks or less than 1.9s apart.
+    if (existingTrack && currentTick - existingTrack.lastDetectedTick < 38) {
+      continue;
+    }
+
     const threat = THREAT_LIBRARY[actor.classId];
     const r = vDist(actor.pos, origin);
 
@@ -123,7 +126,6 @@ export function runRadarSystem(
     const hasLos = hasLineOfSight(mastPos, actor.pos, terrain, 50);
 
     const hit = hasLos && radarRng.next() < pd;
-    const existingTrack = tracks.find((t) => t.actorId === actor.id && t.state !== 'dropped');
 
     if (hit) {
       // Gaussian noise via Irwin-Hall, scaled by EW noise multiplier [1, 1.5, 2.5]
@@ -177,7 +179,7 @@ export function runRadarSystem(
         existingTrack.measuredRcs = measuredRcs;
 
         const dtSec = (currentTick - existingTrack.lastDetectedTick) * DT;
-        if (dtSec >= 0.5) {
+        if (dtSec > 0) {
           const rawVx = (measPos.x - existingTrack.estimatedPos.x) / dtSec;
           const rawVy = (measPos.y - existingTrack.estimatedPos.y) / dtSec;
           const rawVz = (measPos.z - existingTrack.estimatedPos.z) / dtSec;
@@ -288,6 +290,10 @@ export function runRadarSystem(
       trk.estimatedPos.y += trk.estimatedVel.y * DT;
       trk.estimatedPos.z += trk.estimatedVel.z * DT;
 
+      if (trk.lastDetectedTick !== undefined && currentTick - trk.lastDetectedTick < 38) {
+        continue;
+      }
+
       const gBearing = bearingDeg(origin, trk.estimatedPos);
       if (isAngleInSector(gBearing, startAzimuth, endAzimuth)) {
         trk.ghostRotationsSeen = (trk.ghostRotationsSeen ?? 0) + 1;
@@ -357,7 +363,7 @@ export function runRadarSystem(
       const p = ratePerMin / 120;
 
       if (p > 0 && ghostRng.next() < p) {
-        const bGhostDeg = startAzimuth + ghostRng.next() * 90;
+        const bGhostDeg = (startAzimuth + ghostRng.next() * sweepDegPerTick) % 360;
         const bGhostRad = bGhostDeg * DEG_TO_RAD;
         const rGhost = 800 + ghostRng.next() * (5500 - 800);
         const zGhost = 20 + ghostRng.next() * (150 - 20);
