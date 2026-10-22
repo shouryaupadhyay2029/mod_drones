@@ -13,6 +13,7 @@ import {
 } from '../scenarios/index.js';
 import { runEngagementSystem, tryEngageTrack } from '../systems/engagement.js';
 import { runRadarSystem } from '../systems/radar.js';
+import { createInitialRfState, RfDetectorState, runRfSystem } from '../systems/rf.js';
 import { buildTraineeView, TraineeView } from '../view/traineeView.js';
 import { DT } from './clock.js';
 import { stateHash } from './hash.js';
@@ -57,6 +58,7 @@ export class Engine {
   private nextActorId = 1;
   private nextTrackId = 1;
   private scheduledSpawns: ScenarioSpawnSchedule[] = [];
+  private rfDetectorState: RfDetectorState = createInitialRfState();
 
   private pendingCommands: Command[] = [];
   private executedCommands: Command[] = [];
@@ -143,7 +145,18 @@ export class Engine {
     );
     this.nextTrackId = trackRef.current;
 
-    // 4. engagement
+    // 4. rf detector (passive)
+    runRfSystem(
+      currentTick,
+      this.actors,
+      this.tracks,
+      this.rfDetectorState,
+      this.rng.fork('rf'),
+      this.world.environment,
+      this.terrain
+    );
+
+    // 5. engagement
     runEngagementSystem(
       currentTick,
       this.actors,
@@ -153,7 +166,7 @@ export class Engine {
       this.events
     );
 
-    // 5. missionRules
+    // 6. missionRules
     this.runMissionRules(currentTick);
 
     // Advance tick counter
@@ -431,7 +444,8 @@ export class Engine {
       this.missionState.ended,
       this.missionState.reason,
       this.events,
-      this.world.environment
+      this.world.environment,
+      this.rfDetectorState
     );
   }
 
@@ -516,6 +530,9 @@ export class Engine {
       missionState: { ...this.missionState },
       nextActorId: this.nextActorId,
       nextTrackId: this.nextTrackId,
+      rfState: {
+        lines: this.rfDetectorState.lines.map((l) => ({ ...l })),
+      },
     };
   }
 
@@ -524,6 +541,12 @@ export class Engine {
     engine.world = cloneWorld(snapshot.world);
     engine.rng.setState(snapshot.rngStates.main);
     engine.rng.restoreForkStates(snapshot.rngStates.forks);
+
+    if (snapshot.rfState) {
+      engine.rfDetectorState = {
+        lines: snapshot.rfState.lines.map((l) => ({ ...l })),
+      };
+    }
 
     engine.pendingCommands = snapshot.pendingCommands.map((c) => ({
       tick: c.tick,

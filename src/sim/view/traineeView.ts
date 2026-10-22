@@ -2,14 +2,25 @@ import { SimEvent } from '../core/types.js';
 import { bearingDeg, vDist, Vec3, vec3, vLen } from '../core/vec.js';
 import { EffectorState } from '../model/effectors.js';
 import { Environment, TerrainKind, TimeOfDay, Weather } from '../model/environment.js';
-import { ThreatClassId } from '../model/threats.js';
-import { EngagementStatus, RcsBucket, Track, TrackState } from '../model/tracks.js';
+import { RfSignature, ThreatClassId } from '../model/threats.js';
+import { EngagementStatus, RcsBucket, RfStatus, Track, TrackState } from '../model/tracks.js';
+import { RfDetectorState } from '../systems/rf.js';
 
 export interface TraineeEnvironmentView {
   timeOfDay: TimeOfDay;
   weather: Weather;
   visibilityKm: number;
   terrainKind: TerrainKind;
+}
+
+export interface TraineeRfLine {
+  bearingDeg: number;
+  ageS: number;
+  signature: RfSignature;
+}
+
+export interface TraineeRfView {
+  lines: TraineeRfLine[];
 }
 
 export interface TraineeTrack {
@@ -30,6 +41,8 @@ export interface TraineeTrack {
   assessedClass?: ThreatClassId | 'unknown';
   engagementStatus: EngagementStatus;
   lastPlotTick: number;
+  rfStatus?: RfStatus;
+  rfSignature?: RfSignature;
 }
 
 export interface TraineeEffectorsView {
@@ -54,6 +67,7 @@ export interface TraineeView {
   tracks: TraineeTrack[];
   effectors: TraineeEffectorsView;
   events: readonly SimEvent[];
+  rf: TraineeRfView;
 }
 
 export function buildTraineeView(
@@ -63,7 +77,8 @@ export function buildTraineeView(
   missionEnded: boolean,
   missionEndReason: 'asset_hit' | 'all_resolved' | 'time_limit' | undefined,
   allEvents: readonly SimEvent[],
-  environment?: Environment
+  environment?: Environment,
+  rfDetectorState?: RfDetectorState
 ): TraineeView {
   const origin = vec3(0, 0, 0);
 
@@ -114,6 +129,8 @@ export function buildTraineeView(
       assessedClass: t.assessedClass,
       engagementStatus: t.engagementStatus,
       lastPlotTick: t.lastDetectedTick,
+      rfStatus: t.rfStatus ?? 'unknown',
+      rfSignature: t.rfSignature,
     });
   }
 
@@ -130,6 +147,14 @@ export function buildTraineeView(
       e.type === 'MISSION_END'
     );
   });
+
+  const rfLines = (rfDetectorState?.lines ?? [])
+    .filter((l) => tick - l.tick <= 100)
+    .map((l) => ({
+      bearingDeg: l.bearingDeg,
+      ageS: (tick - l.tick) * 0.05,
+      signature: l.signature,
+    }));
 
   return {
     tick,
@@ -151,5 +176,8 @@ export function buildTraineeView(
       },
     },
     events: traineeEvents,
+    rf: {
+      lines: rfLines,
+    },
   };
 }

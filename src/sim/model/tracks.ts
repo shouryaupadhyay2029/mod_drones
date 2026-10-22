@@ -1,9 +1,10 @@
 import { Vec3 } from '../core/vec.js';
-import { ThreatClassId } from './threats.js';
+import { RfSignature, ThreatClassId } from './threats.js';
 
 export type TrackState = 'tentative' | 'confirmed' | 'dropped';
 export type RcsBucket = 'tiny' | 'small' | 'medium';
 export type EngagementStatus = 'none' | 'engaged' | 'holding_fire';
+export type RfStatus = 'emitting' | 'silent' | 'unknown';
 
 export interface Track {
   trackId: number;
@@ -34,4 +35,6 @@ export interface Track {
   headingChangeRateSmoothed: number;
   previousHeadingDeg?: number;
   lastSweepChecked: number;
+  rfStatus?: RfStatus;
+  rfSignature?: RfSignature;
 }

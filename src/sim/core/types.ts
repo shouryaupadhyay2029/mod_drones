@@ -1,7 +1,7 @@
 import { Actor } from '../model/actors.js';
 import { EffectorState, EffectorType } from '../model/effectors.js';
 import { Environment } from '../model/environment.js';
-import { ThreatClassId } from '../model/threats.js';
+import { RfSignature, ThreatClassId } from '../model/threats.js';
 import { Track } from '../model/tracks.js';
 
 export interface Entity {
@@ -111,4 +111,7 @@ export interface EngineSnapshot {
   missionState: MissionState;
   nextActorId: number;
   nextTrackId: number;
+  rfState?: {
+    lines: Array<{ tick: number; bearingDeg: number; signature: RfSignature }>;
+  };
 }
