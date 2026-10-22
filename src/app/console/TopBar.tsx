@@ -633,15 +633,11 @@ export function TopBar({
             <div style={styles.setupNavRight} className="anim-curved-slide anim-delay-5">
               <button
                 id="btn-nav-launch-mission"
-                className="nav-launch-cta"
+                className="nav-launch-cta-transparent"
                 onClick={() => openBriefingModal()}
                 title="Launch Mission Simulator"
               >
-                <span style={styles.navLaunchDot} />
-                <span>
-                  <TextRoll center stagger={0.02}>LAUNCH MISSION</TextRoll>
-                </span>
-                <span style={{ fontSize: '11px', color: '#f59e0b' }}>⚡</span>
+                <TextRoll center stagger={0.02}>LAUNCH MISSION</TextRoll>
               </button>
             </div>
           ) : (

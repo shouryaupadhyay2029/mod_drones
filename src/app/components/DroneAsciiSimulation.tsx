@@ -335,15 +335,22 @@ export function DroneAsciiSimulation({
       ? { x: c4.left - cont.left - standoff, y: c4.top - cont.top + c4.height / 2 }
       : { x: cont.width - 275, y: cont.height - 80 };
 
+    // When rendered with 116 monospace characters, the grid is ~760px wide by ~480px high
+    const isPopulated = pre.width > 400 && pre.height > 250;
+    const preWidth = isPopulated ? pre.width : 780;
+    const preHeight = isPopulated ? pre.height : 512;
+    const preLeft = isPopulated ? pre.left - cont.left : (cont.width - preWidth) / 2;
+    const preTop = isPopulated ? pre.top - cont.top : (cont.height - preHeight) / 2;
+
     layoutRef.current = {
       c1: c1Pos,
       c2: c2Pos,
       c3: c3Pos,
       c4: c4Pos,
-      preLeft: pre.left - cont.left,
-      preTop: pre.top - cont.top,
-      preWidth: pre.width > 0 ? pre.width : 800,
-      preHeight: pre.height > 0 ? pre.height : 480,
+      preLeft,
+      preTop,
+      preWidth,
+      preHeight,
     };
 
     if (svgRef.current) {
@@ -372,6 +379,14 @@ export function DroneAsciiSimulation({
     updateLayoutBounds();
     const handleResize = () => updateLayoutBounds();
     window.addEventListener('resize', handleResize);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => updateLayoutBounds());
+      if (containerRef.current) resizeObserver.observe(containerRef.current);
+      if (preRef.current) resizeObserver.observe(preRef.current);
+    }
+
     // Extra pass after DOM settle
     const timer = setTimeout(updateLayoutBounds, 120);
 
@@ -383,6 +398,7 @@ export function DroneAsciiSimulation({
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mod:reassemble-drone', handleReassemble);
+      if (resizeObserver) resizeObserver.disconnect();
       clearTimeout(timer);
     };
   }, []);
@@ -400,6 +416,10 @@ export function DroneAsciiSimulation({
       }
       const elapsed = Math.max(0, (currentTime - assemblyStartTimeRef.current) / 1000);
       const globalProgress = Math.min(1.0, elapsed / ASSEMBLY_DURATION);
+
+      if (layoutRef.current.preWidth < 400 && preRef.current && preRef.current.offsetWidth > 300) {
+        updateLayoutBounds();
+      }
 
       if (isRotating && !isDraggingRef.current) {
         // High-tech swirling vortex during assembly that gently settles into stable rotation speed
@@ -528,21 +548,28 @@ export function DroneAsciiSimulation({
 
       const { c1, c2, c3, c4, preLeft, preTop, preWidth, preHeight } = layoutRef.current;
 
+      // Note: <pre> has padding: 16px. Monospace character canvas grid spans within the inner bounds.
+      const textPad = 16;
+      const innerW = Math.max(100, preWidth - textPad * 2);
+      const innerH = Math.max(100, preHeight - textPad * 2);
+      const originX = preLeft + textPad;
+      const originY = preTop + textPad;
+
       const rTL = {
-        x: preLeft + (tlPt.screenX / cols) * preWidth,
-        y: preTop + (tlPt.screenY / rows) * preHeight,
+        x: originX + (tlPt.screenX / cols) * innerW,
+        y: originY + (tlPt.screenY / rows) * innerH,
       };
       const rBL = {
-        x: preLeft + (blPt.screenX / cols) * preWidth,
-        y: preTop + (blPt.screenY / rows) * preHeight,
+        x: originX + (blPt.screenX / cols) * innerW,
+        y: originY + (blPt.screenY / rows) * innerH,
       };
       const rTR = {
-        x: preLeft + (trPt.screenX / cols) * preWidth,
-        y: preTop + (trPt.screenY / rows) * preHeight,
+        x: originX + (trPt.screenX / cols) * innerW,
+        y: originY + (trPt.screenY / rows) * innerH,
       };
       const rBR = {
-        x: preLeft + (brPt.screenX / cols) * preWidth,
-        y: preTop + (brPt.screenY / rows) * preHeight,
+        x: originX + (brPt.screenX / cols) * innerW,
+        y: originY + (brPt.screenY / rows) * innerH,
       };
 
       // HUD Leader Lines and reticles fade in once rotors dock into place (progress 0.70 -> 1.0)

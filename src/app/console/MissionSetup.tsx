@@ -104,28 +104,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
       {/* Skiper14-Inspired 3D ASCII Drone Hero Section */}
       <DroneHeroSection />
 
-      {/* Hero Tactical Launch CTA */}
-      <div style={styles.heroActionHub} className="anim-curved-slide anim-delay-3">
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          style={styles.heroPrimaryBtn}
-          id="btn-hero-launch-mission"
-          className="hero-launch-btn"
-          title="Open Scenario Setup & Launch Simulator"
-        >
-          <span style={styles.heroBtnDot} />
-          <span>LAUNCH MISSION SIMULATOR</span>
-          <span style={{ fontSize: '13px', color: '#f59e0b' }}>⚡</span>
-        </button>
-
-        <a href="#/check" style={styles.heroSecondaryLink}>
-          <span>SYSTEM CHECK & DIAGNOSTICS</span>
-          <span style={{ fontSize: '11px', color: '#2d6b75' }}>↗</span>
-        </a>
-      </div>
-
-      {/* Tactical Mission Briefing Modal Overlay (Triggered from Navbar or Hero CTA) */}
+      {/* Tactical Mission Briefing Modal Overlay (Triggered from Navbar or Hero) */}
       <div
         className={`briefing-modal-overlay ${isModalOpen ? 'is-open' : ''}`}
         style={{
@@ -267,57 +246,6 @@ const styles: Record<string, React.CSSProperties> = {
     backgroundColor: 'transparent',
     overflowY: 'auto',
     width: '100%',
-  },
-  heroActionHub: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '14px',
-    marginTop: '-8px',
-    marginBottom: '28px',
-    zIndex: 10,
-    flexWrap: 'wrap',
-  },
-  heroPrimaryBtn: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '10px',
-    backgroundColor: '#181716',
-    color: '#ffffff',
-    border: '1px solid rgba(255, 255, 255, 0.16)',
-    borderRadius: '6px',
-    padding: '11px 24px',
-    fontSize: '12px',
-    fontWeight: 700,
-    fontFamily: 'monospace',
-    letterSpacing: '0.08em',
-    cursor: 'pointer',
-    boxShadow: '0 4px 16px rgba(24, 23, 22, 0.2)',
-    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-  },
-  heroBtnDot: {
-    width: '7px',
-    height: '7px',
-    borderRadius: '50%',
-    backgroundColor: '#d35623',
-    boxShadow: '0 0 6px #d35623',
-    display: 'inline-block',
-  },
-  heroSecondaryLink: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '6px',
-    backgroundColor: 'transparent',
-    color: '#58544e',
-    border: '1px solid rgba(45, 40, 35, 0.2)',
-    borderRadius: '6px',
-    padding: '10px 20px',
-    fontSize: '11.5px',
-    fontWeight: 600,
-    fontFamily: 'monospace',
-    letterSpacing: '0.06em',
-    textDecoration: 'none',
-    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
   },
   modalHeaderRow: {
     display: 'flex',
