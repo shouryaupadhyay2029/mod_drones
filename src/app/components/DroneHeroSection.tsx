@@ -24,10 +24,10 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    backgroundColor: '#080808',
-    borderBottom: '1px solid #262626',
+    backgroundColor: 'transparent',
+    borderBottom: 'none',
     boxSizing: 'border-box',
-    padding: '16px 24px 20px 24px',
+    padding: '4px 24px 24px 24px',
   },
   canvasWrapper: {
     position: 'relative',

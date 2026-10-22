@@ -65,30 +65,7 @@ export function TopBar({
 
   return (
     <header style={styles.headerRoot}>
-      {/* Top Disclaimer / Operational Sub-Bar */}
-      <div style={styles.topSubBar}>
-        <div style={styles.subBarLeft}>
-          <span style={styles.disclaimerPill}>
-            <TextRoll center stagger={0.02}>DISCLAIMER</TextRoll>
-          </span>
-          <span style={styles.disclaimerText}>
-            TRAINING SIMULATION — generic open-source parameters only
-          </span>
-        </div>
-        <div style={styles.subBarRight}>
-          <div style={styles.statusPulse}>
-            <span style={styles.pulseDot} />
-            <span style={styles.pulseText}>
-              {phase === 'running' ? 'LIVE 20 HZ RUNTIME' : 'SIMULATION STANDBY'}
-            </span>
-          </div>
-          <a href="#/check" style={styles.sysCheckLink}>
-            <TextRoll stagger={0.02}>System Check ↗</TextRoll>
-          </a>
-        </div>
-      </div>
-
-      {/* Main Luxury Navigation Bar */}
+      {/* Luxury Integrated Navigation Bar — Part of the page background */}
       <nav style={styles.mainNav}>
         {/* Left: Brand Identity */}
         <div style={styles.brandGroup}>
@@ -187,6 +164,8 @@ export function TopBar({
             </div>
           </div>
 
+          <span style={styles.navDivider}>|</span>
+
           {/* Tab 2: Defense Systems */}
           <div
             className="nav-mega-item"
@@ -266,6 +245,8 @@ export function TopBar({
               </div>
             </div>
           </div>
+
+          <span style={styles.navDivider}>|</span>
 
           {/* Tab 3: Threat Intel */}
           <div
@@ -350,6 +331,8 @@ export function TopBar({
             </div>
           </div>
 
+          <span style={styles.navDivider}>|</span>
+
           {/* Tab 4: Diagnostics Direct Link */}
           <div className="nav-mega-item">
             <a href="#/check" style={styles.navDirectLink}>
@@ -363,6 +346,19 @@ export function TopBar({
         <div style={styles.navRight}>
           {phase === 'setup' ? (
             <div style={styles.setupActionCluster}>
+              <div style={styles.statusPulse}>
+                <span style={styles.pulseDot} />
+                <span style={styles.pulseText}>STANDBY</span>
+              </div>
+
+              <span style={styles.navDivider}>|</span>
+
+              <a href="#/check" style={styles.sysCheckLink}>
+                <TextRoll stagger={0.02}>System Check ↗</TextRoll>
+              </a>
+
+              <span style={styles.navDivider}>|</span>
+
               <div style={styles.scenarioActiveChip} title="Current Scenario Selection">
                 <span style={styles.chipDot} />
                 <span style={styles.chipText}>{scTitle}</span>
@@ -385,6 +381,8 @@ export function TopBar({
                   {envStr}
                 </div>
               )}
+
+              <span style={styles.navDivider}>|</span>
 
               {/* Mission Clock */}
               <div style={styles.clockBox} id="missionClock">
@@ -454,42 +452,33 @@ const styles: Record<string, React.CSSProperties> = {
   headerRoot: {
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#080808',
-    borderBottom: '1px solid #262626',
+    backgroundColor: 'transparent',
+    border: 'none',
     position: 'relative',
     zIndex: 100,
+    width: '100%',
   },
-  topSubBar: {
-    backgroundColor: '#050505',
-    borderBottom: '1px solid #1f1f1f',
-    padding: '5px 20px',
+  mainNav: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    fontSize: '11px',
-    fontFamily: 'monospace',
-  },
-  subBarLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  disclaimerPill: {
-    backgroundColor: '#cbb3e8',
-    color: '#080808',
-    padding: '2px 7px',
-    borderRadius: '3px',
-    fontWeight: 800,
-    fontSize: '10px',
-    boxShadow: '0 0 8px rgba(203, 179, 232, 0.35)',
-  },
-  disclaimerText: {
-    color: '#b5b5be',
-  },
-  subBarRight: {
-    display: 'flex',
-    alignItems: 'center',
+    padding: '16px 32px',
+    backgroundColor: 'transparent',
+    border: 'none',
+    maxWidth: '1440px',
+    margin: '0 auto',
+    width: '100%',
+    boxSizing: 'border-box',
     gap: '16px',
+    flexWrap: 'wrap',
+  },
+  navDivider: {
+    color: '#2a2a2e',
+    fontSize: '13px',
+    padding: '0 2px',
+    userSelect: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
   },
   statusPulse: {
     display: 'flex',
@@ -507,23 +496,15 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#d4ff3f',
     fontSize: '10px',
     fontWeight: 700,
-    letterSpacing: '0.04em',
+    letterSpacing: '0.05em',
+    fontFamily: 'monospace',
   },
   sysCheckLink: {
     color: '#cbb3e8',
     textDecoration: 'none',
     fontSize: '11px',
     fontWeight: 600,
-  },
-  mainNav: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '10px 20px',
-    backgroundColor: 'rgba(10, 10, 12, 0.95)',
-    backdropFilter: 'blur(12px)',
-    gap: '16px',
-    flexWrap: 'wrap',
+    fontFamily: 'monospace',
   },
   brandGroup: {
     display: 'flex',
@@ -532,29 +513,29 @@ const styles: Record<string, React.CSSProperties> = {
   brandLink: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
+    gap: '12px',
     textDecoration: 'none',
   },
   brandIconBox: {
-    width: '28px',
-    height: '28px',
+    width: '32px',
+    height: '32px',
     borderRadius: '6px',
-    backgroundColor: 'rgba(212, 255, 63, 0.12)',
-    border: '1px solid rgba(212, 255, 63, 0.4)',
+    backgroundColor: '#121212',
+    border: '1px solid #2a2a2e',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 0 10px rgba(212, 255, 63, 0.25)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
   },
   brandCrosshair: {
     color: '#d4ff3f',
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: 900,
   },
   brandTextCol: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1px',
+    gap: '2px',
   },
   brandName: {
     color: '#ffffff',
@@ -573,7 +554,7 @@ const styles: Record<string, React.CSSProperties> = {
   navCenter: {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
+    gap: '8px',
   },
   navDirectLink: {
     color: '#b5b5be',
@@ -581,12 +562,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '12px',
     fontWeight: 700,
     letterSpacing: '0.06em',
-    padding: '8px 14px',
+    padding: '8px 12px',
     borderRadius: '6px',
     display: 'flex',
     alignItems: 'center',
     gap: '4px',
-    transition: 'all 0.2s ease',
+    transition: 'all 0.18s ease',
   },
   menuBadgeActive: {
     fontSize: '9px',
@@ -686,19 +667,6 @@ const styles: Record<string, React.CSSProperties> = {
   seedValueText: {
     color: '#ffffff',
     fontWeight: 600,
-  },
-  btnNavCta: {
-    backgroundColor: '#d4ff3f',
-    color: '#080808',
-    border: 'none',
-    borderRadius: '6px',
-    padding: '7px 14px',
-    fontSize: '12px',
-    fontWeight: 800,
-    fontFamily: 'monospace',
-    cursor: 'pointer',
-    letterSpacing: '0.04em',
-    boxShadow: '0 0 10px rgba(212, 255, 63, 0.35)',
   },
   runningActionCluster: {
     display: 'flex',

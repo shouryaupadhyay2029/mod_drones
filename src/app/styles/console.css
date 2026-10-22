@@ -158,26 +158,25 @@ body {
 
 .nav-mega-btn {
   background: transparent;
-  border: 1px solid transparent;
+  border: none;
   color: var(--text-secondary);
   font-family: inherit;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  padding: 8px 14px;
+  padding: 8px 12px;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .nav-mega-btn:hover,
 .nav-mega-btn.is-active {
-  color: #ffffff;
-  background-color: rgba(203, 179, 232, 0.12);
-  border-color: rgba(203, 179, 232, 0.3);
+  color: var(--accent-lavender);
+  background-color: rgba(203, 179, 232, 0.08);
 }
 
 .nav-mega-chevron {
