@@ -37,6 +37,8 @@ export function RadarScope({
   const showEffectorRingsRef = useRef<boolean>(showEffectorRings);
   showEffectorRingsRef.current = showEffectorRings;
 
+  const hoveredTrackIdRef = useRef<number | null>(null);
+
   // Animation frame rendering loop without triggering React re-renders per tick
   useEffect(() => {
     let animId: number;
@@ -65,6 +67,7 @@ export function RadarScope({
             scaleM: scaleMRef.current,
             showEffectorRings: showEffectorRingsRef.current,
             selectedTrackId: selectedTrackIdRef.current,
+            hoveredTrackId: hoveredTrackIdRef.current,
             trailHistory: trailHistoryRef.current,
           });
           ctx.restore();
@@ -134,6 +137,48 @@ export function RadarScope({
     onSelectTrack(clickedTrackId);
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const mousePx = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const radiusPx = Math.min(centerX, centerY) - 28;
+    const center = { x: centerX, y: centerY };
+
+    const currentView = viewRef.current;
+    if (!currentView || !currentView.tracks) {
+      hoveredTrackIdRef.current = null;
+      return;
+    }
+
+    const candidates: PlotCandidate[] = [];
+    for (let i = 0; i < currentView.tracks.length; i++) {
+      const trk = currentView.tracks[i];
+      if (!trk || trk.state === 'dropped') continue;
+      const posPx = polarToPixel(
+        trk.rangeM,
+        trk.bearingDeg,
+        center,
+        scaleMRef.current,
+        radiusPx
+      );
+      candidates.push({ trackId: trk.trackId, posPx });
+    }
+
+    hoveredTrackIdRef.current = nearestPlot(mousePx, candidates, 14);
+  };
+
+  const handleMouseLeave = () => {
+    hoveredTrackIdRef.current = null;
+  };
+
   return (
     <div
       ref={containerRef}
@@ -197,6 +242,8 @@ export function RadarScope({
         ref={canvasRef}
         onWheel={handleWheel}
         onClick={handleClick}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
         style={{
           width: '100%',
           height: '100%',

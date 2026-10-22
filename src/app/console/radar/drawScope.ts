@@ -5,6 +5,7 @@ export interface ScopeDrawOptions {
   scaleM: number;
   showEffectorRings: boolean;
   selectedTrackId: number | null;
+  hoveredTrackId?: number | null;
   trailHistory: Map<number, Array<{ x: number; y: number; z: number }>>;
 }
 
@@ -392,28 +393,42 @@ function drawTrack(
     ctx.shadowBlur = 0;
   }
 
-  // 5. Track label: "T<id>" + assessed abbreviation
-  const abbr = getAssessedAbbr(track.assessedClass);
-  const label = abbr ? `T${track.trackId} [${abbr}]` : `T${track.trackId}`;
+  // 5. Track label: only shown for SELECTED, HOVERED, or UNACKNOWLEDGED confirmed tracks (declutter)
+  const isHovered = options.hoveredTrackId === track.trackId;
+  const isUnackedConfirmed = track.state === 'confirmed' && !track.acked;
+  const showLabel = isSelected || isHovered || isUnackedConfirmed;
 
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 10px ui-monospace, monospace';
-  ctx.textAlign = 'left';
-  ctx.fillText(label, plotPx.x + 9, plotPx.y - 7);
+  if (showLabel) {
+    const abbr = getAssessedAbbr(track.assessedClass);
+    const label = abbr ? `T${track.trackId} [${abbr}]` : `T${track.trackId}`;
 
-  // Status indicators: ACK status / Hold fire
-  if (!track.acked) {
-    ctx.fillStyle = '#e34234';
-    ctx.font = '9px ui-monospace, monospace';
-    ctx.fillText('UNACK', plotPx.x + 9, plotPx.y + 4);
-  } else if (track.engagementStatus === 'holding_fire') {
-    ctx.fillStyle = '#cbb3e8';
-    ctx.font = '9px ui-monospace, monospace';
-    ctx.fillText('HOLD', plotPx.x + 9, plotPx.y + 4);
-  } else if (track.engagementStatus === 'engaged') {
-    ctx.fillStyle = '#d4ff3f';
-    ctx.font = 'bold 9px ui-monospace, monospace';
-    ctx.fillText('ENGAGED', plotPx.x + 9, plotPx.y + 4);
+    ctx.save();
+    if (isUnackedConfirmed) {
+      ctx.fillStyle = '#ff4d4d';
+      ctx.shadowColor = '#e34234';
+      ctx.shadowBlur = 8;
+    } else {
+      ctx.fillStyle = '#ffffff';
+    }
+    ctx.font = 'bold 10px ui-monospace, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(label, plotPx.x + 9, plotPx.y - 7);
+
+    // Status indicators: ACK status / Hold fire / Engaged
+    if (!track.acked) {
+      ctx.fillStyle = '#ff4d4d';
+      ctx.font = 'bold 9px ui-monospace, monospace';
+      ctx.fillText('UNACK', plotPx.x + 9, plotPx.y + 4);
+    } else if (track.engagementStatus === 'holding_fire') {
+      ctx.fillStyle = '#cbb3e8';
+      ctx.font = '9px ui-monospace, monospace';
+      ctx.fillText('HOLD', plotPx.x + 9, plotPx.y + 4);
+    } else if (track.engagementStatus === 'engaged') {
+      ctx.fillStyle = '#d4ff3f';
+      ctx.font = 'bold 9px ui-monospace, monospace';
+      ctx.fillText('ENGAGED', plotPx.x + 9, plotPx.y + 4);
+    }
+    ctx.restore();
   }
 
   ctx.restore();

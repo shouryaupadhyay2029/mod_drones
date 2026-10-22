@@ -11,8 +11,10 @@ import {
 
 export * from './cityEdgeNight.js';
 export * from './dawnIntrusion.js';
+export * from './generator.js';
 export * from './ridgeRunner.js';
 export * from './sandbox.js';
+export * from './swarm.js';
 
 export interface ScenarioDef {
   id: string;

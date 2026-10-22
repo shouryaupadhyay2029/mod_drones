@@ -1,5 +1,11 @@
 import React from 'react';
-import { ScoreReport, SessionLog, TraineeEnvironmentView } from '../../sim/index.js';
+import {
+  generateScenario,
+  ScoreReport,
+  SessionLog,
+  Tier,
+  TraineeEnvironmentView,
+} from '../../sim/index.js';
 import { TextRoll } from '../components/TextRoll.js';
 
 export interface DebriefScreenProps {
@@ -57,8 +63,22 @@ export function DebriefScreen({
   const scoreColor = getScoreColor(score.total);
 
   const activeScenarioId = scenarioId ?? sessionLog?.scenarioId;
-  const scTitle =
-    activeScenarioId === 'ridge_runner'
+  const isProcedural = activeScenarioId?.startsWith('proc:v1:') ?? false;
+  let procTier: string | null = null;
+  let procTactic: string | null = null;
+  if (isProcedural && activeScenarioId) {
+    procTier = activeScenarioId.slice('proc:v1:'.length);
+    try {
+      const proc = generateScenario(seed, procTier as Tier);
+      procTactic = proc.tactic ?? 'standard';
+    } catch {
+      procTactic = 'standard';
+    }
+  }
+
+  const scTitle = isProcedural
+    ? `Procedural (${procTier?.toUpperCase()})`
+    : activeScenarioId === 'ridge_runner'
       ? 'Ridge Runner'
       : activeScenarioId === 'city_edge_night'
         ? 'City Edge Night'
@@ -85,6 +105,12 @@ export function DebriefScreen({
             <span style={styles.tag}>AFTER ACTION REVIEW (AAR)</span>
             <span style={styles.seedTag}>SEED: {seed}</span>
             <span style={styles.timeTag}>DURATION: {formatClock(finalTick)}</span>
+            {isProcedural && procTier && (
+              <span style={styles.tierTag}>TIER: {procTier.toUpperCase()}</span>
+            )}
+            {isProcedural && procTactic && (
+              <span style={styles.tacticTag}>TACTIC: {procTactic.toUpperCase()}</span>
+            )}
             {envStr && <span style={styles.seedTag}>{envStr}</span>}
           </div>
           <h1 style={styles.title}>Mission Debrief: {scTitle}</h1>
@@ -233,6 +259,46 @@ export function DebriefScreen({
           </div>
         )}
 
+        {/* Effector Use Accounting */}
+        {score.effectorUse && (
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>EFFECTOR ENGAGEMENT ACCOUNTING</h3>
+            <div style={styles.effectorGrid}>
+              <div style={styles.effectorCard}>
+                <span style={styles.effectorLabel}>GUN BURSTS FIRED</span>
+                <span style={styles.effectorVal}>{score.effectorUse.gunBurstsFired}</span>
+              </div>
+              <div style={styles.effectorCard}>
+                <span style={styles.effectorLabel}>JAMMER CYCLES</span>
+                <span style={styles.effectorVal}>{score.effectorUse.jammerCycles}</span>
+              </div>
+              <div style={styles.effectorCard}>
+                <span style={styles.effectorLabel}>HOSTILE KILLS</span>
+                <span style={{ ...styles.effectorVal, color: '#4ade80' }}>
+                  Gun: {score.effectorUse.killsPerEffector.gun} | Jammer: {score.effectorUse.killsPerEffector.jammer}
+                </span>
+              </div>
+              <div style={styles.effectorCard}>
+                <span style={styles.effectorLabel}>WASTED ENGAGEMENTS</span>
+                <span
+                  style={{
+                    ...styles.effectorVal,
+                    color:
+                      score.effectorUse.wastedEngagements.ghost +
+                        score.effectorUse.wastedEngagements.decoy +
+                        score.effectorUse.wastedEngagements.neutral >
+                      0
+                        ? '#f87171'
+                        : '#a1a1aa',
+                  }}
+                >
+                  Ghost: {score.effectorUse.wastedEngagements.ghost} | Decoy: {score.effectorUse.wastedEngagements.decoy} | Neutral: {score.effectorUse.wastedEngagements.neutral}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Plain-English Reasons */}
         <div style={styles.section}>
           <h3 style={styles.sectionTitle}>EVALUATION AUDIT LOG & REASONS</h3>
@@ -312,6 +378,24 @@ const styles: Record<string, React.CSSProperties> = {
     backgroundColor: 'rgba(203, 179, 232, 0.15)',
     color: '#cbb3e8',
     border: '1px solid rgba(203, 179, 232, 0.35)',
+    padding: '2px 8px',
+    borderRadius: '4px',
+    fontSize: '11px',
+    fontWeight: 700,
+  },
+  tierTag: {
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    color: '#38bdf8',
+    border: '1px solid rgba(56, 189, 248, 0.35)',
+    padding: '2px 8px',
+    borderRadius: '4px',
+    fontSize: '11px',
+    fontWeight: 700,
+  },
+  tacticTag: {
+    backgroundColor: 'rgba(212, 255, 63, 0.15)',
+    color: '#d4ff3f',
+    border: '1px solid rgba(212, 255, 63, 0.35)',
     padding: '2px 8px',
     borderRadius: '4px',
     fontSize: '11px',
@@ -504,5 +588,30 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     fontFamily: 'monospace',
     cursor: 'pointer',
+  },
+  effectorGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '12px',
+  },
+  effectorCard: {
+    backgroundColor: '#0c0c0e',
+    border: '1px solid #262626',
+    borderRadius: '6px',
+    padding: '12px 14px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+  effectorLabel: {
+    color: '#a1a1aa',
+    fontSize: '10px',
+    fontWeight: 600,
+    letterSpacing: '0.04em',
+  },
+  effectorVal: {
+    color: '#f4f4f5',
+    fontSize: '13px',
+    fontWeight: 700,
   },
 };

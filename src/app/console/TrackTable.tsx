@@ -163,7 +163,7 @@ const styles: Record<string, React.CSSProperties> = {
   tableWrapper: {
     overflowX: 'auto',
     overflowY: 'auto',
-    maxHeight: '180px',
+    maxHeight: '190px',
   },
   table: {
     width: '100%',
@@ -172,6 +172,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '12px',
   },
   th: {
+    position: 'sticky',
+    top: 0,
+    zIndex: 2,
     textAlign: 'left',
     padding: '8px 10px',
     color: '#cbb3e8',

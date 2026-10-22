@@ -119,10 +119,16 @@ export function ConsolePage(): React.JSX.Element {
                 <kbd className="legend-key">Tab</kbd> Next Track
               </span>
               <span className="legend-item">
+                <kbd className="legend-key">N</kbd> Next Unclass
+              </span>
+              <span className="legend-item">
                 <kbd className="legend-key">A</kbd> Ack
               </span>
               <span className="legend-item">
-                <kbd className="legend-key">1-4, 0</kbd> Classify
+                <kbd className="legend-key">Shift+A</kbd> Ack All
+              </span>
+              <span className="legend-item">
+                <kbd className="legend-key">1-7, 0</kbd> Classify
               </span>
               <span className="legend-item">
                 <kbd className="legend-key">J</kbd> Jammer

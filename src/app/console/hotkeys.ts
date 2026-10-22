@@ -104,6 +104,40 @@ export function useHotkeys({
         return;
       }
 
+      // Shift+A: Acknowledge ALL unacknowledged confirmed tracks in tick order
+      if ((e.key === 'a' || e.key === 'A') && e.shiftKey) {
+        e.preventDefault();
+        const unacked = tracks
+          .filter((t) => t.state === 'confirmed' && !t.acked)
+          .sort((a, b) => a.trackId - b.trackId);
+        for (const t of unacked) {
+          onAcknowledge(t.trackId);
+        }
+        return;
+      }
+
+      // N: Select next unclassified confirmed track (ordered by range)
+      if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        const unclassified = tracks
+          .filter(
+            (t) =>
+              t.state === 'confirmed' &&
+              (t.assessedClass === undefined || t.assessedClass === 'unknown')
+          )
+          .sort((a, b) => a.rangeM - b.rangeM);
+
+        if (unclassified.length > 0) {
+          const curIdx = unclassified.findIndex((t) => t.trackId === selectedTrackId);
+          const next =
+            curIdx >= 0 && curIdx < unclassified.length - 1
+              ? unclassified[curIdx + 1]
+              : unclassified[0];
+          if (next) onSelectTrack(next.trackId);
+        }
+        return;
+      }
+
       // Track-dependent actions require a selected track
       // E: Toggle EO lock on selected track (or release if already locked)
       if ((e.key === 'e' || e.key === 'E') && onToggleEoLock) {
@@ -114,7 +148,7 @@ export function useHotkeys({
 
       if (selectedTrackId === null) return;
 
-      // A: Acknowledge
+      // A: Acknowledge single track
       if (e.key === 'a' || e.key === 'A') {
         e.preventDefault();
         onAcknowledge(selectedTrackId);

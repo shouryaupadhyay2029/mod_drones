@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { generateScenario, Tier } from '../../sim/index.js';
 import { DroneHeroSection } from '../components/DroneHeroSection.js';
 import { TextRoll } from '../components/TextRoll.js';
 
@@ -52,13 +53,54 @@ function generateRandomSeed(): string {
 
 export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element {
   const [selectedScenario, setSelectedScenario] = useState<string>('dawn_intrusion');
+  const [proceduralTier, setProceduralTier] = useState<Tier>('operator');
   const [seedInput, setSeedInput] = useState<string>(() => generateRandomSeed());
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  const procPreview = useMemo(() => {
+    if (selectedScenario !== 'procedural') return null;
+    try {
+      const cleanSeed = seedInput.trim() || 's1';
+      const scenario = generateScenario(cleanSeed, proceduralTier);
+      const env = scenario.environment;
+      const chips = [
+        env.terrainKind.toUpperCase(),
+        env.weather.toUpperCase(),
+        `VIS ${env.visibilityKm}KM`,
+        env.timeOfDay.toUpperCase(),
+        `EW: ${env.ewLevel === 'heavy' ? 'HEAVY' : env.ewLevel === 'light' ? 'LIGHT' : 'NONE'}`,
+      ];
+      const swarmSizeLine =
+        proceduralTier === 'recruit'
+          ? 'Expected swarm size: low'
+          : proceduralTier === 'operator'
+            ? 'Expected swarm size: moderate'
+            : proceduralTier === 'veteran'
+              ? 'Expected swarm size: substantial'
+              : 'Expected swarm size: severe (multi-axis swarm + pop-up)';
+      return {
+        chips,
+        swarmSizeLine,
+        description: `Procedurally generated ${proceduralTier} tier engagement. Dynamic terrain, weather, and adversarial threat formations with seeded jitter. ${swarmSizeLine}.`,
+      };
+    } catch {
+      return {
+        chips: ['DYNAMIC', '4 TIERS', 'SWARMS'],
+        swarmSizeLine: 'Expected swarm size: moderate',
+        description: 'Procedurally generated threat simulation with dynamic tactical formations.',
+      };
+    }
+  }, [selectedScenario, seedInput, proceduralTier]);
 
   useEffect(() => {
     const handleOpen = (e: Event) => {
       const customEvent = e as CustomEvent<string | undefined>;
-      if (customEvent.detail && ['dawn_intrusion', 'ridge_runner', 'city_edge_night'].includes(customEvent.detail)) {
+      if (
+        customEvent.detail &&
+        ['dawn_intrusion', 'ridge_runner', 'city_edge_night', 'procedural'].includes(
+          customEvent.detail
+        )
+      ) {
         setSelectedScenario(customEvent.detail);
       }
       setIsModalOpen(true);
@@ -93,11 +135,21 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
     e.preventDefault();
     setIsModalOpen(false);
     const clean = seedInput.trim() || 's1';
-    onStart(clean, selectedScenario);
+    const targetScenarioId =
+      selectedScenario === 'procedural' ? `proc:v1:${proceduralTier}` : selectedScenario;
+    onStart(clean, targetScenarioId);
   };
 
   const activeScenario =
-    SCENARIO_OPTIONS.find((s) => s.id === selectedScenario) || SCENARIO_OPTIONS[0]!;
+    selectedScenario === 'procedural'
+      ? {
+          id: 'procedural',
+          title: `Procedural Swarm (${proceduralTier.toUpperCase()})`,
+          subtitle: 'Multi-Tier Procedural Adversary Generator',
+          description: procPreview?.description ?? 'Procedural adversary swarm simulation.',
+          chips: procPreview?.chips ?? ['DYNAMIC', 'SWARMS'],
+        }
+      : SCENARIO_OPTIONS.find((s) => s.id === selectedScenario) || SCENARIO_OPTIONS[0]!;
 
   return (
     <div style={styles.container}>
@@ -178,11 +230,96 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
                 </div>
               );
             })}
+
+            {/* Procedural Card below the scripted 3 */}
+            <div
+              key="procedural"
+              id="card-procedural"
+              onClick={() => setSelectedScenario('procedural')}
+              style={{
+                ...styles.scenarioCard,
+                borderColor: selectedScenario === 'procedural' ? '#181716' : 'rgba(45, 40, 35, 0.18)',
+                backgroundColor: selectedScenario === 'procedural' ? '#f2ece0' : '#ded8cd',
+                boxShadow: selectedScenario === 'procedural' ? '0 3px 12px rgba(0, 0, 0, 0.08)' : 'none',
+              }}
+            >
+              <div style={styles.scenarioCardHeader}>
+                <input
+                  type="radio"
+                  id="radio-procedural"
+                  name="scenarioPicker"
+                  checked={selectedScenario === 'procedural'}
+                  onChange={() => setSelectedScenario('procedural')}
+                  style={{ cursor: 'pointer', accentColor: '#181716' }}
+                />
+                <span style={styles.scenarioCardTitle}>
+                  <TextRoll stagger={0.02}>Procedural Swarm</TextRoll>
+                </span>
+              </div>
+              <div style={styles.scenarioCardSubtitle}>Dynamic Multi-Tier Procedural Adversary</div>
+
+              <div
+                style={{
+                  marginTop: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <label
+                  htmlFor="tierSelect"
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: '#181716',
+                    fontFamily: 'monospace',
+                  }}
+                >
+                  TIER:
+                </label>
+                <select
+                  id="tierSelect"
+                  value={proceduralTier}
+                  onChange={(e) => setProceduralTier(e.target.value as Tier)}
+                  style={styles.tierSelect}
+                >
+                  <option value="recruit">Recruit</option>
+                  <option value="operator">Operator</option>
+                  <option value="veteran">Veteran</option>
+                  <option value="elite">Elite</option>
+                </select>
+              </div>
+
+              <div style={styles.chipsRow}>
+                {(selectedScenario === 'procedural' && procPreview?.chips
+                  ? procPreview.chips
+                  : ['DYNAMIC', '4 TIERS', 'SWARMS']
+                ).map((chip, idx) => (
+                  <span key={idx} style={styles.chipTag}>
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div style={styles.briefingBox}>
             <h3 style={styles.briefingHeading}>SITUATION REPORT</h3>
             <p style={styles.briefingText}>{activeScenario.description}</p>
+            {selectedScenario === 'procedural' && procPreview?.swarmSizeLine && (
+              <div
+                style={{
+                  marginBottom: '10px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#181716',
+                  fontFamily: 'monospace',
+                }}
+              >
+                {procPreview.swarmSizeLine}
+              </div>
+            )}
             <ul style={styles.briefingList}>
               <li>
                 <strong>Detect & Acknowledge:</strong> Swiftly acknowledge incoming radar tracks
@@ -305,7 +442,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   scenarioList: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(185px, 1fr))',
     gap: '10px',
   },
   scenarioCard: {
@@ -440,5 +577,17 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.15s ease',
     fontFamily: 'inherit',
     marginTop: '4px',
+  },
+  tierSelect: {
+    backgroundColor: '#ded8cd',
+    border: '1px solid rgba(45, 40, 35, 0.25)',
+    borderRadius: '4px',
+    padding: '3px 8px',
+    fontSize: '11px',
+    fontWeight: 700,
+    color: '#181716',
+    fontFamily: 'monospace',
+    cursor: 'pointer',
+    outline: 'none',
   },
 };
