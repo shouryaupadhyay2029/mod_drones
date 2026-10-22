@@ -1,10 +1,12 @@
+import { createEnvironment, Environment } from '../model/environment.js';
 import { Entity, WorldState } from './types.js';
 
-export function createInitialWorld(): WorldState {
+export function createInitialWorld(environment?: Environment): WorldState {
   return {
     tick: 0,
     entities: [],
     nextEntityId: 1,
+    environment: environment ? { ...environment } : createEnvironment(),
   };
 }
 
@@ -13,6 +15,7 @@ export function cloneWorld(world: WorldState): WorldState {
     tick: world.tick,
     nextEntityId: world.nextEntityId,
     entities: world.entities.map((e) => ({ ...e })),
+    environment: world.environment ? { ...world.environment } : undefined,
   };
 }
 

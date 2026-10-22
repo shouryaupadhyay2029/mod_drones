@@ -1,5 +1,6 @@
 import { Actor } from '../model/actors.js';
 import { EffectorState, EffectorType } from '../model/effectors.js';
+import { Environment } from '../model/environment.js';
 import { ThreatClassId } from '../model/threats.js';
 import { Track } from '../model/tracks.js';
 
@@ -15,6 +16,7 @@ export interface WorldState {
   tick: number;
   entities: Entity[];
   nextEntityId: number;
+  environment?: Environment;
 }
 
 export interface AckTrackPayload {

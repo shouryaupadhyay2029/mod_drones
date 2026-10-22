@@ -1,8 +1,16 @@
 import { SimEvent } from '../core/types.js';
 import { bearingDeg, vDist, Vec3, vec3, vLen } from '../core/vec.js';
 import { EffectorState } from '../model/effectors.js';
+import { Environment, TerrainKind, TimeOfDay, Weather } from '../model/environment.js';
 import { ThreatClassId } from '../model/threats.js';
 import { EngagementStatus, RcsBucket, Track, TrackState } from '../model/tracks.js';
+
+export interface TraineeEnvironmentView {
+  timeOfDay: TimeOfDay;
+  weather: Weather;
+  visibilityKm: number;
+  terrainKind: TerrainKind;
+}
 
 export interface TraineeTrack {
   trackId: number;
@@ -42,6 +50,7 @@ export interface TraineeView {
     ended: boolean;
     reason?: 'asset_hit' | 'all_resolved' | 'time_limit';
   };
+  environment: TraineeEnvironmentView;
   tracks: TraineeTrack[];
   effectors: TraineeEffectorsView;
   events: readonly SimEvent[];
@@ -53,9 +62,17 @@ export function buildTraineeView(
   effectorState: EffectorState,
   missionEnded: boolean,
   missionEndReason: 'asset_hit' | 'all_resolved' | 'time_limit' | undefined,
-  allEvents: readonly SimEvent[]
+  allEvents: readonly SimEvent[],
+  environment?: Environment
 ): TraineeView {
   const origin = vec3(0, 0, 0);
+
+  const envView: TraineeEnvironmentView = {
+    timeOfDay: environment?.timeOfDay ?? 'dusk',
+    weather: environment?.weather ?? 'clear',
+    visibilityKm: environment?.visibilityKm ?? 10,
+    terrainKind: environment?.terrainKind ?? 'rural',
+  };
 
   const traineeTracks: TraineeTrack[] = [];
   for (let i = 0; i < tracks.length; i++) {
@@ -122,6 +139,7 @@ export function buildTraineeView(
       ended: missionEnded,
       reason: missionEndReason,
     },
+    environment: envView,
     tracks: traineeTracks,
     effectors: {
       jammer: {

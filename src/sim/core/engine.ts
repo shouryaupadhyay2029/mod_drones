@@ -33,6 +33,7 @@ import {
   SpawnEntityPayload,
   WorldState,
 } from './types.js';
+import { createEnvironment } from '../model/environment.js';
 import {
   cloneWorld,
   createInitialWorld,
@@ -64,7 +65,17 @@ export class Engine {
     this.seed = seed;
     this.scenarioId = scenarioId;
     this.rng = new Rng(seed);
-    this.world = createInitialWorld();
+    this.world = createInitialWorld(
+      scenarioId === 'dawn_intrusion'
+        ? createEnvironment({
+            timeOfDay: 'dusk',
+            weather: 'clear',
+            visibilityKm: 10,
+            ewLevel: 'none',
+            terrainKind: 'rural',
+          })
+        : undefined
+    );
     this.effectorState = createInitialEffectorState();
 
     if (scenarioId === 'dawn_intrusion') {
@@ -410,7 +421,8 @@ export class Engine {
       this.effectorState,
       this.missionState.ended,
       this.missionState.reason,
-      this.events
+      this.events,
+      this.world.environment
     );
   }
 
