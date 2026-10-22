@@ -118,3 +118,34 @@ Every tick in `Engine.step()` executes exactly five systems in fixed order:
 - **`ENQUEUE`**: Submits operator commands with optional target `tick`.
 - **`VIEW`**: Worker streams `TraineeView` payloads at $\le 100$ms intervals (every 2 ticks) and immediately upon command execution or discrete mission events.
 - **`REPORT`**: On mission termination (`asset_hit`, `all_resolved`, `time_limit`), worker computes `ScoreReport` using `scoreSession` and emits `ScoreReport` together with the complete `SessionLog`.
+
+## 6. Phase 2A Architecture Additions: Environment, Terrain & Radar Degradation
+
+### Environment Model (`environment.ts`)
+- Configurable operational environment attached directly to `WorldState`:
+  - `timeOfDay`: `'day' | 'dusk' | 'night'`
+  - `weather`: `'clear' | 'fog' | 'rain'`
+  - `visibilityKm`: Optical baseline ($10\text{ km}$ clear, $5\text{ km}$ rain, $2\text{ km}$ fog)
+  - `ewLevel`: Electronic warfare interference level (`'none' | 'light' | 'heavy'`)
+  - `terrainKind`: Procedural surface profile (`'rural' | 'hilly' | 'urban'`)
+- **Trainee Isolation**: `TraineeView.environment` exposes `{ timeOfDay, weather, visibilityKm, terrainKind }`. `ewLevel` is withheld to prevent direct inspection, requiring operators to infer jamming levels from radar degradation.
+
+### Procedural Deterministic Terrain (`terrain.ts`)
+- 2D integer lattice hash using 32-bit `Math.imul` arithmetic without transcendental functions.
+- Bicubic smoothstep interpolation ($3t^2 - 2t^3$) across three octaves ($800\text{ m}$, $300\text{ m}$, $100\text{ m}$) covering $[-8000, 8000]\text{ m}$.
+- Smooth asset flattening: within $300\text{ m}$ of origin $(0, 0)$, terrain height flattens smoothly to $0\text{ m}$ MSL, seating the asset at $0\text{ m}$ and radar mast at $(0, 0, 15)\text{ m}$ MSL.
+- Profiles:
+  - `rural`: $15\text{ m}$ base amplitude, clutter $0.1 - 0.3$.
+  - `hilly`: $120\text{ m}$ base amplitude, clutter $0.2 - 0.5$, plus explicit ridge feature at range $2.0 - 2.5\text{ km}$ along bearing $270^\circ - 300^\circ$ with peak elevation $\ge 80\text{ m}$ enabling terrain masking.
+  - `urban`: $25\text{ m}$ base amplitude, clutter $0.6 - 0.9$, with discrete $+30\text{ m}$ to $+60\text{ m}$ structural blocks.
+
+### Radar Degradation & Ghost Tracking (`radar.ts`)
+1. **Terrain Line-of-Sight (LOS)**: Raymarch from radar mast $(0, 0, 15)$ to target position sampled every $50\text{ m}$. If the ray dips below the terrain surface, detection is masked ($P_d = 0$).
+2. **Surface Clutter**: Evaluates local Above-Ground-Level altitude $\text{AGL} = z - h(x, y)$. If $\text{AGL} < 40\text{ m}$:
+   $$P_{d,\text{eff}} = P_d \times \left(1 - c(x, y) \times \left(1 - \frac{\text{AGL}}{40}\right)\right)$$
+3. **Atmospheric Attenuation**: Weather scales effective range $R_{\text{eff}}$ by $0.85$ in rain and $0.95$ in fog.
+4. **Electronic Warfare Interference**:
+   - Noise $\sigma = (15 + 0.005 \cdot r) \times \text{ewNoiseMult}$ ($1.5\times$ for light, $2.5\times$ for heavy).
+   - Detection probability $P_d = P_d \times \text{ewPdMult}$ ($0.85\times$ for light, $0.60\times$ for heavy).
+5. **Ghost Tracks**: Stream `rng.fork('radar-ghost')` generates transient radar false tracks (clutter blips) with range $800 - 3500\text{ m}$, wander speeds $2 - 6\text{ m/s}$, initial quality $0.25$, and lifetime $3 - 8$ sweeps. Engaging ghost tracks incurs a $-5$ penalty in scoring.
+

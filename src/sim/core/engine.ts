@@ -127,6 +127,11 @@ export class Engine {
     this.runBehaviourSystem(currentTick);
 
     // 3. radar
+    const isMissionScenario =
+      this.scenarioId === 'dawn_intrusion' ||
+      this.scenarioId === 'ridge_runner' ||
+      this.scenarioId === 'city_edge_night';
+
     const trackRef = { current: this.nextTrackId };
     runRadarSystem(
       currentTick,
@@ -134,7 +139,9 @@ export class Engine {
       this.tracks,
       trackRef,
       this.rng.fork('radar'),
-      this.events
+      this.events,
+      this.world.environment,
+      isMissionScenario ? this.rng.fork('radar-ghost') : undefined
     );
     this.nextTrackId = trackRef.current;
 

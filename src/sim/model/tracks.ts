@@ -19,6 +19,7 @@ export interface Track {
   consecutiveMisses: number;
   totalPlots: number;
   isGhost?: boolean;
+  remainingSweeps?: number;
   rcsBucket: RcsBucket;
   measuredRcs: number;
   quality: number;

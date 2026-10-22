@@ -1,10 +1,13 @@
 import { DT } from '../core/clock.js';
+import { DEG_TO_RAD, dCos, dSin } from '../core/dmath.js';
 import { Rng } from '../core/rng.js';
+import { SimEvent } from '../core/types.js';
 import { bearingDeg, vDist, Vec3, vec3 } from '../core/vec.js';
 import { Actor } from '../model/actors.js';
-import { RcsBucket, Track } from '../model/tracks.js';
+import { Environment } from '../model/environment.js';
+import { getClutterFactor, getTerrainHeight, hasLineOfSight } from '../model/terrain.js';
 import { THREAT_LIBRARY } from '../model/threats.js';
-import { SimEvent } from '../core/types.js';
+import { RcsBucket, Track } from '../model/tracks.js';
 
 export const RADAR_MAX_RANGE_M = 6000;
 export const RADAR_RCS_REF = 0.01;
@@ -39,14 +42,25 @@ export function runRadarSystem(
   tracks: Track[],
   nextTrackIdRef: { current: number },
   radarRng: Rng,
-  events: SimEvent[]
+  events: SimEvent[],
+  environment?: Environment,
+  ghostRng?: Rng
 ): void {
+  const env: Environment = environment ?? {
+    timeOfDay: 'dusk',
+    weather: 'clear',
+    visibilityKm: 10,
+    ewLevel: 'none',
+    terrainKind: 'rural',
+  };
+
   const sweepDegPerTick = 360 / RADAR_SWEEP_PERIOD_TICKS;
   const startAzimuth = (currentTick * sweepDegPerTick) % 360;
   const endAzimuth = ((currentTick + 1) * sweepDegPerTick) % 360;
   const origin = vec3(0, 0, 0);
+  const mastPos = vec3(0, 0, 15);
 
-  // Process all active actors in deterministic ID order
+  // 1. Process all active actors in deterministic ID order
   for (let i = 0; i < actors.length; i++) {
     const actor = actors[i];
     if (!actor || actor.state !== 'active') continue;
@@ -59,18 +73,35 @@ export function runRadarSystem(
     const threat = THREAT_LIBRARY[actor.classId];
     const r = vDist(actor.pos, origin);
 
-    // 4th-root radar equation scaling using only Math.sqrt
-    const rEff = RADAR_MAX_RANGE_M * Math.sqrt(Math.sqrt(threat.rcsM2 / RADAR_RCS_REF));
+    // Weather factor on effective range
+    const weatherMult = env.weather === 'rain' ? 0.85 : env.weather === 'fog' ? 0.95 : 1.0;
+    const rEff = RADAR_MAX_RANGE_M * Math.sqrt(Math.sqrt(threat.rcsM2 / RADAR_RCS_REF)) * weatherMult;
     const ratio = r / rEff;
     const ratio4 = ratio * ratio * ratio * ratio;
-    const pd = Math.min(0.95, Math.max(0, 1 - ratio4));
 
-    const hit = radarRng.next() < pd;
+    // Clutter degradation based on AGL
+    const c = getClutterFactor(actor.pos.x, actor.pos.y, env.terrainKind);
+    const terrainH = getTerrainHeight(actor.pos.x, actor.pos.y, env.terrainKind);
+    const agl = actor.pos.z - terrainH;
+    let pdClutterMult = 1.0;
+    if (agl < 40) {
+      pdClutterMult = Math.max(0, 1 - c * (1 - Math.max(0, agl) / 40));
+    }
+
+    // EW Pd multiplier
+    const ewPdMult = env.ewLevel === 'heavy' ? 0.6 : env.ewLevel === 'light' ? 0.85 : 1.0;
+    const pd = Math.min(0.95, Math.max(0, 1 - ratio4)) * pdClutterMult * ewPdMult;
+
+    // Terrain Line-of-Sight masking check (mast at (0, 0, 15) to target)
+    const hasLos = hasLineOfSight(mastPos, actor.pos, env.terrainKind, 50);
+
+    const hit = hasLos && radarRng.next() < pd;
     const existingTrack = tracks.find((t) => t.actorId === actor.id && t.state !== 'dropped');
 
     if (hit) {
-      // Gaussian noise via Irwin-Hall
-      const sigma = 15 + 0.005 * r;
+      // Gaussian noise via Irwin-Hall, scaled by EW noise multiplier
+      const ewNoiseMult = env.ewLevel === 'heavy' ? 2.5 : env.ewLevel === 'light' ? 1.5 : 1.0;
+      const sigma = (15 + 0.005 * r) * ewNoiseMult;
       const noiseX = sigma * irwinHall(radarRng);
       const noiseY = sigma * irwinHall(radarRng);
       const noiseZ = sigma * irwinHall(radarRng);
@@ -195,10 +226,10 @@ export function runRadarSystem(
     }
   }
 
-  // Process missed sweeps for tracks whose actors are no longer active in sector
+  // 2. Process missed sweeps for tracks whose actors are no longer active in sector
   for (let i = 0; i < tracks.length; i++) {
     const trk = tracks[i];
-    if (!trk || trk.state === 'dropped') continue;
+    if (!trk || trk.state === 'dropped' || trk.isGhost) continue;
 
     if (trk.lastDetectedTick === currentTick) continue;
 
@@ -221,6 +252,106 @@ export function runRadarSystem(
             trackId: trk.trackId,
           },
         });
+      }
+    }
+  }
+
+  // 3. Ghost tracks generation & lifecycle
+  if (ghostRng) {
+    const maxGhosts = env.terrainKind === 'urban' ? 2 : 1;
+
+    // Kinematics and sweep processing for active ghosts
+    for (let i = 0; i < tracks.length; i++) {
+      const trk = tracks[i];
+      if (!trk || !trk.isGhost || trk.state === 'dropped') continue;
+
+      trk.estimatedPos.x += trk.estimatedVel.x * DT;
+      trk.estimatedPos.y += trk.estimatedVel.y * DT;
+      trk.estimatedPos.z += trk.estimatedVel.z * DT;
+
+      const gBearing = bearingDeg(origin, trk.estimatedPos);
+      if (isAngleInSector(gBearing, startAzimuth, endAzimuth)) {
+        trk.lastDetectedTick = currentTick;
+        trk.totalPlots = (trk.totalPlots ?? 1) + 1;
+        trk.remainingSweeps = (trk.remainingSweeps ?? 5) - 1;
+        trk.quality = Math.max(0, trk.quality - 0.03);
+
+        if (trk.state === 'tentative' && trk.totalPlots >= 2) {
+          trk.state = 'confirmed';
+          trk.confirmedTick = currentTick;
+          events.push({
+            tick: currentTick,
+            type: 'TRACK_CONFIRMED',
+            payload: {
+              trackId: trk.trackId,
+              rangeM: vDist(trk.estimatedPos, origin),
+              bearingDeg: gBearing,
+            },
+          });
+        }
+
+        if (trk.remainingSweeps <= 0 || trk.quality <= 0.05) {
+          trk.state = 'dropped';
+          trk.lostTick = currentTick;
+          events.push({
+            tick: currentTick,
+            type: 'TRACK_LOST',
+            payload: {
+              trackId: trk.trackId,
+            },
+          });
+        }
+      }
+    }
+
+    // Spawn new ghost if under limit (evaluated at sweep boundary: currentTick % 40 === 0)
+    if (currentTick % 40 === 0) {
+      let activeGhostCount = 0;
+      for (let i = 0; i < tracks.length; i++) {
+        const t = tracks[i];
+        if (t && t.isGhost && t.state !== 'dropped') activeGhostCount++;
+      }
+
+      const spawnChance =
+        env.terrainKind === 'urban' ? 0.75 : env.terrainKind === 'hilly' ? 0.4 : 0.2;
+
+      if (activeGhostCount < maxGhosts && ghostRng.next() < spawnChance) {
+        const rGhost = 800 + ghostRng.next() * 2700; // 800 - 3500m
+        const bGhostDeg = ghostRng.next() * 360;
+        const bGhostRad = bGhostDeg * DEG_TO_RAD;
+        const ghostPos = vec3(
+          rGhost * dSin(bGhostRad),
+          rGhost * dCos(bGhostRad),
+          20 + ghostRng.next() * 30
+        );
+        const ghostSpd = 2 + ghostRng.next() * 4; // 2 - 6 m/s
+        const ghostHdgDeg = ghostRng.next() * 360;
+        const ghostHdgRad = ghostHdgDeg * DEG_TO_RAD;
+        const ghostVel = vec3(ghostSpd * dSin(ghostHdgRad), ghostSpd * dCos(ghostHdgRad), 0);
+        const ghostRcs = 0.003 + ghostRng.next() * 0.005;
+
+        const newGhost: Track = {
+          trackId: nextTrackIdRef.current++,
+          actorId: -nextTrackIdRef.current,
+          state: 'tentative',
+          isGhost: true,
+          estimatedPos: ghostPos,
+          estimatedVel: ghostVel,
+          lastDetectedTick: currentTick,
+          firstSeenTick: currentTick,
+          consecutiveHits: 1,
+          consecutiveMisses: 0,
+          totalPlots: 1,
+          remainingSweeps: 3 + Math.floor(ghostRng.next() * 6), // 3 to 8 sweeps
+          rcsBucket: computeRcsBucket(ghostRcs),
+          measuredRcs: ghostRcs,
+          quality: 0.25,
+          acked: false,
+          engagementStatus: 'none',
+          headingChangeRateSmoothed: 0,
+          lastSweepChecked: currentTick,
+        };
+        tracks.push(newGhost);
       }
     }
   }
