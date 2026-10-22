@@ -374,6 +374,42 @@ button, a, input, select {
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* ==========================================================================
+   Animated Tactical Hero Callout Leader Lines & Cards
+   ========================================================================== */
+
+@keyframes heroLineDash {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+.hero-leader-line {
+  stroke-dasharray: 5 4;
+  animation: heroLineDash 1.2s linear infinite;
+}
+
+.hero-feature-card {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s ease,
+              box-shadow 0.22s ease;
+}
+
+.hero-feature-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(211, 86, 35, 0.55) !important;
+  box-shadow: 0 12px 28px rgba(184, 68, 20, 0.16), 0 0 1px #d35623 !important;
+}
+
+@media (max-width: 1080px) {
+  .hero-feature-card {
+    display: none !important;
+  }
+  .hero-hud-svg {
+    display: none !important;
+  }
+}
+
 .text-roll-char-bottom {
   display: inline-block;
   transform: translateY(100%);

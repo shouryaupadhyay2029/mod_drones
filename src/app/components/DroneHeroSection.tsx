@@ -32,7 +32,7 @@ const styles: Record<string, React.CSSProperties> = {
   canvasWrapper: {
     position: 'relative',
     width: '100%',
-    height: '520px',
+    height: '600px',
     borderRadius: '0',
     border: 'none',
     boxShadow: 'none',
