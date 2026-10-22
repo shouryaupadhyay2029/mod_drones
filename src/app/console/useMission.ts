@@ -8,6 +8,7 @@ import {
   referenceOperator,
 } from '../../sim/index.js';
 import { SimClient } from '../simClient.js';
+import { TrailPoint, updateTrailHistory } from './radar/trails.js';
 
 export type MissionPhase = 'setup' | 'running' | 'ended';
 
@@ -46,9 +47,7 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   const [sessionLog, setSessionLog] = useState<SessionLog | null>(null);
 
   const clientRef = useRef<SimClient | null>(null);
-  const trailHistoryRef = useRef<Map<number, Array<{ x: number; y: number; z: number }>>>(
-    new Map()
-  );
+  const trailHistoryRef = useRef<Map<number, TrailPoint[]>>(new Map());
   const autopilotRef = useRef<boolean>(autopilot);
   autopilotRef.current = autopilot;
 
@@ -60,21 +59,9 @@ export function useMission(initialSeed?: string): UseMissionReturn {
     client.onView((newView) => {
       setView(newView);
 
-      // Update trail history (last 6 plots)
+      // Update trail history (last 6 plots, changed lastPlotTick only, drop missing tracks)
       if (newView.tracks) {
-        for (let i = 0; i < newView.tracks.length; i++) {
-          const t = newView.tracks[i];
-          if (!t) continue;
-          let list = trailHistoryRef.current.get(t.trackId);
-          if (!list) {
-            list = [];
-            trailHistoryRef.current.set(t.trackId, list);
-          }
-          list.push({ ...t.estimatedPosition });
-          if (list.length > 6) {
-            list.shift();
-          }
-        }
+        updateTrailHistory(trailHistoryRef.current, newView.tracks);
       }
 
       // Autopilot handling: if enabled, pass view to referenceOperator
