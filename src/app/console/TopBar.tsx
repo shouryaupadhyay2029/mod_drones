@@ -221,7 +221,7 @@ export function TopBar({
                 <div className="mega-preview-card">
                   <div className="mega-preview-header">
                     <span className="mega-preview-tag">SCENARIO INTELLIGENCE</span>
-                    <span style={{ fontSize: '11px', color: '#cbb3e8' }}>v2.4</span>
+                    <span style={{ fontSize: '11px', color: '#ffe0cc', fontWeight: 700 }}>v2.4</span>
                   </div>
                   <NavMiniAsciiPreview modelType="terrain" />
                   <div>
@@ -316,7 +316,7 @@ export function TopBar({
                 <div className="mega-preview-card">
                   <div className="mega-preview-header">
                     <span className="mega-preview-tag">INTEGRATED C2 SUITE</span>
-                    <span style={{ fontSize: '11px', color: '#d4ff3f' }}>ARMED</span>
+                    <span style={{ fontSize: '11px', color: '#ffffff', fontWeight: 800 }}>ARMED</span>
                   </div>
                   <NavMiniAsciiPreview modelType="radar" />
                   <div>
@@ -411,7 +411,7 @@ export function TopBar({
                 <div className="mega-preview-card">
                   <div className="mega-preview-header">
                     <span className="mega-preview-tag">DOCTRINE & ROE</span>
-                    <span style={{ fontSize: '11px', color: '#e34234' }}>STRICT</span>
+                    <span style={{ fontSize: '11px', color: '#ffffff', fontWeight: 800 }}>STRICT</span>
                   </div>
                   <NavMiniAsciiPreview modelType="fpv" />
                   <div>
@@ -669,32 +669,35 @@ const styles: Record<string, React.CSSProperties> = {
   },
   menuBadgeActive: {
     fontSize: '9px',
-    padding: '1px 5px',
+    padding: '1px 6px',
     borderRadius: '3px',
-    backgroundColor: 'rgba(212, 255, 63, 0.15)',
-    border: '1px solid rgba(212, 255, 63, 0.4)',
-    color: '#d4ff3f',
+    backgroundColor: '#ffffff',
+    border: '1px solid #ffffff',
+    color: '#b84414',
+    fontWeight: 800,
   },
   menuBadgeTag: {
     fontSize: '9px',
-    padding: '1px 5px',
+    padding: '1px 6px',
     borderRadius: '3px',
-    backgroundColor: 'rgba(203, 179, 232, 0.12)',
-    border: '1px solid rgba(203, 179, 232, 0.3)',
-    color: '#cbb3e8',
+    backgroundColor: 'rgba(0, 0, 0, 0.28)',
+    border: '1px solid rgba(255, 255, 255, 0.28)',
+    color: '#ffffff',
+    fontWeight: 700,
   },
   menuBadgeAlert: {
     fontSize: '9px',
-    padding: '1px 5px',
+    padding: '1px 6px',
     borderRadius: '3px',
-    backgroundColor: 'rgba(227, 66, 52, 0.15)',
-    border: '1px solid rgba(227, 66, 52, 0.4)',
-    color: '#e34234',
+    backgroundColor: '#ffffff',
+    border: '1px solid #ffffff',
+    color: '#a31f13',
+    fontWeight: 800,
   },
   previewCardBtn: {
-    padding: '8px 12px',
-    backgroundColor: '#d4ff3f',
-    color: '#080808',
+    padding: '9px 14px',
+    backgroundColor: '#ffffff',
+    color: '#b84414',
     border: 'none',
     borderRadius: '6px',
     fontSize: '11px',
@@ -702,14 +705,14 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: 'monospace',
     cursor: 'pointer',
     letterSpacing: '0.04em',
-    boxShadow: '0 0 10px rgba(212, 255, 63, 0.35)',
+    boxShadow: '0 3px 12px rgba(0, 0, 0, 0.25)',
     marginTop: '6px',
   },
   previewCardLink: {
     padding: '8px 12px',
-    backgroundColor: '#181818',
-    color: '#cbb3e8',
-    border: '1px solid rgba(203, 179, 232, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    color: '#ffffff',
+    border: '1px solid rgba(255, 255, 255, 0.35)',
     borderRadius: '6px',
     fontSize: '11px',
     fontWeight: 700,

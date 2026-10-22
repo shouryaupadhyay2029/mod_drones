@@ -213,10 +213,10 @@ body {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  background: rgba(18, 18, 20, 0.98);
-  border: 1px solid #2a2a2e;
+  background: linear-gradient(155deg, #d35623 0%, #b84414 100%);
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 12px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 15px rgba(203, 179, 232, 0.1);
+  box-shadow: 0 25px 60px rgba(130, 45, 12, 0.38), 0 0 25px rgba(211, 86, 35, 0.22);
   backdrop-filter: blur(20px);
   z-index: 1000;
   transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
@@ -272,8 +272,8 @@ body {
 }
 
 .mega-menu-card-item:hover {
-  background: rgba(203, 179, 232, 0.08);
-  border-color: rgba(203, 179, 232, 0.25);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.28);
   transform: translateX(3px);
 }
 
@@ -281,8 +281,8 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  background: #141416;
-  border: 1px solid rgba(203, 179, 232, 0.3);
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.26);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -306,14 +306,14 @@ body {
 }
 
 .mega-menu-item-desc {
-  color: var(--text-secondary);
+  color: #ffe8dd;
   font-size: 11px;
   line-height: 1.35;
 }
 
 .mega-preview-card {
-  background: #121214;
-  border: 1px solid #2a2a2e;
+  background: rgba(0, 0, 0, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -332,7 +332,7 @@ body {
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.08em;
-  color: var(--accent-chartreuse);
+  color: #ffe0cc;
   text-transform: uppercase;
 }
 
@@ -344,7 +344,7 @@ body {
 }
 
 .mega-preview-text {
-  color: var(--text-secondary);
+  color: #ffe8dd;
   font-size: 11px;
   line-height: 1.45;
   margin: 0;
