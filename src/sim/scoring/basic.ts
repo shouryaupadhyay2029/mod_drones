@@ -321,7 +321,7 @@ export function scoreSession(
         (e) => e.type === 'ENGAGEMENT_STARTED' && e.payload?.trackId === trk.trackId
       );
       if (engagedEvt) {
-        const penMsg = `Engaged radar ghost track at ${formatTickTime(engagedEvt.tick)}: -5`;
+        const penMsg = `Engaged false track at ${formatTickTime(engagedEvt.tick)}: -5`;
         penalties.push({ reason: penMsg, points: 5 });
         reasons.push(penMsg);
       }

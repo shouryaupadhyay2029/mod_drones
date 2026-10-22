@@ -2,7 +2,52 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.3.0] - Phase 1B: Operator Console UI & Verification
+## [0.4.0] - Phase 2A: Environment, Terrain, Radar Degradation, Three Scenarios
+
+### Added
+- **Environment Model (`src/sim/model/environment.ts`)**:
+  - `Environment` state containing `timeOfDay` ('day' | 'dusk' | 'night'), `weather` ('clear' | 'haze' | 'fog' | 'rain'), `visibilityKm`, `ewLevel` ('none' | 'light' | 'heavy'), and `terrainKind` ('rural' | 'hilly' | 'urban').
+  - `TraineeView` includes sanitized `environment` omitting `ewLevel` (preventing ground-truth leakage).
+- **Procedural Terrain System (`src/sim/model/terrain.ts`)**:
+  - `generateTerrain(kind, rng, features)` returning `{ heightAt(x,y), clutterAt(x,y) }`.
+  - Deterministic 3-octave lattice noise using `Math.imul` and standard cubic smoothstep interpolation.
+  - Smooth asset vicinity flattening within 300m of radar origin.
+  - Procedural rural, hilly, and urban height/clutter profiles, plus explicit ridge features (`TerrainFeature`).
+  - Raymarching Line-of-Sight test (`hasLineOfSight`) with 50m sample steps and 5m terrain clearance threshold.
+- **Radar Degradation & False Tracks (`src/sim/systems/radar.ts`)**:
+  - Terrain line-of-sight masking blocking sweeps when terrain obstructs radar mast at `(0, 0, 15)`.
+  - AGL clutter degradation reducing detection probability for low-altitude contacts ($\le 50$m full clutter, linear to 150m).
+  - Atmospheric weather attenuation factors on radar range: clear 1.0, haze 0.97, rain 0.85, fog 0.95.
+  - Electronic Warfare (EW) degradation: noise sigma multipliers `[1, 1.5, 2.5]` and detection probability multipliers `[1, 0.92, 0.8]`.
+  - Radar ghost (false) track generation from `rng.fork('radar-ghost')` based on EW level and urban terrain with 1-3 rotation lifespans and jitter.
+- **New Operational Scenarios (`src/sim/scenarios/`)**:
+  - `ridge_runner`: Hilly terrain, day, haze, light EW, with an explicit 140m ridge at range 3.0 km along bearing 210 deg masking an inbound FPV until it crests the ridge.
+  - `city_edge_night`: Dense urban clutter, night, rain, light EW, featuring dual hostile FPV ingress, standoff commercial quadcopter, dual birds, and radar clutter tracks.
+  - Scenario registry in `src/sim/scenarios/index.ts` exporting `ScenarioDef` metadata.
+- **Scoring Engine Generalisation (`src/sim/scoring/basic.ts`)**:
+  - Hostility resolution dynamically derived from `THREAT_LIBRARY[classId].hostile`.
+  - Dynamic contact weight pooling and normalization.
+  - Multi-contact per-actor penalties (-25 civilian quad, -5 bird).
+  - Engaging radar ghost false tracks penalizes -5 points ("Engaged false track").
+- **Console UI Additions (`src/app/console/`)**:
+  - `MissionSetup`: Scenario selection cards for Dawn Intrusion, Ridge Runner, and City Edge Night with environment tags and seed input.
+  - `TopBar`: Real-time environment telemetry chips displaying time of day, weather, visibility, and terrain.
+  - `classificationOptions`: Added 'clutter' option ("Clutter / false track") with hotkey '5'; renamed bird label to "Bird".
+  - `DebriefScreen`: Displays scenario title, environment parameters, and false tracks observed vs engaged.
+- **Verification Suites**:
+  - `tests/phase2a.test.ts`: Automated tests covering all 10 acceptance criteria (terrain determinism, LOS masking, ridge masking effect, weather/EW/clutter degradation, ghost generation rates, zero ground-truth leakage, snapshot/restore determinism, generalized scoring, and bot benchmarks).
+  - `scripts/headless.ts`: 45-run evaluation runner asserting reference bot $\ge 75$, idle bot $\le 30$ with asset hits, and trigger-happy bot penalty deductions.
+
+### Changed
+- **Reference Operator (`src/sim/bots/referenceOperator.ts`)**:
+  - Removed scenario-specific bearing corridors. Classification now relies strictly on observable kinematic cues: speed, closing rate, heading error to asset, turn rate, altitude, and RCS bucket.
+  - Requires `state === 'confirmed'` and `velocityValid === true` before classification or engagement.
+  - Dynamic re-evaluation dispatches `commercial_quad` and `HOLD_FIRE` if a tentative threat exhibits non-threatening speed or crossing heading.
+- **TraineeTrack (`src/sim/view/traineeView.ts`)**:
+  - Added `velocityValid: boolean` (false until $\ge 2$ radar sweeps).
+- **Single Viewport Console Layout (`src/app/console/`)**:
+  - Fitted viewport to 100vh with `overflow: hidden` preventing page scrolling at 1366x768 and 1920x1080.
+  - Automated canvas resize handling.
 
 ### Added
 - **Operator Console UI (`src/app/console/`)**:

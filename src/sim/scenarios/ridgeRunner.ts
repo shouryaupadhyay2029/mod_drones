@@ -2,54 +2,67 @@ import { DEG_TO_RAD, dCos, dSin } from '../core/dmath.js';
 import { Rng } from '../core/rng.js';
 import { vec3 } from '../core/vec.js';
 import { createEnvironment, Environment } from '../model/environment.js';
+import { TerrainFeature } from '../model/terrain.js';
 import { ScenarioSpawnSchedule } from './dawnIntrusion.js';
 
 export const RIDGE_RUNNER_ENV: Environment = createEnvironment({
-  timeOfDay: 'dusk',
-  weather: 'fog',
-  visibilityKm: 2,
-  ewLevel: 'light',
+  timeOfDay: 'day',
+  weather: 'haze',
+  visibilityKm: 5,
+  ewLevel: 'none',
   terrainKind: 'hilly',
 });
 
+export const RIDGE_RUNNER_FEATURES: TerrainFeature[] = [
+  {
+    kind: 'ridge',
+    bearingDeg: 210,
+    rangeM: 3000,
+    lengthM: 4000,
+    widthM: 400,
+    heightM: 140,
+  },
+];
+
 /**
  * Ridge Runner Scenario:
- * Hilly terrain, fog, light EW.
+ * Hilly terrain, day, haze, ew 0.
+ * Ridge feature on bearing ~210 deg, range 3 km, length 4 km, width 400 m, height 140 m.
  * 4 contacts:
  * 1. Avian contact wandering at ~1.8 km
- * 2. Hostile FPV 1 ingress from ~285 deg (behind 80m ridge), masked until clearing ridge at ~1.8 km
- * 3. Commercial Quad in transit corridor at 1.5 km standoff
- * 4. Hostile FPV 2 ingress from ~200 deg (unmasked open approach)
+ * 2. Hostile FPV 1 from ~210 deg at ~5.5 km, z ~70 m (masked until it passes the ridge)
+ * 3. Commercial Quad in transit at ~1.5 km
+ * 4. Hostile FPV 2 from ~100 deg, z ~180 m (unmasked)
  */
 export function buildRidgeRunnerSpawns(scenarioRng: Rng): ScenarioSpawnSchedule[] {
-  // 1. Bird: t ~ 10s (200 +- 100 ticks), range ~ 1.8 km, wander
-  const birdTick = Math.max(50, 200 + Math.floor((scenarioRng.next() - 0.5) * 200));
+  // 1. Bird: t ~ 10s (200 +- 80 ticks), range ~ 1.8 km, wander
+  const birdTick = Math.max(50, 200 + Math.floor((scenarioRng.next() - 0.5) * 160));
   const birdBearingDeg = 45 + (scenarioRng.next() - 0.5) * 30;
-  const birdRangeM = 1800 + (scenarioRng.next() - 0.5) * 400;
+  const birdRangeM = 1800 + (scenarioRng.next() - 0.5) * 300;
   const birdRad = birdBearingDeg * DEG_TO_RAD;
   const birdPos = vec3(birdRangeM * dSin(birdRad), birdRangeM * dCos(birdRad), 85);
   const birdDepartTick = 2400 + Math.floor(scenarioRng.next() * 600);
 
-  // 2. Hostile FPV 1: t ~ 30s (600 +- 60 ticks), ingress from ~ 285 deg behind ridge, speed 30 m/s
-  // Ridge is at 2.1-2.4 km along ~285 deg with height >= 80m. FPV spawns at 3500m, alt 70m (masked by ridge)
-  const fpv1Tick = Math.max(birdTick + 40, 600 + Math.floor((scenarioRng.next() - 0.5) * 120));
-  const fpv1BearingDeg = 285 + (scenarioRng.next() - 0.5) * 10;
-  const fpv1RangeM = 3500;
+  // 2. Hostile FPV 1: t ~ 20s (400 ticks +- 50), from ~210 deg, range 5500m, z 70m, speed 30 m/s
+  // Masked by 140m ridge at range 3000m until it passes the ridge (~t = 103s / tick 2060)
+  const fpv1Tick = Math.max(birdTick + 40, 400 + Math.floor((scenarioRng.next() - 0.5) * 100));
+  const fpv1BearingDeg = 210 + (scenarioRng.next() - 0.5) * 8;
+  const fpv1RangeM = 5500;
   const fpv1Rad = fpv1BearingDeg * DEG_TO_RAD;
   const fpv1Pos = vec3(fpv1RangeM * dSin(fpv1Rad), fpv1RangeM * dCos(fpv1Rad), 70);
 
-  // 3. Commercial Quad: t ~ 50s (1000 +- 100 ticks), transit corridor at 1.5 km range, speed 12 m/s
-  const quadTick = Math.max(fpv1Tick + 40, 1000 + Math.floor((scenarioRng.next() - 0.5) * 200));
+  // 3. Commercial Quad: t ~ 45s (900 ticks +- 100), transit at ~1.5 km, speed 12 m/s
+  const quadTick = Math.max(fpv1Tick + 40, 900 + Math.floor((scenarioRng.next() - 0.5) * 200));
   const quadY = 1500 + (scenarioRng.next() - 0.5) * 200;
-  const quadStartPos = vec3(-1200, quadY, 90);
-  const quadEndPos = vec3(1200, quadY, 90);
+  const quadStartPos = vec3(-1500, quadY, 90);
+  const quadEndPos = vec3(1500, quadY, 90);
 
-  // 4. Hostile FPV 2: t ~ 75s (1500 +- 100 ticks), ingress from ~ 200 deg (unmasked), speed 28 m/s
-  const fpv2Tick = Math.max(quadTick + 40, 1500 + Math.floor((scenarioRng.next() - 0.5) * 200));
-  const fpv2BearingDeg = 200 + (scenarioRng.next() - 0.5) * 15;
-  const fpv2RangeM = 3800;
+  // 4. Hostile FPV 2: t ~ 60s (1200 ticks +- 100), from ~100 deg, range 4000m, z 180m (unmasked), speed 28 m/s
+  const fpv2Tick = Math.max(quadTick + 40, 1200 + Math.floor((scenarioRng.next() - 0.5) * 200));
+  const fpv2BearingDeg = 100 + (scenarioRng.next() - 0.5) * 12;
+  const fpv2RangeM = 4000;
   const fpv2Rad = fpv2BearingDeg * DEG_TO_RAD;
-  const fpv2Pos = vec3(fpv2RangeM * dSin(fpv2Rad), fpv2RangeM * dCos(fpv2Rad), 60);
+  const fpv2Pos = vec3(fpv2RangeM * dSin(fpv2Rad), fpv2RangeM * dCos(fpv2Rad), 180);
 
   return [
     {

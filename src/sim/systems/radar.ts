@@ -1,37 +1,48 @@
-import { DT } from '../core/clock.js';
 import { DEG_TO_RAD, dCos, dSin } from '../core/dmath.js';
 import { Rng } from '../core/rng.js';
 import { SimEvent } from '../core/types.js';
 import { bearingDeg, vDist, Vec3, vec3 } from '../core/vec.js';
 import { Actor } from '../model/actors.js';
 import { Environment } from '../model/environment.js';
-import { getClutterFactor, getTerrainHeight, hasLineOfSight } from '../model/terrain.js';
+import {
+  generateTerrain,
+  hasLineOfSight,
+  TerrainMap,
+} from '../model/terrain.js';
 import { THREAT_LIBRARY } from '../model/threats.js';
 import { RcsBucket, Track } from '../model/tracks.js';
 
-export const RADAR_MAX_RANGE_M = 6000;
+export const RADAR_MAX_RANGE_M = 5000;
 export const RADAR_RCS_REF = 0.01;
-export const RADAR_SWEEP_PERIOD_TICKS = 40; // 2 seconds per 360 rotation
+export const RADAR_SWEEP_PERIOD_TICKS = 40;
 
-export function isAngleInSector(angle: number, start: number, end: number): boolean {
-  if (start < end) {
-    return angle >= start && angle < end;
-  } else if (start > end) {
-    return angle >= start || angle < end;
-  }
-  return false;
-}
+const DT = 0.05; // 20 Hz fixed timestep
 
+/**
+ * Standard 3-sample Irwin-Hall approximation for zero-mean unit-variance Gaussian noise.
+ */
 function irwinHall(rng: Rng): number {
-  let sum = 0;
-  for (let i = 0; i < 12; i++) {
-    sum += rng.next();
-  }
-  return sum - 6;
+  return rng.next() + rng.next() + rng.next() - 1.5;
 }
 
-export function computeRcsBucket(measuredRcs: number): RcsBucket {
-  if (measuredRcs < 0.004) return 'tiny';
+/**
+ * Checks whether an azimuth angle is within a given angular sector [start, end)
+ * wrapping properly across 360 degrees.
+ */
+function isAngleInSector(angle: number, start: number, end: number): boolean {
+  const normAngle = ((angle % 360) + 360) % 360;
+  const normStart = ((start % 360) + 360) % 360;
+  const normEnd = ((end % 360) + 360) % 360;
+
+  if (normStart <= normEnd) {
+    return normAngle >= normStart && normAngle < normEnd;
+  }
+  // Sector wraps across North (0 deg)
+  return normAngle >= normStart || normAngle < normEnd;
+}
+
+function computeRcsBucket(measuredRcs: number): RcsBucket {
+  if (measuredRcs < 0.005) return 'tiny';
   if (measuredRcs < 0.03) return 'small';
   return 'medium';
 }
@@ -44,7 +55,8 @@ export function runRadarSystem(
   radarRng: Rng,
   events: SimEvent[],
   environment?: Environment,
-  ghostRng?: Rng
+  ghostRng?: Rng,
+  terrainMap?: TerrainMap
 ): void {
   const env: Environment = environment ?? {
     timeOfDay: 'dusk',
@@ -60,6 +72,8 @@ export function runRadarSystem(
   const origin = vec3(0, 0, 0);
   const mastPos = vec3(0, 0, 15);
 
+  const terrain = terrainMap ?? generateTerrain(env.terrainKind, radarRng.fork('terrain-fallback'));
+
   // 1. Process all active actors in deterministic ID order
   for (let i = 0; i < actors.length; i++) {
     const actor = actors[i];
@@ -73,34 +87,49 @@ export function runRadarSystem(
     const threat = THREAT_LIBRARY[actor.classId];
     const r = vDist(actor.pos, origin);
 
-    // Weather factor on effective range
-    const weatherMult = env.weather === 'rain' ? 0.85 : env.weather === 'fog' ? 0.95 : 1.0;
+    // Weather factor on effective range: clear 1.0, haze 0.97, rain 0.85, fog 0.95
+    const weatherMult =
+      env.weather === 'clear' ? 1.0 :
+      env.weather === 'haze' ? 0.97 :
+      env.weather === 'fog' ? 0.95 :
+      env.weather === 'rain' ? 0.85 : 1.0;
+
     const rEff = RADAR_MAX_RANGE_M * Math.sqrt(Math.sqrt(threat.rcsM2 / RADAR_RCS_REF)) * weatherMult;
     const ratio = r / rEff;
     const ratio4 = ratio * ratio * ratio * ratio;
 
-    // Clutter degradation based on AGL
-    const c = getClutterFactor(actor.pos.x, actor.pos.y, env.terrainKind);
-    const terrainH = getTerrainHeight(actor.pos.x, actor.pos.y, env.terrainKind);
-    const agl = actor.pos.z - terrainH;
-    let pdClutterMult = 1.0;
-    if (agl < 40) {
-      pdClutterMult = Math.max(0, 1 - c * (1 - Math.max(0, agl) / 40));
+    // Clutter: pd *= 1 - clutterAt(x,y) * lowFactor, lowFactor = 1 for AGL <= 50, linear to 0 at 150
+    const terrainH = terrain.heightAt(actor.pos.x, actor.pos.y);
+    const clutter = terrain.clutterAt(actor.pos.x, actor.pos.y);
+    const agl = Math.max(0, actor.pos.z - terrainH);
+    let lowFactor = 0;
+    if (agl <= 50) {
+      lowFactor = 1;
+    } else if (agl < 150) {
+      lowFactor = (150 - agl) / 100;
     }
+    const pdClutterMult = Math.max(0, 1 - clutter * lowFactor);
 
-    // EW Pd multiplier
-    const ewPdMult = env.ewLevel === 'heavy' ? 0.6 : env.ewLevel === 'light' ? 0.85 : 1.0;
-    const pd = Math.min(0.95, Math.max(0, 1 - ratio4)) * pdClutterMult * ewPdMult;
+    // EW Pd multiplier: [1.0, 0.92, 0.8]
+    const ewPdMult =
+      env.ewLevel === 'heavy' ? 0.8 :
+      env.ewLevel === 'light' ? 0.92 : 1.0;
+
+    const basePd = Math.min(0.95, Math.max(0, 1 - ratio4));
+    const pd = basePd * pdClutterMult * ewPdMult;
 
     // Terrain Line-of-Sight masking check (mast at (0, 0, 15) to target)
-    const hasLos = hasLineOfSight(mastPos, actor.pos, env.terrainKind, 50);
+    // Blocked if terrain height at any sample exceeds ray height - 5 m
+    const hasLos = hasLineOfSight(mastPos, actor.pos, terrain, 50);
 
     const hit = hasLos && radarRng.next() < pd;
     const existingTrack = tracks.find((t) => t.actorId === actor.id && t.state !== 'dropped');
 
     if (hit) {
-      // Gaussian noise via Irwin-Hall, scaled by EW noise multiplier
-      const ewNoiseMult = env.ewLevel === 'heavy' ? 2.5 : env.ewLevel === 'light' ? 1.5 : 1.0;
+      // Gaussian noise via Irwin-Hall, scaled by EW noise multiplier [1, 1.5, 2.5]
+      const ewNoiseMult =
+        env.ewLevel === 'heavy' ? 2.5 :
+        env.ewLevel === 'light' ? 1.5 : 1.0;
       const sigma = (15 + 0.005 * r) * ewNoiseMult;
       const noiseX = sigma * irwinHall(radarRng);
       const noiseY = sigma * irwinHall(radarRng);
@@ -165,31 +194,25 @@ export function runRadarSystem(
             };
           }
 
-          // Heading change rate tracking
-          const rawHeading = bearingDeg(vec3(0, 0, 0), {
-            x: existingTrack.estimatedVel.x,
-            y: existingTrack.estimatedVel.y,
-            z: 0,
-          });
+          // Heading turn rate smoothing
+          const currentCourseDeg = bearingDeg(vec3(0, 0, 0), existingTrack.estimatedVel);
           if (existingTrack.previousHeadingDeg !== undefined) {
-            let diff = Math.abs(rawHeading - existingTrack.previousHeadingDeg);
-            if (diff > 180) diff = 360 - diff;
-            const rate = diff / dtSec;
+            let diff = currentCourseDeg - existingTrack.previousHeadingDeg;
+            while (diff > 180) diff -= 360;
+            while (diff < -180) diff += 360;
+            const instantaneousTurnRate = Math.abs(diff) / dtSec;
             existingTrack.headingChangeRateSmoothed =
-              0.3 * rate + 0.7 * existingTrack.headingChangeRateSmoothed;
+              0.3 * instantaneousTurnRate + 0.7 * existingTrack.headingChangeRateSmoothed;
           }
-          existingTrack.previousHeadingDeg = rawHeading;
+          existingTrack.previousHeadingDeg = currentCourseDeg;
         }
 
         existingTrack.estimatedPos = measPos;
         existingTrack.lastDetectedTick = currentTick;
-        existingTrack.quality = Math.min(1.0, existingTrack.quality + 0.2);
+        existingTrack.quality = Math.min(1.0, existingTrack.quality + 0.15);
 
-        // Check confirmation: second hit within 4 sweeps (160 ticks)
-        if (
-          existingTrack.state === 'tentative' &&
-          currentTick - existingTrack.firstSeenTick <= 160
-        ) {
+        // Track Promotion: tentative -> confirmed on 2 consecutive hits
+        if (existingTrack.state === 'tentative' && existingTrack.consecutiveHits >= 2) {
           existingTrack.state = 'confirmed';
           existingTrack.confirmedTick = currentTick;
           events.push({
@@ -203,30 +226,28 @@ export function runRadarSystem(
           });
         }
       }
-    } else {
-      // Missed detection on swept actor
-      if (existingTrack) {
-        existingTrack.consecutiveMisses++;
-        existingTrack.consecutiveHits = 0;
-        existingTrack.quality = Math.max(0.0, existingTrack.quality - 0.15);
+    } else if (existingTrack) {
+      // Missed detection on active sweep
+      existingTrack.consecutiveMisses++;
+      existingTrack.consecutiveHits = 0;
+      existingTrack.quality = Math.max(0.0, existingTrack.quality - 0.15);
 
-        // 5 consecutive missed sweeps => dropped
-        if (existingTrack.consecutiveMisses >= 5) {
-          existingTrack.state = 'dropped';
-          existingTrack.lostTick = currentTick;
-          events.push({
-            tick: currentTick,
-            type: 'TRACK_LOST',
-            payload: {
-              trackId: existingTrack.trackId,
-            },
-          });
-        }
+      // Track Drop: after 5 consecutive missed sweeps
+      if (existingTrack.consecutiveMisses >= 5) {
+        existingTrack.state = 'dropped';
+        existingTrack.lostTick = currentTick;
+        events.push({
+          tick: currentTick,
+          type: 'TRACK_LOST',
+          payload: {
+            trackId: existingTrack.trackId,
+          },
+        });
       }
     }
   }
 
-  // 2. Process missed sweeps for tracks whose actors are no longer active in sector
+  // 2. Check for dropped tracks when actor has departed / neutralized
   for (let i = 0; i < tracks.length; i++) {
     const trk = tracks[i];
     if (!trk || trk.state === 'dropped' || trk.isGhost) continue;
@@ -258,9 +279,7 @@ export function runRadarSystem(
 
   // 3. Ghost tracks generation & lifecycle
   if (ghostRng) {
-    const maxGhosts = env.terrainKind === 'urban' ? 2 : 1;
-
-    // Kinematics and sweep processing for active ghosts
+    // Process existing active ghosts sweeping through sector
     for (let i = 0; i < tracks.length; i++) {
       const trk = tracks[i];
       if (!trk || !trk.isGhost || trk.state === 'dropped') continue;
@@ -271,70 +290,98 @@ export function runRadarSystem(
 
       const gBearing = bearingDeg(origin, trk.estimatedPos);
       if (isAngleInSector(gBearing, startAzimuth, endAzimuth)) {
-        trk.lastDetectedTick = currentTick;
-        trk.totalPlots = (trk.totalPlots ?? 1) + 1;
-        trk.remainingSweeps = (trk.remainingSweeps ?? 5) - 1;
-        trk.quality = Math.max(0, trk.quality - 0.03);
+        trk.ghostRotationsSeen = (trk.ghostRotationsSeen ?? 0) + 1;
+        const maxRotations = trk.ghostRemainingRotations ?? 2;
 
-        if (trk.state === 'tentative' && trk.totalPlots >= 2) {
-          trk.state = 'confirmed';
-          trk.confirmedTick = currentTick;
-          events.push({
-            tick: currentTick,
-            type: 'TRACK_CONFIRMED',
-            payload: {
-              trackId: trk.trackId,
-              rangeM: vDist(trk.estimatedPos, origin),
-              bearingDeg: gBearing,
-            },
-          });
-        }
+        // Re-plotted on later sweeps with probability 0.6 while lifespan active
+        if (trk.ghostRotationsSeen <= maxRotations && ghostRng.next() < 0.6) {
+          // Position jitter +-60m
+          const jitterX = (ghostRng.next() - 0.5) * 120;
+          const jitterY = (ghostRng.next() - 0.5) * 120;
+          trk.estimatedPos.x += jitterX;
+          trk.estimatedPos.y += jitterY;
+          trk.lastDetectedTick = currentTick;
+          trk.totalPlots = (trk.totalPlots ?? 1) + 1;
+          trk.consecutiveHits++;
+          trk.consecutiveMisses = 0;
 
-        if (trk.remainingSweeps <= 0 || trk.quality <= 0.05) {
-          trk.state = 'dropped';
-          trk.lostTick = currentTick;
-          events.push({
-            tick: currentTick,
-            type: 'TRACK_LOST',
-            payload: {
-              trackId: trk.trackId,
-            },
-          });
+          if (trk.ghostWillConfirm && trk.state === 'tentative' && trk.totalPlots >= 2) {
+            trk.state = 'confirmed';
+            trk.confirmedTick = currentTick;
+            events.push({
+              tick: currentTick,
+              type: 'TRACK_CONFIRMED',
+              payload: {
+                trackId: trk.trackId,
+                rangeM: vDist(trk.estimatedPos, origin),
+                bearingDeg: gBearing,
+              },
+            });
+          }
+        } else {
+          // Missed detection on this sweep
+          trk.consecutiveMisses++;
+          trk.consecutiveHits = 0;
+          trk.quality = Math.max(0.0, trk.quality - 0.05);
+
+          if (trk.consecutiveMisses >= 5) {
+            trk.state = 'dropped';
+            trk.lostTick = currentTick;
+            events.push({
+              tick: currentTick,
+              type: 'TRACK_LOST',
+              payload: {
+                trackId: trk.trackId,
+              },
+            });
+          }
         }
       }
     }
 
-    // Spawn new ghost if under limit (evaluated at sweep boundary: currentTick % 40 === 0)
-    if (currentTick % 40 === 0) {
-      let activeGhostCount = 0;
-      for (let i = 0; i < tracks.length; i++) {
-        const t = tracks[i];
-        if (t && t.isGhost && t.state !== 'dropped') activeGhostCount++;
-      }
+    // Expected ghost plots per 40-tick rotation = ewLevel [0, 0.5, 2.0] plus 0.5 in urban
+    // Evaluated per sweep (every 10 ticks): expectedPerSweep = expectedPerRotation / 4
+    if (currentTick % 10 === 0) {
+      const ewRate =
+        env.ewLevel === 'heavy' ? 2.0 : env.ewLevel === 'light' ? 0.5 : 0.0;
+      const urbanRate = env.terrainKind === 'urban' ? 0.5 : 0.0;
+      const expectedPerRotation = ewRate + urbanRate;
+      const expectedPerSweep = expectedPerRotation / 4;
 
-      const spawnChance =
-        env.terrainKind === 'urban' ? 0.75 : env.terrainKind === 'hilly' ? 0.4 : 0.2;
-
-      if (activeGhostCount < maxGhosts && ghostRng.next() < spawnChance) {
-        const rGhost = 800 + ghostRng.next() * 2700; // 800 - 3500m
-        const bGhostDeg = ghostRng.next() * 360;
+      if (expectedPerSweep > 0 && ghostRng.next() < expectedPerSweep) {
+        const bGhostDeg = startAzimuth + ghostRng.next() * 90;
         const bGhostRad = bGhostDeg * DEG_TO_RAD;
+        const rGhost = 800 + ghostRng.next() * (5500 - 800);
+        const zGhost = 20 + ghostRng.next() * (150 - 20);
+
         const ghostPos = vec3(
           rGhost * dSin(bGhostRad),
           rGhost * dCos(bGhostRad),
-          20 + ghostRng.next() * 30
+          zGhost
         );
-        const ghostSpd = 2 + ghostRng.next() * 4; // 2 - 6 m/s
+
+        const ghostSpd = 2 + ghostRng.next() * 4; // slow 2-6 m/s
         const ghostHdgDeg = ghostRng.next() * 360;
         const ghostHdgRad = ghostHdgDeg * DEG_TO_RAD;
         const ghostVel = vec3(ghostSpd * dSin(ghostHdgRad), ghostSpd * dCos(ghostHdgRad), 0);
         const ghostRcs = 0.003 + ghostRng.next() * 0.005;
+
+        // Lives 1-3 rotations; at ewLevel 2, 10% become confirmed for up to 6 rotations
+        let maxRotations = 1 + Math.floor(ghostRng.next() * 3);
+        let willConfirm = false;
+        if (env.ewLevel === 'heavy' && ghostRng.next() < 0.1) {
+          willConfirm = true;
+          maxRotations = 6;
+        }
 
         const newGhost: Track = {
           trackId: nextTrackIdRef.current++,
           actorId: -nextTrackIdRef.current,
           state: 'tentative',
           isGhost: true,
+          ghostRemainingRotations: maxRotations,
+          ghostWillConfirm: willConfirm,
+          ghostRotationsSeen: 0,
           estimatedPos: ghostPos,
           estimatedVel: ghostVel,
           lastDetectedTick: currentTick,
@@ -342,7 +389,6 @@ export function runRadarSystem(
           consecutiveHits: 1,
           consecutiveMisses: 0,
           totalPlots: 1,
-          remainingSweeps: 3 + Math.floor(ghostRng.next() * 6), // 3 to 8 sweeps
           rcsBucket: computeRcsBucket(ghostRcs),
           measuredRcs: ghostRcs,
           quality: 0.25,

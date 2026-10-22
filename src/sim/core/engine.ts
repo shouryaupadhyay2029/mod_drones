@@ -4,6 +4,7 @@ import {
   createInitialEffectorState,
   EffectorState,
 } from '../model/effectors.js';
+import { generateTerrain, TerrainMap } from '../model/terrain.js';
 import { THREAT_LIBRARY } from '../model/threats.js';
 import { Track } from '../model/tracks.js';
 import {
@@ -52,6 +53,7 @@ export class Engine {
   public tracks: Track[] = [];
   public effectorState: EffectorState;
   public missionState: MissionState = { ended: false };
+  public terrain?: TerrainMap;
 
   private nextActorId = 1;
   private nextTrackId = 1;
@@ -75,6 +77,8 @@ export class Engine {
       this.world = createInitialWorld(def.environment);
       const scenarioRng = this.rng.fork('scenario');
       this.scheduledSpawns = def.buildSpawns(scenarioRng);
+      const terrainRng = this.rng.fork('terrain');
+      this.terrain = generateTerrain(def.environment.terrainKind, terrainRng, def.terrainFeatures ?? []);
     }
   }
 
@@ -135,7 +139,8 @@ export class Engine {
       this.rng.fork('radar'),
       this.events,
       this.world.environment,
-      isMissionScenario ? this.rng.fork('radar-ghost') : undefined
+      isMissionScenario ? this.rng.fork('radar-ghost') : undefined,
+      this.terrain
     );
     this.nextTrackId = trackRef.current;
 

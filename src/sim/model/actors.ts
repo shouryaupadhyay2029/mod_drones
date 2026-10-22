@@ -1,6 +1,6 @@
 import { DEG_TO_RAD, dCos, dSin } from '../core/dmath.js';
 import { Rng } from '../core/rng.js';
-import { bearingDeg, vDist, vDist2D, Vec3, vec3, vNormalize, vScale } from '../core/vec.js';
+import { bearingDeg, vDist2D, Vec3, vec3, vNormalize, vScale } from '../core/vec.js';
 import { THREAT_LIBRARY, ThreatClassId } from './threats.js';
 
 export type ActorState = 'active' | 'neutralized' | 'left_area' | 'impacted';
@@ -37,7 +37,8 @@ export function createActor(
 
   let initialVel = vec3(0, 0, 0);
   if (behaviour.type === 'ingress_direct') {
-    const toAsset = vec3(-pos.x, -pos.y, -pos.z);
+    const targetPos = behaviour.targetPos ?? vec3(0, 0, pos.z);
+    const toAsset = vec3(targetPos.x - pos.x, targetPos.y - pos.y, targetPos.z - pos.z);
     initialVel = vScale(vNormalize(toAsset), chosenSpeed);
   } else if (behaviour.type === 'transit') {
     const toB = {
@@ -93,15 +94,15 @@ export function updateActorBehaviour(
 
   switch (actor.behaviour.type) {
     case 'ingress_direct': {
-      const assetPos = actor.behaviour.targetPos ?? vec3(0, 0, 0);
+      const assetPos = actor.behaviour.targetPos ?? vec3(0, 0, actor.pos.z);
       const toAsset = {
         x: assetPos.x - actor.pos.x,
         y: assetPos.y - actor.pos.y,
         z: assetPos.z - actor.pos.z,
       };
-      const distToAsset = vDist(actor.pos, assetPos);
+      const dist2D = vDist2D(actor.pos, vec3(0, 0, 0));
 
-      if (distToAsset <= 25) {
+      if (dist2D <= 25) {
         actor.state = 'impacted';
         actor.vel = vec3(0, 0, 0);
         onAssetHit(actor);

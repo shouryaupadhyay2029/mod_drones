@@ -7,80 +7,96 @@ import { ScenarioSpawnSchedule } from './dawnIntrusion.js';
 export const CITY_EDGE_NIGHT_ENV: Environment = createEnvironment({
   timeOfDay: 'night',
   weather: 'rain',
-  visibilityKm: 5,
-  ewLevel: 'heavy',
+  visibilityKm: 3,
+  ewLevel: 'light',
   terrainKind: 'urban',
 });
 
 /**
  * City Edge Night Scenario:
- * Urban clutter, night, rain, heavy EW interference.
- * 4 contacts:
- * 1. Avian contact wandering at ~1.6 km
- * 2. Hostile fixed_wing_recon: high altitude (300m), speed 25 m/s, transiting at 1.4 km standoff (within soft-kill range)
- * 3. Commercial quad: slow transit/hovering at 80m, speed 8 m/s
- * 4. Hostile FPV: low altitude (35m, in the building clutter), ingress from 045 deg, speed 32 m/s
+ * Urban terrain, night, rain, light EW.
+ * 5 real contacts + radar ghost tracks:
+ * 1. Avian contact 1 wandering at ~1.8 km with seeded departure
+ * 2. Hostile FPV 1 from ~330 deg at ~3.8 km, z ~50 m (clutter-degraded)
+ * 3. Commercial Quad in slow transit at ~1.4 km standoff
+ * 4. Avian contact 2 wandering at ~1.6 km with seeded departure
+ * 5. Hostile FPV 2 at ~t=90s from ~120 deg, z ~60 m
  */
 export function buildCityEdgeNightSpawns(scenarioRng: Rng): ScenarioSpawnSchedule[] {
-  // 1. Bird: t ~ 15s (300 +- 80 ticks), range ~ 1.6 km, wander
-  const birdTick = Math.max(50, 300 + Math.floor((scenarioRng.next() - 0.5) * 160));
-  const birdBearingDeg = 120 + (scenarioRng.next() - 0.5) * 30;
-  const birdRangeM = 1600 + (scenarioRng.next() - 0.5) * 300;
-  const birdRad = birdBearingDeg * DEG_TO_RAD;
-  const birdPos = vec3(birdRangeM * dSin(birdRad), birdRangeM * dCos(birdRad), 50);
-  const birdDepartTick = 2400 + Math.floor(scenarioRng.next() * 600);
+  // 1. Bird 1: t ~ 10s (200 +- 60 ticks), range ~ 1.8 km
+  const bird1Tick = Math.max(50, 200 + Math.floor((scenarioRng.next() - 0.5) * 120));
+  const bird1BearingDeg = 60 + (scenarioRng.next() - 0.5) * 20;
+  const bird1RangeM = 1800 + (scenarioRng.next() - 0.5) * 300;
+  const bird1Rad = bird1BearingDeg * DEG_TO_RAD;
+  const bird1Pos = vec3(bird1RangeM * dSin(bird1Rad), bird1RangeM * dCos(bird1Rad), 65);
+  const bird1DepartTick = 2200 + Math.floor(scenarioRng.next() * 500);
 
-  // 2. Hostile Fixed-Wing Recon: t ~ 20s (400 +- 100 ticks), altitude 300m, speed 25 m/s
-  // Transits standoff passing at ~1350m range (well within 1500m jammer range)
-  const reconTick = Math.max(birdTick + 40, 400 + Math.floor((scenarioRng.next() - 0.5) * 200));
-  const reconY = 1350 + (scenarioRng.next() - 0.5) * 100;
-  const reconStartPos = vec3(-2000, reconY, 300);
-  const reconEndPos = vec3(2000, reconY, 300);
+  // 2. Hostile FPV 1: t ~ 25s (500 +- 60 ticks), from ~330 deg, range 3800m, z 50m (clutter-degraded), speed 26 m/s
+  const fpv1Tick = Math.max(bird1Tick + 40, 500 + Math.floor((scenarioRng.next() - 0.5) * 120));
+  const fpv1BearingDeg = 330 + (scenarioRng.next() - 0.5) * 12;
+  const fpv1RangeM = 3800;
+  const fpv1Rad = fpv1BearingDeg * DEG_TO_RAD;
+  const fpv1Pos = vec3(fpv1RangeM * dSin(fpv1Rad), fpv1RangeM * dCos(fpv1Rad), 50);
 
-  // 3. Commercial Quad: t ~ 40s (800 +- 100 ticks), hovering / slow transit at 80m, speed 8 m/s
-  const quadTick = Math.max(reconTick + 40, 800 + Math.floor((scenarioRng.next() - 0.5) * 200));
-  const quadY = 1100 + (scenarioRng.next() - 0.5) * 150;
-  const quadStartPos = vec3(-900, quadY, 80);
-  const quadEndPos = vec3(900, quadY, 80);
+  // 3. Commercial Quad: t ~ 40s (800 +- 80 ticks), slow transit at 1.4 km standoff, speed 10 m/s
+  const quadTick = Math.max(fpv1Tick + 40, 800 + Math.floor((scenarioRng.next() - 0.5) * 160));
+  const quadY = 1400 + (scenarioRng.next() - 0.5) * 150;
+  const quadStartPos = vec3(-1400, quadY, 70);
+  const quadEndPos = vec3(1400, quadY, 70);
 
-  // 4. Hostile FPV: t ~ 60s (1200 +- 100 ticks), low altitude (35m, heavy building clutter), ingress from 045 deg, speed 32 m/s
-  const fpvTick = Math.max(quadTick + 40, 1200 + Math.floor((scenarioRng.next() - 0.5) * 200));
-  const fpvBearingDeg = 45 + (scenarioRng.next() - 0.5) * 15;
-  const fpvRangeM = 3500;
-  const fpvRad = fpvBearingDeg * DEG_TO_RAD;
-  const fpvPos = vec3(fpvRangeM * dSin(fpvRad), fpvRangeM * dCos(fpvRad), 35);
+  // 4. Bird 2: t ~ 60s (1200 +- 80 ticks), range ~ 1.6 km
+  const bird2Tick = Math.max(quadTick + 40, 1200 + Math.floor((scenarioRng.next() - 0.5) * 160));
+  const bird2BearingDeg = 240 + (scenarioRng.next() - 0.5) * 20;
+  const bird2RangeM = 1600 + (scenarioRng.next() - 0.5) * 250;
+  const bird2Rad = bird2BearingDeg * DEG_TO_RAD;
+  const bird2Pos = vec3(bird2RangeM * dSin(bird2Rad), bird2RangeM * dCos(bird2Rad), 55);
+  const bird2DepartTick = 2600 + Math.floor(scenarioRng.next() * 500);
+
+  // 5. Hostile FPV 2: t ~ 90s (1800 +- 60 ticks), from ~120 deg, range 3500m, z 60m, speed 28 m/s
+  const fpv2Tick = Math.max(bird2Tick + 40, 1800 + Math.floor((scenarioRng.next() - 0.5) * 120));
+  const fpv2BearingDeg = 120 + (scenarioRng.next() - 0.5) * 12;
+  const fpv2RangeM = 3500;
+  const fpv2Rad = fpv2BearingDeg * DEG_TO_RAD;
+  const fpv2Pos = vec3(fpv2RangeM * dSin(fpv2Rad), fpv2RangeM * dCos(fpv2Rad), 60);
 
   return [
     {
-      tick: birdTick,
+      tick: bird1Tick,
       classId: 'bird',
-      pos: birdPos,
+      pos: bird1Pos,
       behaviourType: 'wander',
-      speed: 9,
-      departTick: birdDepartTick,
+      speed: 8,
+      departTick: bird1DepartTick,
     },
     {
-      tick: reconTick,
-      classId: 'fixed_wing_recon',
-      pos: reconStartPos,
-      behaviourType: 'transit',
-      speed: 25,
-      transitWaypointB: reconEndPos,
+      tick: fpv1Tick,
+      classId: 'fpv_kamikaze',
+      pos: fpv1Pos,
+      behaviourType: 'ingress_direct',
+      speed: 26,
     },
     {
       tick: quadTick,
       classId: 'commercial_quad',
       pos: quadStartPos,
       behaviourType: 'transit',
-      speed: 8,
+      speed: 10,
       transitWaypointB: quadEndPos,
     },
     {
-      tick: fpvTick,
+      tick: bird2Tick,
+      classId: 'bird',
+      pos: bird2Pos,
+      behaviourType: 'wander',
+      speed: 9,
+      departTick: bird2DepartTick,
+    },
+    {
+      tick: fpv2Tick,
       classId: 'fpv_kamikaze',
-      pos: fpvPos,
+      pos: fpv2Pos,
       behaviourType: 'ingress_direct',
-      speed: 32,
+      speed: 28,
     },
   ];
 }

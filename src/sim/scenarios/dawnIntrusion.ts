@@ -75,7 +75,7 @@ export function spawnScheduledActor(
       nextActorId,
       schedule.classId,
       schedule.pos,
-      { type: 'ingress_direct', targetPos: vec3(0, 0, 0) },
+      { type: 'ingress_direct', targetPos: vec3(0, 0, schedule.pos.z) },
       schedule.speed
     );
   } else if (schedule.behaviourType === 'transit') {

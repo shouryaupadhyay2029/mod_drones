@@ -1,8 +1,13 @@
 import { Rng } from '../core/rng.js';
 import { createEnvironment, Environment } from '../model/environment.js';
+import { TerrainFeature } from '../model/terrain.js';
 import { buildCityEdgeNightSpawns, CITY_EDGE_NIGHT_ENV } from './cityEdgeNight.js';
 import { buildDawnIntrusionSpawns, ScenarioSpawnSchedule } from './dawnIntrusion.js';
-import { buildRidgeRunnerSpawns, RIDGE_RUNNER_ENV } from './ridgeRunner.js';
+import {
+  buildRidgeRunnerSpawns,
+  RIDGE_RUNNER_ENV,
+  RIDGE_RUNNER_FEATURES,
+} from './ridgeRunner.js';
 
 export * from './cityEdgeNight.js';
 export * from './dawnIntrusion.js';
@@ -14,6 +19,7 @@ export interface ScenarioDef {
   title: string;
   description: string;
   environment: Environment;
+  terrainFeatures?: TerrainFeature[];
   durationLimitTicks: number; // 4800 default
   buildSpawns: (scenarioRng: Rng) => ScenarioSpawnSchedule[];
 }
@@ -40,6 +46,7 @@ export const SCENARIOS: Record<string, ScenarioDef> = {
     description:
       'Dual hostile FPV ingress utilizing terrain ridge masking in hilly fog conditions with light EW.',
     environment: RIDGE_RUNNER_ENV,
+    terrainFeatures: RIDGE_RUNNER_FEATURES,
     durationLimitTicks: 4800,
     buildSpawns: buildRidgeRunnerSpawns,
   },
@@ -47,7 +54,7 @@ export const SCENARIOS: Record<string, ScenarioDef> = {
     id: 'city_edge_night',
     title: 'City Edge Night',
     description:
-      'High-altitude reconnaissance UAV and low-altitude fast strike drone in dense urban clutter with rain and heavy EW.',
+      'Dual hostile FPV ingress in dense urban clutter with rain and light EW.',
     environment: CITY_EDGE_NIGHT_ENV,
     durationLimitTicks: 4800,
     buildSpawns: buildCityEdgeNightSpawns,

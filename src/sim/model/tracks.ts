@@ -20,6 +20,9 @@ export interface Track {
   totalPlots: number;
   isGhost?: boolean;
   remainingSweeps?: number;
+  ghostRemainingRotations?: number;
+  ghostWillConfirm?: boolean;
+  ghostRotationsSeen?: number;
   rcsBucket: RcsBucket;
   measuredRcs: number;
   quality: number;

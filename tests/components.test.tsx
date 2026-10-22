@@ -2,9 +2,12 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { DebriefScreen } from '../src/app/console/DebriefScreen.js';
+import { MissionSetup } from '../src/app/console/MissionSetup.js';
+import { TopBar } from '../src/app/console/TopBar.js';
 import { TrackDetail } from '../src/app/console/TrackDetail.js';
 import { TrackTable } from '../src/app/console/TrackTable.js';
 import {
+  CLASSIFICATION_OPTIONS,
   ScoreReport,
   SessionLog,
   TraineeEffectorsView,
@@ -294,6 +297,56 @@ describe('Console UI Components & Logic Verification', () => {
       expect(html).toContain('Engaged bird: -15');
       expect(html).toContain('Hostile drone neutralized at 950m');
       expect(html).toContain('Prompt radar acknowledgment latency 1.5s');
+    });
+  });
+
+  // 5. Phase 2A UI Components: MissionSetup, TopBar Environment Chips, and Clutter classification
+  describe('Phase 2A UI Additions', () => {
+    it('MissionSetup renders scenario options and seed input', () => {
+      const html = renderToStaticMarkup(<MissionSetup onStart={() => {}} />);
+      expect(html).toContain('Dawn Intrusion');
+      expect(html).toContain('Ridge Runner');
+      expect(html).toContain('City Edge Night');
+      expect(html).toContain('START MISSION');
+    });
+
+    it('TopBar renders environment chips and omits ewLevel', () => {
+      const html = renderToStaticMarkup(
+        <TopBar
+          tick={100}
+          speed={1}
+          isPaused={false}
+          autopilot={false}
+          seed="s1"
+          phase="running"
+          scenarioId="ridge_runner"
+          environment={{
+            timeOfDay: 'dusk',
+            weather: 'fog',
+            visibilityKm: 2,
+            terrainKind: 'hilly',
+          }}
+          onTogglePause={() => {}}
+          onSetSpeed={() => {}}
+          onToggleAutopilot={() => {}}
+        />
+      );
+
+      expect(html).toContain('RIDGE RUNNER');
+      expect(html).toContain('dusk · fog · Vis 2km · hilly');
+      expect(html).not.toContain('ewLevel');
+      expect(html).not.toContain('EW:');
+    });
+
+    it('Classification options include Clutter / false track (hotkey 5) and Bird', () => {
+      const clutterOpt = CLASSIFICATION_OPTIONS.find((o) => o.id === 'clutter');
+      expect(clutterOpt).toBeDefined();
+      expect(clutterOpt?.label).toContain('Clutter');
+      expect(clutterOpt?.hotkey).toBe('5');
+
+      const birdOpt = CLASSIFICATION_OPTIONS.find((o) => o.id === 'bird');
+      expect(birdOpt).toBeDefined();
+      expect(birdOpt?.label).toBe('Bird');
     });
   });
 });

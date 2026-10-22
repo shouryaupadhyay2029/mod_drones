@@ -3,25 +3,29 @@ import { referenceOperator } from '../src/sim/bots/referenceOperator.js';
 import { triggerHappyOperator } from '../src/sim/bots/triggerHappyOperator.js';
 import { Engine } from '../src/sim/core/engine.js';
 import { Command } from '../src/sim/core/types.js';
+import { THREAT_LIBRARY } from '../src/sim/model/threats.js';
 import { scoreSession } from '../src/sim/scoring/basic.js';
 import { TraineeView } from '../src/sim/view/traineeView.js';
 
 interface RunResult {
+  scenario: string;
   seed: string;
   bot: string;
   score: number;
   outcome: string;
-  assetHit: string;
+  hits: number;
+  falseEngages: number;
   ticks: number;
   hash: string;
 }
 
 function runMission(
+  scenarioId: string,
   seed: string,
   botName: string,
   botFn: (view: TraineeView) => Command[]
 ): RunResult {
-  const engine = new Engine(seed, 'dawn_intrusion');
+  const engine = new Engine(seed, scenarioId);
 
   while (!engine.missionState.ended && engine.world.tick < 4800) {
     const view = engine.getTraineeView();
@@ -35,25 +39,55 @@ function runMission(
     engine.step();
   }
 
+  const events = engine.getEvents();
+  const hits = events.filter((e) => e.type === 'ASSET_HIT').length;
+
+  const falseEngages = events.filter((e) => {
+    if (e.type !== 'ENGAGEMENT_STARTED') return false;
+    const tid = e.payload?.trackId;
+    const trk = engine.tracks.find((t) => t.trackId === tid);
+    if (!trk) return false;
+    if (trk.isGhost) return true;
+    const actor = engine.actors.find((a) => a.id === trk.actorId);
+    return actor ? !THREAT_LIBRARY[actor.classId]?.hostile : false;
+  }).length;
+
   const scoreReport = scoreSession({
     actors: engine.actors,
     tracks: engine.tracks,
-    events: engine.getEvents(),
-    assetHit: engine.getEvents().some((e) => e.type === 'ASSET_HIT'),
+    events,
+    assetHit: hits > 0,
   });
 
   return {
+    scenario: scenarioId,
     seed,
     bot: botName,
     score: scoreReport.total,
     outcome: engine.missionState.reason ?? 'running',
-    assetHit: engine.getEvents().some((e) => e.type === 'ASSET_HIT') ? 'YES' : 'NO',
+    hits,
+    falseEngages,
     ticks: engine.world.tick,
     hash: engine.getHash(),
   };
 }
 
+function parseArgs(): { scenario: string } {
+  const args = process.argv.slice(2);
+  let scenario = 'all';
+  for (const arg of args) {
+    if (arg.startsWith('--scenario=')) {
+      scenario = arg.split('=')[1] ?? 'all';
+    }
+  }
+  return { scenario };
+}
+
 function main() {
+  const { scenario } = parseArgs();
+  const allScenarios = ['dawn_intrusion', 'ridge_runner', 'city_edge_night'];
+  const scenariosToRun = scenario === 'all' ? allScenarios : [scenario];
+
   const seeds = ['s1', 's2', 's3', 's4', 's5'];
   const bots = [
     { name: 'referenceOperator', fn: referenceOperator },
@@ -63,48 +97,87 @@ function main() {
 
   const results: RunResult[] = [];
 
-  for (let s = 0; s < seeds.length; s++) {
-    const seed = seeds[s]!;
-    for (let b = 0; b < bots.length; b++) {
-      const bot = bots[b]!;
-      results.push(runMission(seed, bot.name, bot.fn));
+  for (const sc of scenariosToRun) {
+    for (const seed of seeds) {
+      for (const bot of bots) {
+        results.push(runMission(sc, seed, bot.name, bot.fn));
+      }
     }
   }
 
-  console.log('\n=== DAWN INTRUSION HEADLESS EVALUATION ===\n');
+  console.log('\n=== HEADLESS EVALUATION REPORT ===\n');
   console.log(
-    '| Seed | Bot                  | Score | Outcome      | Asset Hit? | Ticks | Final State Hash |'
+    '| Scenario          | Seed | Bot                  | Score | Outcome      | Hits | FalseEng | Ticks | Final State Hash |'
   );
   console.log(
-    '|------|----------------------|-------|--------------|------------|-------|------------------|'
+    '|-------------------|------|----------------------|-------|--------------|------|----------|-------|------------------|'
   );
 
-  for (let i = 0; i < results.length; i++) {
-    const r = results[i]!;
+  for (const r of results) {
+    const padSc = r.scenario.padEnd(17);
     const padSeed = r.seed.padEnd(4);
     const padBot = r.bot.padEnd(20);
     const padScore = String(r.score).padStart(5);
     const padOutcome = r.outcome.padEnd(12);
-    const padHit = r.assetHit.padEnd(10);
+    const padHits = String(r.hits).padStart(4);
+    const padFE = String(r.falseEngages).padStart(8);
     const padTicks = String(r.ticks).padStart(5);
     const hash = r.hash;
     console.log(
-      `| ${padSeed} | ${padBot} | ${padScore} | ${padOutcome} | ${padHit} | ${padTicks} | ${hash} |`
+      `| ${padSc} | ${padSeed} | ${padBot} | ${padScore} | ${padOutcome} | ${padHits} | ${padFE} | ${padTicks} | ${hash} |`
     );
   }
 
-  // Reproducibility check: run seed 's1' + referenceOperator twice
+  // Reproducibility double-check
   console.log('\n--- DETERMINISM DOUBLE-CHECK (Seed: s1 + referenceOperator) ---');
-  const run1 = runMission('s1', 'referenceOperator', referenceOperator);
-  const run2 = runMission('s1', 'referenceOperator', referenceOperator);
+  let determinismPass = true;
+  for (const sc of scenariosToRun) {
+    const run1 = runMission(sc, 's1', 'referenceOperator', referenceOperator);
+    const run2 = runMission(sc, 's1', 'referenceOperator', referenceOperator);
+    const match = run1.hash === run2.hash;
+    console.log(`Scenario [${sc}]: Hash 1 = ${run1.hash}, Hash 2 = ${run2.hash} -> ${match ? 'PASS' : 'FAIL'}`);
+    if (!match) determinismPass = false;
+  }
 
-  console.log(`Run 1 Hash: ${run1.hash}`);
-  console.log(`Run 2 Hash: ${run2.hash}`);
-  console.log(`Hashes Match: ${run1.hash === run2.hash ? 'PASS (IDENTICAL)' : 'FAIL'}\n`);
+  // Assertions check
+  let assertionsPass = true;
+  const assertionErrors: string[] = [];
 
-  console.log(`Run 1 Hash: ${run1.hash}`);
-  console.log(`Run 2 Hash: ${run2.hash}`);
-  console.log(`Hashes Match: ${run1.hash === run2.hash ? 'PASS (IDENTICAL)' : 'FAIL'}\n`);
+  for (const sc of scenariosToRun) {
+    for (const seed of seeds) {
+      const refResult = results.find((r) => r.scenario === sc && r.seed === seed && r.bot === 'referenceOperator');
+      const idleResult = results.find((r) => r.scenario === sc && r.seed === seed && r.bot === 'idleOperator');
+      const trigResult = results.find((r) => r.scenario === sc && r.seed === seed && r.bot === 'triggerHappyOperator');
+
+      if (refResult && refResult.score < 75) {
+        assertionErrors.push(`[${sc}/${seed}] referenceOperator score ${refResult.score} < 75`);
+        assertionsPass = false;
+      }
+      if (idleResult && idleResult.score > 30) {
+        assertionErrors.push(`[${sc}/${seed}] idleOperator score ${idleResult.score} > 30`);
+        assertionsPass = false;
+      }
+      if (refResult && trigResult && trigResult.score >= refResult.score) {
+        assertionErrors.push(`[${sc}/${seed}] triggerHappyOperator score ${trigResult.score} >= reference ${refResult.score}`);
+        assertionsPass = false;
+      }
+    }
+  }
+
+  if (!determinismPass) {
+    console.error('\nERROR: Determinism double-check failed!');
+    process.exit(1);
+  }
+
+  if (!assertionsPass) {
+    console.error('\nERROR: Benchmark assertion checks failed:');
+    for (const err of assertionErrors) {
+      console.error(' - ' + err);
+    }
+    process.exit(1);
+  }
+
+  console.log('\nALL BENCHMARK & DETERMINISM CHECKS PASSED SUCCESSFULLY!\n');
 }
 
 main();

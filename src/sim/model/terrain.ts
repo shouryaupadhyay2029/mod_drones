@@ -1,5 +1,21 @@
+import { DEG_TO_RAD, dCos, dSin } from '../core/dmath.js';
+import { Rng } from '../core/rng.js';
 import { Vec3 } from '../core/vec.js';
 import { TerrainKind } from './environment.js';
+
+export interface TerrainFeature {
+  kind: 'ridge';
+  bearingDeg: number;
+  rangeM: number;
+  lengthM: number;
+  widthM: number;
+  heightM: number;
+}
+
+export interface TerrainMap {
+  heightAt(x: number, y: number): number;
+  clutterAt(x: number, y: number): number;
+}
 
 /**
  * Deterministic 2D integer lattice hash using 32-bit integer arithmetic & Math.imul.
@@ -90,97 +106,153 @@ function distSqToSegment(
 }
 
 /**
- * Computes deterministic terrain height MSL (m) at world coordinates (x, y).
- * Coverage: [-8000, 8000]m.
- * Flattens smoothly to 0m within 300m of (0, 0).
+ * Generates procedural terrain map with height and clutter evaluators.
+ * Extent: +/-8000 m.
+ */
+export function generateTerrain(
+  kind: TerrainKind,
+  terrainRng: Rng,
+  features: TerrainFeature[] = []
+): TerrainMap {
+  const baseSeed = Math.floor(terrainRng.next() * 1000000);
+
+  // Pre-calculate segment endpoints for ridge features
+  const preparedRidges = features
+    .filter((f) => f.kind === 'ridge')
+    .map((f) => {
+      const rad = f.bearingDeg * DEG_TO_RAD;
+      const rcx = f.rangeM * dSin(rad);
+      const rcy = f.rangeM * dCos(rad);
+      // Perpendicular direction to bearing
+      const dirX = -dCos(rad);
+      const dirY = dSin(rad);
+      const halfL = f.lengthM / 2;
+      return {
+        ax: rcx - halfL * dirX,
+        ay: rcy - halfL * dirY,
+        bx: rcx + halfL * dirX,
+        by: rcy + halfL * dirY,
+        halfWidth: f.widthM / 2,
+        heightM: f.heightM,
+      };
+    });
+
+  function heightAt(x: number, y: number): number {
+    const cx = Math.max(-8000, Math.min(8000, x));
+    const cy = Math.max(-8000, Math.min(8000, y));
+
+    let height = 0;
+
+    if (kind === 'rural') {
+      // rural: height 0-30 m, flat open plains
+      const n = sampleFractalNoise(cx, cy, baseSeed + 111);
+      height = 30 * n * n;
+    } else if (kind === 'hilly') {
+      // hilly: 0-180 m with ridge emphasis
+      // Low base topography (0-15m) so valleys remain open
+      const n = sampleFractalNoise(cx, cy, baseSeed + 222);
+      height = 15 * n * n;
+
+      for (let i = 0; i < preparedRidges.length; i++) {
+        const r = preparedRidges[i]!;
+        const dSq = distSqToSegment(cx, cy, r.ax, r.ay, r.bx, r.by);
+        if (dSq < r.halfWidth * r.halfWidth) {
+          const d = Math.sqrt(dSq);
+          const profile = smoothstep(1 - d / r.halfWidth);
+          const rH = r.heightM * profile;
+          if (rH > height) {
+            height = rH;
+          }
+        }
+      }
+    } else if (kind === 'urban') {
+      // urban: ground 0-8 m plus 100 m blocks, every 3rd row/column a street,
+      // building probability 0.55, building height 10-45 m
+      const ground = 8 * sampleFractalNoise(cx, cy, baseSeed + 333);
+      const gx = Math.floor(cx / 100);
+      const gy = Math.floor(cy / 100);
+      const isStreet = Math.abs(gx) % 3 === 0 || Math.abs(gy) % 3 === 0;
+
+      let bHeight = 0;
+      if (!isStreet) {
+        const bProb = latticeHash2D(gx, gy, baseSeed + 500);
+        if (bProb < 0.55) {
+          bHeight = 10 + 35 * latticeHash2D(gx, gy, baseSeed + 600);
+        }
+      }
+      height = ground + bHeight;
+    }
+
+    // Flatten smoothly to 0 m within 300 m of the asset
+    const distOrigin = Math.sqrt(cx * cx + cy * cy);
+    if (distOrigin < 300) {
+      const blend = smoothstep(distOrigin / 300);
+      height *= blend;
+    }
+
+    return height;
+  }
+
+  function clutterAt(x: number, y: number): number {
+    const cx = Math.max(-8000, Math.min(8000, x));
+    const cy = Math.max(-8000, Math.min(8000, y));
+
+    if (kind === 'rural') {
+      return 0.05;
+    } else if (kind === 'hilly') {
+      return 0.1;
+    } else if (kind === 'urban') {
+      const gx = Math.floor(cx / 100);
+      const gy = Math.floor(cy / 100);
+      const isStreet = Math.abs(gx) % 3 === 0 || Math.abs(gy) % 3 === 0;
+      if (!isStreet) {
+        const bProb = latticeHash2D(gx, gy, baseSeed + 500);
+        if (bProb < 0.55) {
+          return 0.6;
+        }
+      }
+      return 0.3;
+    }
+    return 0.05;
+  }
+
+  return { heightAt, clutterAt };
+}
+
+/**
+ * Backward-compatible helper functions
  */
 export function getTerrainHeight(x: number, y: number, kind: TerrainKind): number {
-  // Clamp to scenario coverage envelope
-  const cx = Math.max(-8000, Math.min(8000, x));
-  const cy = Math.max(-8000, Math.min(8000, y));
-
-  let rawHeight = 0;
-
-  if (kind === 'rural') {
-    // Rural: base amplitude 15m, gently rolling flat plains
-    const n = sampleFractalNoise(cx, cy, 1001);
-    rawHeight = 15 * n;
-  } else if (kind === 'hilly') {
-    // Hilly: base amplitude 120m
-    const n = sampleFractalNoise(cx, cy, 2002);
-    rawHeight = 120 * n;
-
-    // Explicit ridge feature: range ~2.0-2.5 km along bearing ~270-300 deg, peak >= 80m
-    // Ridge line between A(-2400, 400) and B(-1900, 700) (bearing ~285 deg, range 2.1-2.4 km)
-    const distSq = distSqToSegment(cx, cy, -2400, 400, -1900, 700);
-    const ridgeRadius = 350;
-    if (distSq < ridgeRadius * ridgeRadius) {
-      const d = Math.sqrt(distSq);
-      const profile = smoothstep(1 - d / ridgeRadius);
-      // Guarantee peak ridge adds up to 90m
-      const ridgeHeight = 90 * profile;
-      rawHeight = Math.max(rawHeight, ridgeHeight);
-    }
-  } else if (kind === 'urban') {
-    // Urban: base amplitude 25m, occasional tall structures (+30-60m blocks)
-    const n = sampleFractalNoise(cx, cy, 3003);
-    rawHeight = 25 * n;
-
-    // Discrete 60m building grid
-    const gx = Math.floor(cx / 60);
-    const gy = Math.floor(cy / 60);
-    const isBuilding = latticeHash2D(gx, gy, 7777) > 0.82;
-    if (isBuilding) {
-      const bHeight = 30 + 30 * latticeHash2D(gx, gy, 8888);
-      rawHeight += bHeight;
-    }
-  }
-
-  // Asset vicinity flattening: within 300m of (0,0), smoothly blend height to 0m
-  const distFromOrigin = Math.sqrt(cx * cx + cy * cy);
-  if (distFromOrigin < 300) {
-    const blend = smoothstep(distFromOrigin / 300);
-    rawHeight *= blend;
-  }
-
-  return rawHeight;
+  const dummyRng = new Rng('fixed-seed');
+  const t = generateTerrain(kind, dummyRng);
+  return t.heightAt(x, y);
 }
 
-/**
- * Computes deterministic surface clutter factor c(x, y) in [0, 1].
- */
 export function getClutterFactor(x: number, y: number, kind: TerrainKind): number {
-  const gx = Math.floor(x / 100);
-  const gy = Math.floor(y / 100);
-
-  if (kind === 'rural') {
-    // Rural: clutter 0.1 - 0.3
-    const h = latticeHash2D(gx, gy, 4111);
-    return 0.1 + 0.2 * h;
-  }
-
-  if (kind === 'hilly') {
-    // Hilly: clutter 0.2 - 0.5
-    const h = latticeHash2D(gx, gy, 4222);
-    return 0.2 + 0.3 * h;
-  }
-
-  // Urban: clutter 0.6 - 0.9 (dense building returns)
-  const h = latticeHash2D(gx, gy, 4333);
-  return 0.6 + 0.3 * h;
+  const dummyRng = new Rng('fixed-seed');
+  const t = generateTerrain(kind, dummyRng);
+  return t.clutterAt(x, y);
 }
 
 /**
- * Raymarch line-of-sight test from 'from' (radar mast) to 'to' (target).
- * Sample step default 50m.
- * Returns false if ray dips below terrain height at any sampled point.
+ * Raymarch line-of-sight test from 'from' (radar mast at (0,0,15)) to 'to' (target).
+ * Sample step 50m.
+ * Blocked if terrain height at any sample exceeds ray height - 5 m. Blocked => pd = 0.
  */
 export function hasLineOfSight(
   from: Vec3,
   to: Vec3,
-  kind: TerrainKind,
+  terrainOrKind: TerrainMap | TerrainKind,
   sampleStepM = 50
 ): boolean {
+  let terrain: TerrainMap;
+  if (typeof terrainOrKind === 'string') {
+    const dummyRng = new Rng('fixed-seed');
+    terrain = generateTerrain(terrainOrKind, dummyRng);
+  } else {
+    terrain = terrainOrKind;
+  }
+
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const dz = to.z - from.z;
@@ -191,12 +263,12 @@ export function hasLineOfSight(
   }
 
   // Target below ground check
-  const targetGroundZ = getTerrainHeight(to.x, to.y, kind);
+  const targetGroundZ = terrain.heightAt(to.x, to.y);
   if (to.z <= targetGroundZ) {
     return false;
   }
 
-  // Raymarch along line of sight
+  // Raymarch along line of sight every sampleStepM
   const numSteps = Math.floor(totalDist / sampleStepM);
   for (let step = 1; step <= numSteps; step++) {
     const distSampled = step * sampleStepM;
@@ -205,10 +277,11 @@ export function hasLineOfSight(
     const t = distSampled / totalDist;
     const px = from.x + t * dx;
     const py = from.y + t * dy;
-    const pz = from.z + t * dz;
+    const rayZ = from.z + t * dz;
 
-    const terrainZ = getTerrainHeight(px, py, kind);
-    if (pz <= terrainZ) {
+    const terrainZ = terrain.heightAt(px, py);
+    // Blocked if terrain height exceeds ray height - 5 m
+    if (terrainZ > rayZ - 5) {
       return false; // Occluded by terrain
     }
   }

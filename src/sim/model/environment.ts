@@ -1,18 +1,19 @@
 export type TimeOfDay = 'day' | 'dusk' | 'night';
-export type Weather = 'clear' | 'fog' | 'rain';
+export type Weather = 'clear' | 'haze' | 'fog' | 'rain';
 export type EwLevel = 'none' | 'light' | 'heavy';
 export type TerrainKind = 'rural' | 'hilly' | 'urban';
 
 export interface Environment {
   timeOfDay: TimeOfDay;
   weather: Weather;
-  visibilityKm: number; // clear=10, fog=2, rain=5
+  visibilityKm: number; // clear=10, haze=5, fog=2, rain=5
   ewLevel: EwLevel;
   terrainKind: TerrainKind;
 }
 
 export const DEFAULT_VISIBILITY_KM: Record<Weather, number> = {
   clear: 10,
+  haze: 5,
   fog: 2,
   rain: 5,
 };

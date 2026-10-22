@@ -72,11 +72,11 @@ export function referenceOperator(view: TraineeView): Command[] {
         assessed = 'fixed_wing_recon';
       }
       // Cue C2: High-speed direct closing threat (FPV strike drone)
-      else if (speed >= 22 && closingRate <= -18 && headingError <= 35) {
+      else if (speed >= 24 && closingRate <= -20 && headingError <= 35) {
         assessed = 'fpv_kamikaze';
       }
       // Cue D: Standoff transit corridor / non-closing crossing trajectory
-      else if (speed >= 6 && (closingRate > -14 || headingError > 45)) {
+      else if (speed >= 6 && (closingRate > -16 || headingError > 40)) {
         assessed = 'commercial_quad';
       }
       // Cue E: Low speed or ambiguous
@@ -100,14 +100,32 @@ export function referenceOperator(view: TraineeView): Command[] {
     if (
       track.assessedClass !== 'fpv_kamikaze' &&
       track.rcsBucket !== 'tiny' &&
-      speed >= 22 &&
-      closingRate <= -18 &&
+      speed >= 24 &&
+      closingRate <= -20 &&
       headingError <= 30
     ) {
       commands.push({
         tick: view.tick,
         type: 'CLASSIFY_TRACK',
         payload: { trackId: track.trackId, assessedClass: 'fpv_kamikaze' },
+      });
+      continue;
+    }
+
+    // Re-evaluate if a track assessed as FPV proves to be crossing or slow civilian transit
+    if (
+      track.assessedClass === 'fpv_kamikaze' &&
+      (speed < 18 || headingError > 45)
+    ) {
+      commands.push({
+        tick: view.tick,
+        type: 'CLASSIFY_TRACK',
+        payload: { trackId: track.trackId, assessedClass: 'commercial_quad' },
+      });
+      commands.push({
+        tick: view.tick,
+        type: 'HOLD_FIRE',
+        payload: { trackId: track.trackId },
       });
       continue;
     }
