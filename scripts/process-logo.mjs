@@ -1,6 +1,6 @@
+/* global document */
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
-import path from 'node:path';
 
 async function processLogo() {
   const chromePath = fs.existsSync('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')

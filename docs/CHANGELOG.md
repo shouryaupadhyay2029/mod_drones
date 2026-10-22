@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - Phase 2B: RF Detector, EO/IR Sensor, Day/Night Effects
+
+### Added
+- **Threat Library Additions (`src/sim/model/threats.ts`)**:
+  - Physical size (`sizeM`), thermal signature (`thermalSignature`), and passive RF emission signature (`rfSignature`: 'none' | 'telemetry_link' | 'wideband_video' | 'long_range_link') across all threat classes.
+  - `dawn_intrusion` scenario updated with `timeOfDay: 'dusk'`.
+- **Passive RF Line-of-Bearing Detector (`src/sim/systems/rf.ts`)**:
+  - Evaluates every 10 ticks (0.5 s) using isolated `rng.fork('rf')`.
+  - Effective range $R_{\text{rf}} = 4500\text{ m} \times [1.0, 0.85, 0.65][\text{ew}] \times (\text{urban} ? 0.8 : 1.0)$.
+  - 12-sample Irwin-Hall bearing noise with standard deviation $\sigma = 4^\circ \times (\text{urban} ? 1.5 : 1.0) \times [1.0, 1.3, 1.8][\text{ew}]$.
+  - Line-of-sight clearance verification via terrain raymarching.
+  - 5-second bearing strobe retention and dynamic track association (`emitting` if bearing strobe matches within $\pm 10^\circ$ in last 3s; `silent` if track age $>6$s, range $\le 0.8 R_{\text{rf}}$, clear LOS, and no matching strobe; else `unknown`).
+- **EO/IR Turret Sensor (`src/sim/systems/eo.ts`)**:
+  - Single-gimbal optical turret slewing at $2^\circ/\text{tick}$ toward target track bearing.
+  - States: `idle`, `slewing`, and `locked`. Automatically emits `EO_LOST` event if locked track drops.
+  - Command handling: `EO_LOCK { trackId }`, `EO_RELEASE {}`, and `EO_CHANNEL { channel: 'tv' | 'ir' }`.
+  - True physical optics formulas calculating effective pixels (`effPixels = pixels * contrast`) across TV and IR channels under variable ambient light (day 1.0, dusk 0.6, night 0.05), atmospheric extinction, and rain attenuation.
+  - Resolution levels: `identify` ($\ge 12$), `recognize` ($\ge 6$), `detect` ($\ge 2.5$), and `none` ($< 2.5$).
+  - Probabilistic classification hints: 95% accuracy at `identify`, 90% accuracy at `recognize` (`multirotor` | `fixed_wing` | `bird`), and generic `object` at `detect`.
+  - Normalized quality metric $\min(1, \text{effPixels} / 12)$ without exposing raw pixel counts to the view.
+- **Reference Bot Sensor Fusion (`src/sim/bots/referenceOperator.ts`)**:
+  - Automatic EO turret management: locks nearest unclassified confirmed track within 3.0 km and releases upon classification.
+  - Multi-sensor fusion weights: EO identify hints (weight 1.0), RF link signatures (weight 0.85), EO recognize hints (weight 0.70), and observable kinematics fallback (weight 0.50).
+- **Console UI Integration (`src/app/console/`)**:
+  - Scope: Thin dotted RF lines of bearing fading over 5 seconds with emission signature tags.
+  - Track Table: RF emission column (`EMIT`, `silent`, `—`).
+  - Track Detail: RF emission signature display and EO turret lock toggle button.
+  - EO Panel (`EoPanel.tsx`): HUD overlay with crosshairs, FLIR grey-green palette for night IR mode, procedural vector silhouettes for optical hints (multirotor, fixed-wing, bird, object), real-time quality/blur filtering, and channel toggle.
+  - Hotkeys: `E` to toggle EO lock on selected track, `T` to toggle TV/IR channel.
+- **Verification Suite**:
+  - `tests/phase2b.test.tsx`: Acceptance test suite covering RF range monotonicity, Irwin-Hall noise sigma, RF track association, EO range equations, gimbal slew rate, command validation, privacy audit, snapshot/restore replay invariance, and bot performance benchmarks.
+
+### Fixed
+- **Step 0.1 Engine Mission End**: Restored engine completion rule requiring all spawned actors to resolve (`neutralized`, `impacted`, `left_area`), ensuring reference runs on dawn_intrusion run until full resolution (~4,100 ticks).
+- **Step 0.2 Radar Ghost Model**: Configured rates per minute ($p = \text{ratePerMin}/120$) with 2-miss drop for tentative ghosts and confirmed ghost lifespans up to 6 sweeps with quality decay $0.25 \to 0.1$.
+- **Step 0.3 Terrain Cleanup**: Removed `TerrainKind` string overload from `hasLineOfSight` to require explicit `TerrainMap`.
+
 ## [0.4.0] - Phase 2A: Environment, Terrain, Radar Degradation, Three Scenarios
 
 ### Added

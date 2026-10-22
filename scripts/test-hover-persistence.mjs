@@ -1,7 +1,7 @@
+/* global window */
 import { spawn } from 'node:child_process';
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
-import path from 'node:path';
 import http from 'node:http';
 
 function waitForServer(url, timeout = 10000) {
