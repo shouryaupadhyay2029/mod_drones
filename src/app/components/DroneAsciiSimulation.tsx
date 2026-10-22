@@ -155,8 +155,8 @@ function generateDroneModel(): Point3D[] {
 export function DroneAsciiSimulation({
   className = '',
   style,
-  color = '#cbb3e8',
-  backgroundColor = '#080808',
+  color = '#181716',
+  backgroundColor = 'transparent',
   fontSize = 9,
   autoRotate = true,
   rotationSpeed = 0.012,
@@ -357,15 +357,16 @@ export function DroneAsciiSimulation({
           onClick={() => setIsRotating((prev) => !prev)}
           title="Toggle Auto-Rotation"
           style={{
-            backgroundColor: '#171717',
-            border: '1px solid #262626',
-            color: isRotating ? activeColor : '#71717a',
+            backgroundColor: '#eae5dc',
+            border: '1px solid rgba(45, 40, 35, 0.25)',
+            color: isRotating ? '#181716' : '#78746c',
             borderRadius: '6px',
             padding: '5px 10px',
             fontSize: '11px',
             fontFamily: 'monospace',
+            fontWeight: 700,
             cursor: 'pointer',
-            boxShadow: isRotating ? `0 0 8px ${activeColor}30` : 'none',
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
           }}
         >
           {isRotating ? '⏸ PAUSE ROTATE' : '▶ AUTO-ROTATE'}
@@ -375,14 +376,16 @@ export function DroneAsciiSimulation({
           onClick={resetOrientation}
           title="Reset Orientation"
           style={{
-            backgroundColor: '#171717',
-            border: '1px solid #262626',
-            color: '#ffffff',
+            backgroundColor: '#eae5dc',
+            border: '1px solid rgba(45, 40, 35, 0.25)',
+            color: '#181716',
             borderRadius: '6px',
             padding: '5px 10px',
             fontSize: '11px',
             fontFamily: 'monospace',
+            fontWeight: 700,
             cursor: 'pointer',
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
           }}
         >
           ↺ RESET
@@ -392,14 +395,16 @@ export function DroneAsciiSimulation({
           onClick={() => setWireframeOnly((prev) => !prev)}
           title="Toggle ASCII Density"
           style={{
-            backgroundColor: '#171717',
-            border: '1px solid #262626',
-            color: wireframeOnly ? activeColor : '#a1a1aa',
+            backgroundColor: '#eae5dc',
+            border: '1px solid rgba(45, 40, 35, 0.25)',
+            color: wireframeOnly ? '#8e5b5d' : '#181716',
             borderRadius: '6px',
             padding: '5px 10px',
             fontSize: '11px',
             fontFamily: 'monospace',
+            fontWeight: 700,
             cursor: 'pointer',
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
           }}
         >
           {wireframeOnly ? 'WIREFRAME' : 'SHADED'}
@@ -408,25 +413,29 @@ export function DroneAsciiSimulation({
         <button
           onClick={() => {
             const nextColor =
-              activeColor === '#cbb3e8'
-                ? '#d4ff3f'
-                : activeColor === '#d4ff3f'
-                  ? '#e34234'
-                  : '#cbb3e8';
+              activeColor === '#181716'
+                ? '#8e5b5d' // Shourya Foundry Terracotta
+                : activeColor === '#8e5b5d'
+                  ? '#6b518c' // Tactical Lavender
+                  : activeColor === '#6b518c'
+                    ? '#4e660e' // Dark Olive
+                    : activeColor === '#4e660e'
+                      ? '#b83327' // Crimson
+                      : '#181716';
             setActiveColor(nextColor);
           }}
-          title="Switch Color Theme (Lavender / Chartreuse / Tomato)"
+          title="Switch Color Theme (Ink / Terracotta / Lavender / Olive / Crimson)"
           style={{
-            backgroundColor: '#181818',
-            border: `1px solid ${activeColor}`,
+            backgroundColor: '#eae5dc',
+            border: `1.5px solid ${activeColor}`,
             color: activeColor,
             borderRadius: '6px',
             padding: '5px 10px',
             fontSize: '11px',
             fontFamily: 'monospace',
-            fontWeight: 700,
+            fontWeight: 800,
             cursor: 'pointer',
-            boxShadow: `0 0 10px ${activeColor}30`,
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
           }}
         >
           THEME
@@ -443,7 +452,7 @@ export function DroneAsciiSimulation({
           lineHeight: '9px',
           letterSpacing: '1px',
           color: activeColor,
-          textShadow: `0 0 6px ${activeColor}40`,
+          textShadow: 'none',
           whiteSpace: 'pre',
           pointerEvents: 'none',
           textAlign: 'center',

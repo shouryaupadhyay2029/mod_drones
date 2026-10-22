@@ -104,9 +104,9 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
                 onClick={() => setSelectedScenario(sc.id)}
                 style={{
                   ...styles.scenarioCard,
-                  borderColor: isSelected ? '#d4ff3f' : '#262626',
-                  backgroundColor: isSelected ? 'rgba(212, 255, 63, 0.08)' : '#121212',
-                  boxShadow: isSelected ? '0 0 14px rgba(212, 255, 63, 0.25)' : 'none',
+                  borderColor: isSelected ? '#181716' : 'rgba(45, 40, 35, 0.18)',
+                  backgroundColor: isSelected ? '#f2ece0' : '#ded8cd',
+                  boxShadow: isSelected ? '0 3px 12px rgba(0, 0, 0, 0.08)' : 'none',
                 }}
               >
                 <div style={styles.scenarioCardHeader}>
@@ -115,7 +115,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
                     name="scenarioPicker"
                     checked={isSelected}
                     onChange={() => setSelectedScenario(sc.id)}
-                    style={{ cursor: 'pointer', accentColor: '#d4ff3f' }}
+                    style={{ cursor: 'pointer', accentColor: '#181716' }}
                   />
                   <span style={styles.scenarioCardTitle}>
                     <TextRoll stagger={0.02}>{sc.title}</TextRoll>
@@ -196,31 +196,31 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     flex: 1,
     padding: '0 0 50px 0',
-    backgroundColor: '#080808',
+    backgroundColor: 'transparent',
     overflowY: 'auto',
     width: '100%',
   },
   card: {
     width: '100%',
     maxWidth: '860px',
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
+    backgroundColor: '#e7e2d6',
+    border: '1px solid rgba(45, 40, 35, 0.16)',
     borderRadius: '10px',
     padding: '28px 32px',
     display: 'flex',
     flexDirection: 'column',
     gap: '16px',
-    boxShadow: '0 20px 35px -5px rgba(0, 0, 0, 0.8), 0 0 20px rgba(203, 179, 232, 0.06)',
+    boxShadow: '0 20px 40px rgba(45, 40, 35, 0.08)',
     marginTop: '28px',
   },
   header: {
-    borderBottom: '1px solid #262626',
+    borderBottom: '1px solid rgba(45, 40, 35, 0.14)',
     paddingBottom: '12px',
   },
   missionTag: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#cbb3e8',
+    color: '#6b518c',
     letterSpacing: '0.1em',
     marginBottom: '4px',
   },
@@ -228,13 +228,13 @@ const styles: Record<string, React.CSSProperties> = {
     margin: '0 0 4px 0',
     fontSize: '22px',
     fontWeight: 700,
-    color: '#ffffff',
+    color: '#181716',
     letterSpacing: '0.02em',
   },
   subtitle: {
     margin: 0,
     fontSize: '12px',
-    color: '#b5b5be',
+    color: '#635e57',
   },
   scenarioList: {
     display: 'grid',
@@ -259,11 +259,11 @@ const styles: Record<string, React.CSSProperties> = {
   scenarioCardTitle: {
     fontSize: '13px',
     fontWeight: 700,
-    color: '#ffffff',
+    color: '#181716',
   },
   scenarioCardSubtitle: {
     fontSize: '10px',
-    color: '#a1a1aa',
+    color: '#635e57',
     marginLeft: '24px',
   },
   chipsRow: {
@@ -275,16 +275,16 @@ const styles: Record<string, React.CSSProperties> = {
   },
   chipTag: {
     fontSize: '9px',
-    backgroundColor: '#080808',
-    color: '#d4ff3f',
-    border: '1px solid rgba(212, 255, 63, 0.3)',
+    backgroundColor: '#eae5dc',
+    color: '#526f0f',
+    border: '1px solid rgba(82, 111, 15, 0.25)',
     padding: '2px 5px',
     borderRadius: '3px',
     fontWeight: 600,
   },
   briefingBox: {
-    backgroundColor: '#0c0c0e',
-    border: '1px solid #262626',
+    backgroundColor: '#ded8cd',
+    border: '1px solid rgba(45, 40, 35, 0.14)',
     borderRadius: '6px',
     padding: '12px 16px',
   },
@@ -292,21 +292,21 @@ const styles: Record<string, React.CSSProperties> = {
     margin: '0 0 6px 0',
     fontSize: '11px',
     fontWeight: 700,
-    color: '#d4ff3f',
+    color: '#526f0f',
     letterSpacing: '0.08em',
   },
   briefingText: {
     margin: '0 0 8px 0',
     fontSize: '12px',
     lineHeight: '1.4',
-    color: '#f4f4f5',
+    color: '#2d2b28',
   },
   briefingList: {
     margin: 0,
     paddingLeft: '18px',
     fontSize: '12px',
     lineHeight: '1.5',
-    color: '#b5b5be',
+    color: '#4a4742',
     display: 'flex',
     flexDirection: 'column',
     gap: '4px',
@@ -324,7 +324,7 @@ const styles: Record<string, React.CSSProperties> = {
   label: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#cbb3e8',
+    color: '#6b518c',
     letterSpacing: '0.05em',
   },
   inputRow: {
@@ -334,20 +334,20 @@ const styles: Record<string, React.CSSProperties> = {
   input: {
     flex: 1,
     padding: '8px 12px',
-    backgroundColor: '#0c0c0e',
-    border: '1px solid #2a2a2e',
+    backgroundColor: '#eae5dc',
+    border: '1px solid rgba(45, 40, 35, 0.2)',
     borderRadius: '6px',
-    color: '#ffffff',
+    color: '#181716',
     fontSize: '13px',
     fontFamily: 'monospace',
     outline: 'none',
   },
   buttonRandom: {
     padding: '8px 14px',
-    backgroundColor: '#181818',
-    border: '1px solid #333333',
+    backgroundColor: '#ded8cd',
+    border: '1px solid rgba(45, 40, 35, 0.25)',
     borderRadius: '6px',
-    color: '#cbb3e8',
+    color: '#181716',
     fontSize: '12px',
     fontWeight: 600,
     cursor: 'pointer',
@@ -356,20 +356,20 @@ const styles: Record<string, React.CSSProperties> = {
   },
   hint: {
     fontSize: '11px',
-    color: '#71717a',
+    color: '#78746c',
     fontStyle: 'italic',
   },
   buttonStart: {
     padding: '12px 18px',
-    backgroundColor: '#d4ff3f',
-    color: '#080808',
-    border: 'none',
+    backgroundColor: '#181716',
+    color: '#ded7ca',
+    border: '1px solid #181716',
     borderRadius: '6px',
     fontSize: '14px',
-    fontWeight: 800,
+    fontWeight: 700,
     letterSpacing: '0.06em',
     cursor: 'pointer',
-    boxShadow: '0 0 16px rgba(212, 255, 63, 0.45)',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.16)',
     transition: 'all 0.15s ease',
     fontFamily: 'inherit',
     marginTop: '4px',

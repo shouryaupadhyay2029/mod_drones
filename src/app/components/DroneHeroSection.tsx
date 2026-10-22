@@ -7,7 +7,7 @@ export function DroneHeroSection(): React.JSX.Element {
       {/* Full-Width 3D Tactical Drone ASCII Canvas Container — Seamless with page background */}
       <div style={styles.canvasWrapper}>
         <DroneAsciiSimulation
-          color="#cbb3e8"
+          color="#181716"
           backgroundColor="transparent"
           fontSize={10}
           autoRotate={true}

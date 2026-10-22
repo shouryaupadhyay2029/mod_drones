@@ -1,34 +1,49 @@
 /* Operator Console Premium Minimal Defense Theme
    Palette:
-   - Lavender:    #CBB3E8 (Exact swatch from reference: floral pastel lavender)
-   - Chartreuse:  #D4FF3F (High-contrast tactical accent & active states)
-   - Tomato Red:  #E34234 (Threat warnings, critical alerts, hostile FPVs)
-   - Neutral Black Base: #080808 / #121212 / #181818 (Zero blue/purple haze)
+   - Shaded Cream Base: #DED7CA / #D6CFC1 (Moodier, dark shady stone cream)
+   - Noise Overlay:     SVG fractal noise texture (film grain / fine paper tooth)
+   - Deep Obsidian Ink: #181716
+   - Dusty Terracotta:  #8E5B5D (Matching Shourya Foundry reference)
+   - Tactical Lavender: #6B518C
+   - Dark Olive Lime:   #4E660E
 */
 
 :root {
-  --bg-primary: #080808; /* Pure Neutral Deep Black */
-  --bg-secondary: #121212; /* Neutral Charcoal Surface */
-  --bg-card: #181818; /* Neutral Card / Panel */
-  --border-color: #262626; /* Clean Neutral Border */
-  --border-accent: rgba(203, 179, 232, 0.35);
-  --text-primary: #ffffff;
-  --text-secondary: #b5b5be;
-  --text-muted: #71717a;
+  --bg-primary: #ded7ca; /* Shaded editorial cream (moody, dark shady stone/paper cream) */
+  --bg-secondary: #d4cdc0; /* Deeper shaded stone surface */
+  --bg-card: #e7e2d6; /* Warm editorial card */
+  --border-color: rgba(45, 40, 35, 0.16);
+  --border-accent: rgba(107, 81, 140, 0.35);
+  --text-primary: #181716; /* Deep obsidian charcoal ink */
+  --text-secondary: #58544e; /* Warm slate/graphite */
+  --text-muted: #847f77;
 
-  --accent-lavender: #cbb3e8;
-  --accent-lavender-glow: rgba(203, 179, 232, 0.22);
-  --accent-chartreuse: #d4ff3f;
-  --accent-chartreuse-glow: rgba(212, 255, 63, 0.28);
-  --accent-tomato: #e34234;
-  --accent-tomato-glow: rgba(227, 66, 52, 0.3);
+  --accent-lavender: #6b518c;
+  --accent-lavender-glow: rgba(107, 81, 140, 0.15);
+  --accent-chartreuse: #526f0f;
+  --accent-chartreuse-glow: rgba(82, 111, 15, 0.18);
+  --accent-tomato: #b83327;
+  --accent-tomato-glow: rgba(184, 51, 39, 0.2);
 
   /* Semantic aliases */
-  --accent-cyan: #d4ff3f;
-  --accent-blue: #cbb3e8;
-  --accent-green: #d4ff3f;
-  --accent-amber: #f59e0b;
-  --accent-red: #e34234;
+  --accent-cyan: #2d6b75;
+  --accent-blue: #6b518c;
+  --accent-green: #526f0f;
+  --accent-amber: #a86208;
+  --accent-red: #b83327;
+}
+
+/* Tactile film grain noise overlay across the whole viewport */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 html, body, #root {
@@ -62,12 +77,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(203, 179, 232, 0.18);
+  background: rgba(45, 40, 35, 0.2);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-chartreuse);
+  background: rgba(45, 40, 35, 0.4);
 }
 
 .console-layout {
@@ -175,14 +190,14 @@ body {
 
 .nav-mega-btn:hover,
 .nav-mega-btn.is-active {
-  color: var(--accent-lavender);
-  background-color: rgba(203, 179, 232, 0.08);
+  color: var(--text-primary);
+  background-color: rgba(45, 40, 35, 0.08);
 }
 
 .nav-mega-chevron {
   font-size: 9px;
   transition: transform 0.22s ease;
-  color: var(--accent-lavender);
+  color: var(--text-muted);
 }
 
 .nav-mega-item:hover .nav-mega-chevron,
