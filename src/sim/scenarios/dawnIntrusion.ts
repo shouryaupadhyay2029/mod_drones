@@ -2,10 +2,11 @@ import { DEG_TO_RAD, dCos, dSin } from '../core/dmath.js';
 import { Rng } from '../core/rng.js';
 import { vec3, Vec3 } from '../core/vec.js';
 import { Actor, createActor } from '../model/actors.js';
+import { ThreatClassId } from '../model/threats.js';
 
 export interface ScenarioSpawnSchedule {
   tick: number;
-  classId: 'bird' | 'commercial_quad' | 'fpv_kamikaze';
+  classId: ThreatClassId;
   pos: Vec3;
   behaviourType: 'wander' | 'transit' | 'ingress_direct';
   speed: number;

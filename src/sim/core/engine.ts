@@ -4,12 +4,13 @@ import {
   createInitialEffectorState,
   EffectorState,
 } from '../model/effectors.js';
+import { THREAT_LIBRARY } from '../model/threats.js';
 import { Track } from '../model/tracks.js';
 import {
-  buildDawnIntrusionSpawns,
+  SCENARIOS,
   ScenarioSpawnSchedule,
   spawnScheduledActor,
-} from '../scenarios/dawnIntrusion.js';
+} from '../scenarios/index.js';
 import { runEngagementSystem, tryEngageTrack } from '../systems/engagement.js';
 import { runRadarSystem } from '../systems/radar.js';
 import { buildTraineeView, TraineeView } from '../view/traineeView.js';
@@ -33,7 +34,6 @@ import {
   SpawnEntityPayload,
   WorldState,
 } from './types.js';
-import { createEnvironment } from '../model/environment.js';
 import {
   cloneWorld,
   createInitialWorld,
@@ -65,22 +65,16 @@ export class Engine {
     this.seed = seed;
     this.scenarioId = scenarioId;
     this.rng = new Rng(seed);
-    this.world = createInitialWorld(
-      scenarioId === 'dawn_intrusion'
-        ? createEnvironment({
-            timeOfDay: 'dusk',
-            weather: 'clear',
-            visibilityKm: 10,
-            ewLevel: 'none',
-            terrainKind: 'rural',
-          })
-        : undefined
-    );
     this.effectorState = createInitialEffectorState();
 
-    if (scenarioId === 'dawn_intrusion') {
+    if (scenarioId === 'sandbox' || scenarioId === 'scenario-replay-check') {
+      this.world = createInitialWorld();
+      this.scheduledSpawns = [];
+    } else {
+      const def = SCENARIOS[scenarioId] ?? SCENARIOS['dawn_intrusion']!;
+      this.world = createInitialWorld(def.environment);
       const scenarioRng = this.rng.fork('scenario');
-      this.scheduledSpawns = buildDawnIntrusionSpawns(scenarioRng);
+      this.scheduledSpawns = def.buildSpawns(scenarioRng);
     }
   }
 
@@ -224,10 +218,22 @@ export class Engine {
         this.scheduledSpawns.length === 0 ||
         this.scheduledSpawns.every((s) => s.tick <= currentTick);
       if (allSpawned) {
-        const allResolved = this.actors.every(
-          (a) => a.state === 'neutralized' || a.state === 'left_area'
-        );
-        if (allResolved) {
+        const allHostilesNeutralized = this.actors
+          .filter((a) => THREAT_LIBRARY[a.classId].hostile)
+          .every((a) => a.state === 'neutralized');
+
+        const allNeutralsResolved = this.actors
+          .filter((a) => !THREAT_LIBRARY[a.classId].hostile)
+          .every((a) => {
+            if (a.state === 'left_area' || a.state === 'neutralized') return true;
+            const tracksForActor = this.tracks.filter((t) => t.actorId === a.id);
+            return (
+              tracksForActor.length > 0 &&
+              tracksForActor.some((t) => t.engagementStatus === 'holding_fire')
+            );
+          });
+
+        if (allHostilesNeutralized && allNeutralsResolved) {
           this.missionState.ended = true;
           this.missionState.reason = 'all_resolved';
           this.events.push({
