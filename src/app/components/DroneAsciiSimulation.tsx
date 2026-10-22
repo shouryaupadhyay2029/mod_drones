@@ -155,8 +155,8 @@ function generateDroneModel(): Point3D[] {
 export function DroneAsciiSimulation({
   className = '',
   style,
-  color = '#cbb3ed',
-  backgroundColor = '#0a0b0e',
+  color = '#cbb3e8',
+  backgroundColor = '#080808',
   fontSize = 9,
   autoRotate = true,
   rotationSpeed = 0.012,
@@ -330,7 +330,7 @@ export function DroneAsciiSimulation({
         minHeight: '480px',
         backgroundColor,
         borderRadius: '12px',
-        border: '1px solid rgba(203, 179, 237, 0.16)',
+        border: '1px solid rgba(203, 179, 232, 0.16)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -408,16 +408,16 @@ export function DroneAsciiSimulation({
         <button
           onClick={() => {
             const nextColor =
-              activeColor === '#cbb3ed'
+              activeColor === '#cbb3e8'
                 ? '#d4ff3f'
                 : activeColor === '#d4ff3f'
                   ? '#e34234'
-                  : '#cbb3ed';
+                  : '#cbb3e8';
             setActiveColor(nextColor);
           }}
           title="Switch Color Theme (Lavender / Chartreuse / Tomato)"
           style={{
-            backgroundColor: '#161822',
+            backgroundColor: '#181818',
             border: `1px solid ${activeColor}`,
             color: activeColor,
             borderRadius: '6px',
@@ -447,8 +447,8 @@ export function DroneAsciiSimulation({
       >
         <span
           style={{
-            backgroundColor: 'rgba(203, 179, 237, 0.15)',
-            border: '1px solid rgba(203, 179, 237, 0.35)',
+            backgroundColor: 'rgba(203, 179, 232, 0.15)',
+            border: '1px solid rgba(203, 179, 232, 0.35)',
             color: activeColor,
             borderRadius: '4px',
             padding: '2px 8px',

@@ -33,8 +33,8 @@ export function EffectorPanel({
             <span
               style={{
                 ...styles.statusBadge,
-                backgroundColor: isJammerReady ? 'rgba(212, 255, 63, 0.15)' : '#161822',
-                border: isJammerReady ? '1px solid #d4ff3f' : '1px solid rgba(203, 179, 237, 0.2)',
+                backgroundColor: isJammerReady ? 'rgba(212, 255, 63, 0.15)' : '#181818',
+                border: isJammerReady ? '1px solid #d4ff3f' : '1px solid #2a2a2e',
                 color: isJammerReady ? '#d4ff3f' : '#fcd34d',
                 boxShadow: isJammerReady ? '0 0 10px rgba(212, 255, 63, 0.35)' : 'none',
               }}
@@ -69,12 +69,12 @@ export function EffectorPanel({
                   ? 'rgba(212, 255, 63, 0.15)'
                   : effectors.gun.ammo <= 0
                     ? 'rgba(227, 66, 52, 0.2)'
-                    : '#161822',
+                    : '#181818',
                 border: isGunReady
                   ? '1px solid #d4ff3f'
                   : effectors.gun.ammo <= 0
                     ? '1px solid #e34234'
-                    : '1px solid rgba(203, 179, 237, 0.2)',
+                    : '1px solid #2a2a2e',
                 color: isGunReady
                   ? '#d4ff3f'
                   : effectors.gun.ammo <= 0
@@ -120,8 +120,8 @@ export function EffectorPanel({
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#111319',
-    border: '1px solid rgba(203, 179, 237, 0.14)',
+    backgroundColor: '#121212',
+    border: '1px solid #262626',
     borderRadius: '8px',
     padding: '12px',
     display: 'flex',
@@ -141,8 +141,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '10px',
   },
   card: {
-    backgroundColor: '#0a0b0e',
-    border: '1px solid rgba(203, 179, 237, 0.12)',
+    backgroundColor: '#0c0c0e',
+    border: '1px solid #262626',
     borderRadius: '6px',
     padding: '10px 12px',
     display: 'flex',
@@ -177,7 +177,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
   },
   label: {
-    color: '#cbb3ed',
+    color: '#cbb3e8',
   },
   val: {
     color: '#ffffff',

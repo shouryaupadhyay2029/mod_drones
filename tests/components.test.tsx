@@ -104,7 +104,7 @@ describe('Console UI Components & Logic Verification', () => {
         />
       );
       // Selected row has highlight background style
-      expect(html).toContain('background-color:rgba(203, 179, 237, 0.14)');
+      expect(html).toContain('background-color:rgba(203, 179, 232, 0.14)');
     });
   });
 

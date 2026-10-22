@@ -142,9 +142,9 @@ export function RadarScope({
         width: '100%',
         flex: 1,
         minHeight: '260px',
-        backgroundColor: '#0a0b0e',
+        backgroundColor: '#080808',
         borderRadius: '8px',
-        border: '1px solid rgba(203, 179, 237, 0.16)',
+        border: '1px solid #262626',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -164,8 +164,8 @@ export function RadarScope({
         <button
           onClick={() => setShowEffectorRings((prev) => !prev)}
           style={{
-            backgroundColor: showEffectorRings ? 'rgba(212, 255, 63, 0.15)' : '#161822',
-            border: showEffectorRings ? '1px solid #d4ff3f' : '1px solid rgba(203, 179, 237, 0.15)',
+            backgroundColor: showEffectorRings ? 'rgba(212, 255, 63, 0.15)' : '#181818',
+            border: showEffectorRings ? '1px solid #d4ff3f' : '1px solid #2a2a2e',
             color: showEffectorRings ? '#d4ff3f' : '#767a8f',
             borderRadius: '4px',
             padding: '4px 8px',
@@ -180,9 +180,9 @@ export function RadarScope({
 
         <span
           style={{
-            backgroundColor: '#111319',
-            border: '1px solid rgba(203, 179, 237, 0.15)',
-            color: '#c4c7d4',
+            backgroundColor: '#121212',
+            border: '1px solid #2a2a2e',
+            color: '#b5b5be',
             borderRadius: '4px',
             padding: '4px 8px',
             fontSize: '11px',

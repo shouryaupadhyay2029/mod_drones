@@ -167,7 +167,7 @@ export function TopBar({
                 <div className="mega-preview-card">
                   <div className="mega-preview-header">
                     <span className="mega-preview-tag">SCENARIO INTELLIGENCE</span>
-                    <span style={{ fontSize: '11px', color: '#cbb3ed' }}>v2.4</span>
+                    <span style={{ fontSize: '11px', color: '#cbb3e8' }}>v2.4</span>
                   </div>
                   <div>
                     <h4 className="mega-preview-title">Autonomous Mission Suite</h4>
@@ -462,14 +462,14 @@ const styles: Record<string, React.CSSProperties> = {
   headerRoot: {
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#0a0b0e',
-    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
+    backgroundColor: '#080808',
+    borderBottom: '1px solid #262626',
     position: 'relative',
     zIndex: 100,
   },
   topSubBar: {
-    backgroundColor: '#060709',
-    borderBottom: '1px solid rgba(203, 179, 237, 0.08)',
+    backgroundColor: '#050505',
+    borderBottom: '1px solid #1f1f1f',
     padding: '5px 20px',
     display: 'flex',
     justifyContent: 'space-between',
@@ -483,16 +483,16 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '10px',
   },
   disclaimerPill: {
-    backgroundColor: '#cbb3ed',
-    color: '#0a0b0e',
+    backgroundColor: '#cbb3e8',
+    color: '#080808',
     padding: '2px 7px',
     borderRadius: '3px',
     fontWeight: 800,
     fontSize: '10px',
-    boxShadow: '0 0 8px rgba(203, 179, 237, 0.35)',
+    boxShadow: '0 0 8px rgba(203, 179, 232, 0.35)',
   },
   disclaimerText: {
-    color: '#c4c7d4',
+    color: '#b5b5be',
   },
   subBarRight: {
     display: 'flex',
@@ -518,7 +518,7 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.04em',
   },
   sysCheckLink: {
-    color: '#cbb3ed',
+    color: '#cbb3e8',
     textDecoration: 'none',
     fontSize: '11px',
     fontWeight: 600,
@@ -528,7 +528,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '10px 20px',
-    backgroundColor: 'rgba(10, 11, 14, 0.95)',
+    backgroundColor: 'rgba(10, 10, 12, 0.95)',
     backdropFilter: 'blur(12px)',
     gap: '16px',
     flexWrap: 'wrap',
@@ -572,7 +572,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: 'monospace',
   },
   brandTagline: {
-    color: '#cbb3ed',
+    color: '#cbb3e8',
     fontSize: '9px',
     fontWeight: 600,
     letterSpacing: '0.08em',
@@ -584,7 +584,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '6px',
   },
   navDirectLink: {
-    color: '#c4c7d4',
+    color: '#b5b5be',
     textDecoration: 'none',
     fontSize: '12px',
     fontWeight: 700,
@@ -608,9 +608,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '9px',
     padding: '1px 5px',
     borderRadius: '3px',
-    backgroundColor: 'rgba(203, 179, 237, 0.12)',
-    border: '1px solid rgba(203, 179, 237, 0.3)',
-    color: '#cbb3ed',
+    backgroundColor: 'rgba(203, 179, 232, 0.12)',
+    border: '1px solid rgba(203, 179, 232, 0.3)',
+    color: '#cbb3e8',
   },
   menuBadgeAlert: {
     fontSize: '9px',
@@ -623,7 +623,7 @@ const styles: Record<string, React.CSSProperties> = {
   previewCardBtn: {
     padding: '8px 12px',
     backgroundColor: '#d4ff3f',
-    color: '#0a0b0e',
+    color: '#080808',
     border: 'none',
     borderRadius: '6px',
     fontSize: '11px',
@@ -636,9 +636,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   previewCardLink: {
     padding: '8px 12px',
-    backgroundColor: '#161822',
-    color: '#cbb3ed',
-    border: '1px solid rgba(203, 179, 237, 0.25)',
+    backgroundColor: '#181818',
+    color: '#cbb3e8',
+    border: '1px solid rgba(203, 179, 232, 0.25)',
     borderRadius: '6px',
     fontSize: '11px',
     fontWeight: 700,
@@ -660,8 +660,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#111319',
-    border: '1px solid rgba(203, 179, 237, 0.2)',
+    backgroundColor: '#121212',
+    border: '1px solid #2a2a2e',
     borderRadius: '6px',
     padding: '6px 10px',
   },
@@ -681,15 +681,15 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#111319',
-    border: '1px solid rgba(203, 179, 237, 0.16)',
+    backgroundColor: '#121212',
+    border: '1px solid #2a2a2e',
     borderRadius: '6px',
     padding: '6px 10px',
     fontSize: '11px',
     fontFamily: 'monospace',
   },
   seedLabelText: {
-    color: '#cbb3ed',
+    color: '#cbb3e8',
   },
   seedValueText: {
     color: '#ffffff',
@@ -697,7 +697,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   btnNavCta: {
     backgroundColor: '#d4ff3f',
-    color: '#0a0b0e',
+    color: '#080808',
     border: 'none',
     borderRadius: '6px',
     padding: '7px 14px',
@@ -723,9 +723,9 @@ const styles: Record<string, React.CSSProperties> = {
     textShadow: '0 0 10px rgba(212, 255, 63, 0.4)',
   },
   envChipBadge: {
-    backgroundColor: '#111319',
-    border: '1px solid rgba(203, 179, 237, 0.3)',
-    color: '#cbb3ed',
+    backgroundColor: '#121212',
+    border: '1px solid rgba(203, 179, 232, 0.3)',
+    color: '#cbb3e8',
     padding: '3px 8px',
     borderRadius: '4px',
     fontSize: '11px',
@@ -736,14 +736,14 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    backgroundColor: '#060709',
+    backgroundColor: '#050505',
     padding: '4px 10px',
     borderRadius: '4px',
-    border: '1px solid rgba(203, 179, 237, 0.14)',
+    border: '1px solid #262626',
     fontFamily: 'monospace',
   },
   clockLabel: {
-    color: '#767a8f',
+    color: '#71717a',
     fontSize: '10px',
     fontWeight: 600,
   },
@@ -758,17 +758,17 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
   },
   seedBadge: {
-    backgroundColor: '#111319',
+    backgroundColor: '#121212',
     padding: '4px 8px',
     borderRadius: '4px',
-    border: '1px solid rgba(203, 179, 237, 0.14)',
+    border: '1px solid #262626',
     fontSize: '11px',
     fontFamily: 'monospace',
     display: 'flex',
     gap: '6px',
   },
   seedLabel: {
-    color: '#767a8f',
+    color: '#71717a',
   },
   seedValue: {
     color: '#e4e4e7',
@@ -776,15 +776,15 @@ const styles: Record<string, React.CSSProperties> = {
   },
   buttonGroup: {
     display: 'flex',
-    backgroundColor: '#060709',
+    backgroundColor: '#050505',
     borderRadius: '4px',
-    border: '1px solid rgba(203, 179, 237, 0.14)',
+    border: '1px solid #262626',
     overflow: 'hidden',
   },
   speedButton: {
     backgroundColor: 'transparent',
     border: 'none',
-    color: '#c4c7d4',
+    color: '#b5b5be',
     padding: '6px 12px',
     fontSize: '12px',
     fontWeight: 600,
@@ -794,7 +794,7 @@ const styles: Record<string, React.CSSProperties> = {
   speedActive: {
     backgroundColor: '#d4ff3f',
     border: 'none',
-    color: '#0a0b0e',
+    color: '#080808',
     padding: '6px 12px',
     fontSize: '12px',
     fontWeight: 800,
@@ -803,8 +803,8 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 0 10px rgba(212, 255, 63, 0.5)',
   },
   pauseButton: {
-    backgroundColor: '#161822',
-    border: '1px solid rgba(203, 179, 237, 0.2)',
+    backgroundColor: '#181818',
+    border: '1px solid #333333',
     color: '#ffffff',
     padding: '6px 14px',
     borderRadius: '4px',
@@ -814,9 +814,9 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   autopilotButton: {
-    backgroundColor: '#111319',
-    border: '1px solid rgba(203, 179, 237, 0.15)',
-    color: '#c4c7d4',
+    backgroundColor: '#121212',
+    border: '1px solid #2a2a2e',
+    color: '#b5b5be',
     padding: '6px 12px',
     borderRadius: '4px',
     fontSize: '12px',

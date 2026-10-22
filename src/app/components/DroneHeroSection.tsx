@@ -16,8 +16,8 @@ export function DroneHeroSection({
       {/* Full-Width 3D Tactical Drone ASCII Canvas Container */}
       <div style={styles.canvasWrapper}>
         <DroneAsciiSimulation
-          color="#cbb3ed"
-          backgroundColor="#0a0b0e"
+          color="#cbb3e8"
+          backgroundColor="#080808"
           fontSize={10}
           autoRotate={true}
           rotationSpeed={0.012}
@@ -84,8 +84,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    backgroundColor: '#0a0b0e',
-    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
+    backgroundColor: '#080808',
+    borderBottom: '1px solid #262626',
     boxSizing: 'border-box',
     padding: '16px 24px 20px 24px',
   },
@@ -96,7 +96,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: '520px',
     borderRadius: '12px',
     overflow: 'hidden',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(203, 179, 237, 0.08)',
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(203, 179, 232, 0.08)',
   },
   floatingActionCapsule: {
     position: 'absolute',
@@ -106,19 +106,19 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    backgroundColor: 'rgba(17, 19, 25, 0.85)',
-    border: '1px solid rgba(203, 179, 237, 0.25)',
+    backgroundColor: 'rgba(18, 18, 20, 0.92)',
+    border: '1px solid #2e2e32',
     borderRadius: '30px',
     padding: '8px 18px',
     backdropFilter: 'blur(16px)',
-    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(212, 255, 63, 0.15)',
+    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(212, 255, 63, 0.15)',
     zIndex: 20,
     fontFamily: 'monospace',
   },
   btnPrimary: {
     padding: '10px 22px',
     backgroundColor: '#d4ff3f',
-    color: '#0a0b0e',
+    color: '#080808',
     border: 'none',
     borderRadius: '20px',
     fontSize: '12px',
@@ -130,9 +130,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   btnSecondary: {
     padding: '10px 18px',
-    backgroundColor: '#161822',
+    backgroundColor: '#181818',
     color: '#ffffff',
-    border: '1px solid rgba(203, 179, 237, 0.22)',
+    border: '1px solid #333333',
     borderRadius: '20px',
     fontSize: '12px',
     fontWeight: 600,
@@ -140,7 +140,7 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.15s ease',
   },
   btnLink: {
-    color: '#cbb3ed',
+    color: '#cbb3e8',
     fontSize: '12px',
     textDecoration: 'none',
     fontWeight: 600,
@@ -153,8 +153,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    backgroundColor: 'rgba(10, 11, 14, 0.75)',
-    border: '1px solid rgba(203, 179, 237, 0.14)',
+    backgroundColor: 'rgba(18, 18, 20, 0.85)',
+    border: '1px solid #262626',
     borderRadius: '6px',
     padding: '6px 12px',
     backdropFilter: 'blur(8px)',
@@ -164,21 +164,21 @@ const styles: Record<string, React.CSSProperties> = {
     pointerEvents: 'none',
   },
   hudStatItem: {
-    color: '#c4c7d4',
+    color: '#b5b5be',
   },
   hudLabel: {
-    color: '#cbb3ed',
+    color: '#cbb3e8',
     fontWeight: 700,
   },
   hudDivider: {
-    color: '#767a8f',
+    color: '#71717a',
   },
   floatingBottomRight: {
     position: 'absolute',
     bottom: '20px',
     right: '20px',
-    backgroundColor: 'rgba(10, 11, 14, 0.75)',
-    border: '1px solid rgba(203, 179, 237, 0.14)',
+    backgroundColor: 'rgba(18, 18, 20, 0.85)',
+    border: '1px solid #262626',
     borderRadius: '6px',
     padding: '6px 12px',
     backdropFilter: 'blur(8px)',

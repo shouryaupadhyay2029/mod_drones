@@ -85,7 +85,7 @@ export function TrackDetail({
         <span
           style={{
             ...styles.lifecycleTag,
-            color: track.state === 'confirmed' ? '#d4ff3f' : '#cbb3ed',
+            color: track.state === 'confirmed' ? '#d4ff3f' : '#cbb3e8',
           }}
         >
           {track.state.toUpperCase()}
@@ -146,8 +146,8 @@ export function TrackDetail({
             onClick={() => onAcknowledge(track.trackId)}
             style={{
               ...styles.btnAction,
-              backgroundColor: isAckDisabled ? '#161822' : '#d4ff3f',
-              color: isAckDisabled ? '#767a8f' : '#0a0b0e',
+              backgroundColor: isAckDisabled ? '#181818' : '#d4ff3f',
+              color: isAckDisabled ? '#71717a' : '#080808',
               fontWeight: 800,
               boxShadow: isAckDisabled ? 'none' : '0 0 10px rgba(212, 255, 63, 0.4)',
               opacity: isAckDisabled ? 0.6 : 1,
@@ -197,16 +197,16 @@ export function TrackDetail({
                 onClick={() => onClassify(track.trackId, opt.id)}
                 style={{
                   ...styles.btnClassify,
-                  backgroundColor: isAssessed ? 'rgba(203, 179, 237, 0.16)' : '#161822',
-                  borderColor: isAssessed ? '#cbb3ed' : 'rgba(203, 179, 237, 0.14)',
+                  backgroundColor: isAssessed ? 'rgba(203, 179, 232, 0.16)' : '#181818',
+                  borderColor: isAssessed ? '#cbb3e8' : '#262626',
                   color: isAssessed ? '#d4ff3f' : '#e4e4e7',
-                  boxShadow: isAssessed ? '0 0 8px rgba(203, 179, 237, 0.25)' : 'none',
+                  boxShadow: isAssessed ? '0 0 8px rgba(203, 179, 232, 0.25)' : 'none',
                 }}
               >
                 <span>
                   <TextRoll stagger={0.02}>{opt.label}</TextRoll>
                 </span>
-                <span style={{ ...styles.shortcutTag, color: isAssessed ? '#d4ff3f' : '#cbb3ed' }}>[{keyLabel}]</span>
+                <span style={{ ...styles.shortcutTag, color: isAssessed ? '#d4ff3f' : '#cbb3e8' }}>[{keyLabel}]</span>
               </button>
             );
           })}
@@ -225,8 +225,8 @@ export function TrackDetail({
               style={{
                 ...styles.btnEngage,
                 backgroundColor:
-                  jammerDisabledReason !== null ? '#161822' : '#d4ff3f',
-                color: jammerDisabledReason !== null ? '#767a8f' : '#0a0b0e',
+                  jammerDisabledReason !== null ? '#181818' : '#d4ff3f',
+                color: jammerDisabledReason !== null ? '#71717a' : '#080808',
                 boxShadow: jammerDisabledReason !== null ? 'none' : '0 0 12px rgba(212, 255, 63, 0.4)',
                 opacity: jammerDisabledReason !== null ? 0.6 : 1,
               }}
@@ -246,8 +246,8 @@ export function TrackDetail({
               style={{
                 ...styles.btnEngage,
                 backgroundColor:
-                  gunDisabledReason !== null ? '#161822' : '#e34234',
-                color: gunDisabledReason !== null ? '#767a8f' : '#ffffff',
+                  gunDisabledReason !== null ? '#181818' : '#e34234',
+                color: gunDisabledReason !== null ? '#71717a' : '#ffffff',
                 boxShadow: gunDisabledReason !== null ? 'none' : '0 0 12px rgba(227, 66, 52, 0.45)',
                 opacity: gunDisabledReason !== null ? 0.6 : 1,
               }}
@@ -266,8 +266,8 @@ export function TrackDetail({
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#111319',
-    border: '1px solid rgba(203, 179, 237, 0.14)',
+    backgroundColor: '#121212',
+    border: '1px solid #262626',
     borderRadius: '8px',
     padding: '14px',
     display: 'flex',
@@ -282,7 +282,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '12px',
     fontWeight: 700,
     color: '#d4ff3f',
-    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
+    borderBottom: '1px solid #262626',
     paddingBottom: '8px',
   },
   lifecycleTag: {
@@ -302,8 +302,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '8px',
   },
   cueBox: {
-    backgroundColor: '#0a0b0e',
-    border: '1px solid rgba(203, 179, 237, 0.12)',
+    backgroundColor: '#0c0c0e',
+    border: '1px solid #262626',
     borderRadius: '4px',
     padding: '6px 8px',
     display: 'flex',
@@ -311,7 +311,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '2px',
   },
   cueLabel: {
-    color: '#cbb3ed',
+    color: '#cbb3e8',
     fontSize: '9px',
     fontWeight: 600,
   },
@@ -354,7 +354,7 @@ const styles: Record<string, React.CSSProperties> = {
   sectionLabel: {
     fontSize: '10px',
     fontWeight: 700,
-    color: '#cbb3ed',
+    color: '#cbb3e8',
     letterSpacing: '0.06em',
   },
   classifyGrid: {

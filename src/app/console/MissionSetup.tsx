@@ -99,8 +99,8 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
                 onClick={() => setSelectedScenario(sc.id)}
                 style={{
                   ...styles.scenarioCard,
-                  borderColor: isSelected ? '#d4ff3f' : 'rgba(203, 179, 237, 0.16)',
-                  backgroundColor: isSelected ? 'rgba(212, 255, 63, 0.08)' : '#111319',
+                  borderColor: isSelected ? '#d4ff3f' : '#262626',
+                  backgroundColor: isSelected ? 'rgba(212, 255, 63, 0.08)' : '#121212',
                   boxShadow: isSelected ? '0 0 14px rgba(212, 255, 63, 0.25)' : 'none',
                 }}
               >
@@ -191,31 +191,31 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     flex: 1,
     padding: '0 0 50px 0',
-    backgroundColor: '#0a0b0e',
+    backgroundColor: '#080808',
     overflowY: 'auto',
     width: '100%',
   },
   card: {
     width: '100%',
     maxWidth: '860px',
-    backgroundColor: '#111319',
-    border: '1px solid rgba(203, 179, 237, 0.16)',
+    backgroundColor: '#121212',
+    border: '1px solid #262626',
     borderRadius: '10px',
     padding: '28px 32px',
     display: 'flex',
     flexDirection: 'column',
     gap: '16px',
-    boxShadow: '0 20px 35px -5px rgba(0, 0, 0, 0.8), 0 0 20px rgba(203, 179, 237, 0.06)',
+    boxShadow: '0 20px 35px -5px rgba(0, 0, 0, 0.8), 0 0 20px rgba(203, 179, 232, 0.06)',
     marginTop: '28px',
   },
   header: {
-    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
+    borderBottom: '1px solid #262626',
     paddingBottom: '12px',
   },
   missionTag: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#cbb3ed',
+    color: '#cbb3e8',
     letterSpacing: '0.1em',
     marginBottom: '4px',
   },
@@ -229,7 +229,7 @@ const styles: Record<string, React.CSSProperties> = {
   subtitle: {
     margin: 0,
     fontSize: '12px',
-    color: '#c4c7d4',
+    color: '#b5b5be',
   },
   scenarioList: {
     display: 'grid',
@@ -270,7 +270,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   chipTag: {
     fontSize: '9px',
-    backgroundColor: '#0a0b0e',
+    backgroundColor: '#080808',
     color: '#d4ff3f',
     border: '1px solid rgba(212, 255, 63, 0.3)',
     padding: '2px 5px',
@@ -278,8 +278,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
   },
   briefingBox: {
-    backgroundColor: '#06070a',
-    border: '1px solid rgba(203, 179, 237, 0.14)',
+    backgroundColor: '#0c0c0e',
+    border: '1px solid #262626',
     borderRadius: '6px',
     padding: '12px 16px',
   },
@@ -301,7 +301,7 @@ const styles: Record<string, React.CSSProperties> = {
     paddingLeft: '18px',
     fontSize: '12px',
     lineHeight: '1.5',
-    color: '#c4c7d4',
+    color: '#b5b5be',
     display: 'flex',
     flexDirection: 'column',
     gap: '4px',
@@ -319,7 +319,7 @@ const styles: Record<string, React.CSSProperties> = {
   label: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#cbb3ed',
+    color: '#cbb3e8',
     letterSpacing: '0.05em',
   },
   inputRow: {
@@ -329,8 +329,8 @@ const styles: Record<string, React.CSSProperties> = {
   input: {
     flex: 1,
     padding: '8px 12px',
-    backgroundColor: '#06070a',
-    border: '1px solid rgba(203, 179, 237, 0.18)',
+    backgroundColor: '#0c0c0e',
+    border: '1px solid #2a2a2e',
     borderRadius: '6px',
     color: '#ffffff',
     fontSize: '13px',
@@ -339,10 +339,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   buttonRandom: {
     padding: '8px 14px',
-    backgroundColor: '#161822',
-    border: '1px solid rgba(203, 179, 237, 0.2)',
+    backgroundColor: '#181818',
+    border: '1px solid #333333',
     borderRadius: '6px',
-    color: '#cbb3ed',
+    color: '#cbb3e8',
     fontSize: '12px',
     fontWeight: 600,
     cursor: 'pointer',
@@ -351,13 +351,13 @@ const styles: Record<string, React.CSSProperties> = {
   },
   hint: {
     fontSize: '11px',
-    color: '#767a8f',
+    color: '#71717a',
     fontStyle: 'italic',
   },
   buttonStart: {
     padding: '12px 18px',
     backgroundColor: '#d4ff3f',
-    color: '#0a0b0e',
+    color: '#080808',
     border: 'none',
     borderRadius: '6px',
     fontSize: '14px',

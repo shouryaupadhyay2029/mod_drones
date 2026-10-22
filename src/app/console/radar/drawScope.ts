@@ -13,7 +13,7 @@ export function getAssessedColor(assessedClass?: string): string {
     return '#e34234'; // Tomato Red for unidentified threat
   }
   if (assessedClass === 'bird') {
-    return '#cbb3ed'; // Lavender for biologicals
+    return '#cbb3e8'; // Lavender for biologicals
   }
   if (assessedClass === 'commercial_quad') {
     return '#d4ff3f'; // Chartreuse for civilian drones
@@ -64,14 +64,14 @@ export function drawScope(
 
   const center = { x: centerX, y: centerY };
 
-  // Scope background: Deep Obsidian Base
+  // Scope background: Pure Neutral Deep Black Base
   ctx.beginPath();
   ctx.arc(centerX, centerY, radiusPx, 0, Math.PI * 2);
-  ctx.fillStyle = '#0a0b0e';
+  ctx.fillStyle = '#080808';
   ctx.fill();
-  ctx.strokeStyle = '#cbb3ed'; // Lavender Outer Ring
+  ctx.strokeStyle = '#cbb3e8'; // Lavender Outer Ring
   ctx.lineWidth = 2;
-  ctx.shadowColor = 'rgba(203, 179, 237, 0.35)';
+  ctx.shadowColor = 'rgba(203, 179, 232, 0.35)';
   ctx.shadowBlur = 8;
   ctx.stroke();
   ctx.shadowBlur = 0;
@@ -84,11 +84,11 @@ export function drawScope(
     if (!ring) continue;
     ctx.beginPath();
     ctx.arc(centerX, centerY, ring.radiusPx, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(203, 179, 237, 0.16)';
+    ctx.strokeStyle = 'rgba(203, 179, 232, 0.16)';
     ctx.stroke();
 
     // Ring distance label in Lavender
-    ctx.fillStyle = 'rgba(203, 179, 237, 0.7)';
+    ctx.fillStyle = 'rgba(203, 179, 232, 0.7)';
     ctx.font = '10px ui-monospace, monospace';
     ctx.fillText(ring.label, centerX + 4, centerY - ring.radiusPx + 12);
   }
@@ -108,7 +108,7 @@ export function drawScope(
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
-    ctx.strokeStyle = isMajor ? 'rgba(203, 179, 237, 0.4)' : 'rgba(203, 179, 237, 0.12)';
+    ctx.strokeStyle = isMajor ? 'rgba(203, 179, 232, 0.4)' : 'rgba(203, 179, 232, 0.12)';
     ctx.lineWidth = isMajor ? 1.5 : 1;
     ctx.stroke();
 
@@ -123,7 +123,7 @@ export function drawScope(
       else if (deg === 180) text = 'S';
       else if (deg === 270) text = 'W';
 
-      ctx.fillStyle = deg === 0 ? '#d4ff3f' : '#cbb3ed'; // N in Chartreuse, others in Lavender
+      ctx.fillStyle = deg === 0 ? '#d4ff3f' : '#cbb3e8'; // N in Chartreuse, others in Lavender
       ctx.font = deg === 0 ? 'bold 12px ui-monospace, monospace' : 'bold 11px ui-monospace, monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -137,7 +137,7 @@ export function drawScope(
   ctx.lineTo(centerX + radiusPx, centerY);
   ctx.moveTo(centerX, centerY - radiusPx);
   ctx.lineTo(centerX, centerY + radiusPx);
-  ctx.strokeStyle = 'rgba(203, 179, 237, 0.12)';
+  ctx.strokeStyle = 'rgba(203, 179, 232, 0.12)';
   ctx.lineWidth = 1;
   ctx.stroke();
 
@@ -223,7 +223,7 @@ export function drawScope(
 
   // Asset symbol at centre: square symbol in Lavender with Chartreuse indicator
   const assetSize = 10;
-  ctx.fillStyle = '#cbb3ed'; // Lavender
+  ctx.fillStyle = '#cbb3e8'; // Lavender
   ctx.fillRect(
     centerX - assetSize / 2,
     centerY - assetSize / 2,
@@ -365,7 +365,7 @@ function drawTrack(
     ctx.font = '9px ui-monospace, monospace';
     ctx.fillText('UNACK', plotPx.x + 9, plotPx.y + 4);
   } else if (track.engagementStatus === 'holding_fire') {
-    ctx.fillStyle = '#cbb3ed';
+    ctx.fillStyle = '#cbb3e8';
     ctx.font = '9px ui-monospace, monospace';
     ctx.fillText('HOLD', plotPx.x + 9, plotPx.y + 4);
   } else if (track.engagementStatus === 'engaged') {

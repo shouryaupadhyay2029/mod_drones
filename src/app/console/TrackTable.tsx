@@ -57,7 +57,7 @@ export function TrackTable({
                     onClick={() => onSelectTrack(t.trackId)}
                     style={{
                       ...styles.tr,
-                      backgroundColor: isSelected ? 'rgba(203, 179, 237, 0.14)' : 'transparent',
+                      backgroundColor: isSelected ? 'rgba(203, 179, 232, 0.14)' : 'transparent',
                       borderLeft: isSelected ? '3px solid #d4ff3f' : '3px solid transparent',
                     }}
                   >
@@ -68,8 +68,8 @@ export function TrackTable({
                       <span
                         style={{
                           ...styles.stateBadge,
-                          color: t.state === 'confirmed' ? '#d4ff3f' : '#cbb3ed',
-                          borderColor: t.state === 'confirmed' ? 'rgba(212, 255, 63, 0.5)' : 'rgba(203, 179, 237, 0.3)',
+                          color: t.state === 'confirmed' ? '#d4ff3f' : '#cbb3e8',
+                          borderColor: t.state === 'confirmed' ? 'rgba(212, 255, 63, 0.5)' : 'rgba(203, 179, 232, 0.3)',
                         }}
                       >
                         {t.state.toUpperCase()}
@@ -112,7 +112,7 @@ export function TrackTable({
                           <span
                             style={{
                               ...styles.engageTag,
-                              color: t.engagementStatus === 'engaged' ? '#d4ff3f' : '#cbb3ed',
+                              color: t.engagementStatus === 'engaged' ? '#d4ff3f' : '#cbb3e8',
                             }}
                           >
                             {t.engagementStatus.toUpperCase()}
@@ -135,15 +135,15 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#111319',
-    border: '1px solid rgba(203, 179, 237, 0.14)',
+    backgroundColor: '#121212',
+    border: '1px solid #262626',
     borderRadius: '8px',
     overflow: 'hidden',
   },
   headerTitle: {
     padding: '8px 12px',
-    backgroundColor: '#0a0b0e',
-    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
+    backgroundColor: '#0c0c0e',
+    borderBottom: '1px solid #262626',
     color: '#d4ff3f',
     fontSize: '11px',
     fontWeight: 700,
@@ -164,16 +164,16 @@ const styles: Record<string, React.CSSProperties> = {
   th: {
     textAlign: 'left',
     padding: '8px 10px',
-    color: '#cbb3ed',
+    color: '#cbb3e8',
     fontSize: '10px',
     fontWeight: 600,
-    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
+    borderBottom: '1px solid #262626',
     whiteSpace: 'nowrap',
-    backgroundColor: '#0a0b0e',
+    backgroundColor: '#0c0c0e',
   },
   tr: {
     cursor: 'pointer',
-    borderBottom: '1px solid rgba(203, 179, 237, 0.08)',
+    borderBottom: '1px solid #1f1f1f',
     transition: 'background-color 0.15s ease',
   },
   td: {

@@ -19,7 +19,7 @@ function getEventColor(type: string): string {
     case 'TRACK_LOST':
       return '#767a8f';
     case 'ENGAGEMENT_STARTED':
-      return '#cbb3ed'; // Lavender
+      return '#cbb3e8'; // Lavender
     case 'ENGAGEMENT_RESOLVED':
       return '#d4ff3f'; // Chartreuse
     case 'NO_EFFECT':
@@ -28,7 +28,7 @@ function getEventColor(type: string): string {
     case 'ENGAGEMENT_REJECTED':
       return '#e34234'; // Tomato Red
     case 'MISSION_END':
-      return '#cbb3ed'; // Lavender
+      return '#cbb3e8'; // Lavender
     default:
       return '#c4c7d4';
   }
@@ -89,8 +89,8 @@ export function EventFeed({ events }: EventFeedProps): React.JSX.Element {
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#111319',
-    border: '1px solid rgba(203, 179, 237, 0.14)',
+    backgroundColor: '#121212',
+    border: '1px solid #262626',
     borderRadius: '8px',
     padding: '12px',
     display: 'flex',
@@ -105,7 +105,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     color: '#d4ff3f',
     letterSpacing: '0.06em',
-    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
+    borderBottom: '1px solid #262626',
     paddingBottom: '6px',
   },
   list: {
@@ -129,7 +129,7 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: '1.4',
   },
   time: {
-    color: '#cbb3ed',
+    color: '#cbb3e8',
     fontWeight: 600,
     fontSize: '10px',
   },

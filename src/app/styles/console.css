@@ -1,23 +1,23 @@
 /* Operator Console Premium Minimal Defense Theme
    Palette:
-   - Lavender:    #CBB3ED (Classy, structural, calm status)
-   - Chartreuse:  #D4FF3F (Electric high-contrast tactical accent & active states)
+   - Lavender:    #CBB3E8 (Exact swatch from reference: floral pastel lavender)
+   - Chartreuse:  #D4FF3F (High-contrast tactical accent & active states)
    - Tomato Red:  #E34234 (Threat warnings, critical alerts, hostile FPVs)
-   - Obsidian:    #0A0B0E / #111319 / #171922
+   - Neutral Black Base: #080808 / #121212 / #181818 (Zero blue/purple haze)
 */
 
 :root {
-  --bg-primary: #0a0b0e; /* Deep Obsidian Base */
-  --bg-secondary: #111319; /* High-grade Titanium Surface */
-  --bg-card: #161822; /* Card / Panel */
-  --border-color: rgba(203, 179, 237, 0.14); /* Subtle Lavender-tinted Dark Border */
-  --border-accent: rgba(203, 179, 237, 0.4);
+  --bg-primary: #080808; /* Pure Neutral Deep Black */
+  --bg-secondary: #121212; /* Neutral Charcoal Surface */
+  --bg-card: #181818; /* Neutral Card / Panel */
+  --border-color: #262626; /* Clean Neutral Border */
+  --border-accent: rgba(203, 179, 232, 0.35);
   --text-primary: #ffffff;
-  --text-secondary: #c4c7d4;
-  --text-muted: #767a8f;
+  --text-secondary: #b5b5be;
+  --text-muted: #71717a;
 
-  --accent-lavender: #cbb3ed;
-  --accent-lavender-glow: rgba(203, 179, 237, 0.25);
+  --accent-lavender: #cbb3e8;
+  --accent-lavender-glow: rgba(203, 179, 232, 0.22);
   --accent-chartreuse: #d4ff3f;
   --accent-chartreuse-glow: rgba(212, 255, 63, 0.28);
   --accent-tomato: #e34234;
@@ -25,7 +25,7 @@
 
   /* Semantic aliases */
   --accent-cyan: #d4ff3f;
-  --accent-blue: #cbb3ed;
+  --accent-blue: #cbb3e8;
   --accent-green: #d4ff3f;
   --accent-amber: #f59e0b;
   --accent-red: #e34234;
@@ -62,7 +62,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(203, 179, 237, 0.18);
+  background: rgba(203, 179, 232, 0.18);
   border-radius: 3px;
 }
 
@@ -136,7 +136,7 @@ body {
 }
 
 .legend-key {
-  background-color: rgba(203, 179, 237, 0.08);
+  background-color: rgba(203, 179, 232, 0.08);
   color: var(--accent-chartreuse);
   border: 1px solid rgba(212, 255, 63, 0.3);
   padding: 1px 6px;
@@ -176,8 +176,8 @@ body {
 .nav-mega-btn:hover,
 .nav-mega-btn.is-active {
   color: #ffffff;
-  background-color: rgba(203, 179, 237, 0.1);
-  border-color: rgba(203, 179, 237, 0.25);
+  background-color: rgba(203, 179, 232, 0.12);
+  border-color: rgba(203, 179, 232, 0.3);
 }
 
 .nav-mega-chevron {
@@ -199,10 +199,10 @@ body {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  background: rgba(14, 16, 24, 0.96);
-  border: 1px solid rgba(203, 179, 237, 0.2);
+  background: rgba(18, 18, 20, 0.98);
+  border: 1px solid #2a2a2e;
   border-radius: 12px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 25px rgba(203, 179, 237, 0.1);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 15px rgba(203, 179, 232, 0.1);
   backdrop-filter: blur(20px);
   z-index: 1000;
   transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
@@ -246,8 +246,8 @@ body {
 }
 
 .mega-menu-card-item:hover {
-  background: rgba(203, 179, 237, 0.08);
-  border-color: rgba(203, 179, 237, 0.22);
+  background: rgba(203, 179, 232, 0.08);
+  border-color: rgba(203, 179, 232, 0.25);
   transform: translateX(3px);
 }
 
@@ -255,8 +255,8 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  background: rgba(203, 179, 237, 0.12);
-  border: 1px solid rgba(203, 179, 237, 0.25);
+  background: #141416;
+  border: 1px solid rgba(203, 179, 232, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -286,8 +286,8 @@ body {
 }
 
 .mega-preview-card {
-  background: rgba(10, 11, 14, 0.9);
-  border: 1px solid rgba(203, 179, 237, 0.16);
+  background: #121214;
+  border: 1px solid #2a2a2e;
   border-radius: 8px;
   padding: 16px;
   display: flex;
