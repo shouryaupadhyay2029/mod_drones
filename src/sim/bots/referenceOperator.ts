@@ -83,6 +83,8 @@ export function referenceOperator(view: TraineeView): Command[] {
     if (track.assessedClass === undefined) {
       let assessed:
         | 'fpv_kamikaze'
+        | 'fpv_fiber'
+        | 'decoy_drone'
         | 'commercial_quad'
         | 'fixed_wing_recon'
         | 'bird'
@@ -98,6 +100,8 @@ export function referenceOperator(view: TraineeView): Command[] {
       ) {
         if (
           view.eo.hint === 'fpv_kamikaze' ||
+          view.eo.hint === 'fpv_fiber' ||
+          view.eo.hint === 'decoy_drone' ||
           view.eo.hint === 'commercial_quad' ||
           view.eo.hint === 'fixed_wing_recon' ||
           view.eo.hint === 'bird'
@@ -130,11 +134,35 @@ export function referenceOperator(view: TraineeView): Command[] {
         } else if (view.eo.hint === 'fixed_wing') {
           assessed = 'fixed_wing_recon';
         } else if (view.eo.hint === 'multirotor') {
-          if (speed >= 20 || (speed >= 18 && closingRate <= -15)) {
-            assessed = 'fpv_kamikaze';
+          if (track.rfStatus === 'silent') {
+            if (track.rcsBucket === 'medium') {
+              assessed = 'decoy_drone';
+            } else if (speed >= 18 && (closingRate <= -15 || headingError <= 35)) {
+              assessed = 'fpv_fiber';
+            } else {
+              assessed = 'commercial_quad';
+            }
           } else {
-            assessed = 'commercial_quad';
+            if (speed >= 20 || (speed >= 18 && closingRate <= -15)) {
+              assessed = 'fpv_kamikaze';
+            } else {
+              assessed = 'commercial_quad';
+            }
           }
+        }
+      }
+
+      // Priority 3.5: RF-silent Decoy / Fiber cues
+      if (!assessed && track.rfStatus === 'silent') {
+        if (track.rcsBucket === 'medium' && (closingRate <= -12 || headingError <= 40)) {
+          assessed = 'decoy_drone';
+        } else if (
+          track.rcsBucket !== 'medium' &&
+          speed >= 20 &&
+          closingRate <= -18 &&
+          headingError <= 35
+        ) {
+          assessed = 'fpv_fiber';
         }
       }
 
@@ -152,9 +180,15 @@ export function referenceOperator(view: TraineeView): Command[] {
         else if (track.altitudeM >= 160 && speed >= 18) {
           assessed = 'fixed_wing_recon';
         }
-        // Cue C2: High-speed direct closing threat (FPV strike drone)
+        // Cue C2: High-speed direct closing threat (FPV strike drone or decoy)
         else if (speed >= 24 && closingRate <= -20 && headingError <= 35) {
-          assessed = 'fpv_kamikaze';
+          if (track.rfStatus === 'silent' && track.rcsBucket === 'medium') {
+            assessed = 'decoy_drone';
+          } else if (track.rfStatus === 'silent') {
+            assessed = 'fpv_fiber';
+          } else {
+            assessed = 'fpv_kamikaze';
+          }
         }
         // Cue D: Standoff transit corridor / non-closing crossing trajectory
         else if (speed >= 6 && (closingRate > -16 || headingError > 40)) {
@@ -190,24 +224,27 @@ export function referenceOperator(view: TraineeView): Command[] {
     // Re-evaluate if a previously non-hostile track turns into a high-speed direct inbound attack
     if (
       track.assessedClass !== 'fpv_kamikaze' &&
+      track.assessedClass !== 'fpv_fiber' &&
       track.assessedClass !== 'fixed_wing_recon' &&
       track.rfSignature !== 'telemetry_link' &&
       track.rcsBucket !== 'tiny' &&
+      track.rcsBucket !== 'medium' &&
       speed >= 24 &&
       closingRate <= -20 &&
       headingError <= 30
     ) {
+      const newClass = track.rfStatus === 'silent' ? 'fpv_fiber' : 'fpv_kamikaze';
       commands.push({
         tick: view.tick,
         type: 'CLASSIFY_TRACK',
-        payload: { trackId: track.trackId, assessedClass: 'fpv_kamikaze' },
+        payload: { trackId: track.trackId, assessedClass: newClass },
       });
       continue;
     }
 
     // Re-evaluate if a track assessed as FPV proves to be crossing or slow civilian transit
     if (
-      track.assessedClass === 'fpv_kamikaze' &&
+      (track.assessedClass === 'fpv_kamikaze' || track.assessedClass === 'fpv_fiber') &&
       (speed < 18 || headingError > 45)
     ) {
       commands.push({
@@ -223,31 +260,12 @@ export function referenceOperator(view: TraineeView): Command[] {
       continue;
     }
 
-    // 3. Action based on classification
-    if (track.assessedClass === 'fpv_kamikaze' || track.assessedClass === 'fixed_wing_recon') {
-      if (track.engagementStatus !== 'engaged') {
-        if (track.rangeM <= 1500 && view.effectors.jammer.busyUntilTick <= view.tick) {
-          commands.push({
-            tick: view.tick,
-            type: 'ENGAGE_TRACK',
-            payload: { trackId: track.trackId, effector: 'jammer' },
-          });
-        } else if (
-          track.rangeM <= 1000 &&
-          view.effectors.gun.busyUntilTick <= view.tick &&
-          view.effectors.gun.ammo > 0
-        ) {
-          commands.push({
-            tick: view.tick,
-            type: 'ENGAGE_TRACK',
-            payload: { trackId: track.trackId, effector: 'gun' },
-          });
-        }
-      }
-    } else if (
+    // Non-hostile contacts: hold fire
+    if (
       track.assessedClass === 'commercial_quad' ||
       track.assessedClass === 'bird' ||
-      track.assessedClass === 'clutter'
+      track.assessedClass === 'clutter' ||
+      track.assessedClass === 'decoy_drone'
     ) {
       if (track.engagementStatus !== 'holding_fire') {
         commands.push({
@@ -255,6 +273,99 @@ export function referenceOperator(view: TraineeView): Command[] {
           type: 'HOLD_FIRE',
           payload: { trackId: track.trackId },
         });
+      }
+    }
+  }
+
+  // 3. Hostile Target Prioritization & Engagement
+  // Prioritize classified hostiles by time-to-impact (range / -closingRate)
+  const hostileCandidates: Array<{
+    track: TraineeTrack;
+    timeToImpact: number;
+  }> = [];
+
+  for (let i = 0; i < view.tracks.length; i++) {
+    const track = view.tracks[i];
+    if (
+      !track ||
+      track.state !== 'confirmed' ||
+      !track.velocityValid ||
+      track.engagementStatus === 'engaged'
+    ) {
+      continue;
+    }
+
+    if (
+      track.assessedClass === 'fpv_kamikaze' ||
+      track.assessedClass === 'fpv_fiber' ||
+      track.assessedClass === 'fixed_wing_recon'
+    ) {
+      const closing = track.closingRateMps ?? -20;
+      const tti = closing < -0.5 ? track.rangeM / -closing : track.rangeM / 10;
+      hostileCandidates.push({ track, timeToImpact: tti });
+    }
+  }
+
+  // Sort ascending by time to impact
+  hostileCandidates.sort((a, b) => a.timeToImpact - b.timeToImpact);
+
+  let jammerUsed = view.effectors.jammer.busyUntilTick > view.tick;
+  let gunUsed = view.effectors.gun.busyUntilTick > view.tick || view.effectors.gun.ammo <= 0;
+
+  for (let i = 0; i < hostileCandidates.length; i++) {
+    const item = hostileCandidates[i];
+    if (!item) continue;
+    const track = item.track;
+
+    const isSilent = track.rfStatus === 'silent' || track.assessedClass === 'fpv_fiber';
+    const isEmitting =
+      track.rfStatus === 'emitting' ||
+      track.rfSignature === 'wideband_video' ||
+      track.rfSignature === 'long_range_link';
+
+    if (isSilent) {
+      // RF-silent FPV-like: jammer is ineffective, use gun only
+      if (!gunUsed && track.rangeM <= 1000) {
+        commands.push({
+          tick: view.tick,
+          type: 'ENGAGE_TRACK',
+          payload: { trackId: track.trackId, effector: 'gun' },
+        });
+        gunUsed = true;
+      }
+    } else if (isEmitting) {
+      // Emitting target: prioritize jammer
+      if (!jammerUsed && track.rangeM <= 1500) {
+        commands.push({
+          tick: view.tick,
+          type: 'ENGAGE_TRACK',
+          payload: { trackId: track.trackId, effector: 'jammer' },
+        });
+        jammerUsed = true;
+      } else if (!gunUsed && track.rangeM <= 1000) {
+        commands.push({
+          tick: view.tick,
+          type: 'ENGAGE_TRACK',
+          payload: { trackId: track.trackId, effector: 'gun' },
+        });
+        gunUsed = true;
+      }
+    } else {
+      // Unknown RF: try jammer first at range <= 1500, or gun at <= 1000
+      if (!jammerUsed && track.rangeM <= 1500) {
+        commands.push({
+          tick: view.tick,
+          type: 'ENGAGE_TRACK',
+          payload: { trackId: track.trackId, effector: 'jammer' },
+        });
+        jammerUsed = true;
+      } else if (!gunUsed && track.rangeM <= 1000) {
+        commands.push({
+          tick: view.tick,
+          type: 'ENGAGE_TRACK',
+          payload: { trackId: track.trackId, effector: 'gun' },
+        });
+        gunUsed = true;
       }
     }
   }

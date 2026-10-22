@@ -99,17 +99,36 @@ The bot immediately promotes its assessment to `fpv_kamikaze`.
 
 ## 3. Weapon Engagement Rules
 
-For tracks assessed as `fpv_kamikaze` or `fixed_wing_recon`:
-1. If $\text{range} \le 1500\text{ m}$ and `jammer.busyUntilTick <= currentTick`:
-   $\to$ Dispatch `ENGAGE_TRACK` with `effector: 'jammer'` (soft-kill).
-2. Else if $\text{range} \le 1000\text{ m}$ and `gun.busyUntilTick <= currentTick` and `gun.ammo > 0`:
-   $\to$ Dispatch `ENGAGE_TRACK` with `effector: 'gun'` (hard-kill).
+### 3.1 Hostile Target Prioritization by Time-to-Impact
+For all confirmed, acknowledged tracks with valid velocities assessed as hostile (`fpv_kamikaze`, `fpv_fiber`, `fixed_wing_recon`), `referenceOperator` prioritizes engagement by estimated **time-to-impact (TTI)** rather than raw range:
+$$\text{TTI} = \begin{cases} \frac{\text{rangeM}}{-\text{closingRateMps}} & \text{if } \text{closingRateMps} < -0.5\text{ m/s} \\ \frac{\text{rangeM}}{10} & \text{otherwise} \end{cases}$$
+The contact with the lowest TTI is evaluated first for weapon dispatch.
 
-For tracks assessed as `commercial_quad`, `bird`, or `clutter`:
-$\to$ Dispatch `HOLD_FIRE` directive once to record restraint and avoid accidental engagement.
+### 3.2 Effector Selection by RF Cue
+- **Emitting / Video-Linked Hostiles** (`track.rfStatus === 'emitting'` or `track.rfSignature === 'wideband_video' / 'long_range_link'`):
+  1. If $\text{range} \le 1500\text{ m}$ and `jammer.busyUntilTick <= currentTick`:
+     $\to$ Dispatch `ENGAGE_TRACK` with `effector: 'jammer'`.
+  2. Else if $\text{range} \le 1000\text{ m}$ and `gun.busyUntilTick <= currentTick` and `gun.ammo > 0`:
+     $\to$ Dispatch `ENGAGE_TRACK` with `effector: 'gun'`.
+- **RF-Silent Hostiles** (`track.rfStatus === 'silent'` or `assessedClass === 'fpv_fiber'`):
+  - The jammer is completely ineffective against non-RF controlled threats and incurs a penalty.
+  - $\to$ Jammer is withheld. The bot engages strictly with `gun` once $\text{range} \le 1000\text{ m}$ and `gun.ammo > 0`.
+- **Decoys and Non-Hostiles** (`decoy_drone`, `commercial_quad`, `bird`, `clutter`):
+  - Decoy drones are distinguished by being RF-silent with `rcsBucket === 'medium'` (or optical EO hint).
+  - $\to$ Dispatch `HOLD_FIRE` directive once to preserve ammo and avoid decoy engagement penalties.
 
 ---
 
-## 4. Documented Deviations
+## 4. Test-Only Oracle Operator (`oracleOperator`)
+A dedicated `oracleOperator` exists solely for solvability verification (Phase 3A acceptance test #4). It:
+1. Inspects ground truth directly from the simulation engine.
+2. Immediately acknowledges confirmed tracks and classifies them with 100% truth accuracy (including ghosts as clutter, decoys as `decoy_drone`, fiber threats as `fpv_fiber`).
+3. Engages hostile threats strictly based on their physical RF vulnerability (gun for `fpv_fiber`, jammer or gun for RF-controlled) sorted by true time-to-impact.
+4. Holds fire on all neutrals and decoys.
+5. Is **never** exported in `src/sim/index.ts` and **never** imported in `src/app`.
+
+---
+
+## 5. Documented Deviations
 - **Fixed-Wing Reconnaissance Cue Rule (commit 5c19fd9)**: In Phase 2A, `fixed_wing_recon` threats in `city_edge_night` fly at high altitude ($\ge 160\text{ m}$) with cruise speeds ($\ge 18\text{ m/s}$). Rule C1 (`altitudeM >= 160 && speed >= 18`) was added to `referenceOperator` to classify high-altitude reconnaissance threats without relying on scenario-specific bearing-sector hacks.
 
