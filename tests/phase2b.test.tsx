@@ -15,6 +15,7 @@ import { createEnvironment } from '../src/sim/model/environment.js';
 import { THREAT_LIBRARY } from '../src/sim/model/threats.js';
 import { Track } from '../src/sim/model/tracks.js';
 import { scoreSession } from '../src/sim/scoring/basic.js';
+import { tryEngageTrack } from '../src/sim/systems/engagement.js';
 import {
   computeEoEffPixels,
   computeEoLevel,
@@ -450,6 +451,53 @@ describe('Phase 2B Acceptance Test Suite', () => {
       const refMean = refTotal / seeds.length;
       expect(refMean).toBeGreaterThanOrEqual(75);
     }
+  });
+
+  // Step 0.4: Engaging an in-range ghost track (<= 1500 m) triggers -5 penalty
+  it('Step 0.4: Engaging an in-range ghost track (<= 1500 m) triggers -5 penalty', () => {
+    const ghostTrack: Track = {
+      trackId: 99,
+      actorId: -99,
+      state: 'confirmed',
+      isGhost: true,
+      estimatedPos: vec3(800, 600, 50), // range = 1000m <= 1500m
+      estimatedVel: vec3(0, 0, 0),
+      lastDetectedTick: 10,
+      firstSeenTick: 0,
+      consecutiveHits: 2,
+      consecutiveMisses: 0,
+      totalPlots: 2,
+      rcsBucket: 'small',
+      measuredRcs: 0.01,
+      quality: 0.3,
+      acked: true,
+      engagementStatus: 'none',
+      headingChangeRateSmoothed: 0,
+      lastSweepChecked: 10,
+    };
+
+    const effectorState = {
+      jammer: { busyUntilTick: 0, currentEngagement: undefined },
+      gun: { busyUntilTick: 0, currentEngagement: undefined, ammo: 10 },
+    };
+    const events: SimEvent[] = [];
+
+    tryEngageTrack(20, 99, 'jammer', [ghostTrack], [], effectorState, events);
+
+    expect(events.some((e) => e.type === 'ENGAGEMENT_STARTED')).toBe(true);
+
+    const report = scoreSession({
+      actors: [],
+      tracks: [ghostTrack],
+      events,
+      assetHit: false,
+    });
+
+    expect(
+      report.penalties.some(
+        (p) => p.reason.includes('Engaged false track') && p.points === 5
+      )
+    ).toBe(true);
   });
 
   // 7. UI Component Tests

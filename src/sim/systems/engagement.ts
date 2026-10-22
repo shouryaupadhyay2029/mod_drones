@@ -32,8 +32,9 @@ export function tryEngageTrack(
     return;
   }
 
+  const isGhost = track.isGhost === true;
   const actor = actors.find((a) => a.id === track.actorId);
-  if (!actor || actor.state !== 'active') {
+  if (!isGhost && (!actor || actor.state !== 'active')) {
     events.push({
       tick: currentTick,
       type: 'COMMAND_REJECTED',
@@ -68,11 +69,11 @@ export function tryEngageTrack(
     const engagement: ActiveEngagement = {
       effector: 'jammer',
       trackId,
-      actorId: actor.id,
+      actorId: actor?.id ?? track.actorId,
       startTick: currentTick,
       resolveTick: currentTick + JAMMER_DWELL_TICKS,
       rangeAtFire: rangeToAsset,
-      speedAtFire: actor.speed,
+      speedAtFire: actor?.speed ?? 0,
     };
     effectorState.jammer.busyUntilTick = currentTick + JAMMER_DWELL_TICKS;
     effectorState.jammer.currentEngagement = engagement;
@@ -116,11 +117,11 @@ export function tryEngageTrack(
     const engagement: ActiveEngagement = {
       effector: 'gun',
       trackId,
-      actorId: actor.id,
+      actorId: actor?.id ?? track.actorId,
       startTick: currentTick,
       resolveTick: currentTick + GUN_RESOLVE_TICKS,
       rangeAtFire: rangeToAsset,
-      speedAtFire: actor.speed,
+      speedAtFire: actor?.speed ?? 0,
     };
     effectorState.gun.busyUntilTick = currentTick + GUN_RESOLVE_TICKS;
     effectorState.gun.currentEngagement = engagement;
