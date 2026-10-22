@@ -192,4 +192,34 @@ export function runRadarSystem(
       }
     }
   }
+
+  // Process missed sweeps for tracks whose actors are no longer active in sector
+  for (let i = 0; i < tracks.length; i++) {
+    const trk = tracks[i];
+    if (!trk || trk.state === 'dropped') continue;
+
+    if (trk.lastDetectedTick === currentTick) continue;
+
+    const trkActor = actors.find((a) => a.id === trk.actorId);
+    if (trkActor && trkActor.state === 'active') continue;
+
+    const trackBearing = bearingDeg(origin, trk.estimatedPos);
+    if (isAngleInSector(trackBearing, startAzimuth, endAzimuth)) {
+      trk.consecutiveMisses++;
+      trk.consecutiveHits = 0;
+      trk.quality = Math.max(0.0, trk.quality - 0.15);
+
+      if (trk.consecutiveMisses >= 5) {
+        trk.state = 'dropped';
+        trk.lostTick = currentTick;
+        events.push({
+          tick: currentTick,
+          type: 'TRACK_LOST',
+          payload: {
+            trackId: trk.trackId,
+          },
+        });
+      }
+    }
+  }
 }

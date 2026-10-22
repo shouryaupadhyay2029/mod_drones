@@ -58,7 +58,7 @@ export function createActor(
     const distFromOrigin = vDist2D(pos, vec3(0, 0, 0));
     const outDir =
       distFromOrigin > 0 ? vNormalize(vec3(pos.x, pos.y, 0)) : vec3(0, 1, 0);
-    initialVel = vScale(outDir, Math.max(chosenSpeed, 90));
+    initialVel = vScale(outDir, chosenSpeed);
   }
 
   return {
@@ -84,19 +84,11 @@ export function updateActorBehaviour(
     return;
   }
 
-  // Check scheduled departure (e.g. bird depart between t=120s and 150s)
-  if (
-    actor.departTick !== undefined &&
-    currentTick >= actor.departTick &&
-    actor.behaviour.type !== 'depart'
-  ) {
-    actor.behaviour = { type: 'depart' };
-    const distFromOrigin = vDist2D(actor.pos, vec3(0, 0, 0));
-    const outDir =
-      distFromOrigin > 0
-        ? vNormalize(vec3(actor.pos.x, actor.pos.y, 0))
-        : vec3(0, 1, 0);
-    actor.vel = vScale(outDir, Math.max(actor.speed, 90));
+  // At departTick the bird becomes state 'left_area' immediately (exits coverage)
+  if (actor.departTick !== undefined && currentTick >= actor.departTick) {
+    actor.state = 'left_area';
+    actor.vel = vec3(0, 0, 0);
+    return;
   }
 
   switch (actor.behaviour.type) {
@@ -182,7 +174,7 @@ export function updateActorBehaviour(
     }
 
     case 'depart': {
-      // Flies straight out of the area and becomes left_area at 8 km
+      // Natural departure at class speed
       const distFromOrigin = vDist2D(actor.pos, vec3(0, 0, 0));
       if (distFromOrigin >= 8000) {
         actor.state = 'left_area';
@@ -194,7 +186,7 @@ export function updateActorBehaviour(
         distFromOrigin > 0
           ? vNormalize(vec3(actor.pos.x, actor.pos.y, 0))
           : vec3(0, 1, 0);
-      actor.vel = vScale(outDir, Math.max(actor.speed, 90));
+      actor.vel = vScale(outDir, actor.speed);
 
       actor.pos.x += actor.vel.x * dt;
       actor.pos.y += actor.vel.y * dt;
