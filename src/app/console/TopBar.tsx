@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { TraineeEnvironmentView } from '../../sim/index.js';
 import { NavMiniAsciiPreview } from '../components/NavMiniAsciiPreview.js';
 import { TextRoll } from '../components/TextRoll.js';
@@ -38,6 +38,9 @@ export function TopBar({
   onToggleAutopilot,
 }: TopBarProps): React.JSX.Element {
   const [activeDropdown, setActiveDropdown] = useState<'scenarios' | 'systems' | 'intel' | null>(null);
+  const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isPinnedRef = useRef<boolean>(false);
+  const navRef = useRef<HTMLElement>(null);
 
   const scTitle =
     scenarioId === 'ridge_runner'
@@ -51,23 +54,87 @@ export function TopBar({
     : null;
 
   const handleDropdownEnter = (menu: 'scenarios' | 'systems' | 'intel') => {
-    setActiveDropdown(menu);
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
+    if (!isPinnedRef.current || activeDropdown === menu) {
+      setActiveDropdown(menu);
+    }
   };
 
   const handleDropdownLeave = () => {
+    if (isPinnedRef.current) return;
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+    }
+    leaveTimerRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 280);
+  };
+
+  const handleDropdownToggleClick = (menu: 'scenarios' | 'systems' | 'intel') => {
+    if (leaveTimerRef.current) {
+      clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
+    if (activeDropdown === menu && isPinnedRef.current) {
+      isPinnedRef.current = false;
+      setActiveDropdown(null);
+    } else {
+      isPinnedRef.current = true;
+      setActiveDropdown(menu);
+    }
+  };
+
+  const handleCloseDropdown = () => {
+    isPinnedRef.current = false;
     setActiveDropdown(null);
   };
 
+  const handleSelectScenario = (scId: string) => {
+    isPinnedRef.current = false;
+    setActiveDropdown(null);
+    window.dispatchEvent(new CustomEvent('mod:select-scenario', { detail: scId }));
+    const el = document.getElementById('scenario-selection-card');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const scrollToBriefing = () => {
+    isPinnedRef.current = false;
     setActiveDropdown(null);
     const el = document.getElementById('scenario-selection-card');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        isPinnedRef.current = false;
+        setActiveDropdown(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        isPinnedRef.current = false;
+        setActiveDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+      if (leaveTimerRef.current) {
+        clearTimeout(leaveTimerRef.current);
+      }
+    };
+  }, []);
+
   return (
     <header style={styles.headerRoot}>
       {/* Luxury Integrated Navigation Bar — Part of the page background */}
-      <nav style={styles.mainNav}>
+      <nav ref={navRef} style={styles.mainNav}>
         {/* Left: Brand Identity */}
         <div style={styles.brandGroup}>
           <a href="#/" style={styles.brandLink}>
@@ -91,17 +158,26 @@ export function TopBar({
           >
             <button
               className={`nav-mega-btn ${activeDropdown === 'scenarios' ? 'is-active' : ''}`}
-              onClick={() => setActiveDropdown((prev) => (prev === 'scenarios' ? null : 'scenarios'))}
+              onClick={() => handleDropdownToggleClick('scenarios')}
             >
               <span>SCENARIOS</span>
               <span className="nav-mega-chevron">▾</span>
             </button>
 
             {/* Mega Dropdown Panel: Scenarios */}
-            <div className={`mega-dropdown-panel ${activeDropdown === 'scenarios' ? 'is-open' : ''}`}>
+            <div
+              className={`mega-dropdown-panel ${activeDropdown === 'scenarios' ? 'is-open' : ''}`}
+              onMouseEnter={() => {
+                if (leaveTimerRef.current) {
+                  clearTimeout(leaveTimerRef.current);
+                  leaveTimerRef.current = null;
+                }
+              }}
+              onMouseLeave={handleDropdownLeave}
+            >
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
-                  <div className="mega-menu-card-item" onClick={scrollToBriefing}>
+                  <div className="mega-menu-card-item" onClick={() => handleSelectScenario('dawn_intrusion')}>
                     <div className="mega-menu-item-icon">🎯</div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">
@@ -114,7 +190,7 @@ export function TopBar({
                     </div>
                   </div>
 
-                  <div className="mega-menu-card-item" onClick={scrollToBriefing}>
+                  <div className="mega-menu-card-item" onClick={() => handleSelectScenario('ridge_runner')}>
                     <div className="mega-menu-item-icon">⛰️</div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">
@@ -127,7 +203,7 @@ export function TopBar({
                     </div>
                   </div>
 
-                  <div className="mega-menu-card-item" onClick={scrollToBriefing}>
+                  <div className="mega-menu-card-item" onClick={() => handleSelectScenario('city_edge_night')}>
                     <div className="mega-menu-item-icon">🏙️</div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">
@@ -176,17 +252,26 @@ export function TopBar({
           >
             <button
               className={`nav-mega-btn ${activeDropdown === 'systems' ? 'is-active' : ''}`}
-              onClick={() => setActiveDropdown((prev) => (prev === 'systems' ? null : 'systems'))}
+              onClick={() => handleDropdownToggleClick('systems')}
             >
               <span>DEFENSE SYSTEMS</span>
               <span className="nav-mega-chevron">▾</span>
             </button>
 
             {/* Mega Dropdown Panel: Systems */}
-            <div className={`mega-dropdown-panel ${activeDropdown === 'systems' ? 'is-open' : ''}`}>
+            <div
+              className={`mega-dropdown-panel ${activeDropdown === 'systems' ? 'is-open' : ''}`}
+              onMouseEnter={() => {
+                if (leaveTimerRef.current) {
+                  clearTimeout(leaveTimerRef.current);
+                  leaveTimerRef.current = null;
+                }
+              }}
+              onMouseLeave={handleDropdownLeave}
+            >
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
-                  <div className="mega-menu-card-item">
+                  <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
                     <div className="mega-menu-item-icon">📡</div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">Pulse-Doppler Radar</span>
@@ -196,7 +281,7 @@ export function TopBar({
                     </div>
                   </div>
 
-                  <div className="mega-menu-card-item">
+                  <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
                     <div className="mega-menu-item-icon">⚡</div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">Directional RF Jammer</span>
@@ -206,7 +291,7 @@ export function TopBar({
                     </div>
                   </div>
 
-                  <div className="mega-menu-card-item">
+                  <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
                     <div className="mega-menu-item-icon">💥</div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">Kinetic 30mm CIWS</span>
@@ -216,7 +301,7 @@ export function TopBar({
                     </div>
                   </div>
 
-                  <div className="mega-menu-card-item">
+                  <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
                     <div className="mega-menu-item-icon">🛡️</div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">TraineeView Isolation</span>
@@ -241,7 +326,7 @@ export function TopBar({
                       kinetic point-defense cannon at 1.0 km.
                     </p>
                   </div>
-                  <a href="#/check" style={styles.previewCardLink}>
+                  <a href="#/check" onClick={handleCloseDropdown} style={styles.previewCardLink}>
                     DIAGNOSTICS & VERIFY ↗
                   </a>
                 </div>
@@ -259,17 +344,26 @@ export function TopBar({
           >
             <button
               className={`nav-mega-btn ${activeDropdown === 'intel' ? 'is-active' : ''}`}
-              onClick={() => setActiveDropdown((prev) => (prev === 'intel' ? null : 'intel'))}
+              onClick={() => handleDropdownToggleClick('intel')}
             >
               <span>THREAT INTEL</span>
               <span className="nav-mega-chevron">▾</span>
             </button>
 
             {/* Mega Dropdown Panel: Intel */}
-            <div className={`mega-dropdown-panel ${activeDropdown === 'intel' ? 'is-open' : ''}`}>
+            <div
+              className={`mega-dropdown-panel ${activeDropdown === 'intel' ? 'is-open' : ''}`}
+              onMouseEnter={() => {
+                if (leaveTimerRef.current) {
+                  clearTimeout(leaveTimerRef.current);
+                  leaveTimerRef.current = null;
+                }
+              }}
+              onMouseLeave={handleDropdownLeave}
+            >
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
-                  <div className="mega-menu-card-item">
+                  <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
                     <div className="mega-menu-item-icon">🚀</div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">
@@ -282,7 +376,7 @@ export function TopBar({
                     </div>
                   </div>
 
-                  <div className="mega-menu-card-item">
+                  <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
                     <div className="mega-menu-item-icon">✈️</div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">Reconnaissance UAV</span>
@@ -292,7 +386,7 @@ export function TopBar({
                     </div>
                   </div>
 
-                  <div className="mega-menu-card-item">
+                  <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
                     <div className="mega-menu-item-icon">🚁</div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">Commercial Quadcopters</span>
@@ -302,7 +396,7 @@ export function TopBar({
                     </div>
                   </div>
 
-                  <div className="mega-menu-card-item">
+                  <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
                     <div className="mega-menu-item-icon">🦅</div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">Avian Biologicals</span>

@@ -192,9 +192,9 @@ body {
 
 .mega-dropdown-panel {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 8px);
   left: 50%;
-  transform: translateX(-50%) translateY(-10px) scale(0.97);
+  transform: translateX(-50%) translateY(-6px) scale(0.98);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -204,9 +204,21 @@ body {
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 15px rgba(203, 179, 232, 0.1);
   backdrop-filter: blur(20px);
   z-index: 1000;
-  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-              visibility 0.22s;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.2s;
+}
+
+/* Invisible hover bridge to eliminate the gap between trigger button and dropdown */
+.mega-dropdown-panel::before {
+  content: '';
+  position: absolute;
+  top: -14px;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background: transparent;
+  pointer-events: auto;
 }
 
 .nav-mega-item:hover .mega-dropdown-panel,

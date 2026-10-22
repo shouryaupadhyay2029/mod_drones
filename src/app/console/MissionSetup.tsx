@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DroneHeroSection } from '../components/DroneHeroSection.js';
 import { TextRoll } from '../components/TextRoll.js';
 
@@ -53,6 +53,17 @@ function generateRandomSeed(): string {
 export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element {
   const [selectedScenario, setSelectedScenario] = useState<string>('dawn_intrusion');
   const [seedInput, setSeedInput] = useState<string>(() => generateRandomSeed());
+
+  useEffect(() => {
+    const handleSelect = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      if (customEvent.detail && ['dawn_intrusion', 'ridge_runner', 'city_edge_night'].includes(customEvent.detail)) {
+        setSelectedScenario(customEvent.detail);
+      }
+    };
+    window.addEventListener('mod:select-scenario', handleSelect);
+    return () => window.removeEventListener('mod:select-scenario', handleSelect);
+  }, []);
 
   const handleRandomize = () => {
     setSeedInput(generateRandomSeed());
