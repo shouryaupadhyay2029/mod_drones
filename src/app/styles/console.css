@@ -131,3 +131,46 @@ body {
   font-size: 10px;
   box-shadow: 0 0 6px rgba(255, 45, 171, 0.2);
 }
+
+/* ==========================================================================
+   TextRoll Cyber-Tactical Rolling Letters Hover Effect
+   ========================================================================== */
+
+.text-roll-container {
+  position: relative;
+  display: inline-flex;
+  overflow: hidden;
+  line-height: 1;
+  vertical-align: baseline;
+  cursor: pointer;
+}
+
+.text-roll-char-top {
+  display: inline-block;
+  transform: translateY(0%);
+  will-change: transform;
+}
+
+.text-roll-char-bottom {
+  display: inline-block;
+  transform: translateY(100%);
+  will-change: transform;
+}
+
+/* Activate rolling when either the TextRoll container, or a parent button/link/card is hovered */
+.text-roll-container:hover .text-roll-char-top,
+.text-roll-trigger:hover .text-roll-char-top,
+button:hover:not(:disabled) .text-roll-char-top,
+a:hover .text-roll-char-top,
+[data-text-roll-parent]:hover .text-roll-char-top {
+  transform: translateY(-100%);
+}
+
+.text-roll-container:hover .text-roll-char-bottom,
+.text-roll-trigger:hover .text-roll-char-bottom,
+button:hover:not(:disabled) .text-roll-char-bottom,
+a:hover .text-roll-char-bottom,
+[data-text-roll-parent]:hover .text-roll-char-bottom {
+  transform: translateY(0%);
+}
+

@@ -7,6 +7,7 @@ import {
   TraineeEffectorsView,
   TraineeTrack,
 } from '../../sim/index.js';
+import { TextRoll } from '../components/TextRoll.js';
 
 export interface TrackDetailProps {
   track: TraineeTrack | null;
@@ -152,7 +153,7 @@ export function TrackDetail({
               opacity: isAckDisabled ? 0.6 : 1,
             }}
           >
-            Acknowledge [A]
+            <TextRoll center stagger={0.02}>Acknowledge [A]</TextRoll>
           </button>
           {ackDisabledReason && (
             <span style={styles.disabledReasonText}>{ackDisabledReason}</span>
@@ -172,7 +173,7 @@ export function TrackDetail({
               opacity: isHoldDisabled ? 0.6 : 1,
             }}
           >
-            Hold Fire [H]
+            <TextRoll center stagger={0.02}>Hold Fire [H]</TextRoll>
           </button>
           {holdDisabledReason && (
             <span style={styles.disabledReasonText}>{holdDisabledReason}</span>
@@ -202,7 +203,9 @@ export function TrackDetail({
                   boxShadow: isAssessed ? '0 0 8px rgba(255, 45, 171, 0.35)' : 'none',
                 }}
               >
-                <span>{opt.label}</span>
+                <span>
+                  <TextRoll stagger={0.02}>{opt.label}</TextRoll>
+                </span>
                 <span style={{ ...styles.shortcutTag, color: isAssessed ? '#ff2dab' : '#a1a1aa' }}>[{keyLabel}]</span>
               </button>
             );
@@ -228,7 +231,7 @@ export function TrackDetail({
                 opacity: jammerDisabledReason !== null ? 0.6 : 1,
               }}
             >
-              ⚡ Engage Jammer [J]
+              <TextRoll center stagger={0.02}>⚡ Engage Jammer [J]</TextRoll>
             </button>
             {jammerDisabledReason && (
               <span style={styles.disabledReasonText}>{jammerDisabledReason}</span>
@@ -249,7 +252,7 @@ export function TrackDetail({
                 opacity: gunDisabledReason !== null ? 0.6 : 1,
               }}
             >
-              💥 Engage Gun [G]
+              <TextRoll center stagger={0.02}>💥 Engage Gun [G]</TextRoll>
             </button>
             {gunDisabledReason && (
               <span style={styles.disabledReasonText}>{gunDisabledReason}</span>

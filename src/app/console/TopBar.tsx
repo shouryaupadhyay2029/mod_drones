@@ -1,5 +1,6 @@
 import React from 'react';
 import { TraineeEnvironmentView } from '../../sim/index.js';
+import { TextRoll } from '../components/TextRoll.js';
 
 export interface TopBarProps {
   tick: number;
@@ -50,12 +51,14 @@ export function TopBar({
     <div style={styles.container}>
       {/* Top Banner */}
       <div style={styles.banner}>
-        <span style={styles.bannerBadge}>DISCLAIMER</span>
+        <span style={styles.bannerBadge}>
+          <TextRoll center stagger={0.02}>DISCLAIMER</TextRoll>
+        </span>
         <span style={styles.bannerText}>
           TRAINING SIMULATION — generic open-source parameters only
         </span>
         <a href="#/check" style={styles.sysCheckLink}>
-          System Check ↗
+          <TextRoll stagger={0.02}>System Check ↗</TextRoll>
         </a>
       </div>
 
@@ -63,7 +66,9 @@ export function TopBar({
       <div style={styles.actionBar}>
         {/* Left: Mission Info & Clock */}
         <div style={styles.leftGroup}>
-          <div style={styles.missionTitle}>{scTitle}</div>
+          <div style={styles.missionTitle}>
+            <TextRoll center stagger={0.03}>{scTitle}</TextRoll>
+          </div>
           {envStr && (
             <div style={styles.envChipBadge}>
               {envStr}
@@ -91,21 +96,21 @@ export function TopBar({
                 onClick={() => onSetSpeed(1)}
                 style={speed === 1 ? styles.speedActive : styles.speedButton}
               >
-                1x
+                <TextRoll center>1x</TextRoll>
               </button>
               <button
                 id="btn-speed-2"
                 onClick={() => onSetSpeed(2)}
                 style={speed === 2 ? styles.speedActive : styles.speedButton}
               >
-                2x
+                <TextRoll center>2x</TextRoll>
               </button>
               <button
                 id="btn-speed-4"
                 onClick={() => onSetSpeed(4)}
                 style={speed === 4 ? styles.speedActive : styles.speedButton}
               >
-                4x
+                <TextRoll center>4x</TextRoll>
               </button>
             </div>
 
@@ -115,7 +120,7 @@ export function TopBar({
               onClick={onTogglePause}
               style={styles.pauseButton}
             >
-              {isPaused ? '▶ RESUME' : '⏸ PAUSE'}
+              <TextRoll center>{isPaused ? '▶ RESUME' : '⏸ PAUSE'}</TextRoll>
             </button>
 
             {/* Autopilot Toggle */}
@@ -124,7 +129,7 @@ export function TopBar({
               onClick={onToggleAutopilot}
               style={autopilot ? styles.autopilotActive : styles.autopilotButton}
             >
-              {autopilot ? '🤖 AUTOPILOT: ON' : '🤖 AUTOPILOT: OFF'}
+              <TextRoll center>{autopilot ? '🤖 AUTOPILOT: ON' : '🤖 AUTOPILOT: OFF'}</TextRoll>
             </button>
           </div>
         )}

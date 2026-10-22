@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { TextRoll } from '../components/TextRoll.js';
 
 export interface MissionSetupProps {
   onStart: (seed: string, scenarioId?: string) => void;
@@ -70,7 +71,9 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
       <div style={styles.card}>
         <div style={styles.header}>
           <div style={styles.missionTag}>MISSION SELECTION & BRIEFING</div>
-          <h2 style={styles.title}>{activeScenario.title}</h2>
+          <h2 style={styles.title}>
+            <TextRoll center stagger={0.025}>{activeScenario.title}</TextRoll>
+          </h2>
           <p style={styles.subtitle}>
             Asset Defense Exercise • Radar Surveillance & Threat Interception
           </p>
@@ -99,7 +102,9 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
                     onChange={() => setSelectedScenario(sc.id)}
                     style={{ cursor: 'pointer', accentColor: '#ff2dab' }}
                   />
-                  <span style={styles.scenarioCardTitle}>{sc.title}</span>
+                  <span style={styles.scenarioCardTitle}>
+                    <TextRoll stagger={0.02}>{sc.title}</TextRoll>
+                  </span>
                 </div>
                 <div style={styles.scenarioCardSubtitle}>{sc.subtitle}</div>
                 <div style={styles.chipsRow}>
@@ -152,7 +157,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
                 onClick={handleRandomize}
                 style={styles.buttonRandom}
               >
-                🎲 Random
+                🎲 <TextRoll stagger={0.02}>Random</TextRoll>
               </button>
             </div>
             <span style={styles.hint}>
@@ -161,7 +166,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
           </div>
 
           <button type="submit" id="btn-start-mission" style={styles.buttonStart}>
-            START MISSION
+            <TextRoll center duration={0.32} stagger={0.025}>START MISSION</TextRoll>
           </button>
         </form>
       </div>

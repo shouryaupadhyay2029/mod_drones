@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Engine, replay } from '../../sim/index.js';
+import { TextRoll } from '../components/TextRoll.js';
 import { SimClient, SimStateUpdate } from '../simClient.js';
 
 export function SystemCheckPage(): React.JSX.Element {
@@ -218,7 +219,7 @@ export function SystemCheckPage(): React.JSX.Element {
               placeholder="Enter seed string or number..."
             />
             <button onClick={handleReset} style={styles.buttonSecondary}>
-              Reset With Seed
+              <TextRoll center stagger={0.02}>Reset With Seed</TextRoll>
             </button>
           </div>
 
@@ -231,7 +232,7 @@ export function SystemCheckPage(): React.JSX.Element {
                 opacity: simState.isRunning ? 0.5 : 1,
               }}
             >
-              Start
+              <TextRoll center stagger={0.02}>Start</TextRoll>
             </button>
             <button
               onClick={handlePause}
@@ -241,10 +242,10 @@ export function SystemCheckPage(): React.JSX.Element {
                 opacity: !simState.isRunning ? 0.5 : 1,
               }}
             >
-              Pause
+              <TextRoll center stagger={0.02}>Pause</TextRoll>
             </button>
             <button onClick={handleSpawnEntity} style={styles.buttonAction}>
-              Spawn Test Entity
+              <TextRoll center stagger={0.02}>Spawn Test Entity</TextRoll>
             </button>
           </div>
         </section>
@@ -267,7 +268,7 @@ export function SystemCheckPage(): React.JSX.Element {
                 onClick={handleVerifyReplay}
                 style={styles.buttonVerify}
               >
-                Verify Replay
+                <TextRoll center stagger={0.02}>Verify Replay</TextRoll>
               </button>
             </div>
             {replayResult.status !== 'IDLE' && (
@@ -319,7 +320,7 @@ export function SystemCheckPage(): React.JSX.Element {
                 onClick={handleVerifySnapshot}
                 style={styles.buttonVerify}
               >
-                Verify Snapshot
+                <TextRoll center stagger={0.02}>Verify Snapshot</TextRoll>
               </button>
             </div>
             {snapshotResult.status !== 'IDLE' && (

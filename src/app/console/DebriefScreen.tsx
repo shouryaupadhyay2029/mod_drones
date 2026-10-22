@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScoreReport, SessionLog, TraineeEnvironmentView } from '../../sim/index.js';
+import { TextRoll } from '../components/TextRoll.js';
 
 export interface DebriefScreenProps {
   score: ScoreReport;
@@ -251,21 +252,21 @@ export function DebriefScreen({
             onClick={onReplaySameSeed}
             style={styles.btnSecondary}
           >
-            ↺ Replay Same Seed
+            <TextRoll center stagger={0.02}>↺ Replay Same Seed</TextRoll>
           </button>
           <button
             id="btn-new-random-seed"
             onClick={onNewRandomSeed}
             style={styles.btnPrimary}
           >
-            🎲 New Random Seed
+            <TextRoll center stagger={0.02}>🎲 New Random Seed</TextRoll>
           </button>
           <button
             id="btn-download-log"
             onClick={handleDownloadLog}
             style={styles.btnDownload}
           >
-            ⬇ Download Session Log (JSON)
+            <TextRoll center stagger={0.02}>⬇ Download Session Log (JSON)</TextRoll>
           </button>
         </div>
       </div>

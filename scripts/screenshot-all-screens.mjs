@@ -1,3 +1,4 @@
+/* global document */
 import { spawn } from 'node:child_process';
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
