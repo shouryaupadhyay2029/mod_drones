@@ -1,4 +1,4 @@
-/* global document, window */
+/* global document, window, KeyboardEvent */
 import { spawn } from 'node:child_process';
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
@@ -189,7 +189,101 @@ async function run() {
       await page.screenshot({ path: pathNight, fullPage: false });
       console.log('Saved console-night-ir.png to:', pathNight);
 
-      console.log('PASSED: Both viewports fit with NO page scroll, and Night IR screenshot saved.');
+      // Phase 3A Screenshot 1: Veteran saturation mid-mission (>= 8 tracks, day)
+      console.log('Capturing Phase 3A: Veteran saturation mid-mission (>= 8 tracks)...');
+      await page.goto('http://127.0.0.1:4173/#/', { waitUntil: 'networkidle0' });
+      await page.evaluate(() => {
+        window.dispatchEvent(new CustomEvent('mod:select-scenario', { detail: 'procedural' }));
+        window.dispatchEvent(new CustomEvent('mod:open-briefing'));
+      });
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const tierSelect = await page.$('#tierSelect');
+      if (tierSelect) {
+        await page.select('#tierSelect', 'veteran');
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const startVetBtn = await page.$('#btn-start-mission');
+      if (startVetBtn) await startVetBtn.click();
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      const vetAutopilotBtn = await page.$('#btn-toggle-autopilot');
+      if (vetAutopilotBtn) await vetAutopilotBtn.click();
+      const vetSpeed4Btn = await page.$('#btn-speed-4');
+      if (vetSpeed4Btn) await vetSpeed4Btn.click();
+
+      console.log('Waiting for >= 8 active tracks in veteran swarm...');
+      await page.waitForFunction(
+        () => {
+          const rows = document.querySelectorAll('tbody tr');
+          return rows.length >= 8;
+        },
+        { timeout: 25000 }
+      ).catch(() => console.log('Timeout waiting for 8 tracks; continuing with available tracks...'));
+
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      const pathVetSwarm = path.join(outDir, 'console-veteran-swarm.png');
+      await page.screenshot({ path: pathVetSwarm, fullPage: false });
+      console.log('Saved console-veteran-swarm.png to:', pathVetSwarm);
+
+      // Phase 3A Screenshot 2: Elite night/IR with EO locked
+      console.log('Capturing Phase 3A: Elite night/IR with EO locked...');
+      await page.goto('http://127.0.0.1:4173/#/', { waitUntil: 'networkidle0' });
+      await page.evaluate(() => {
+        window.dispatchEvent(new CustomEvent('mod:select-scenario', { detail: 'procedural' }));
+        window.dispatchEvent(new CustomEvent('mod:open-briefing'));
+      });
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const eliteTierSelect = await page.$('#tierSelect');
+      if (eliteTierSelect) {
+        await page.select('#tierSelect', 'elite');
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const startEliteBtn = await page.$('#btn-start-mission');
+      if (startEliteBtn) await startEliteBtn.click();
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      const eliteAutopilotBtn = await page.$('#btn-toggle-autopilot');
+      if (eliteAutopilotBtn) await eliteAutopilotBtn.click();
+      const eliteSpeed4Btn = await page.$('#btn-speed-4');
+      if (eliteSpeed4Btn) await eliteSpeed4Btn.click();
+
+      // Ensure IR channel is toggled if not night
+      await page.evaluate(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 't' }));
+      });
+
+      console.log('Waiting for EO lock on elite mission...');
+      await page.waitForFunction(
+        () => {
+          const eoHeader = document.querySelector('.eo-hud-target');
+          const rows = document.querySelectorAll('tbody tr');
+          return rows.length >= 1 && eoHeader && !eoHeader.textContent?.includes('IDLE');
+        },
+        { timeout: 20000 }
+      ).catch(() => console.log('Timeout waiting for elite EO lock; continuing...'));
+
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      const pathEliteIr = path.join(outDir, 'console-elite-ir.png');
+      await page.screenshot({ path: pathEliteIr, fullPage: false });
+      console.log('Saved console-elite-ir.png to:', pathEliteIr);
+
+      // Phase 3A Screenshot 3: Debrief screen after swarm showing effectorUse
+      console.log('Capturing Phase 3A: Debrief screen showing effectorUse...');
+      // Wait for mission completion to transition to debrief
+      await page.waitForFunction(
+        () => {
+          const debriefHeading = document.querySelector('h1');
+          return debriefHeading && debriefHeading.textContent?.includes('Mission Debrief');
+        },
+        { timeout: 40000 }
+      ).catch(() => console.log('Timeout waiting for natural debrief end...'));
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const pathDebrief = path.join(outDir, 'debrief-swarm.png');
+      await page.screenshot({ path: pathDebrief, fullPage: false });
+      console.log('Saved debrief-swarm.png to:', pathDebrief);
+
+      console.log('PASSED: All viewports and Phase 3A screenshots captured.');
     } finally {
       await browser.close();
     }

@@ -71,3 +71,23 @@ This deliberate operational design ensures that:
   $$\text{AGL}(x, y, z) = z - \text{terrainHeight}(x, y)$$
 - Physical collision with terrain or surface clutter occurs if $\text{AGL}(x, y, z) \le 0\text{ m}$. Clutter degradation factors for radar detection are parameterized directly by this local AGL height.
 
+## ADR-007: Phase 3A Swarm Tactics, Procedural Generator, and Effector Accounting
+
+### 1. Swarm Formation Mechanics Without Boids
+To maintain 100% deterministic cross-platform repeatability and eliminate unbounded computational complexity, swarm formations avoid multi-agent boids simulation. Instead, swarm tactics (`saturation`, `split`, `decoy_screen`) are computed via deterministic vector projections:
+- A virtual swarm leader trajectory points directly toward the defended asset coordinate `(0, 0, 0)`.
+- Individual swarm members receive lateral and longitudinal offset vectors perpendicular and parallel to the leader ingress bearing, parameterized with deterministic PRNG jitter.
+- Terrain clearance ($\ge 20\text{ m}$ AGL) is enforced dynamically by clamping $Z \ge \text{terrain.heightAt}(x, y) + 20$.
+
+### 2. Time-to-Impact Hostile Prioritization
+Under swarm conditions with up to 16 concurrent hostile strikers, raw range is an inadequate threat metric (e.g. an FPV at 1200m traveling at 30 m/s reaches the asset in 40s, while a quad at 900m moving laterally may never hit). `referenceOperator` ranks all confirmed hostile threats by estimated time-to-impact ($\text{TTI} = \text{rangeM} / -\text{closingRateMps}$), engaging the most imminent threat first.
+
+### 3. Decoy Drone & Fiber FPV Discrimination Rules
+- `fpv_fiber`: Physical wire guidance removes all RF command and video telemetry. The passive RF detector categorizes it as `silent`. The reference bot detects this absence of RF emissions and directs hard-kill autocannon engagements rather than RF jamming, avoiding the -5 wasted jammer penalty.
+- `decoy_drone`: Built to draw fire from defensive systems. It presents an RCS in the `medium` bucket ($0.05\text{ m}^2$) while remaining RF-silent. The reference bot assesses contacts with `rfStatus === 'silent'` and `rcsBucket === 'medium'` as `decoy_drone`, withholding fire to preserve ammunition and avoid the -3 decoy penalty.
+
+### 4. Extended Operator Console Hotkeys
+- `Shift + A`: Batches acknowledgments for all confirmed, unacknowledged tracks in chronological detection order.
+- `N`: Instantly cycles focus to the next unclassified confirmed track ordered by proximity to the defended asset.
+- `6` and `7`: Hotkey assignments for `fpv_fiber` ("FPV-type (no RF)") and `decoy_drone` ("Decoy / low-cost target").
+

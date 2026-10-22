@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - Phase 3A: Swarms, Procedural Generator, Difficulty Tiers
+
+### Added
+- **New Threat Classes (`src/sim/model/threats.ts`)**:
+  - `fpv_fiber`: Hostile fiber-optic guided strike drone. Speed 20-30 m/s, alt 20-80m, RCS 0.02, size 0.35m, thermal 0.8. `rfControlled: false`, `rfSignature: 'none'`. Immune to soft-kill jamming; looks RF-silent.
+  - `decoy_drone`: Non-hostile low-cost target drone. Speed 20-30 m/s, alt 40-100m, RCS 0.05 (medium bucket), size 1.2m, thermal 0.3. `rfControlled: false`, `rfSignature: 'none'`. Incurs no asset damage; becomes `impacted` with `DECOY_IMPACT` at $\le 25$m of the defended asset.
+  - Added internal simulation fields `Actor.groupId` and `Actor.role` ('striker' | 'decoy').
+  - Extended classification options in `src/sim/view/classificationOptions.ts` with `fpv_fiber` (hotkey 6) and `decoy_drone` (hotkey 7).
+- **Swarm Tactical Formations (`src/sim/scenarios/swarm.ts`)**:
+  - `buildSwarmSpawns(config)` generating synchronized, deterministic swarm formations without boids algorithms.
+  - `saturation`: Concentrated inbound attack within a 20-40s window from a single azimuth ($\pm 12^\circ$ spread, 40-80m lateral offsets).
+  - `split`: Dual-axis pincer attack with subgroups separated by $70^\circ - 120^\circ$ and the second group delayed by 10-25s.
+  - `decoy_screen`: Decoy drones deployed 500-900m ahead of strikers along the ingress axis, with strikers trailing by 12-20s.
+  - All positions and offsets computed strictly via deterministic vector math and `dSin/dCos` with terrain clearance $\ge 20$m AGL.
+- **Procedural Scenario Generator (`src/sim/scenarios/generator.ts`, `GEN_VERSION = 1`)**:
+  - `generateScenario(seed, tier, avoid?)` generating deterministic procedural missions under `proc:v1:<tier>` with isolated `rng.fork('gen')`.
+  - Tiers: `recruit` (1-2 strikers, 0 decoys, 0 fiber, 1-2 civilians), `operator` (3-5 strikers, 0-1 decoys, $\le 25\%$ fiber, 1-2 civilians), `veteran` (6-10 strikers, 1-3 decoys, $\le 40\%$ fiber, 1-3 civilians), `elite` (10-16 strikers, 2-4 decoys, $\le 50\%$ fiber, 0-2 civilians, pop-up striker wave after $t=150$s).
+  - Deterministic FNV-1a fingerprinting with 30-degree quantized bearings, class counts, and environment tags. Supports up to 8 re-rolls on avoid lists.
+  - Integrated into `Engine` constructor, worker protocol, and snapshot restore.
+- **Scoring & Effector Accounting Additions (`src/sim/scoring/basic.ts`, `constants.ts`)**:
+  - Decoy engagement penalty: -3 points (`ENGAGE_DECOY`).
+  - Partial FPV classification credit: 0.5 points between `fpv_kamikaze` and `fpv_fiber` (1.0 for exact class match, 0 otherwise).
+  - `ScoreReport.effectorUse`: Tracks `gunBurstsFired`, `jammerCycles`, `killsPerEffector` ({ gun, jammer }), and `wastedEngagements` ({ ghost, decoy, neutral }).
+- **Bot Strategy & Sensor Fusion (`src/sim/bots/referenceOperator.ts`)**:
+  - Hostile contact prioritization by estimated time-to-impact ($\text{rangeM} / -\text{closingRateMps}$).
+  - Tactical effector selection: RF-emitting threats engaged with jammer; RF-silent FPVs engaged strictly with gun (avoiding -5 wasted jammer penalty).
+  - Decoy avoidance: Contacts exhibiting RF-silent emission and medium RCS bucket (or optical hint) assessed as `decoy_drone` and held fire.
+  - Test-only `oracleOperator` (`src/sim/bots/oracleOperator.ts`) reading engine ground truth for solvability verification.
+- **Console UI Enhancements (`src/app/console/`)**:
+  - `MissionSetup`: Procedural scenario card with difficulty tier selector (`recruit`, `operator`, `veteran`, `elite`), dynamic environment chips, and vague threat estimates.
+  - `TrackTable`: Sticky header with internal scrolling container for 16+ tracks, verified with zero page scroll at 1366x768.
+  - `drawScope`: Track label decluttering showing text identifiers only for selected, hovered, and unacknowledged confirmed tracks (with bright tactical glow).
+  - Hotkeys: `Shift+A` (acknowledge all unacknowledged tracks in tick order) and `N` (cycle next unclassified track by range).
+  - `DebriefScreen`: Procedural tier and tactic badges, plus dedicated Effector Engagement Accounting dashboard.
+- **Phase 3A Acceptance Test Suite (`tests/phase3a.test.tsx`)**:
+  - 10 rigorous tests covering determinism, tier bounds, diversity ($\ge 45/50$), oracle solvability ($\ge 90\%$), difficulty degradation ($99.7 \to 72.7 \to 27.0 \to 10.2$), snapshot/replay hashes, privacy leaks, scoring penalties, scripted scenario completion, and UI components.
+
+### Fixed
+- **Step 0.1 Scenario Timing**: Refined `ridge_runner` and `city_edge_night` actor waypoint lengths and velocities so all scripted actors resolve by tick $\le 4200$, resolving all 3 scenarios before tick 4800.
+- **Step 0.2 Radar Sector Sector Boundary Guard**: Converted sector angle test in `src/sim/systems/radar.ts` to strictly half-open $[start, end)$ with 360-degree wrap and minimum rotation spacing ($>1.9$s), eliminating double detections on consecutive ticks.
+- **Step 0.3 RF Line Association**: Updated `associateRfWithTracks` to select the strobe with the smallest angular difference (tiebreak: newest timestamp).
+- **Step 0.4 False Track Engagement**: Removed ground-truth actor check in `tryEngageTrack`, allowing firing on radar ghost tracks and assessing the -5 penalty.
+- **Step 0.5 Navigation Bar Disabled States**: Visually disabled non-functional navigation menus (DEFENSE SYSTEMS, THREAT INTEL) with `is-disabled` styling, reduced opacity, and `OFFLINE` indicators.
+
 ## [0.5.0] - Phase 2B: RF Detector, EO/IR Sensor, Day/Night Effects
 
 ### Added

@@ -9,11 +9,7 @@ import {
   scoreSession,
   generateScenario,
   Tier,
-  GEN_VERSION,
-  SwarmTactic,
-  THREAT_LIBRARY,
   TraineeTrack,
-  SessionLog,
 } from '../src/sim/index.js';
 import { oracleStep } from '../src/sim/bots/oracleOperator.js';
 import { MissionSetup } from '../src/app/console/MissionSetup.js';
@@ -210,7 +206,7 @@ describe('Phase 3A Acceptance Tests', () => {
     const tiers: Tier[] = ['recruit', 'operator', 'veteran', 'elite'];
     for (const tier of tiers) {
       const eLive = new Engine('s1', `proc:v1:${tier}`);
-      let snapAt1200: any = null;
+      let snapAt1200: ReturnType<typeof eLive.snapshot> | null = null;
 
       for (let t = 0; t < 1200; t++) {
         if (eLive.missionState.ended) break;

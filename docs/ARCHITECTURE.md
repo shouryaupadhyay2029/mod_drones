@@ -208,4 +208,45 @@ Every tick in `Engine.step()` executes exactly five systems in fixed order:
   - Exposes `{ state, lockedTrackId, channel, level, hint, quality = min(1, effPixels/12) }`.
   - Raw `effPixels` is strictly withheld.
 
+## 6. Phase 3A Architecture Additions: Swarms, Procedural Generator, Difficulty Tiers
+
+### New Threat Classes (`src/sim/model/threats.ts`)
+- **`fpv_fiber`**: Wire/fiber-guided strike drone.
+  - RCS: $0.02\text{ m}^2$ (small bucket), physical size: $0.35\text{ m}$, thermal: $0.8$, speed: $20-30\text{ m/s}$, altitude: $20-80\text{ m}$.
+  - RF Characteristics: `rfControlled: false`, `rfSignature: 'none'`.
+  - Tactical implication: RF-silent on passive detectors; immune to RF jammer soft-kill. Trainee must employ hard-kill autocannon. Jammer usage incurs wasted non-RF penalty (-5).
+- **`decoy_drone`**: Aerodynamic decoy and signature imitator.
+  - RCS: $0.05\text{ m}^2$ (medium bucket), physical size: $1.2\text{ m}$, thermal: $0.3$, speed: $20-30\text{ m/s}$, altitude: $40-100\text{ m}$.
+  - RF Characteristics: `rfControlled: false`, `rfSignature: 'none'`.
+  - Tactical implication: Mimics inbound strikers on radar. Does zero asset damage. At $\le 25\text{ m}$ of the asset it impacts harmlessly with `DECOY_IMPACT` (not an asset hit). Trainee must identify via medium RCS / optical cues and withhold fire to preserve ammo and avoid decoy engagement penalty (-3).
+
+### Swarm Tactical Formations (`src/sim/scenarios/swarm.ts`)
+Formations are computed deterministically without boids algorithms using leader-follower vector mathematics and seeded jitter:
+- **`saturation`**: All swarm members attack from a single bearing sector ($\pm 12^\circ$ spread, $40-80\text{ m}$ lateral spacing) compressed within a $20-40\text{ s}$ arrival window.
+- **`split`**: Pincer ingress from two bearings separated by $70^\circ - 120^\circ$. The secondary group is delayed by $10-25\text{ s}$.
+- **`decoy_screen`**: Decoys fly $500-900\text{ m}$ ahead of armed strikers along the same bearing, with strikers trailing by $12-20\text{ s}$.
+- **Terrain Following**: All waypoints and offsets clamp altitude $\ge 20\text{ m}$ AGL using the procedural terrain elevation map.
+
+### Procedural Generator & Difficulty Tiers (`src/sim/scenarios/generator.ts`)
+- **Version**: `GEN_VERSION = 1`.
+- **API**: `generateScenario(seed, tier, avoid?)` creates dynamic environments, spawn schedules, and deterministic fingerprints.
+- **Scenario ID Format**: `proc:v1:<tier>` (e.g. `proc:v1:veteran`). Integrated into snapshot/restore and replay harnesses.
+- **Fingerprinting**: 32-bit FNV-1a hash over `(version, tactic, classCounts, quantizedBearings30Deg, environment)`. Up to 8 re-rolls on avoid collision.
+- **Tier Configuration**:
+  - `recruit`: 1-2 strikers, 0 decoys, 0 fiber share, 1-2 civilians. Rural/hilly, clear day, EW none. Single threat ingress.
+  - `operator`: 3-5 strikers, 0-1 decoys, $\le 25\%$ fiber share, 1-2 civilians. Clear/fog, day/dusk, EW none/light. Small saturation or split swarms.
+  - `veteran`: 6-10 strikers, 1-3 decoys, $\le 40\%$ fiber share, 1-3 civilians. Any environment, EW light/heavy. Multi-axis split and decoy screens.
+  - `elite`: 10-16 strikers, 2-4 decoys, $\le 50\%$ fiber share, 0-2 civilians. Any environment, EW heavy. Coordinated multi-axis swarm with pop-up striker wave after $t=150\text{ s}$ at close range ($1000-1300\text{ m}$).
+
+### Effector Accounting & Scoring (`src/sim/scoring/basic.ts`)
+- **`ScoreReport.effectorUse`**:
+  - `gunBurstsFired`: Count of `ENGAGEMENT_STARTED` with `effector === 'gun'`.
+  - `jammerCycles`: Count of `ENGAGEMENT_STARTED` with `effector === 'jammer'`.
+  - `killsPerEffector`: `{ gun, jammer }` for verified hits on active hostile targets.
+  - `wastedEngagements`: `{ ghost, decoy, neutral }` separating clutter/ghost engagements, decoy hits, and neutral quad/bird engagements.
+- **Penalties & Partial Credit**:
+  - Decoy engagement: -3 points (`ENGAGE_DECOY`).
+  - Wasted jammer on non-RF target: -5 points (`WASTED_JAMMER_NON_RF`).
+  - Classification credit: 1.0 for exact class match; 0.5 for cross-assessing between hostile FPV variants (`fpv_kamikaze` $\leftrightarrow$ `fpv_fiber`); 0.0 otherwise.
+
 

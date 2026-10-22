@@ -26,7 +26,7 @@ export function handleHotkey(
     ctrlKey?: boolean;
     metaKey?: boolean;
     altKey?: boolean;
-    target?: any;
+    target?: EventTarget | null;
     preventDefault?: () => void;
   },
   props: UseHotkeysProps
