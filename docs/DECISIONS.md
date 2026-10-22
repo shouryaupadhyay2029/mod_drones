@@ -55,3 +55,19 @@ The keyboard shortcut mapping strictly implements the training console specifica
 | `-` / `_` | Decrease speed multiplier (4x -> 2x -> 1x) | Active mission |
 
 Keys outside this specification (e.g. vim `j`/`k` for row navigation, `c` modal prompt, or numerical keys `5`-`9`) are intentionally omitted from `hotkeys.ts` to preserve strict single-key muscle memory for trainees during simulated high-stress threat inbound sequences.
+
+## ADR-004: Contact Spawn Ranges, Altitude Representation & MSL Model
+
+### Bird Spawn Range Rationale
+In scenario mission design (e.g. `dawnIntrusion`), the avian contact is spawned at range $1.8 \pm 0.2\text{ km}$ ($1600\text{ m} - 2000\text{ m}$), substantially closer than the inbound hostile FPV drone (which spawns at $\sim 4.0\text{ km}$).
+This deliberate operational design ensures that:
+1. **Multi-Track Tactical Concurrency**: Trainees are immediately confronted with multiple simultaneous active tracks across distinct azimuth sectors rather than sequential, isolated target presentations.
+2. **Behavioral Contrast & Discrimination**: The bird exhibits low speed ($4 - 14\text{ m/s}$), small radar cross section ($0.001\text{ m}^2$), and erratic pseudorandom wander trajectories. Spawning it at $1.8\text{ km}$ ensures it is detected and tracked concurrently with the high-speed ($30\text{ m/s}$) inbound threat, forcing the trainee to prioritize tracks using kinematic cues rather than proximity alone.
+
+### MSL vs AGL Altitude Convention
+- All actor altitude coordinates ($Z$) in the simulation world model represent height **Above Mean Sea Level (MSL)** in meters.
+- Defended asset position is at MSL altitude $Z = 0\text{ m}$ with the radar mast at $Z = 15\text{ m}$ MSL.
+- When procedural terrain is evaluated (Part B), the local Above Ground Level (AGL) height is computed dynamically as:
+  $$\text{AGL}(x, y, z) = z - \text{terrainHeight}(x, y)$$
+- Physical collision with terrain or surface clutter occurs if $\text{AGL}(x, y, z) \le 0\text{ m}$. Clutter degradation factors for radar detection are parameterized directly by this local AGL height.
+
