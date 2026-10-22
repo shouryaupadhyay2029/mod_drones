@@ -31,3 +31,27 @@ Empirical evaluation in the `fa0e804` worktree demonstrates that the loss of 6 p
    $$\text{Score} = (0.2 \times 1.0 + 0.2 \times 0.70 + 0.6 \times 1.0) \times 100 = 94$$
 5. In commit `7b2c0ce`, updating Waypoint A to $X = -1100\text{ m}$ shifted the initial spawn bearing to $\text{atan2}(-1100, 1200) \approx 317.5^\circ$, placing it safely outside the $[250^\circ, 310^\circ]$ corridor. `referenceOperator` correctly classified it as `commercial_quad`, lifting classification score to $1.0$ and yielding $100$ total score on `s2` and `s4`.
 6. This 94 -> 100 score change occurred in commit `7b2c0ce`, entirely **prior to** the multi-track scoring fix implemented in commit `4d3b7ba`.
+
+
+## ADR-003: Operator Console Keyboard Navigation Specification
+The keyboard shortcut mapping strictly implements the training console specification:
+
+| Hotkey | Action | Scope / Context |
+| :--- | :--- | :--- |
+| `Tab` | Select next radar track | Active mission |
+| `Shift + Tab` | Select previous radar track | Active mission |
+| `Esc` | Deselect current track | Active mission |
+| `A` | Acknowledge selected track | Track confirmed & unacked |
+| `1` | Assess classification: Bird | Track selected |
+| `2` | Assess classification: Civilian Quad | Track selected |
+| `3` | Assess classification: FPV Strike Drone | Track selected |
+| `4` | Assess classification: Fixed-Wing Recon | Track selected |
+| `0` | Assess classification: Unknown | Track selected |
+| `J` | Engage with Jammer (soft-kill) | Track selected & within 1500m |
+| `G` | Engage with Gun (hard-kill) | Track selected & within 1000m |
+| `H` | Issue Hold Fire directive | Track selected |
+| `Space` | Toggle Pause / Resume | Active mission |
+| `+` / `=` | Increase speed multiplier (1x -> 2x -> 4x) | Active mission |
+| `-` / `_` | Decrease speed multiplier (4x -> 2x -> 1x) | Active mission |
+
+Keys outside this specification (e.g. vim `j`/`k` for row navigation, `c` modal prompt, or numerical keys `5`-`9`) are intentionally omitted from `hotkeys.ts` to preserve strict single-key muscle memory for trainees during simulated high-stress threat inbound sequences.
