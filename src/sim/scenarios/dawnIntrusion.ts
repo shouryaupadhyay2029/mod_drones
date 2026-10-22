@@ -12,6 +12,8 @@ export interface ScenarioSpawnSchedule {
   speed: number;
   transitWaypointB?: Vec3;
   departTick?: number;
+  groupId?: number | string;
+  role?: 'striker' | 'decoy';
 }
 
 export function buildDawnIntrusionSpawns(scenarioRng: Rng): ScenarioSpawnSchedule[] {
@@ -108,6 +110,12 @@ export function spawnScheduledActor(
 
   if (schedule.departTick !== undefined) {
     actor.departTick = schedule.departTick;
+  }
+  if (schedule.groupId !== undefined) {
+    actor.groupId = schedule.groupId;
+  }
+  if (schedule.role !== undefined) {
+    actor.role = schedule.role;
   }
 
   return actor;
