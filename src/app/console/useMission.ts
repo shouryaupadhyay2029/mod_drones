@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Command,
+  CommandInput,
   ScoreReport,
   SessionLog,
   ThreatClassId,
@@ -150,8 +151,7 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   const acknowledgeTrack = useCallback((trackId: number) => {
     const client = clientRef.current;
     if (!client) return;
-    const cmd: Command = {
-      tick: 0, // Engine stamps current tick
+    const cmd: CommandInput = {
       type: 'ACK_TRACK',
       payload: { trackId },
     };
@@ -162,8 +162,7 @@ export function useMission(initialSeed?: string): UseMissionReturn {
     (trackId: number, classId: ThreatClassId | 'unknown') => {
       const client = clientRef.current;
       if (!client) return;
-      const cmd: Command = {
-        tick: 0,
+      const cmd: CommandInput = {
         type: 'CLASSIFY_TRACK',
         payload: { trackId, assessedClass: classId },
       };
@@ -175,8 +174,7 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   const engageTrack = useCallback((trackId: number, effector: 'jammer' | 'gun') => {
     const client = clientRef.current;
     if (!client) return;
-    const cmd: Command = {
-      tick: 0,
+    const cmd: CommandInput = {
       type: 'ENGAGE_TRACK',
       payload: { trackId, effector },
     };
@@ -186,8 +184,7 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   const holdFireTrack = useCallback((trackId: number) => {
     const client = clientRef.current;
     if (!client) return;
-    const cmd: Command = {
-      tick: 0,
+    const cmd: CommandInput = {
       type: 'HOLD_FIRE',
       payload: { trackId },
     };

@@ -57,6 +57,12 @@ export interface DevSpawnActorPayload {
   behaviourType?: 'ingress_direct' | 'transit' | 'wander';
 }
 
+export interface CommandInput {
+  tick?: number;
+  type: string;
+  payload: Record<string, unknown>;
+}
+
 export interface Command {
   tick: number;
   type: string;

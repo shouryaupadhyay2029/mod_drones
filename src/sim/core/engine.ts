@@ -20,6 +20,7 @@ import {
   AckTrackPayload,
   ClassifyTrackPayload,
   Command,
+  CommandInput,
   DevSpawnActorPayload,
   EngageTrackPayload,
   EngineSnapshot,
@@ -72,7 +73,7 @@ export class Engine {
     }
   }
 
-  public enqueueCommand(command: Command): void {
+  public enqueueCommand(command: Command | CommandInput): void {
     const targetTick =
       typeof command.tick === 'number' && !Number.isNaN(command.tick)
         ? Math.max(command.tick, this.world.tick)

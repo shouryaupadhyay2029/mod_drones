@@ -130,4 +130,27 @@ describe('Engine Core, Timing & Invariance', { timeout: 20000 }, () => {
     expect(log.commands[0]?.tick).toBe(30);
     expect(log.commands[1]?.tick).toBe(30);
   });
+
+  it('9. Command without tick is stamped to the current tick and recorded with it in SessionLog', () => {
+    const engine = new Engine('optional-tick-seed');
+    engine.stepN(42);
+    expect(engine.world.tick).toBe(42);
+
+    // Enqueue command with NO tick specified
+    engine.enqueueCommand({
+      type: 'SPAWN_ENTITY',
+      payload: { x: 55, y: 66, vx: 0, vy: 0 },
+    });
+
+    const pending = engine.getPendingCommands();
+    expect(pending[0]?.tick).toBe(42);
+
+    engine.step();
+    expect(engine.world.tick).toBe(43);
+
+    const log = engine.getSessionLog();
+    expect(log.commands.length).toBe(1);
+    expect(log.commands[0]?.tick).toBe(42);
+    expect(log.commands[0]?.type).toBe('SPAWN_ENTITY');
+  });
 });
