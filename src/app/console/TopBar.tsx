@@ -268,7 +268,7 @@ export function TopBar({
       {/* Luxury Integrated Navigation Bar — Part of the page background */}
       <nav ref={navRef} style={styles.mainNav}>
         {/* Left: Brand Identity */}
-        <div style={styles.brandGroup}>
+        <div style={styles.brandGroup} className="anim-curved-slide anim-delay-1">
           <a href="#/" style={styles.brandLink}>
             <div style={styles.brandIconBox}>
               <img
@@ -292,7 +292,7 @@ export function TopBar({
         <div style={styles.navCenter}>
           {/* Tab 1: Scenarios */}
           <div
-            className="nav-mega-item"
+            className="nav-mega-item anim-curved-slide anim-delay-2"
             onMouseEnter={() => handleDropdownEnter('scenarios')}
             onMouseLeave={handleDropdownLeave}
           >
@@ -395,7 +395,7 @@ export function TopBar({
 
           {/* Tab 2: Defense Systems */}
           <div
-            className="nav-mega-item"
+            className="nav-mega-item anim-curved-slide anim-delay-3"
             onMouseEnter={() => handleDropdownEnter('systems')}
             onMouseLeave={handleDropdownLeave}
           >
@@ -510,7 +510,7 @@ export function TopBar({
 
           {/* Tab 3: Threat Intel */}
           <div
-            className="nav-mega-item"
+            className="nav-mega-item anim-curved-slide anim-delay-4"
             onMouseEnter={() => handleDropdownEnter('intel')}
             onMouseLeave={handleDropdownLeave}
           >
@@ -624,7 +624,7 @@ export function TopBar({
           <span style={styles.navDivider}>|</span>
 
           {/* Tab 4: Diagnostics Direct Link */}
-          <div className="nav-mega-item">
+          <div className="nav-mega-item anim-curved-slide anim-delay-5">
             <a href="#/check" style={styles.navDirectLink}>
               <span>DIAGNOSTICS</span>
               <span style={{ fontSize: '10px', color: '#d4ff3f' }}>↗</span>

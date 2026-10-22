@@ -83,22 +83,22 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
       {/* Skiper14-Inspired 3D ASCII Drone Hero Section */}
       <DroneHeroSection />
 
-      <div id="scenario-selection-card" style={styles.card}>
+      <div id="scenario-selection-card" style={styles.card} className="anim-curved-slide anim-delay-2">
         <div style={styles.header}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }} className="anim-curved-slide anim-delay-3">
             <img src="/vajra-emblem.png" alt="VAJRA" style={{ width: '18px', height: '20px', opacity: 0.85 }} />
             <div style={styles.missionTag}>VAJRA // MISSION BRIEFING</div>
           </div>
-          <h2 style={styles.title}>
+          <h2 style={styles.title} className="anim-curved-slide anim-delay-4">
             <TextRoll center stagger={0.025}>{activeScenario.title}</TextRoll>
           </h2>
-          <p style={styles.subtitle}>
+          <p style={styles.subtitle} className="anim-curved-slide anim-delay-4">
             Autonomous Asset Defense • Radar Surveillance & Threat Interception
           </p>
         </div>
 
         {/* Scenario Selection Cards */}
-        <div style={styles.scenarioList}>
+        <div style={styles.scenarioList} className="anim-curved-slide anim-delay-5">
           {SCENARIO_OPTIONS.map((sc) => {
             const isSelected = sc.id === selectedScenario;
             return (
@@ -137,7 +137,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
           })}
         </div>
 
-        <div style={styles.briefingBox}>
+        <div style={styles.briefingBox} className="anim-curved-slide anim-delay-6">
           <h3 style={styles.briefingHeading}>SITUATION REPORT</h3>
           <p style={styles.briefingText}>{activeScenario.description}</p>
           <ul style={styles.briefingList}>
@@ -156,7 +156,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
           </ul>
         </div>
 
-        <form onSubmit={handleStart} style={styles.form}>
+        <form onSubmit={handleStart} style={styles.form} className="anim-curved-slide anim-delay-7">
           <div style={styles.inputGroup}>
             <label htmlFor="missionSeed" style={styles.label}>
               SIMULATION SEED

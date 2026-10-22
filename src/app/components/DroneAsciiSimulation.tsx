@@ -248,17 +248,20 @@ export function DroneAsciiSimulation({
     const c3 = card3Ref.current?.getBoundingClientRect();
     const c4 = card4Ref.current?.getBoundingClientRect();
 
+    // 20px standoff buffer between leader line connector pins and text boundaries to prevent any letter overlap
+    const standoff = 20;
+
     const c1Pos = c1
-      ? { x: c1.right - cont.left, y: c1.top - cont.top + c1.height / 2 }
+      ? { x: c1.right - cont.left + standoff, y: c1.top - cont.top + c1.height / 2 }
       : { x: 275, y: 80 };
     const c2Pos = c2
-      ? { x: c2.left - cont.left, y: c2.top - cont.top + c2.height / 2 }
+      ? { x: c2.left - cont.left - standoff, y: c2.top - cont.top + c2.height / 2 }
       : { x: cont.width - 275, y: 80 };
     const c3Pos = c3
-      ? { x: c3.right - cont.left, y: c3.top - cont.top + c3.height / 2 }
+      ? { x: c3.right - cont.left + standoff, y: c3.top - cont.top + c3.height / 2 }
       : { x: 275, y: cont.height - 80 };
     const c4Pos = c4
-      ? { x: c4.left - cont.left, y: c4.top - cont.top + c4.height / 2 }
+      ? { x: c4.left - cont.left - standoff, y: c4.top - cont.top + c4.height / 2 }
       : { x: cont.width - 275, y: cont.height - 80 };
 
     layoutRef.current = {
@@ -633,7 +636,7 @@ export function DroneAsciiSimulation({
       {/* Feature 1: Top-Left (Radar Tracking) */}
       <div
         ref={card1Ref}
-        className="hero-feature-card"
+        className="hero-feature-card anim-curved-slide-left anim-delay-3"
         style={{
           position: 'absolute',
           top: '28px',
@@ -689,7 +692,7 @@ export function DroneAsciiSimulation({
       {/* Feature 2: Top-Right (Layered Defense) */}
       <div
         ref={card2Ref}
-        className="hero-feature-card"
+        className="hero-feature-card anim-curved-slide-right anim-delay-4"
         style={{
           position: 'absolute',
           top: '28px',
@@ -745,7 +748,7 @@ export function DroneAsciiSimulation({
       {/* Feature 3: Bottom-Left (Zero Leakage) */}
       <div
         ref={card3Ref}
-        className="hero-feature-card"
+        className="hero-feature-card anim-curved-slide-left anim-delay-5"
         style={{
           position: 'absolute',
           bottom: '28px',
@@ -801,7 +804,7 @@ export function DroneAsciiSimulation({
       {/* Feature 4: Bottom-Right (Deterministic Core) */}
       <div
         ref={card4Ref}
-        className="hero-feature-card"
+        className="hero-feature-card anim-curved-slide-right anim-delay-6"
         style={{
           position: 'absolute',
           bottom: '28px',
