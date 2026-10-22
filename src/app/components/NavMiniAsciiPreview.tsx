@@ -249,7 +249,7 @@ function generateFpvModel(): Point3D[] {
 export function NavMiniAsciiPreview({
   modelType,
   color,
-  backgroundColor = 'rgba(0, 0, 0, 0.42)',
+  backgroundColor = '#0b0908',
   className = '',
   style,
 }: NavMiniAsciiPreviewProps): React.JSX.Element {
@@ -260,14 +260,14 @@ export function NavMiniAsciiPreview({
   const isDraggingRef = useRef(false);
   const lastMousePosRef = useRef({ x: 0, y: 0 });
 
-  // Default theme colors per model type
+  // Luxury tactical theme colors per model type
   const themeColor =
     color ||
     (modelType === 'terrain'
-      ? '#cbb3e8'
+      ? '#f5e4d0' // Crisp warm cream phosphor
       : modelType === 'radar'
-        ? '#d4ff3f'
-        : '#e34234');
+        ? '#d4ff3f' // Precision tactical lime phosphor
+        : '#ff7b59'); // Vivid ember FPV phosphor
 
   // Load static point model
   const basePointsRef = useRef<Point3D[]>([]);

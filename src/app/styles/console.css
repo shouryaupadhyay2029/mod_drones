@@ -205,33 +205,41 @@ body {
   transform: rotate(180deg);
 }
 
+/* ==========================================================================
+   Luxury Editorial Mega Dropdown Panel (Hermès Burnt Ochre & Obsidian Cockpit)
+   ========================================================================== */
+
 .mega-dropdown-panel {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%) translateY(-6px) scale(0.98);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  background: linear-gradient(155deg, #d35623 0%, #b84414 100%);
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: 12px;
-  box-shadow: 0 25px 60px rgba(130, 45, 12, 0.38), 0 0 25px rgba(211, 86, 35, 0.22);
-  backdrop-filter: blur(20px);
+  background: linear-gradient(160deg, #b84514 0%, #9e360c 60%, #872b08 100%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 14px;
+  box-shadow:
+    0 28px 64px -10px rgba(60, 18, 4, 0.5),
+    0 0 0 1px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   z-index: 1000;
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              visibility 0.2s;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.22s;
 }
 
 /* Invisible hover bridge to eliminate the gap between trigger button and dropdown */
 .mega-dropdown-panel::before {
   content: '';
   position: absolute;
-  top: -14px;
+  top: -16px;
   left: 0;
   right: 0;
-  height: 14px;
+  height: 16px;
   background: transparent;
   pointer-events: auto;
 }
@@ -246,9 +254,9 @@ body {
 
 .mega-menu-grid {
   display: grid;
-  grid-template-columns: 340px 280px;
-  gap: 20px;
-  padding: 22px;
+  grid-template-columns: 360px 290px;
+  gap: 16px;
+  padding: 16px;
   font-family: inherit;
 }
 
@@ -263,63 +271,78 @@ body {
   align-items: flex-start;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background: transparent;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.12);
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.18s ease;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .mega-menu-card-item:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.26);
   transform: translateX(3px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 
 .mega-menu-item-icon {
   width: 32px;
   height: 32px;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  color: #ffffff;
   flex-shrink: 0;
+  transition: all 0.18s ease;
+}
+
+.mega-menu-card-item:hover .mega-menu-item-icon {
+  background: rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: scale(1.05);
 }
 
 .mega-menu-item-body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
 }
 
 .mega-menu-item-title {
   color: #ffffff;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
 }
 
 .mega-menu-item-desc {
-  color: #ffe8dd;
-  font-size: 11px;
-  line-height: 1.35;
+  color: rgba(255, 242, 235, 0.82);
+  font-size: 11.5px;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+  font-weight: 400;
 }
 
+/* Right-Hand Cockpit Preview Card */
 .mega-preview-card {
-  background: rgba(0, 0, 0, 0.24);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  background: #13100e;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .mega-preview-header {
@@ -329,23 +352,28 @@ body {
 }
 
 .mega-preview-tag {
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  color: #ffe0cc;
+  letter-spacing: 0.1em;
+  color: #f59e0b;
   text-transform: uppercase;
+  font-family: monospace;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .mega-preview-title {
   color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  margin: 6px 0 4px 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 8px 0 3px 0;
 }
 
 .mega-preview-text {
-  color: #ffe8dd;
-  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11.5px;
   line-height: 1.45;
   margin: 0;
 }

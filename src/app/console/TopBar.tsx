@@ -1,7 +1,139 @@
+/* global setTimeout, clearTimeout */
 import React, { useState, useRef, useEffect } from 'react';
 import { TraineeEnvironmentView } from '../../sim/index.js';
 import { NavMiniAsciiPreview } from '../components/NavMiniAsciiPreview.js';
 import { TextRoll } from '../components/TextRoll.js';
+
+// Minimalist High-Precision SVG Tactical Icons (replacing generic emojis)
+function IconTarget(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="4" />
+      <line x1="12" y1="2" x2="12" y2="6" />
+      <line x1="12" y1="18" x2="12" y2="22" />
+      <line x1="2" y1="12" x2="6" y2="12" />
+      <line x1="18" y1="12" x2="22" y2="12" />
+    </svg>
+  );
+}
+
+function IconMountain(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 20L10 6L16 16L18 13L21 20H3Z" />
+      <path d="M8 12L10 14L13 9" />
+    </svg>
+  );
+}
+
+function IconCity(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 21H21" />
+      <path d="M5 21V7L11 3V21" />
+      <path d="M11 11L19 7V21" />
+      <line x1="8" y1="8" x2="8" y2="8.01" />
+      <line x1="8" y1="12" x2="8" y2="12.01" />
+      <line x1="8" y1="16" x2="8" y2="16.01" />
+      <line x1="15" y1="12" x2="15" y2="12.01" />
+      <line x1="15" y1="16" x2="15" y2="16.01" />
+    </svg>
+  );
+}
+
+function IconRadar(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="6" />
+      <circle cx="12" cy="12" r="2" />
+      <path d="M12 12L19 5" />
+    </svg>
+  );
+}
+
+function IconJammer(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 12C2 6.5 6.5 2 12 2" />
+      <path d="M5 12C5 8.1 8.1 5 12 5" />
+      <path d="M8 12C8 9.8 9.8 8 12 8" />
+      <circle cx="12" cy="12" r="2" />
+      <path d="M12 22C17.5 22 22 17.5 22 12" />
+      <path d="M12 19C15.9 19 19 15.9 19 12" />
+      <path d="M12 16C14.2 16 16 14.2 16 12" />
+    </svg>
+  );
+}
+
+function IconCiws(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="4" y1="12" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="20" y2="8" />
+      <line x1="12" y1="16" x2="20" y2="16" />
+      <circle cx="12" cy="12" r="3" />
+      <circle cx="3" cy="12" r="1" />
+    </svg>
+  );
+}
+
+function IconShield(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22S4 18 4 12V5L12 2L20 5V12C20 18 12 22 12 22Z" />
+      <path d="M9 12L11 14L15 10" />
+    </svg>
+  );
+}
+
+function IconFpv(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="6" height="6" rx="1" />
+      <line x1="5" y1="5" x2="9" y2="9" />
+      <line x1="19" y1="5" x2="15" y2="9" />
+      <line x1="5" y1="19" x2="9" y2="15" />
+      <line x1="19" y1="19" x2="15" y2="15" />
+      <circle cx="4" cy="4" r="2" />
+      <circle cx="20" cy="4" r="2" />
+      <circle cx="4" cy="20" r="2" />
+      <circle cx="20" cy="20" r="2" />
+    </svg>
+  );
+}
+
+function IconRecon(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2L15 8L22 10L16 14L18 21L12 17L6 21L8 14L2 10L9 8L12 2Z" />
+    </svg>
+  );
+}
+
+function IconQuad(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <line x1="7" y1="7" x2="17" y2="17" />
+      <line x1="7" y1="17" x2="17" y2="7" />
+      <circle cx="6" cy="6" r="2" />
+      <circle cx="18" cy="6" r="2" />
+      <circle cx="6" cy="18" r="2" />
+      <circle cx="18" cy="18" r="2" />
+    </svg>
+  );
+}
+
+function IconBird(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 13C6 9 9 9 12 13C15 9 18 9 21 13" />
+      <path d="M7 16C9 14 11 14 12 15C13 14 15 14 17 16" />
+    </svg>
+  );
+}
 
 export interface TopBarProps {
   tick: number;
@@ -178,10 +310,12 @@ export function TopBar({
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
                   <div className="mega-menu-card-item" onClick={() => handleSelectScenario('dawn_intrusion')}>
-                    <div className="mega-menu-item-icon">🎯</div>
+                    <div className="mega-menu-item-icon">
+                      <IconTarget />
+                    </div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">
-                        Dawn Intrusion
+                        <span>Dawn Intrusion</span>
                         <span style={styles.menuBadgeActive}>BASELINE</span>
                       </span>
                       <span className="mega-menu-item-desc">
@@ -191,10 +325,12 @@ export function TopBar({
                   </div>
 
                   <div className="mega-menu-card-item" onClick={() => handleSelectScenario('ridge_runner')}>
-                    <div className="mega-menu-item-icon">⛰️</div>
+                    <div className="mega-menu-item-icon">
+                      <IconMountain />
+                    </div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">
-                        Ridge Runner
+                        <span>Ridge Runner</span>
                         <span style={styles.menuBadgeTag}>MASKING</span>
                       </span>
                       <span className="mega-menu-item-desc">
@@ -204,10 +340,12 @@ export function TopBar({
                   </div>
 
                   <div className="mega-menu-card-item" onClick={() => handleSelectScenario('city_edge_night')}>
-                    <div className="mega-menu-item-icon">🏙️</div>
+                    <div className="mega-menu-item-icon">
+                      <IconCity />
+                    </div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">
-                        City Edge Night
+                        <span>City Edge Night</span>
                         <span style={styles.menuBadgeTag}>HEAVY EW</span>
                       </span>
                       <span className="mega-menu-item-desc">
@@ -220,8 +358,11 @@ export function TopBar({
                 {/* Right Preview Card */}
                 <div className="mega-preview-card">
                   <div className="mega-preview-header">
-                    <span className="mega-preview-tag">SCENARIO INTELLIGENCE</span>
-                    <span style={{ fontSize: '11px', color: '#ffe0cc', fontWeight: 700 }}>v2.4</span>
+                    <span className="mega-preview-tag">
+                      <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b', boxShadow: '0 0 6px #f59e0b' }} />
+                      SCENARIO INTEL
+                    </span>
+                    <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.5)', fontFamily: 'monospace', fontWeight: 600 }}>v2.4 [LIVE]</span>
                   </div>
                   <NavMiniAsciiPreview modelType="terrain" />
                   <div>
@@ -272,9 +413,14 @@ export function TopBar({
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
-                    <div className="mega-menu-item-icon">📡</div>
+                    <div className="mega-menu-item-icon">
+                      <IconRadar />
+                    </div>
                     <div className="mega-menu-item-body">
-                      <span className="mega-menu-item-title">Pulse-Doppler Radar</span>
+                      <span className="mega-menu-item-title">
+                        <span>Pulse-Doppler Radar</span>
+                        <span style={styles.menuBadgeTag}>20Hz SENSOR</span>
+                      </span>
                       <span className="mega-menu-item-desc">
                         2D range-azimuth tracking with RCS-dependent Pd, noise & false alarms.
                       </span>
@@ -282,9 +428,14 @@ export function TopBar({
                   </div>
 
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
-                    <div className="mega-menu-item-icon">⚡</div>
+                    <div className="mega-menu-item-icon">
+                      <IconJammer />
+                    </div>
                     <div className="mega-menu-item-body">
-                      <span className="mega-menu-item-title">Directional RF Jammer</span>
+                      <span className="mega-menu-item-title">
+                        <span>Directional RF Jammer</span>
+                        <span style={styles.menuBadgeTag}>1,500m SOFT KILL</span>
+                      </span>
                       <span className="mega-menu-item-desc">
                         1,500m standoff RF link disruption for drone command & control.
                       </span>
@@ -292,9 +443,14 @@ export function TopBar({
                   </div>
 
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
-                    <div className="mega-menu-item-icon">💥</div>
+                    <div className="mega-menu-item-icon">
+                      <IconCiws />
+                    </div>
                     <div className="mega-menu-item-body">
-                      <span className="mega-menu-item-title">Kinetic 30mm CIWS</span>
+                      <span className="mega-menu-item-title">
+                        <span>Kinetic 30mm CIWS</span>
+                        <span style={styles.menuBadgeTag}>1,000m HARD KILL</span>
+                      </span>
                       <span className="mega-menu-item-desc">
                         1,000m automated rapid-fire anti-air cannon with 20-round magazine.
                       </span>
@@ -302,9 +458,14 @@ export function TopBar({
                   </div>
 
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
-                    <div className="mega-menu-item-icon">🛡️</div>
+                    <div className="mega-menu-item-icon">
+                      <IconShield />
+                    </div>
                     <div className="mega-menu-item-body">
-                      <span className="mega-menu-item-title">TraineeView Isolation</span>
+                      <span className="mega-menu-item-title">
+                        <span>TraineeView Isolation</span>
+                        <span style={styles.menuBadgeActive}>AIR-GAP</span>
+                      </span>
                       <span className="mega-menu-item-desc">
                         Cryptographically verified isolation with zero ground-truth leakage.
                       </span>
@@ -315,8 +476,11 @@ export function TopBar({
                 {/* Right Preview Card */}
                 <div className="mega-preview-card">
                   <div className="mega-preview-header">
-                    <span className="mega-preview-tag">INTEGRATED C2 SUITE</span>
-                    <span style={{ fontSize: '11px', color: '#ffffff', fontWeight: 800 }}>ARMED</span>
+                    <span className="mega-preview-tag">
+                      <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d4ff3f', boxShadow: '0 0 6px #d4ff3f' }} />
+                      INTEGRATED C2 SUITE
+                    </span>
+                    <span style={{ fontSize: '10px', color: '#d4ff3f', fontFamily: 'monospace', fontWeight: 700 }}>ARMED</span>
                   </div>
                   <NavMiniAsciiPreview modelType="radar" />
                   <div>
@@ -364,10 +528,12 @@ export function TopBar({
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
-                    <div className="mega-menu-item-icon">🚀</div>
+                    <div className="mega-menu-item-icon">
+                      <IconFpv />
+                    </div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">
-                        FPV Kamikaze Drones
+                        <span>FPV Kamikaze Drones</span>
                         <span style={styles.menuBadgeAlert}>HOSTILE</span>
                       </span>
                       <span className="mega-menu-item-desc">
@@ -377,9 +543,14 @@ export function TopBar({
                   </div>
 
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
-                    <div className="mega-menu-item-icon">✈️</div>
+                    <div className="mega-menu-item-icon">
+                      <IconRecon />
+                    </div>
                     <div className="mega-menu-item-body">
-                      <span className="mega-menu-item-title">Reconnaissance UAV</span>
+                      <span className="mega-menu-item-title">
+                        <span>Reconnaissance UAV</span>
+                        <span style={styles.menuBadgeTag}>SURVEILLANCE</span>
+                      </span>
                       <span className="mega-menu-item-desc">
                         High altitude, steady linear trajectory, persistent surveillance payload.
                       </span>
@@ -387,9 +558,14 @@ export function TopBar({
                   </div>
 
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
-                    <div className="mega-menu-item-icon">🚁</div>
+                    <div className="mega-menu-item-icon">
+                      <IconQuad />
+                    </div>
                     <div className="mega-menu-item-body">
-                      <span className="mega-menu-item-title">Commercial Quadcopters</span>
+                      <span className="mega-menu-item-title">
+                        <span>Commercial Quadcopters</span>
+                        <span style={styles.menuBadgeTag}>CIVILIAN</span>
+                      </span>
                       <span className="mega-menu-item-desc">
                         Low speed, civilian telemetry, non-hostile. -25 point penalty if engaged.
                       </span>
@@ -397,9 +573,14 @@ export function TopBar({
                   </div>
 
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
-                    <div className="mega-menu-item-icon">🦅</div>
+                    <div className="mega-menu-item-icon">
+                      <IconBird />
+                    </div>
                     <div className="mega-menu-item-body">
-                      <span className="mega-menu-item-title">Avian Biologicals</span>
+                      <span className="mega-menu-item-title">
+                        <span>Avian Biologicals</span>
+                        <span style={styles.menuBadgeTag}>CLUTTER</span>
+                      </span>
                       <span className="mega-menu-item-desc">
                         Migratory bird tracks with high turn rates. Non-threat clutter.
                       </span>
@@ -410,8 +591,11 @@ export function TopBar({
                 {/* Right Preview Card */}
                 <div className="mega-preview-card">
                   <div className="mega-preview-header">
-                    <span className="mega-preview-tag">DOCTRINE & ROE</span>
-                    <span style={{ fontSize: '11px', color: '#ffffff', fontWeight: 800 }}>STRICT</span>
+                    <span className="mega-preview-tag">
+                      <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ff7b59', boxShadow: '0 0 6px #ff7b59' }} />
+                      DOCTRINE & ROE
+                    </span>
+                    <span style={{ fontSize: '10px', color: '#ff7b59', fontFamily: 'monospace', fontWeight: 700 }}>STRICT</span>
                   </div>
                   <NavMiniAsciiPreview modelType="fpv" />
                   <div>
@@ -669,50 +853,61 @@ const styles: Record<string, React.CSSProperties> = {
   },
   menuBadgeActive: {
     fontSize: '9px',
-    padding: '1px 6px',
-    borderRadius: '3px',
-    backgroundColor: '#ffffff',
-    border: '1px solid #ffffff',
-    color: '#b84414',
-    fontWeight: 800,
+    padding: '2px 7px',
+    borderRadius: '4px',
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    border: '1px solid rgba(255, 255, 255, 0.45)',
+    color: '#ffffff',
+    fontWeight: 700,
+    fontFamily: 'monospace',
+    letterSpacing: '0.08em',
   },
   menuBadgeTag: {
     fontSize: '9px',
-    padding: '1px 6px',
-    borderRadius: '3px',
+    padding: '2px 7px',
+    borderRadius: '4px',
     backgroundColor: 'rgba(0, 0, 0, 0.28)',
-    border: '1px solid rgba(255, 255, 255, 0.28)',
-    color: '#ffffff',
-    fontWeight: 700,
+    border: '1px solid rgba(255, 255, 255, 0.18)',
+    color: 'rgba(255, 240, 230, 0.88)',
+    fontWeight: 600,
+    fontFamily: 'monospace',
+    letterSpacing: '0.08em',
   },
   menuBadgeAlert: {
     fontSize: '9px',
-    padding: '1px 6px',
-    borderRadius: '3px',
-    backgroundColor: '#ffffff',
-    border: '1px solid #ffffff',
-    color: '#a31f13',
+    padding: '2px 7px',
+    borderRadius: '4px',
+    backgroundColor: '#b83327',
+    border: '1px solid rgba(255, 255, 255, 0.35)',
+    color: '#ffffff',
     fontWeight: 800,
+    fontFamily: 'monospace',
+    letterSpacing: '0.08em',
   },
   previewCardBtn: {
-    padding: '9px 14px',
+    padding: '10px 14px',
     backgroundColor: '#ffffff',
-    color: '#b84414',
-    border: 'none',
+    color: '#181716',
+    border: '1px solid #ffffff',
     borderRadius: '6px',
     fontSize: '11px',
     fontWeight: 800,
     fontFamily: 'monospace',
     cursor: 'pointer',
-    letterSpacing: '0.04em',
-    boxShadow: '0 3px 12px rgba(0, 0, 0, 0.25)',
+    letterSpacing: '0.06em',
+    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
     marginTop: '6px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    transition: 'all 0.18s ease',
   },
   previewCardLink: {
-    padding: '8px 12px',
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    padding: '10px 14px',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
     color: '#ffffff',
-    border: '1px solid rgba(255, 255, 255, 0.35)',
+    border: '1px solid rgba(255, 255, 255, 0.28)',
     borderRadius: '6px',
     fontSize: '11px',
     fontWeight: 700,
@@ -720,6 +915,12 @@ const styles: Record<string, React.CSSProperties> = {
     textDecoration: 'none',
     textAlign: 'center',
     marginTop: '6px',
+    letterSpacing: '0.06em',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    transition: 'all 0.18s ease',
   },
   navRight: {
     display: 'flex',
