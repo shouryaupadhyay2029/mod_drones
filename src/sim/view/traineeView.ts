@@ -12,6 +12,7 @@ export interface TraineeTrack {
   bearingDeg: number;
   altitudeM: number;
   speedMps: number;
+  courseDeg?: number;
   closingRateMps: number; // negative = approaching asset
   headingChangeRateDegPerS: number;
   rcsBucket: RcsBucket;
@@ -19,6 +20,7 @@ export interface TraineeTrack {
   acked: boolean;
   assessedClass?: ThreatClassId | 'unknown';
   engagementStatus: EngagementStatus;
+  lastPlotTick: number;
 }
 
 export interface TraineeEffectorsView {
@@ -61,6 +63,8 @@ export function buildTraineeView(
 
     const r = vDist(t.estimatedPos, origin);
     const speed = vLen(t.estimatedVel);
+    const courseDeg =
+      speed > 1.0 ? bearingDeg(origin, vec3(t.estimatedVel.x, t.estimatedVel.y, 0)) : undefined;
     // closing rate = (r . v) / |r|: negative if approaching
     const closingRate =
       r > 0
@@ -78,6 +82,7 @@ export function buildTraineeView(
       bearingDeg: bearingDeg(origin, t.estimatedPos),
       altitudeM: t.estimatedPos.z,
       speedMps: speed,
+      courseDeg,
       closingRateMps: closingRate,
       headingChangeRateDegPerS: t.headingChangeRateSmoothed,
       rcsBucket: t.rcsBucket,
@@ -85,6 +90,7 @@ export function buildTraineeView(
       acked: t.acked,
       assessedClass: t.assessedClass,
       engagementStatus: t.engagementStatus,
+      lastPlotTick: t.lastDetectedTick,
     });
   }
 

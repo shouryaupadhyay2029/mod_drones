@@ -273,16 +273,14 @@ function drawTrack(
     ctx.globalAlpha = 1.0;
   }
 
-  // 2. Velocity vector: length = speed * 10 s
-  if (track.speedMps > 1) {
-    const vectorLenM = track.speedMps * 10;
-    // Velocity direction vector projection in polar
+  // 2. Velocity vector: length = speed * 10 s (capped at 3 km), along estimated courseDeg
+  if (track.speedMps > 1 && track.courseDeg !== undefined) {
+    const vectorLenM = Math.min(3000, track.speedMps * 10);
     const velRPx = (vectorLenM / options.scaleM) * radiusPx;
-    // Course direction: from closing rate or bearing
-    const courseRad = (track.bearingDeg * Math.PI) / 180;
+    const courseRad = (track.courseDeg * Math.PI) / 180;
     const vEnd = {
-      x: plotPx.x + (track.closingRateMps < 0 ? -1 : 1) * velRPx * Math.sin(courseRad) * 0.5,
-      y: plotPx.y + (track.closingRateMps < 0 ? 1 : -1) * velRPx * Math.cos(courseRad) * 0.5,
+      x: plotPx.x + velRPx * Math.sin(courseRad),
+      y: plotPx.y - velRPx * Math.cos(courseRad),
     };
     ctx.beginPath();
     ctx.moveTo(plotPx.x, plotPx.y);

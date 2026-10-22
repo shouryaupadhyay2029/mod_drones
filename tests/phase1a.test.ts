@@ -5,7 +5,7 @@ import { triggerHappyOperator } from '../src/sim/bots/triggerHappyOperator.js';
 import { Engine } from '../src/sim/core/engine.js';
 import { replay } from '../src/sim/core/log.js';
 import { Command } from '../src/sim/core/types.js';
-import { vec3, vDist } from '../src/sim/core/vec.js';
+import { bearingDeg, vec3, vDist, vLen } from '../src/sim/core/vec.js';
 import { Actor, createActor } from '../src/sim/model/actors.js';
 import { Track } from '../src/sim/model/tracks.js';
 import { scoreSession } from '../src/sim/scoring/basic.js';
@@ -438,5 +438,38 @@ describe('Phase 1A: Simulation Vertical Slice & Determinism', { timeout: 30000 }
     expect(contact).toBeDefined();
     expect(contact?.detectionScore).toBe(1.0);
     expect(contact?.ackLatencySec).toBe(2.0);
+  });
+
+  // Step 2: Course on tracks & FPV course estimation accuracy
+  it('11. Median FPV course estimation error is < 30 deg across seeds s1-s5', () => {
+    const fpvErrors: number[] = [];
+    const seeds = ['s1', 's2', 's3', 's4', 's5'];
+
+    for (const seed of seeds) {
+      const engine = new Engine(seed, 'dawn_intrusion');
+      while (!engine.missionState.ended && engine.world.tick < 4800) {
+        const view = engine.getTraineeView();
+        for (const trk of view.tracks) {
+          if (trk.courseDeg === undefined || trk.speedMps <= 1) continue;
+          const realTrack = engine.tracks.find((t) => t.trackId === trk.trackId);
+          if (!realTrack) continue;
+          const actor = engine.actors.find((a) => a.id === realTrack.actorId);
+          if (!actor || actor.classId !== 'fpv_kamikaze' || actor.state !== 'active') continue;
+          const trueSpeed = vLen(actor.vel);
+          if (trueSpeed <= 1) continue;
+          const trueCourse = bearingDeg(vec3(0, 0, 0), vec3(actor.vel.x, actor.vel.y, 0));
+          let diff = Math.abs(trk.courseDeg - trueCourse);
+          if (diff > 180) diff = 360 - diff;
+          fpvErrors.push(diff);
+        }
+        engine.step();
+      }
+    }
+
+    expect(fpvErrors.length).toBeGreaterThan(100);
+    const sorted = [...fpvErrors].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    const medianError = sorted.length % 2 !== 0 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
+    expect(medianError).toBeLessThan(30);
   });
 });

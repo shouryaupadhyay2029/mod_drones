@@ -29,6 +29,7 @@ export function TrackTable({
               <th style={styles.th}>STATE</th>
               <th style={styles.th}>RANGE</th>
               <th style={styles.th}>BEARING</th>
+              <th style={styles.th}>COURSE</th>
               <th style={styles.th}>ALT</th>
               <th style={styles.th}>SPEED</th>
               <th style={styles.th}>CLOSING</th>
@@ -40,7 +41,7 @@ export function TrackTable({
           <tbody>
             {sortedTracks.length === 0 ? (
               <tr>
-                <td colSpan={10} style={styles.emptyCell}>
+                <td colSpan={11} style={styles.emptyCell}>
                   No active tracks detected in radar sweep sector.
                 </td>
               </tr>
@@ -76,6 +77,9 @@ export function TrackTable({
                     </td>
                     <td style={styles.td}>{Math.round(t.rangeM)} m</td>
                     <td style={styles.td}>{Math.round(t.bearingDeg)}°</td>
+                    <td style={styles.td}>
+                      {t.courseDeg !== undefined ? `${Math.round(t.courseDeg)}°` : '---'}
+                    </td>
                     <td style={styles.td}>{Math.round(t.altitudeM)} m</td>
                     <td style={styles.td}>{Math.round(t.speedMps)} m/s</td>
                     <td

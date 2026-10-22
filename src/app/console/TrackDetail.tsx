@@ -98,6 +98,12 @@ export function TrackDetail({
           <span style={styles.cueVal}>{Math.round(track.speedMps)} m/s</span>
         </div>
         <div style={styles.cueBox}>
+          <span style={styles.cueLabel}>COURSE</span>
+          <span style={styles.cueVal}>
+            {track.courseDeg !== undefined ? `${Math.round(track.courseDeg)}°` : 'N/A'}
+          </span>
+        </div>
+        <div style={styles.cueBox}>
           <span style={styles.cueLabel}>CLOSING RATE</span>
           <span
             style={{
