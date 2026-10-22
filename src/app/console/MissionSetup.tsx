@@ -99,9 +99,9 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
                 onClick={() => setSelectedScenario(sc.id)}
                 style={{
                   ...styles.scenarioCard,
-                  borderColor: isSelected ? '#ff2dab' : '#262626',
-                  backgroundColor: isSelected ? 'rgba(255, 45, 171, 0.08)' : '#171717',
-                  boxShadow: isSelected ? '0 0 12px rgba(255, 45, 171, 0.25)' : 'none',
+                  borderColor: isSelected ? '#d4ff3f' : 'rgba(203, 179, 237, 0.16)',
+                  backgroundColor: isSelected ? 'rgba(212, 255, 63, 0.08)' : '#111319',
+                  boxShadow: isSelected ? '0 0 14px rgba(212, 255, 63, 0.25)' : 'none',
                 }}
               >
                 <div style={styles.scenarioCardHeader}>
@@ -110,7 +110,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
                     name="scenarioPicker"
                     checked={isSelected}
                     onChange={() => setSelectedScenario(sc.id)}
-                    style={{ cursor: 'pointer', accentColor: '#ff2dab' }}
+                    style={{ cursor: 'pointer', accentColor: '#d4ff3f' }}
                   />
                   <span style={styles.scenarioCardTitle}>
                     <TextRoll stagger={0.02}>{sc.title}</TextRoll>
@@ -215,7 +215,7 @@ const styles: Record<string, React.CSSProperties> = {
   missionTag: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#ff2dab',
+    color: '#cbb3ed',
     letterSpacing: '0.1em',
     marginBottom: '4px',
   },
@@ -229,7 +229,7 @@ const styles: Record<string, React.CSSProperties> = {
   subtitle: {
     margin: 0,
     fontSize: '12px',
-    color: '#a1a1aa',
+    color: '#c4c7d4',
   },
   scenarioList: {
     display: 'grid',
@@ -270,16 +270,16 @@ const styles: Record<string, React.CSSProperties> = {
   },
   chipTag: {
     fontSize: '9px',
-    backgroundColor: '#181818',
-    color: '#ff2dab',
-    border: '1px solid rgba(255, 45, 171, 0.3)',
+    backgroundColor: '#0a0b0e',
+    color: '#d4ff3f',
+    border: '1px solid rgba(212, 255, 63, 0.3)',
     padding: '2px 5px',
     borderRadius: '3px',
     fontWeight: 600,
   },
   briefingBox: {
-    backgroundColor: '#080808',
-    border: '1px solid #262626',
+    backgroundColor: '#06070a',
+    border: '1px solid rgba(203, 179, 237, 0.14)',
     borderRadius: '6px',
     padding: '12px 16px',
   },
@@ -287,7 +287,7 @@ const styles: Record<string, React.CSSProperties> = {
     margin: '0 0 6px 0',
     fontSize: '11px',
     fontWeight: 700,
-    color: '#ff2dab',
+    color: '#d4ff3f',
     letterSpacing: '0.08em',
   },
   briefingText: {
@@ -301,7 +301,7 @@ const styles: Record<string, React.CSSProperties> = {
     paddingLeft: '18px',
     fontSize: '12px',
     lineHeight: '1.5',
-    color: '#a1a1aa',
+    color: '#c4c7d4',
     display: 'flex',
     flexDirection: 'column',
     gap: '4px',
@@ -319,7 +319,7 @@ const styles: Record<string, React.CSSProperties> = {
   label: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#ffffff',
+    color: '#cbb3ed',
     letterSpacing: '0.05em',
   },
   inputRow: {
@@ -329,8 +329,8 @@ const styles: Record<string, React.CSSProperties> = {
   input: {
     flex: 1,
     padding: '8px 12px',
-    backgroundColor: '#080808',
-    border: '1px solid #262626',
+    backgroundColor: '#06070a',
+    border: '1px solid rgba(203, 179, 237, 0.18)',
     borderRadius: '6px',
     color: '#ffffff',
     fontSize: '13px',
@@ -339,10 +339,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   buttonRandom: {
     padding: '8px 14px',
-    backgroundColor: '#171717',
-    border: '1px solid #262626',
+    backgroundColor: '#161822',
+    border: '1px solid rgba(203, 179, 237, 0.2)',
     borderRadius: '6px',
-    color: '#ff2dab',
+    color: '#cbb3ed',
     fontSize: '12px',
     fontWeight: 600,
     cursor: 'pointer',
@@ -351,20 +351,20 @@ const styles: Record<string, React.CSSProperties> = {
   },
   hint: {
     fontSize: '11px',
-    color: '#71717a',
+    color: '#767a8f',
     fontStyle: 'italic',
   },
   buttonStart: {
     padding: '12px 18px',
-    backgroundColor: '#ff2dab',
-    color: '#0b0b0b',
+    backgroundColor: '#d4ff3f',
+    color: '#0a0b0e',
     border: 'none',
     borderRadius: '6px',
     fontSize: '14px',
     fontWeight: 800,
     letterSpacing: '0.06em',
     cursor: 'pointer',
-    boxShadow: '0 0 16px rgba(255, 45, 171, 0.45)',
+    boxShadow: '0 0 16px rgba(212, 255, 63, 0.45)',
     transition: 'all 0.15s ease',
     fontFamily: 'inherit',
     marginTop: '4px',

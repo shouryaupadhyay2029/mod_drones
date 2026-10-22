@@ -57,19 +57,19 @@ export function TrackTable({
                     onClick={() => onSelectTrack(t.trackId)}
                     style={{
                       ...styles.tr,
-                      backgroundColor: isSelected ? 'rgba(255, 45, 171, 0.16)' : 'transparent',
-                      borderLeft: isSelected ? '3px solid #ff2dab' : '3px solid transparent',
+                      backgroundColor: isSelected ? 'rgba(203, 179, 237, 0.14)' : 'transparent',
+                      borderLeft: isSelected ? '3px solid #d4ff3f' : '3px solid transparent',
                     }}
                   >
-                    <td style={{ ...styles.td, color: '#ff2dab', fontWeight: 700 }}>
+                    <td style={{ ...styles.td, color: '#d4ff3f', fontWeight: 700 }}>
                       T{t.trackId}
                     </td>
                     <td style={styles.td}>
                       <span
                         style={{
                           ...styles.stateBadge,
-                          color: t.state === 'confirmed' ? '#ff2dab' : '#a1a1aa',
-                          borderColor: t.state === 'confirmed' ? 'rgba(255, 45, 171, 0.5)' : '#262626',
+                          color: t.state === 'confirmed' ? '#d4ff3f' : '#cbb3ed',
+                          borderColor: t.state === 'confirmed' ? 'rgba(212, 255, 63, 0.5)' : 'rgba(203, 179, 237, 0.3)',
                         }}
                       >
                         {t.state.toUpperCase()}
@@ -87,7 +87,7 @@ export function TrackTable({
                     <td
                       style={{
                         ...styles.td,
-                        color: t.velocityValid && t.closingRateMps !== undefined && t.closingRateMps < -2 ? '#f87171' : '#cbd5e1',
+                        color: t.velocityValid && t.closingRateMps !== undefined && t.closingRateMps < -2 ? '#e34234' : '#cbd5e1',
                       }}
                     >
                       {t.velocityValid && t.closingRateMps !== undefined ? `${Math.round(t.closingRateMps)} m/s` : '—'}
@@ -99,8 +99,8 @@ export function TrackTable({
                         <span
                           style={{
                             ...styles.ackTag,
-                            backgroundColor: t.acked ? '#064e3b' : '#7f1d1d',
-                            color: t.acked ? '#6ee7b7' : '#fca5a5',
+                            backgroundColor: t.acked ? 'rgba(212, 255, 63, 0.16)' : 'rgba(227, 66, 52, 0.2)',
+                            color: t.acked ? '#d4ff3f' : '#e34234',
                           }}
                         >
                           {t.acked ? 'ACK' : 'UNACK'}
@@ -112,7 +112,7 @@ export function TrackTable({
                           <span
                             style={{
                               ...styles.engageTag,
-                              color: t.engagementStatus === 'engaged' ? '#f59e0b' : '#38bdf8',
+                              color: t.engagementStatus === 'engaged' ? '#d4ff3f' : '#cbb3ed',
                             }}
                           >
                             {t.engagementStatus.toUpperCase()}
@@ -135,16 +135,16 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
+    backgroundColor: '#111319',
+    border: '1px solid rgba(203, 179, 237, 0.14)',
     borderRadius: '8px',
     overflow: 'hidden',
   },
   headerTitle: {
     padding: '8px 12px',
-    backgroundColor: '#080808',
-    borderBottom: '1px solid #262626',
-    color: '#ff2dab',
+    backgroundColor: '#0a0b0e',
+    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
+    color: '#d4ff3f',
     fontSize: '11px',
     fontWeight: 700,
     fontFamily: 'monospace',
@@ -164,16 +164,17 @@ const styles: Record<string, React.CSSProperties> = {
   th: {
     textAlign: 'left',
     padding: '8px 10px',
-    color: '#a1a1aa',
+    color: '#cbb3ed',
     fontSize: '10px',
     fontWeight: 600,
-    borderBottom: '1px solid #262626',
+    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
     whiteSpace: 'nowrap',
+    backgroundColor: '#0a0b0e',
   },
   tr: {
     cursor: 'pointer',
-    borderBottom: '1px solid #1a1a1a',
-    transition: 'background-color 0.1s ease',
+    borderBottom: '1px solid rgba(203, 179, 237, 0.08)',
+    transition: 'background-color 0.15s ease',
   },
   td: {
     padding: '7px 10px',

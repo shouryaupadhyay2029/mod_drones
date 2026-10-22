@@ -15,22 +15,22 @@ function formatClock(tick: number): string {
 function getEventColor(type: string): string {
   switch (type) {
     case 'TRACK_CONFIRMED':
-      return '#ff2dab';
+      return '#d4ff3f'; // Chartreuse
     case 'TRACK_LOST':
-      return '#71717a';
+      return '#767a8f';
     case 'ENGAGEMENT_STARTED':
-      return '#f59e0b';
+      return '#cbb3ed'; // Lavender
     case 'ENGAGEMENT_RESOLVED':
-      return '#10b981';
+      return '#d4ff3f'; // Chartreuse
     case 'NO_EFFECT':
-      return '#ff2dab';
+      return '#e34234'; // Tomato Red
     case 'COMMAND_REJECTED':
     case 'ENGAGEMENT_REJECTED':
-      return '#ef4444';
+      return '#e34234'; // Tomato Red
     case 'MISSION_END':
-      return '#ff54be';
+      return '#cbb3ed'; // Lavender
     default:
-      return '#e4e4e7';
+      return '#c4c7d4';
   }
 }
 
@@ -89,8 +89,8 @@ export function EventFeed({ events }: EventFeedProps): React.JSX.Element {
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
+    backgroundColor: '#111319',
+    border: '1px solid rgba(203, 179, 237, 0.14)',
     borderRadius: '8px',
     padding: '12px',
     display: 'flex',
@@ -103,9 +103,9 @@ const styles: Record<string, React.CSSProperties> = {
   header: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#ff2dab',
+    color: '#d4ff3f',
     letterSpacing: '0.06em',
-    borderBottom: '1px solid #262626',
+    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
     paddingBottom: '6px',
   },
   list: {
@@ -117,7 +117,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '11px',
   },
   empty: {
-    color: '#71717a',
+    color: '#767a8f',
     fontSize: '11px',
     fontStyle: 'italic',
     padding: '12px 0',
@@ -129,7 +129,7 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: '1.4',
   },
   time: {
-    color: '#a1a1aa',
+    color: '#cbb3ed',
     fontWeight: 600,
     fontSize: '10px',
   },
@@ -139,6 +139,6 @@ const styles: Record<string, React.CSSProperties> = {
     whiteSpace: 'nowrap',
   },
   msg: {
-    color: '#f4f4f5',
+    color: '#ffffff',
   },
 };

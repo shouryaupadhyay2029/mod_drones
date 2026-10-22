@@ -94,8 +94,8 @@ export function DroneHeroSection({
       {/* Right Column: Interactive 3D ASCII Simulation */}
       <div style={styles.rightCol}>
         <DroneAsciiSimulation
-          color="#ff2dab"
-          backgroundColor="#0b0b0b"
+          color="#cbb3ed"
+          backgroundColor="#0a0b0e"
           fontSize={10}
           autoRotate={true}
           rotationSpeed={0.012}
@@ -112,8 +112,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '32px',
     alignItems: 'center',
     padding: '36px 32px',
-    backgroundColor: '#0b0b0b',
-    borderBottom: '1px solid #262626',
+    backgroundColor: '#0a0b0e',
+    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
     width: '100%',
     maxWidth: '1440px',
     margin: '0 auto',
@@ -131,7 +131,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '8px',
   },
   categoryTag: {
-    color: '#71717a',
+    color: '#cbb3ed',
     fontSize: '12px',
     fontWeight: 500,
     letterSpacing: '0.04em',
@@ -140,7 +140,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignSelf: 'flex-start',
   },
   tagText: {
-    color: '#ff2dab',
+    color: '#d4ff3f',
     fontSize: '11px',
     fontWeight: 800,
     letterSpacing: '0.12em',
@@ -158,7 +158,7 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
     fontSize: '14px',
     lineHeight: '1.6',
-    color: '#a1a1aa',
+    color: '#c4c7d4',
     maxWidth: '560px',
   },
   btnRow: {
@@ -170,22 +170,22 @@ const styles: Record<string, React.CSSProperties> = {
   },
   btnPrimary: {
     padding: '12px 22px',
-    backgroundColor: '#ff2dab',
-    color: '#0b0b0b',
+    backgroundColor: '#d4ff3f',
+    color: '#0a0b0e',
     border: 'none',
     borderRadius: '6px',
     fontSize: '13px',
     fontWeight: 800,
     letterSpacing: '0.06em',
     cursor: 'pointer',
-    boxShadow: '0 0 16px rgba(255, 45, 171, 0.45)',
+    boxShadow: '0 0 16px rgba(212, 255, 63, 0.45)',
     transition: 'all 0.15s ease',
   },
   btnSecondary: {
     padding: '12px 18px',
-    backgroundColor: '#171717',
+    backgroundColor: '#161822',
     color: '#ffffff',
-    border: '1px solid #262626',
+    border: '1px solid rgba(203, 179, 237, 0.22)',
     borderRadius: '6px',
     fontSize: '13px',
     fontWeight: 600,
@@ -193,7 +193,7 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.15s ease',
   },
   btnLink: {
-    color: '#ff2dab',
+    color: '#cbb3ed',
     fontSize: '12px',
     textDecoration: 'none',
     fontWeight: 600,
@@ -205,25 +205,25 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '10px',
     marginTop: '12px',
     paddingTop: '16px',
-    borderTop: '1px solid #1a1a1a',
+    borderTop: '1px solid rgba(203, 179, 237, 0.1)',
   },
   statBox: {
     display: 'flex',
     flexDirection: 'column',
     gap: '4px',
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
+    backgroundColor: '#111319',
+    border: '1px solid rgba(203, 179, 237, 0.14)',
     borderRadius: '6px',
     padding: '8px 10px',
   },
   statLabel: {
-    color: '#71717a',
+    color: '#cbb3ed',
     fontSize: '9px',
     fontWeight: 700,
     letterSpacing: '0.06em',
   },
   statVal: {
-    color: '#ffffff',
+    color: '#d4ff3f',
     fontSize: '12px',
     fontWeight: 700,
   },

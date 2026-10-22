@@ -33,10 +33,10 @@ export function EffectorPanel({
             <span
               style={{
                 ...styles.statusBadge,
-                backgroundColor: isJammerReady ? 'rgba(255, 45, 171, 0.15)' : '#262626',
-                border: isJammerReady ? '1px solid #ff2dab' : '1px solid #3f3f46',
-                color: isJammerReady ? '#ff2dab' : '#fcd34d',
-                boxShadow: isJammerReady ? '0 0 8px rgba(255, 45, 171, 0.3)' : 'none',
+                backgroundColor: isJammerReady ? 'rgba(212, 255, 63, 0.15)' : '#161822',
+                border: isJammerReady ? '1px solid #d4ff3f' : '1px solid rgba(203, 179, 237, 0.2)',
+                color: isJammerReady ? '#d4ff3f' : '#fcd34d',
+                boxShadow: isJammerReady ? '0 0 10px rgba(212, 255, 63, 0.35)' : 'none',
               }}
             >
               {isJammerReady ? 'READY' : `ACTIVE (${jammerBusySec}s)`}
@@ -66,21 +66,21 @@ export function EffectorPanel({
               style={{
                 ...styles.statusBadge,
                 backgroundColor: isGunReady
-                  ? 'rgba(255, 45, 171, 0.15)'
+                  ? 'rgba(212, 255, 63, 0.15)'
                   : effectors.gun.ammo <= 0
-                    ? '#261515'
-                    : '#262626',
+                    ? 'rgba(227, 66, 52, 0.2)'
+                    : '#161822',
                 border: isGunReady
-                  ? '1px solid #ff2dab'
+                  ? '1px solid #d4ff3f'
                   : effectors.gun.ammo <= 0
-                    ? '1px solid #ef4444'
-                    : '1px solid #3f3f46',
+                    ? '1px solid #e34234'
+                    : '1px solid rgba(203, 179, 237, 0.2)',
                 color: isGunReady
-                  ? '#ff2dab'
+                  ? '#d4ff3f'
                   : effectors.gun.ammo <= 0
-                    ? '#fca5a5'
+                    ? '#e34234'
                     : '#fcd34d',
-                boxShadow: isGunReady ? '0 0 8px rgba(255, 45, 171, 0.3)' : 'none',
+                boxShadow: isGunReady ? '0 0 10px rgba(212, 255, 63, 0.35)' : 'none',
               }}
             >
               {effectors.gun.ammo <= 0
@@ -96,7 +96,7 @@ export function EffectorPanel({
               <span
                 style={{
                   ...styles.val,
-                  color: effectors.gun.ammo <= 5 ? '#f87171' : '#ff2dab',
+                  color: effectors.gun.ammo <= 5 ? '#e34234' : '#d4ff3f',
                   fontWeight: 700,
                 }}
               >
@@ -120,8 +120,8 @@ export function EffectorPanel({
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
+    backgroundColor: '#111319',
+    border: '1px solid rgba(203, 179, 237, 0.14)',
     borderRadius: '8px',
     padding: '12px',
     display: 'flex',
@@ -132,7 +132,7 @@ const styles: Record<string, React.CSSProperties> = {
   header: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#ff2dab',
+    color: '#d4ff3f',
     letterSpacing: '0.06em',
   },
   grid: {
@@ -141,8 +141,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '10px',
   },
   card: {
-    backgroundColor: '#080808',
-    border: '1px solid #262626',
+    backgroundColor: '#0a0b0e',
+    border: '1px solid rgba(203, 179, 237, 0.12)',
     borderRadius: '6px',
     padding: '10px 12px',
     display: 'flex',
@@ -177,7 +177,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
   },
   label: {
-    color: '#a1a1aa',
+    color: '#cbb3ed',
   },
   val: {
     color: '#ffffff',

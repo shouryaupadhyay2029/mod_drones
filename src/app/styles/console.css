@@ -1,22 +1,34 @@
-/* Operator Console Cyber-Tactical Jet Black + Hot Pink Theme */
+/* Operator Console Premium Minimal Defense Theme
+   Palette:
+   - Lavender:    #CBB3ED (Classy, structural, calm status)
+   - Chartreuse:  #D4FF3F (Electric high-contrast tactical accent & active states)
+   - Tomato Red:  #E34234 (Threat warnings, critical alerts, hostile FPVs)
+   - Obsidian:    #0A0B0E / #111319 / #171922
+*/
 
 :root {
-  --bg-primary: #0b0b0b; /* Jet Black */
-  --bg-secondary: #121212; /* Dark Surface */
-  --bg-card: #171717; /* Card / Panel */
-  --border-color: #262626; /* Subtle Dark Border */
-  --border-accent: rgba(255, 45, 171, 0.4);
+  --bg-primary: #0a0b0e; /* Deep Obsidian Base */
+  --bg-secondary: #111319; /* High-grade Titanium Surface */
+  --bg-card: #161822; /* Card / Panel */
+  --border-color: rgba(203, 179, 237, 0.14); /* Subtle Lavender-tinted Dark Border */
+  --border-accent: rgba(203, 179, 237, 0.4);
   --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --accent-pink: #ff2dab; /* Hot Pink */
-  --accent-pink-glow: rgba(255, 45, 171, 0.25);
-  --accent-pink-hover: #ff54be;
-  --accent-cyan: #ff2dab; /* Re-mapped to Hot Pink */
-  --accent-blue: #ff2dab;
-  --accent-green: #10b981;
+  --text-secondary: #c4c7d4;
+  --text-muted: #767a8f;
+
+  --accent-lavender: #cbb3ed;
+  --accent-lavender-glow: rgba(203, 179, 237, 0.25);
+  --accent-chartreuse: #d4ff3f;
+  --accent-chartreuse-glow: rgba(212, 255, 63, 0.28);
+  --accent-tomato: #e34234;
+  --accent-tomato-glow: rgba(227, 66, 52, 0.3);
+
+  /* Semantic aliases */
+  --accent-cyan: #d4ff3f;
+  --accent-blue: #cbb3ed;
+  --accent-green: #d4ff3f;
   --accent-amber: #f59e0b;
-  --accent-red: #ff2dab;
+  --accent-red: #e34234;
 }
 
 html, body, #root {
@@ -33,28 +45,29 @@ body {
   padding: 0;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'SF Pro Text', ui-monospace,
+    Menlo, Monaco, Consolas, monospace;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Scrollbars */
+/* Custom Minimal Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b0b0b;
+  background: var(--bg-primary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: rgba(203, 179, 237, 0.18);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #ff2dab;
+  background: var(--accent-chartreuse);
 }
 
 .console-layout {
@@ -70,8 +83,8 @@ body {
   display: grid;
   grid-template-columns: 1fr 400px;
   grid-template-rows: 1fr;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 12px;
+  padding: 12px 16px;
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -87,7 +100,7 @@ body {
 .radar-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   min-height: 0;
   height: 100%;
   overflow: hidden;
@@ -96,7 +109,7 @@ body {
 .sidebar-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   min-height: 0;
   height: 100%;
   overflow-y: auto;
@@ -107,34 +120,39 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  background-color: #121212;
+  background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 8px 12px;
   font-size: 11px;
   color: var(--text-secondary);
+  backdrop-filter: blur(8px);
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .legend-key {
-  background-color: #181818;
-  color: #ff2dab;
-  border: 1px solid rgba(255, 45, 171, 0.4);
+  background-color: rgba(203, 179, 237, 0.08);
+  color: var(--accent-chartreuse);
+  border: 1px solid rgba(212, 255, 63, 0.3);
   padding: 1px 6px;
   border-radius: 3px;
   font-weight: 700;
   font-size: 10px;
-  box-shadow: 0 0 6px rgba(255, 45, 171, 0.2);
+  font-family: ui-monospace, monospace;
 }
 
 /* ==========================================================================
-   TextRoll Cyber-Tactical Rolling Letters Hover Effect
+   Smooth Micro-Interactions & TextRoll
    ========================================================================== */
+
+button, a, input, select {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
 .text-roll-container {
   position: relative;
@@ -149,15 +167,16 @@ body {
   display: inline-block;
   transform: translateY(0%);
   will-change: transform;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .text-roll-char-bottom {
   display: inline-block;
   transform: translateY(100%);
   will-change: transform;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Activate rolling when either the TextRoll container, or a parent button/link/card is hovered */
 .text-roll-container:hover .text-roll-char-top,
 .text-roll-trigger:hover .text-roll-char-top,
 button:hover:not(:disabled) .text-roll-char-top,

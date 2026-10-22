@@ -155,8 +155,8 @@ function generateDroneModel(): Point3D[] {
 export function DroneAsciiSimulation({
   className = '',
   style,
-  color = '#ff2dab',
-  backgroundColor = '#0b0b0b',
+  color = '#cbb3ed',
+  backgroundColor = '#0a0b0e',
   fontSize = 9,
   autoRotate = true,
   rotationSpeed = 0.012,
@@ -408,16 +408,16 @@ export function DroneAsciiSimulation({
         <button
           onClick={() => {
             const nextColor =
-              activeColor === '#ff2dab'
-                ? '#10b981'
-                : activeColor === '#10b981'
-                  ? '#ffffff'
-                  : '#ff2dab';
+              activeColor === '#cbb3ed'
+                ? '#d4ff3f'
+                : activeColor === '#d4ff3f'
+                  ? '#e34234'
+                  : '#cbb3ed';
             setActiveColor(nextColor);
           }}
-          title="Switch Color Theme"
+          title="Switch Color Theme (Lavender / Chartreuse / Tomato)"
           style={{
-            backgroundColor: '#171717',
+            backgroundColor: '#161822',
             border: `1px solid ${activeColor}`,
             color: activeColor,
             borderRadius: '6px',
@@ -426,9 +426,10 @@ export function DroneAsciiSimulation({
             fontFamily: 'monospace',
             fontWeight: 700,
             cursor: 'pointer',
+            boxShadow: `0 0 10px ${activeColor}30`,
           }}
         >
-          COLOR
+          THEME
         </button>
       </div>
 
@@ -446,8 +447,8 @@ export function DroneAsciiSimulation({
       >
         <span
           style={{
-            backgroundColor: 'rgba(255, 45, 171, 0.15)',
-            border: '1px solid rgba(255, 45, 171, 0.4)',
+            backgroundColor: 'rgba(203, 179, 237, 0.15)',
+            border: '1px solid rgba(203, 179, 237, 0.35)',
             color: activeColor,
             borderRadius: '4px',
             padding: '2px 8px',
@@ -461,7 +462,7 @@ export function DroneAsciiSimulation({
         </span>
         <span
           style={{
-            color: '#71717a',
+            color: '#767a8f',
             fontSize: '10px',
             fontFamily: 'monospace',
           }}

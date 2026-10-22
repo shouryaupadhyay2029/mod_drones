@@ -85,7 +85,7 @@ export function TrackDetail({
         <span
           style={{
             ...styles.lifecycleTag,
-            color: track.state === 'confirmed' ? '#ff2dab' : '#a1a1aa',
+            color: track.state === 'confirmed' ? '#d4ff3f' : '#cbb3ed',
           }}
         >
           {track.state.toUpperCase()}
@@ -111,7 +111,7 @@ export function TrackDetail({
           <span
             style={{
               ...styles.cueVal,
-              color: track.velocityValid && track.closingRateMps !== undefined && track.closingRateMps < -2 ? '#ff2dab' : '#e4e4e7',
+              color: track.velocityValid && track.closingRateMps !== undefined && track.closingRateMps < -2 ? '#e34234' : '#e4e4e7',
             }}
           >
             {track.velocityValid && track.closingRateMps !== undefined ? `${Math.round(track.closingRateMps)} m/s` : '—'}
@@ -146,10 +146,10 @@ export function TrackDetail({
             onClick={() => onAcknowledge(track.trackId)}
             style={{
               ...styles.btnAction,
-              backgroundColor: isAckDisabled ? '#262626' : '#ff2dab',
-              color: isAckDisabled ? '#71717a' : '#0b0b0b',
+              backgroundColor: isAckDisabled ? '#161822' : '#d4ff3f',
+              color: isAckDisabled ? '#767a8f' : '#0a0b0e',
               fontWeight: 800,
-              boxShadow: isAckDisabled ? 'none' : '0 0 10px rgba(255, 45, 171, 0.4)',
+              boxShadow: isAckDisabled ? 'none' : '0 0 10px rgba(212, 255, 63, 0.4)',
               opacity: isAckDisabled ? 0.6 : 1,
             }}
           >
@@ -197,16 +197,16 @@ export function TrackDetail({
                 onClick={() => onClassify(track.trackId, opt.id)}
                 style={{
                   ...styles.btnClassify,
-                  backgroundColor: isAssessed ? 'rgba(255, 45, 171, 0.2)' : '#181818',
-                  borderColor: isAssessed ? '#ff2dab' : '#262626',
-                  color: isAssessed ? '#ff2dab' : '#e4e4e7',
-                  boxShadow: isAssessed ? '0 0 8px rgba(255, 45, 171, 0.35)' : 'none',
+                  backgroundColor: isAssessed ? 'rgba(203, 179, 237, 0.16)' : '#161822',
+                  borderColor: isAssessed ? '#cbb3ed' : 'rgba(203, 179, 237, 0.14)',
+                  color: isAssessed ? '#d4ff3f' : '#e4e4e7',
+                  boxShadow: isAssessed ? '0 0 8px rgba(203, 179, 237, 0.25)' : 'none',
                 }}
               >
                 <span>
                   <TextRoll stagger={0.02}>{opt.label}</TextRoll>
                 </span>
-                <span style={{ ...styles.shortcutTag, color: isAssessed ? '#ff2dab' : '#a1a1aa' }}>[{keyLabel}]</span>
+                <span style={{ ...styles.shortcutTag, color: isAssessed ? '#d4ff3f' : '#cbb3ed' }}>[{keyLabel}]</span>
               </button>
             );
           })}
@@ -225,9 +225,9 @@ export function TrackDetail({
               style={{
                 ...styles.btnEngage,
                 backgroundColor:
-                  jammerDisabledReason !== null ? '#262626' : '#ff2dab',
-                color: jammerDisabledReason !== null ? '#71717a' : '#0b0b0b',
-                boxShadow: jammerDisabledReason !== null ? 'none' : '0 0 12px rgba(255, 45, 171, 0.4)',
+                  jammerDisabledReason !== null ? '#161822' : '#d4ff3f',
+                color: jammerDisabledReason !== null ? '#767a8f' : '#0a0b0e',
+                boxShadow: jammerDisabledReason !== null ? 'none' : '0 0 12px rgba(212, 255, 63, 0.4)',
                 opacity: jammerDisabledReason !== null ? 0.6 : 1,
               }}
             >
@@ -246,9 +246,9 @@ export function TrackDetail({
               style={{
                 ...styles.btnEngage,
                 backgroundColor:
-                  gunDisabledReason !== null ? '#262626' : '#e11d48',
-                color: gunDisabledReason !== null ? '#71717a' : '#ffffff',
-                boxShadow: gunDisabledReason !== null ? 'none' : '0 0 12px rgba(225, 29, 72, 0.4)',
+                  gunDisabledReason !== null ? '#161822' : '#e34234',
+                color: gunDisabledReason !== null ? '#767a8f' : '#ffffff',
+                boxShadow: gunDisabledReason !== null ? 'none' : '0 0 12px rgba(227, 66, 52, 0.45)',
                 opacity: gunDisabledReason !== null ? 0.6 : 1,
               }}
             >
@@ -266,8 +266,8 @@ export function TrackDetail({
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
+    backgroundColor: '#111319',
+    border: '1px solid rgba(203, 179, 237, 0.14)',
     borderRadius: '8px',
     padding: '14px',
     display: 'flex',
@@ -281,8 +281,8 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     fontSize: '12px',
     fontWeight: 700,
-    color: '#ff2dab',
-    borderBottom: '1px solid #262626',
+    color: '#d4ff3f',
+    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
     paddingBottom: '8px',
   },
   lifecycleTag: {
@@ -290,7 +290,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
   },
   emptyPrompt: {
-    color: '#71717a',
+    color: '#767a8f',
     fontSize: '12px',
     padding: '24px 12px',
     textAlign: 'center',
@@ -302,8 +302,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '8px',
   },
   cueBox: {
-    backgroundColor: '#080808',
-    border: '1px solid #262626',
+    backgroundColor: '#0a0b0e',
+    border: '1px solid rgba(203, 179, 237, 0.12)',
     borderRadius: '4px',
     padding: '6px 8px',
     display: 'flex',
@@ -311,7 +311,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '2px',
   },
   cueLabel: {
-    color: '#a1a1aa',
+    color: '#cbb3ed',
     fontSize: '9px',
     fontWeight: 600,
   },
@@ -342,7 +342,7 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   disabledReasonText: {
-    color: '#ff2dab',
+    color: '#e34234',
     fontSize: '10px',
     textAlign: 'center',
   },
@@ -354,7 +354,7 @@ const styles: Record<string, React.CSSProperties> = {
   sectionLabel: {
     fontSize: '10px',
     fontWeight: 700,
-    color: '#ff2dab',
+    color: '#cbb3ed',
     letterSpacing: '0.06em',
   },
   classifyGrid: {

@@ -132,7 +132,7 @@ export function DebriefScreen({
               <span
                 style={{
                   ...styles.summaryVal,
-                  color: ghostsEngaged > 0 ? '#ff2dab' : '#a1a1aa',
+                  color: ghostsEngaged > 0 ? '#e34234' : '#a1a1aa',
                 }}
               >
                 {ghostsObserved} observed / {ghostsEngaged} engaged
@@ -309,9 +309,9 @@ const styles: Record<string, React.CSSProperties> = {
     flexWrap: 'wrap',
   },
   tag: {
-    backgroundColor: 'rgba(255, 45, 171, 0.15)',
-    color: '#ff2dab',
-    border: '1px solid rgba(255, 45, 171, 0.4)',
+    backgroundColor: 'rgba(203, 179, 237, 0.15)',
+    color: '#cbb3ed',
+    border: '1px solid rgba(203, 179, 237, 0.35)',
     padding: '2px 8px',
     borderRadius: '4px',
     fontSize: '11px',
@@ -335,8 +335,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '28px',
-    backgroundColor: '#080808',
-    border: '1px solid #262626',
+    backgroundColor: '#0a0b0e',
+    border: '1px solid rgba(203, 179, 237, 0.14)',
     borderRadius: '8px',
     padding: '20px 24px',
     flexWrap: 'wrap',
@@ -349,7 +349,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   scoreLabel: {
     fontSize: '10px',
-    color: '#a1a1aa',
+    color: '#cbb3ed',
     fontWeight: 700,
     letterSpacing: '0.08em',
   },
@@ -360,21 +360,21 @@ const styles: Record<string, React.CSSProperties> = {
   },
   scoreMax: {
     fontSize: '18px',
-    color: '#71717a',
+    color: '#767a8f',
     fontWeight: 500,
   },
   scoreGrade: {
     fontSize: '11px',
     fontWeight: 700,
     letterSpacing: '0.05em',
-    color: '#ff2dab',
+    color: '#d4ff3f',
   },
   scoreSummaryList: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
-    borderLeft: '1px solid #262626',
+    borderLeft: '1px solid rgba(203, 179, 237, 0.14)',
     paddingLeft: '24px',
   },
   summaryItem: {
@@ -383,7 +383,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '13px',
   },
   summaryLabel: {
-    color: '#a1a1aa',
+    color: '#c4c7d4',
   },
   summaryVal: {
     color: '#ffffff',
@@ -398,7 +398,7 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
     fontSize: '12px',
     fontWeight: 700,
-    color: '#ff2dab',
+    color: '#cbb3ed',
     letterSpacing: '0.06em',
   },
   tableWrapper: {
@@ -412,14 +412,14 @@ const styles: Record<string, React.CSSProperties> = {
   th: {
     textAlign: 'left',
     padding: '8px 10px',
-    color: '#a1a1aa',
+    color: '#cbb3ed',
     fontSize: '10px',
     fontWeight: 600,
-    borderBottom: '1px solid #262626',
+    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
     whiteSpace: 'nowrap',
   },
   tr: {
-    borderBottom: '1px solid #1a1a1a',
+    borderBottom: '1px solid rgba(203, 179, 237, 0.08)',
   },
   td: {
     padding: '8px 10px',
@@ -435,13 +435,13 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    backgroundColor: '#1f1315',
-    border: '1px solid #7f1d1d',
+    backgroundColor: 'rgba(227, 66, 52, 0.1)',
+    border: '1px solid rgba(227, 66, 52, 0.5)',
     borderRadius: '4px',
     padding: '6px 10px',
   },
   penaltyBadge: {
-    backgroundColor: '#b91c1c',
+    backgroundColor: '#e34234',
     color: '#fff',
     padding: '2px 6px',
     borderRadius: '3px',
@@ -468,12 +468,12 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     gap: '12px',
     flexWrap: 'wrap',
-    borderTop: '1px solid #262626',
+    borderTop: '1px solid rgba(203, 179, 237, 0.14)',
     paddingTop: '16px',
   },
   btnPrimary: {
-    backgroundColor: '#ff2dab',
-    color: '#0b0b0b',
+    backgroundColor: '#d4ff3f',
+    color: '#0a0b0e',
     border: 'none',
     borderRadius: '6px',
     padding: '10px 18px',
@@ -481,11 +481,11 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     fontFamily: 'monospace',
     cursor: 'pointer',
-    boxShadow: '0 0 14px rgba(255, 45, 171, 0.4)',
+    boxShadow: '0 0 14px rgba(212, 255, 63, 0.45)',
   },
   btnSecondary: {
-    backgroundColor: '#171717',
-    border: '1px solid #262626',
+    backgroundColor: '#161822',
+    border: '1px solid rgba(203, 179, 237, 0.18)',
     color: '#ffffff',
     borderRadius: '6px',
     padding: '10px 18px',
@@ -495,9 +495,9 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   btnDownload: {
-    backgroundColor: '#171717',
-    border: '1px solid rgba(255, 45, 171, 0.4)',
-    color: '#ff2dab',
+    backgroundColor: '#161822',
+    border: '1px solid rgba(203, 179, 237, 0.35)',
+    color: '#cbb3ed',
     borderRadius: '6px',
     padding: '10px 18px',
     fontSize: '13px',
