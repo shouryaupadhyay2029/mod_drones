@@ -32,18 +32,11 @@ export default tseslint.config(
           patterns: [
             {
               group: [
-                '**/sim/*',
+                '**/sim/**',
+                '**/src/sim/**',
                 '!**/sim/index.js',
                 '!**/sim/index.ts',
                 '!**/sim/index',
-                '../sim/*',
-                '!../sim/index.js',
-                '!../sim/index.ts',
-                '!../sim/index',
-                '../../sim/*',
-                '!../../sim/index.js',
-                '!../../sim/index.ts',
-                '!../../sim/index',
               ],
               message: 'src/app may import from src/sim ONLY via src/sim/index.ts.',
             },

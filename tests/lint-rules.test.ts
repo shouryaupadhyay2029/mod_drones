@@ -113,16 +113,26 @@ describe('ESLint Negative Rules Verification (src/sim & src/sim/core)', { timeou
   describe('src/app/** import restrictions and permissions', () => {
     const appPath = 'src/app/routes/test-app.ts';
 
-    it('reports error on importing internal sim modules directly from src/app', async () => {
-      const messages = await lintSnippet("import { Engine } from '../../sim/core/engine.js';", appPath);
-      expect(
-        messages.some((m) =>
-          m.message.includes('src/app may import from src/sim ONLY via src/sim/index.ts')
-        )
-      ).toBe(true);
-    });
+    const forbiddenImports = [
+      '../../sim/model/threats.js',
+      '../../sim/core/world.js',
+      '../../sim/scoring/basic.js',
+      '../../../src/sim/systems/radar.js',
+    ];
 
-    it('allows importing from src/sim/index.js in src/app', async () => {
+    for (const importPath of forbiddenImports) {
+      it(`reports error on forbidden internal import: ${importPath}`, async () => {
+        const messages = await lintSnippet(`import { foo } from '${importPath}';`, appPath);
+        expect(
+          messages.some((m) =>
+            m.message.includes('src/app may import from src/sim ONLY via src/sim/index.ts')
+          ),
+          `Expected ${importPath} to be forbidden in src/app`
+        ).toBe(true);
+      });
+    }
+
+    it('allows importing from ../../sim/index.js in src/app', async () => {
       const messages = await lintSnippet("import { Engine } from '../../sim/index.js';", appPath);
       expect(
         messages.some((m) =>

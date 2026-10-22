@@ -2,7 +2,6 @@ import React, { StrictMode, act, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { describe, expect, it } from 'vitest';
 import { useMission } from '../src/app/console/useMission.js';
-import { TraineeView } from '../src/sim/index.js';
 
 // Minimal DOM shim for React 18 createRoot in Node environment
 const noop = () => {};
@@ -38,7 +37,6 @@ mockContainer.ownerDocument = mockDoc as unknown as Document;
 describe('Autopilot Side-Effect Isolation under React.StrictMode', () => {
   it('toggleAutopilot enqueues commands exactly once when activated under React.StrictMode', async () => {
     let capturedToggle: (() => void) | null = null;
-    let enqueueCount = 0;
 
     // Test component executing useMission
     function Harness({
