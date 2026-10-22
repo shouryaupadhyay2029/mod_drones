@@ -13,6 +13,14 @@ import {
 } from '../scenarios/index.js';
 import { runEngagementSystem, tryEngageTrack } from '../systems/engagement.js';
 import { runRadarSystem } from '../systems/radar.js';
+import {
+  createInitialEoState,
+  EoTurretState,
+  handleEoChannel,
+  handleEoLock,
+  handleEoRelease,
+  runEoSystem,
+} from '../systems/eo.js';
 import { createInitialRfState, RfDetectorState, runRfSystem } from '../systems/rf.js';
 import { buildTraineeView, TraineeView } from '../view/traineeView.js';
 import { DT } from './clock.js';
@@ -59,6 +67,7 @@ export class Engine {
   private nextTrackId = 1;
   private scheduledSpawns: ScenarioSpawnSchedule[] = [];
   private rfDetectorState: RfDetectorState = createInitialRfState();
+  private eoTurretState: EoTurretState;
 
   private pendingCommands: Command[] = [];
   private executedCommands: Command[] = [];
@@ -81,6 +90,8 @@ export class Engine {
       const terrainRng = this.rng.fork('terrain');
       this.terrain = generateTerrain(def.environment.terrainKind, terrainRng, def.terrainFeatures ?? []);
     }
+
+    this.eoTurretState = createInitialEoState(this.world.environment);
   }
 
   public enqueueCommand(command: Command | CommandInput): void {
@@ -156,7 +167,18 @@ export class Engine {
       this.terrain
     );
 
-    // 5. engagement
+    // 5. eo/ir turret
+    runEoSystem(
+      currentTick,
+      this.eoTurretState,
+      this.tracks,
+      this.actors,
+      this.rng.fork('eo'),
+      this.world.environment,
+      this.events
+    );
+
+    // 6. engagement
     runEngagementSystem(
       currentTick,
       this.actors,
@@ -166,7 +188,7 @@ export class Engine {
       this.events
     );
 
-    // 6. missionRules
+    // 7. missionRules
     this.runMissionRules(currentTick);
 
     // Advance tick counter
@@ -347,6 +369,32 @@ export class Engine {
         break;
       }
 
+      case 'EO_LOCK': {
+        handleEoLock(
+          this.eoTurretState,
+          command.payload?.trackId,
+          this.tracks,
+          tick,
+          this.events
+        );
+        break;
+      }
+
+      case 'EO_RELEASE': {
+        handleEoRelease(this.eoTurretState, tick, this.events);
+        break;
+      }
+
+      case 'EO_CHANNEL': {
+        handleEoChannel(
+          this.eoTurretState,
+          command.payload?.channel,
+          tick,
+          this.events
+        );
+        break;
+      }
+
       case 'DEV_SPAWN_ACTOR': {
         const payload = command.payload as unknown as DevSpawnActorPayload;
         const actor = createActor(
@@ -445,7 +493,8 @@ export class Engine {
       this.missionState.reason,
       this.events,
       this.world.environment,
-      this.rfDetectorState
+      this.rfDetectorState,
+      this.eoTurretState
     );
   }
 
@@ -533,6 +582,16 @@ export class Engine {
       rfState: {
         lines: this.rfDetectorState.lines.map((l) => ({ ...l })),
       },
+      eoState: {
+        state: this.eoTurretState.state,
+        lockedTrackId: this.eoTurretState.lockedTrackId,
+        currentAzimuthDeg: this.eoTurretState.currentAzimuthDeg,
+        channel: this.eoTurretState.channel,
+        level: this.eoTurretState.level,
+        hint: this.eoTurretState.hint,
+        quality: this.eoTurretState.quality,
+        effPixels: this.eoTurretState.effPixels,
+      },
     };
   }
 
@@ -545,6 +604,19 @@ export class Engine {
     if (snapshot.rfState) {
       engine.rfDetectorState = {
         lines: snapshot.rfState.lines.map((l) => ({ ...l })),
+      };
+    }
+
+    if (snapshot.eoState) {
+      engine.eoTurretState = {
+        state: snapshot.eoState.state,
+        lockedTrackId: snapshot.eoState.lockedTrackId,
+        currentAzimuthDeg: snapshot.eoState.currentAzimuthDeg,
+        channel: snapshot.eoState.channel,
+        level: snapshot.eoState.level,
+        hint: snapshot.eoState.hint,
+        quality: snapshot.eoState.quality,
+        effPixels: snapshot.eoState.effPixels,
       };
     }
 

@@ -114,4 +114,14 @@ export interface EngineSnapshot {
   rfState?: {
     lines: Array<{ tick: number; bearingDeg: number; signature: RfSignature }>;
   };
+  eoState?: {
+    state: 'idle' | 'slewing' | 'locked';
+    lockedTrackId?: number;
+    currentAzimuthDeg: number;
+    channel: 'tv' | 'ir';
+    level: 'none' | 'detect' | 'recognize' | 'identify';
+    hint?: ThreatClassId | 'multirotor' | 'fixed_wing' | 'bird' | 'object';
+    quality: number;
+    effPixels: number;
+  };
 }

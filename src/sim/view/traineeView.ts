@@ -4,6 +4,7 @@ import { EffectorState } from '../model/effectors.js';
 import { Environment, TerrainKind, TimeOfDay, Weather } from '../model/environment.js';
 import { RfSignature, ThreatClassId } from '../model/threats.js';
 import { EngagementStatus, RcsBucket, RfStatus, Track, TrackState } from '../model/tracks.js';
+import { EoChannel, EoHint, EoLevel, EoState, EoTurretState } from '../systems/eo.js';
 import { RfDetectorState } from '../systems/rf.js';
 
 export interface TraineeEnvironmentView {
@@ -21,6 +22,15 @@ export interface TraineeRfLine {
 
 export interface TraineeRfView {
   lines: TraineeRfLine[];
+}
+
+export interface TraineeEoView {
+  state: EoState;
+  lockedTrackId?: number;
+  channel: EoChannel;
+  level: EoLevel;
+  hint?: EoHint;
+  quality: number;
 }
 
 export interface TraineeTrack {
@@ -68,6 +78,7 @@ export interface TraineeView {
   effectors: TraineeEffectorsView;
   events: readonly SimEvent[];
   rf: TraineeRfView;
+  eo: TraineeEoView;
 }
 
 export function buildTraineeView(
@@ -78,7 +89,8 @@ export function buildTraineeView(
   missionEndReason: 'asset_hit' | 'all_resolved' | 'time_limit' | undefined,
   allEvents: readonly SimEvent[],
   environment?: Environment,
-  rfDetectorState?: RfDetectorState
+  rfDetectorState?: RfDetectorState,
+  eoTurretState?: EoTurretState
 ): TraineeView {
   const origin = vec3(0, 0, 0);
 
@@ -178,6 +190,14 @@ export function buildTraineeView(
     events: traineeEvents,
     rf: {
       lines: rfLines,
+    },
+    eo: {
+      state: eoTurretState?.state ?? 'idle',
+      lockedTrackId: eoTurretState?.lockedTrackId,
+      channel: eoTurretState?.channel ?? (envView.timeOfDay === 'night' ? 'ir' : 'tv'),
+      level: eoTurretState?.level ?? 'none',
+      hint: eoTurretState?.hint,
+      quality: eoTurretState?.quality ?? 0,
     },
   };
 }

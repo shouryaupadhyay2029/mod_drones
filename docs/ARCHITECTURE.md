@@ -149,3 +149,63 @@ Every tick in `Engine.step()` executes exactly five systems in fixed order:
    - Detection probability $P_d = P_d \times \text{ewPdMult}$ ($0.85\times$ for light, $0.60\times$ for heavy).
 5. **Ghost Tracks**: Stream `rng.fork('radar-ghost')` generates transient radar false tracks (clutter blips) with range $800 - 3500\text{ m}$, wander speeds $2 - 6\text{ m/s}$, initial quality $0.25$, and lifetime $3 - 8$ sweeps. Engaging ghost tracks incurs a $-5$ penalty in scoring.
 
+## 7. Phase 2B Architecture Additions: Passive RF Detector & EO/IR Turret
+
+### Threat Physical & Sensor Signatures (`src/sim/model/threats.ts`)
+- `bird`: size $0.3\text{ m}$, thermal $0.2$, RF `'none'`
+- `commercial_quad`: size $0.5\text{ m}$, thermal $0.6$, RF `'telemetry_link'`
+- `fpv_kamikaze`: size $0.35\text{ m}$, thermal $0.8$, RF `'wideband_video'`
+- `fixed_wing_recon`: size $2.0\text{ m}$, thermal $0.7$, RF `'long_range_link'`
+- `clutter`: size $0.1\text{ m}$, thermal $0.1$, RF `'none'`
+
+### Passive RF Line-of-Bearing Detector (`src/sim/systems/rf.ts`)
+- **Execution Interval**: Evaluated every 10 ticks ($0.5\text{ s}$) across all active `rfControlled` actors in deterministic ID order.
+- **RNG Stream**: `rng.fork('rf')`.
+- **Effective Range**:
+  $$R_{\text{rf}} = 4500\text{ m} \times [1.0, 0.85, 0.65][\text{ewIndex}] \times (\text{urban} ? 0.8 : 1.0)$$
+- **Line-of-Sight Masking**: Requires clear terrain line-of-sight from radar mast $(0, 0, 15)\text{ m}$ to actor.
+- **Detection Probability**: $P_{\text{det}} = 0.90$ within $R_{\text{rf}}$.
+- **Line of Bearing & Noise**:
+  - Truth bearing from origin $(0, 0, 0)$.
+  - 12-sample unit Irwin-Hall Gaussian noise with $\sigma = 4.0^\circ \times (\text{urban} ? 1.5 : 1.0) \times [1.0, 1.3, 1.8][\text{ewIndex}]$.
+- **RF Signature Reception**:
+  - Probability of true signature: $P = [0.90, 0.80, 0.65][\text{ewIndex}]$; fallback to `'unknown_link'`.
+- **Temporal Buffer & View Exposure**:
+  - Buffer stores lines for $5\text{ s}$ ($100\text{ ticks}$).
+  - `TraineeView.rf.lines`: array of `{ bearingDeg, ageS, signature }`. Zero ground truth actor IDs or coordinates.
+- **Radar Track Association**:
+  - `'emitting'`: matched bearing line within $\pm 10^\circ$ of track estimated bearing arrived in last $3\text{ s}$ ($60\text{ ticks}$).
+  - `'silent'`: track age $> 6\text{ s}$ ($120\text{ ticks}$), estimated range $\le 0.8 \times R_{\text{rf}}$, clear LOS, and zero matching RF lines in last $3\text{ s}$.
+  - `'unknown'`: default state for young or distant tracks.
+
+### Electro-Optical / Infrared (EO/IR) Turret (`src/sim/systems/eo.ts`)
+- **Gimbal Mechanics**: Single gimbal slewing at $2^\circ/\text{tick}$ ($40^\circ/\text{s}$) toward the target track's estimated bearing.
+  - Slew error $|\theta_{\text{err}}| \le 2^\circ \implies \text{'locked'}$; otherwise $\text{'slewing'}$.
+  - Zero readings while slewing.
+  - If locked track drops, disengages to `'idle'` and emits `EO_LOST`.
+- **Control Commands**:
+  - `EO_LOCK { trackId: number }`: slew and track specified contact.
+  - `EO_RELEASE {}`: release turret to idle.
+  - `EO_CHANNEL { channel: 'tv' | 'ir' }`: switch sensor wavelength channel. Default: `tv` for day/dusk, `ir` for night.
+- **Optics Formulas** (computed every 10 ticks while locked):
+  - True geometric scale: $\text{pixels} = \text{sizeM} \times 30000 / \text{trueRange}$.
+  - Ambient illumination: $\text{light} = \{ \text{day}: 1.0, \text{dusk}: 0.6, \text{night}: 0.05 \}$.
+  - TV Channel transmission and contrast:
+    $$\tau_{\text{tv}} = \frac{1}{1 + \frac{\text{range}}{\text{visibilityKm} \times 1000 \times 0.5}}, \quad C_{\text{tv}} = \text{light} \times \tau_{\text{tv}}$$
+  - IR Channel transmission and contrast:
+    $$\tau_{\text{ir}} = \frac{1}{1 + \frac{\text{range}}{\text{visibilityKm} \times 1000 \times 1.5}} \times (\text{rain} ? 0.8 : 1.0), \quad C_{\text{ir}} = \text{thermalSignature} \times \tau_{\text{ir}} \times (\text{day} ? 0.8 : 1.0)$$
+  - Effective resolution: $\text{effPixels} = \text{pixels} \times \text{contrast}$.
+- **Resolution Level Thresholds**:
+  - $\text{effPixels} \ge 12 \implies \text{'identify'}$
+  - $\text{effPixels} \ge 6 \implies \text{'recognize'}$
+  - $\text{effPixels} \ge 2.5 \implies \text{'detect'}$
+  - else $\implies \text{'none'}$
+- **Classification Hints**:
+  - `identify`: exact threat class with $95\%$ accuracy; random other class with $5\%$ error.
+  - `recognize`: airframe class (`'multirotor'` for quad/FPV, `'fixed_wing'`, `'bird'`) with $90\%$ accuracy.
+  - `detect`: generic `'object'`.
+- **Trainee View Contract**:
+  - Exposes `{ state, lockedTrackId, channel, level, hint, quality = min(1, effPixels/12) }`.
+  - Raw `effPixels` is strictly withheld.
+
+
