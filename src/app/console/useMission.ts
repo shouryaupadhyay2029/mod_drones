@@ -33,6 +33,9 @@ export interface UseMissionReturn {
   classifyTrack: (trackId: number, classId: ThreatClassId | 'unknown') => void;
   engageTrack: (trackId: number, effector: 'jammer' | 'gun') => void;
   holdFireTrack: (trackId: number) => void;
+  lockEoTrack: (trackId: number) => void;
+  releaseEo: () => void;
+  toggleEoChannel: () => void;
   resetToSetup: (newSeed?: string) => void;
 }
 
@@ -44,6 +47,8 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [autopilot, setAutopilot] = useState<boolean>(false);
   const [view, setView] = useState<TraineeView | null>(null);
+  const viewRef = useRef<TraineeView | null>(null);
+  viewRef.current = view;
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
   const [scoreReport, setScoreReport] = useState<ScoreReport | null>(null);
   const [sessionLog, setSessionLog] = useState<SessionLog | null>(null);
@@ -195,6 +200,38 @@ export function useMission(initialSeed?: string): UseMissionReturn {
     client.enqueue(cmd);
   }, []);
 
+  const lockEoTrack = useCallback((trackId: number) => {
+    const client = clientRef.current;
+    if (!client) return;
+    const cmd: CommandInput = {
+      type: 'EO_LOCK',
+      payload: { trackId },
+    };
+    client.enqueue(cmd);
+  }, []);
+
+  const releaseEo = useCallback(() => {
+    const client = clientRef.current;
+    if (!client) return;
+    const cmd: CommandInput = {
+      type: 'EO_RELEASE',
+      payload: {},
+    };
+    client.enqueue(cmd);
+  }, []);
+
+  const toggleEoChannel = useCallback(() => {
+    const client = clientRef.current;
+    if (!client) return;
+    const currentChannel = viewRef.current?.eo?.channel ?? 'tv';
+    const nextChannel = currentChannel === 'tv' ? 'ir' : 'tv';
+    const cmd: CommandInput = {
+      type: 'EO_CHANNEL',
+      payload: { channel: nextChannel },
+    };
+    client.enqueue(cmd);
+  }, []);
+
   const resetToSetup = useCallback((newSeed?: string) => {
     const client = clientRef.current;
     if (client) {
@@ -231,6 +268,9 @@ export function useMission(initialSeed?: string): UseMissionReturn {
     classifyTrack,
     engageTrack,
     holdFireTrack,
+    lockEoTrack,
+    releaseEo,
+    toggleEoChannel,
     resetToSetup,
   };
 }

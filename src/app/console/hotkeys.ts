@@ -14,6 +14,8 @@ export interface UseHotkeysProps {
   onHoldFire: (trackId: number) => void;
   onTogglePause: () => void;
   onSetSpeed: (speed: 1 | 2 | 4) => void;
+  onToggleEoLock?: () => void;
+  onToggleEoChannel?: () => void;
 }
 
 export function useHotkeys({
@@ -28,6 +30,8 @@ export function useHotkeys({
   onHoldFire,
   onTogglePause,
   onSetSpeed,
+  onToggleEoLock,
+  onToggleEoChannel,
 }: UseHotkeysProps): void {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -93,7 +97,21 @@ export function useHotkeys({
         return;
       }
 
+      // T: Toggle TV / IR channel
+      if ((e.key === 't' || e.key === 'T') && onToggleEoChannel) {
+        e.preventDefault();
+        onToggleEoChannel();
+        return;
+      }
+
       // Track-dependent actions require a selected track
+      // E: Toggle EO lock on selected track (or release if already locked)
+      if ((e.key === 'e' || e.key === 'E') && onToggleEoLock) {
+        e.preventDefault();
+        onToggleEoLock();
+        return;
+      }
+
       if (selectedTrackId === null) return;
 
       // A: Acknowledge
@@ -173,5 +191,7 @@ export function useHotkeys({
     onHoldFire,
     onTogglePause,
     onSetSpeed,
+    onToggleEoLock,
+    onToggleEoChannel,
   ]);
 }

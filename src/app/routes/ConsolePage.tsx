@@ -1,6 +1,7 @@
 import React from 'react';
 import { DebriefScreen } from '../console/DebriefScreen.js';
 import { EffectorPanel } from '../console/EffectorPanel.js';
+import { EoPanel } from '../console/EoPanel.js';
 import { EventFeed } from '../console/EventFeed.js';
 import { useHotkeys } from '../console/hotkeys.js';
 import { MissionSetup } from '../console/MissionSetup.js';
@@ -33,6 +34,9 @@ export function ConsolePage(): React.JSX.Element {
     classifyTrack,
     engageTrack,
     holdFireTrack,
+    lockEoTrack,
+    releaseEo,
+    toggleEoChannel,
     resetToSetup,
   } = useMission();
 
@@ -60,6 +64,14 @@ export function ConsolePage(): React.JSX.Element {
     onHoldFire: holdFireTrack,
     onTogglePause: togglePause,
     onSetSpeed: setSpeedMultiplier,
+    onToggleEoLock: () => {
+      if (view?.eo.lockedTrackId !== undefined) {
+        releaseEo();
+      } else if (selectedTrackId !== null) {
+        lockEoTrack(selectedTrackId);
+      }
+    },
+    onToggleEoChannel: toggleEoChannel,
   });
 
   return (
@@ -122,6 +134,12 @@ export function ConsolePage(): React.JSX.Element {
                 <kbd className="legend-key">H</kbd> Hold Fire
               </span>
               <span className="legend-item">
+                <kbd className="legend-key">E</kbd> Lock EO
+              </span>
+              <span className="legend-item">
+                <kbd className="legend-key">T</kbd> Toggle TV/IR
+              </span>
+              <span className="legend-item">
                 <kbd className="legend-key">Space</kbd> Pause
               </span>
               <span className="legend-item">
@@ -133,7 +151,7 @@ export function ConsolePage(): React.JSX.Element {
             </div>
           </div>
 
-          {/* Right Column: Track Detail Actions + Effectors + Events */}
+          {/* Right Column: Track Detail Actions + EO Panel + Effectors + Events */}
           <div className="sidebar-section">
             <TrackDetail
               track={selectedTrack}
@@ -144,6 +162,23 @@ export function ConsolePage(): React.JSX.Element {
               onClassify={classifyTrack}
               onEngage={engageTrack}
               onHoldFire={holdFireTrack}
+            />
+
+            <EoPanel
+              eo={
+                view?.eo ?? {
+                  state: 'idle',
+                  channel: view?.environment.timeOfDay === 'night' ? 'ir' : 'tv',
+                  level: 'none',
+                  quality: 0,
+                }
+              }
+              selectedTrackId={selectedTrackId}
+              timeOfDay={view?.environment.timeOfDay}
+              weather={view?.environment.weather}
+              onLock={lockEoTrack}
+              onRelease={releaseEo}
+              onToggleChannel={toggleEoChannel}
             />
 
             <EffectorPanel effectors={effectors} currentTick={currentTick} />

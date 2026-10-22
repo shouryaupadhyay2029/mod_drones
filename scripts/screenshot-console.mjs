@@ -138,7 +138,26 @@ async function run() {
       await page.screenshot({ path: path1920, fullPage: false });
       console.log('Saved console-1920.png to:', path1920);
 
-      console.log('PASSED: Both viewports fit with NO page scroll.');
+      // Test Viewport 3: Night / IR scenario screenshot (city_edge_night)
+      console.log('Capturing Night / IR scenario screenshot (city_edge_night)...');
+      await page.goto('http://127.0.0.1:4173/#/', { waitUntil: 'networkidle0' });
+      await page.evaluate(() => {
+        window.dispatchEvent(
+          new CustomEvent('mod:select-scenario', { detail: { scenarioId: 'city_edge_night' } })
+        );
+      });
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      const startNightBtn = await page.$('#btn-start-mission');
+      if (startNightBtn) {
+        await startNightBtn.click();
+      }
+      // Wait for tracks and simulation to advance
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      const pathNight = path.join(outDir, 'console-night-ir.png');
+      await page.screenshot({ path: pathNight, fullPage: false });
+      console.log('Saved console-night-ir.png to:', pathNight);
+
+      console.log('PASSED: Both viewports fit with NO page scroll, and Night IR screenshot saved.');
     } finally {
       await browser.close();
     }

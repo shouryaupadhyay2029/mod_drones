@@ -10,6 +10,7 @@ export * from './core/world.js';
 
 export * from './model/actors.js';
 export * from './model/effectors.js';
+export * from './model/environment.js';
 export * from './model/threats.js';
 export * from './model/tracks.js';
 
@@ -18,7 +19,9 @@ export * from './scoring/basic.js';
 export * from './scoring/constants.js';
 
 export * from './systems/engagement.js';
+export * from './systems/eo.js';
 export * from './systems/radar.js';
+export * from './systems/rf.js';
 
 export * from './view/traineeView.js';
 export * from './view/classificationOptions.js';

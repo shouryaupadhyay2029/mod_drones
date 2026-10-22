@@ -135,6 +135,26 @@ export function TrackDetail({
           <span style={styles.cueLabel}>TRACK QUALITY</span>
           <span style={styles.cueVal}>{(track.quality * 100).toFixed(0)}%</span>
         </div>
+        <div style={styles.cueBox}>
+          <span style={styles.cueLabel}>RF EMISSION</span>
+          <span
+            style={{
+              ...styles.cueVal,
+              color:
+                track.rfStatus === 'emitting'
+                  ? '#38bdf8'
+                  : track.rfStatus === 'silent'
+                  ? '#94a3b8'
+                  : '#cbd5e1',
+            }}
+          >
+            {track.rfSignature
+              ? track.rfSignature.replace(/_/g, ' ').toUpperCase()
+              : track.rfStatus === 'silent'
+              ? 'SILENT'
+              : 'UNKNOWN'}
+          </span>
+        </div>
       </div>
 
       {/* Action 1: Acknowledge & Hold Fire */}

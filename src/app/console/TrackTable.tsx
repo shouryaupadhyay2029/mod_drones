@@ -35,13 +35,14 @@ export function TrackTable({
               <th style={styles.th}>CLOSING</th>
               <th style={styles.th}>RCS</th>
               <th style={styles.th}>QUAL</th>
+              <th style={styles.th}>RF</th>
               <th style={styles.th}>STATUS</th>
             </tr>
           </thead>
           <tbody>
             {sortedTracks.length === 0 ? (
               <tr>
-                <td colSpan={11} style={styles.emptyCell}>
+                <td colSpan={12} style={styles.emptyCell}>
                   No active tracks detected in radar sweep sector.
                 </td>
               </tr>
@@ -94,6 +95,15 @@ export function TrackTable({
                     </td>
                     <td style={styles.td}>{t.rcsBucket}</td>
                     <td style={styles.td}>{(t.quality * 100).toFixed(0)}%</td>
+                    <td style={styles.td}>
+                      {t.rfStatus === 'emitting' ? (
+                        <span style={{ color: '#38bdf8', fontWeight: 700 }}>EMIT</span>
+                      ) : t.rfStatus === 'silent' ? (
+                        <span style={{ color: '#94a3b8' }}>silent</span>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
                     <td style={styles.td}>
                       <div style={styles.statusGroup}>
                         <span

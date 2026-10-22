@@ -249,6 +249,48 @@ export function drawScope(
     }
   }
 
+  // Draw RF lines of bearing (thin dotted lines, fading over 5 s, with signature tag)
+  if (view && view.rf && view.rf.lines) {
+    for (let i = 0; i < view.rf.lines.length; i++) {
+      const line = view.rf.lines[i];
+      if (!line) continue;
+      const opacity = Math.max(0, Math.min(1, 1 - line.ageS / 5.0));
+      if (opacity <= 0.01) continue;
+
+      const rad = (line.bearingDeg * Math.PI) / 180;
+      const endX = centerX + radiusPx * Math.sin(rad);
+      const endY = centerY - radiusPx * Math.cos(rad);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.setLineDash([4, 4]);
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(endX, endY);
+      ctx.strokeStyle = `rgba(56, 189, 248, ${opacity * 0.85})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      const tagDist = radiusPx - 30;
+      const tagX = centerX + tagDist * Math.sin(rad);
+      const tagY = centerY - tagDist * Math.cos(rad);
+
+      ctx.fillStyle = `rgba(56, 189, 248, ${opacity})`;
+      ctx.font = 'bold 9px ui-monospace, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const sigAbbr =
+        line.signature === 'wideband_video'
+          ? 'RF:VIDEO'
+          : line.signature === 'telemetry_link'
+          ? 'RF:TLM'
+          : line.signature === 'long_range_link'
+          ? 'RF:C2'
+          : 'RF:LINK';
+      ctx.fillText(sigAbbr, tagX, tagY);
+      ctx.restore();
+    }
+  }
+
   ctx.restore();
 }
 
