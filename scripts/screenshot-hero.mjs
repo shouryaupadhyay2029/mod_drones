@@ -57,13 +57,20 @@ async function run() {
       const page = await browser.newPage();
       const outDir = path.resolve('docs/screenshots');
 
-      await page.goto('http://127.0.0.1:4173/#/', { waitUntil: 'networkidle0' });
-      // Allow the 3D model to rotate into view
-      await new Promise((r) => setTimeout(r, 1200));
+      await page.goto('http://127.0.0.1:4173/#/', { waitUntil: 'domcontentloaded' });
+      // Capture early scattered ASCII phase (~350ms)
+      await new Promise((r) => setTimeout(r, 350));
+      const scatteredPath = path.join(outDir, 'hero-scattered-drone.png');
+      await page.screenshot({ path: scatteredPath });
+      const artifactDir = 'C:\\Users\\Shourya Upadhyay\\.gemini\\antigravity\\brain\\8764f751-615b-4181-97b2-67211edfa358';
+      fs.copyFileSync(scatteredPath, path.join(artifactDir, 'hero-scattered-drone.png'));
+      console.log('Captured hero-scattered-drone.png at:', scatteredPath);
+
+      // Wait for complete reassembly and rotation settle (2200ms further)
+      await new Promise((r) => setTimeout(r, 2200));
 
       const heroPath = path.join(outDir, 'hero-ascii-drone.png');
       await page.screenshot({ path: heroPath });
-      const artifactDir = 'C:\\Users\\Shourya Upadhyay\\.gemini\\antigravity\\brain\\8764f751-615b-4181-97b2-67211edfa358';
       fs.copyFileSync(heroPath, path.join(artifactDir, 'hero-seamless-drone.png'));
       console.log('Captured hero-ascii-drone.png at:', heroPath);
     } finally {

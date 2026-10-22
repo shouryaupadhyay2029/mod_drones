@@ -19,7 +19,77 @@ interface Point3D {
   kind?: 'body' | 'arm' | 'motor' | 'propeller' | 'camera' | 'antenna';
 }
 
+interface AssembledPoint3D extends Point3D {
+  scatterX: number;
+  scatterY: number;
+  scatterZ: number;
+  startProgress: number;
+  endProgress: number;
+}
+
 const ASCII_RAMP = ' .:-=+*#%@█';
+
+function createMulberry32(seed: number) {
+  let s = seed;
+  return () => {
+    s |= 0;
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function cubicEaseOut(t: number): number {
+  const f = Math.max(0, Math.min(1, t)) - 1.0;
+  return f * f * f + 1.0;
+}
+
+function createAssembledModel(basePoints: Point3D[]): AssembledPoint3D[] {
+  const rng = createMulberry32(0x5a18a); // Deterministic seed for reproducible cinematic scatter
+
+  return basePoints.map((pt) => {
+    let startProgress = 0.0;
+    let endProgress = 0.50;
+
+    if (pt.kind === 'arm') {
+      startProgress = 0.15;
+      endProgress = 0.68;
+    } else if (pt.kind === 'motor') {
+      startProgress = 0.28;
+      endProgress = 0.80;
+    } else if (pt.kind === 'camera' || pt.kind === 'antenna') {
+      startProgress = 0.30;
+      endProgress = 0.82;
+    }
+
+    // Spherical dispersion in 3D space + directional arm bias
+    const theta = rng() * Math.PI * 2;
+    const phi = (rng() - 0.5) * Math.PI * 0.75;
+    const dist = 2.4 + rng() * 3.8;
+
+    let biasX = 0;
+    let biasZ = 0;
+    if (Math.abs(pt.x) > 0.15 || Math.abs(pt.z) > 0.15) {
+      const dir = Math.atan2(pt.z, pt.x);
+      biasX = Math.cos(dir) * 1.8;
+      biasZ = Math.sin(dir) * 1.8;
+    }
+
+    const scatterX = Math.cos(phi) * Math.cos(theta) * dist + biasX;
+    const scatterY = Math.sin(phi) * (dist * 0.55); // Flatter Y distribution for cinematic widescreen
+    const scatterZ = Math.cos(phi) * Math.sin(theta) * dist + biasZ;
+
+    return {
+      ...pt,
+      scatterX,
+      scatterY,
+      scatterZ,
+      startProgress,
+      endProgress,
+    };
+  });
+}
 
 // Build the procedural 3D Tactical Drone Model with Rotor Guards & Fuselage
 function generateDroneModel(): Point3D[] {
@@ -215,7 +285,8 @@ export function DroneAsciiSimulation({
   const propAngleRef = useRef(0);
   const isDraggingRef = useRef(false);
   const lastMousePosRef = useRef({ x: 0, y: 0 });
-  const baseModelRef = useRef<Point3D[]>(generateDroneModel());
+  const baseModelRef = useRef<AssembledPoint3D[]>(createAssembledModel(generateDroneModel()));
+  const assemblyStartTimeRef = useRef<number | null>(null);
 
   // Mouse drag listeners
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -304,8 +375,14 @@ export function DroneAsciiSimulation({
     // Extra pass after DOM settle
     const timer = setTimeout(updateLayoutBounds, 120);
 
+    const handleReassemble = () => {
+      assemblyStartTimeRef.current = performance.now();
+    };
+    window.addEventListener('mod:reassemble-drone', handleReassemble);
+
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mod:reassemble-drone', handleReassemble);
       clearTimeout(timer);
     };
   }, []);
@@ -314,10 +391,20 @@ export function DroneAsciiSimulation({
     let animId: number;
     const armAngles = [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4, (7 * Math.PI) / 4];
     const armLength = 1.35;
+    const ASSEMBLY_DURATION = 1.8; // Duration in seconds for full scatter-and-reassemble sequence
 
-    const render = () => {
+    const render = (now: number) => {
+      const currentTime = typeof now === 'number' && now > 0 ? now : performance.now();
+      if (assemblyStartTimeRef.current === null) {
+        assemblyStartTimeRef.current = currentTime;
+      }
+      const elapsed = Math.max(0, (currentTime - assemblyStartTimeRef.current) / 1000);
+      const globalProgress = Math.min(1.0, elapsed / ASSEMBLY_DURATION);
+
       if (isRotating && !isDraggingRef.current) {
-        anglesRef.current.yaw += rotationSpeed;
+        // High-tech swirling vortex during assembly that gently settles into stable rotation speed
+        const swirlBoost = (1.0 - globalProgress) * 0.018;
+        anglesRef.current.yaw += rotationSpeed + swirlBoost;
       }
       propAngleRef.current += 0.35; // Rotor spinning
 
@@ -325,32 +412,71 @@ export function DroneAsciiSimulation({
       const dynamicProps: Point3D[] = [];
       const propRadius = 0.48;
 
-      armAngles.forEach((angle, idx) => {
-        const mx = armLength * Math.cos(angle);
-        const mz = armLength * Math.sin(angle);
-        const my = 0.08;
-        const dir = idx % 2 === 0 ? 1 : -1;
-        const currentPropAngle = propAngleRef.current * dir;
+      // Propellers materialize as motors assemble (progress 0.50 -> 1.0)
+      const propProgress = Math.min(1.0, Math.max(0, (globalProgress - 0.50) / 0.50));
+      const propEase = cubicEaseOut(propProgress);
 
-        // Tri-blade propeller (120 degree separation)
-        for (let b = 0; b < 3; b++) {
-          const bladeAngle = currentPropAngle + (b * (2 * Math.PI)) / 3;
-          const cosB = Math.cos(bladeAngle);
-          const sinB = Math.sin(bladeAngle);
+      if (propEase > 0.02) {
+        armAngles.forEach((angle, idx) => {
+          const mx = armLength * Math.cos(angle);
+          const mz = armLength * Math.sin(angle);
+          const my = 0.08;
+          const dir = idx % 2 === 0 ? 1 : -1;
+          const currentPropAngle = propAngleRef.current * dir;
 
-          for (let r = 0.05; r <= propRadius; r += 0.035) {
-            dynamicProps.push({
-              x: mx + r * cosB,
-              y: my + (r / propRadius) * 0.02,
-              z: mz + r * sinB,
-              kind: 'propeller',
-            });
+          const currentPropRadius = propRadius * propEase;
+
+          // Tri-blade propeller (120 degree separation)
+          for (let b = 0; b < 3; b++) {
+            const bladeAngle = currentPropAngle + (b * (2 * Math.PI)) / 3;
+            const cosB = Math.cos(bladeAngle);
+            const sinB = Math.sin(bladeAngle);
+
+            for (let r = 0.05; r <= currentPropRadius; r += 0.035) {
+              dynamicProps.push({
+                x: mx + r * cosB,
+                y: my + (r / propRadius) * 0.02,
+                z: mz + r * sinB,
+                kind: 'propeller',
+              });
+            }
           }
-        }
-      });
+        });
+      }
 
-      // Combine base model + dynamic spinning props
-      const allPoints = [...baseModelRef.current, ...dynamicProps];
+      // Compute 3D point positions with scatter-and-reassemble interpolation
+      const basePoints = baseModelRef.current;
+      const computedBasePoints: Point3D[] = new Array(basePoints.length);
+
+      if (globalProgress >= 1.0) {
+        // Fully assembled: direct fast pass
+        for (let i = 0; i < basePoints.length; i++) {
+          computedBasePoints[i] = basePoints[i]!;
+        }
+      } else {
+        // Assembling: interpolate each point from its scattered coordinates towards target solid drone position
+        for (let i = 0; i < basePoints.length; i++) {
+          const pt = basePoints[i]!;
+          let localT = 0;
+          if (globalProgress >= pt.endProgress) {
+            localT = 1.0;
+          } else if (globalProgress > pt.startProgress) {
+            localT = (globalProgress - pt.startProgress) / (pt.endProgress - pt.startProgress);
+          }
+          const ease = cubicEaseOut(localT);
+          const inv = 1.0 - ease;
+
+          computedBasePoints[i] = {
+            x: pt.x + pt.scatterX * inv,
+            y: pt.y + pt.scatterY * inv,
+            z: pt.z + pt.scatterZ * inv,
+            kind: pt.kind,
+          };
+        }
+      }
+
+      // Combine assembled base model + dynamic spinning props
+      const allPoints = [...computedBasePoints, ...dynamicProps];
 
       // Grid dimensions (cols x rows) - Optimized for wide cinematic hero display
       const cols = 116;
@@ -418,6 +544,13 @@ export function DroneAsciiSimulation({
         x: preLeft + (brPt.screenX / cols) * preWidth,
         y: preTop + (brPt.screenY / rows) * preHeight,
       };
+
+      // HUD Leader Lines and reticles fade in once rotors dock into place (progress 0.70 -> 1.0)
+      const hudProgress = Math.min(1.0, Math.max(0, (globalProgress - 0.70) / 0.30));
+      const hudOpacity = cubicEaseOut(hudProgress);
+      if (svgRef.current) {
+        svgRef.current.style.opacity = String(hudOpacity);
+      }
 
       // Update SVG HUD Leader Lines (Seamless Dogleg Orthogonal Geometry)
       if (lineTlRef.current) {
@@ -508,7 +641,12 @@ export function DroneAsciiSimulation({
               // Minimum base ink is index 4 ('=') so even far-away surfaces have solid dark ink presence
               const depthNorm = Math.max(0, Math.min(1, (z2 + 1.6) / 3.2));
               const minInk = 4;
-              const rampIdx = minInk + Math.floor(depthNorm * (ASCII_RAMP.length - 1 - minInk));
+              let rampIdx = minInk + Math.floor(depthNorm * (ASCII_RAMP.length - 1 - minInk));
+              if (globalProgress < 0.65) {
+                // Fragmented lighter ASCII glyphs while scattered (., :, -, +, *)
+                const fragmentFactor = Math.floor((0.65 - globalProgress) * 4);
+                rampIdx = Math.max(1, rampIdx - fragmentFactor);
+              }
               charIndex = pt.kind === 'propeller' ? Math.min(ASCII_RAMP.length - 1, rampIdx + 2) : rampIdx;
             }
 
@@ -539,6 +677,10 @@ export function DroneAsciiSimulation({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
+      onDoubleClick={() => {
+        assemblyStartTimeRef.current = performance.now();
+      }}
+      title="VAJRA // Double-click to re-assemble drone"
       style={{
         position: 'relative',
         width: '100%',
