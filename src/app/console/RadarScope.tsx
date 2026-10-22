@@ -73,9 +73,15 @@ export function RadarScope({
       animId = requestAnimationFrame(render);
     };
 
+    const handleWindowResize = () => {
+      render();
+    };
+
+    window.addEventListener('resize', handleWindowResize);
     animId = requestAnimationFrame(render);
     return () => {
       cancelAnimationFrame(animId);
+      window.removeEventListener('resize', handleWindowResize);
     };
   }, []);
 
@@ -134,8 +140,8 @@ export function RadarScope({
       style={{
         position: 'relative',
         width: '100%',
-        height: '100%',
-        minHeight: '420px',
+        flex: 1,
+        minHeight: '260px',
         backgroundColor: '#050a12',
         borderRadius: '8px',
         border: '1px solid #1e293b',

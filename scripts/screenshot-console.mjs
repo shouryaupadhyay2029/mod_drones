@@ -1,4 +1,3 @@
-/* global document */
 import { spawn } from 'node:child_process';
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
@@ -30,13 +29,18 @@ function waitForServer(url, timeout = 10000) {
 }
 
 async function run() {
+  console.log('Building app for preview...');
+  const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
-  // Ensure screenshots directory exists
-  const outDir = path.resolve('docs', 'screenshots');
-  if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir, { recursive: true });
-  }
+  // Build first
+  await new Promise((resolve, reject) => {
+    const buildProc = spawn(npmCmd, ['run', 'build'], { shell: true, stdio: 'inherit' });
+    buildProc.on('exit', (code) => {
+      if (code === 0) resolve(true);
+      else reject(new Error(`Build exited with code ${code}`));
+    });
+  });
 
   console.log('Starting vite preview server...');
   const server = spawn(
@@ -60,107 +64,69 @@ async function run() {
     const browser = await puppeteer.launch({
       executablePath: chromePath,
       headless: true,
-      defaultViewport: { width: 1440, height: 960 },
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
     try {
       const page = await browser.newPage();
-      console.log('Navigating to http://127.0.0.1:4173/#/ ...');
+      console.log('Navigating to http://127.0.0.1:4173 ...');
       await page.goto('http://127.0.0.1:4173/#/', { waitUntil: 'networkidle0' });
 
-      // Wait for Mission Setup form
-      console.log('Setting seed to s1...');
-      await page.waitForSelector('#missionSeed');
-      await page.$eval('#missionSeed', (el) => {
-        el.value = 's1';
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-      });
-
-      // Click Start Mission
-      console.log('Starting mission...');
-      await page.click('#btn-start-mission');
-
-      // Enable Autopilot and 2x speed for stable capture
-      console.log('Waiting for TopBar controls...');
-      await page.waitForSelector('#btn-toggle-autopilot');
-
-      console.log('Enabling Autopilot & 2x speed...');
-      await page.click('#btn-toggle-autopilot');
-      await page.click('#btn-speed-2');
-
-      // Wait until at least 2 tracks are visible on radar
-      console.log('Waiting for at least 2 tracks to be visible on radar...');
-      let fullCaptured = false;
-      const startTime = Date.now();
-
-      while (Date.now() - startTime < 45000) {
-        const trackRows = await page.$$('tbody tr');
-        if (trackRows.length >= 2) {
-          const firstRowText = await page.evaluate((el) => el.textContent, trackRows[0]);
-          if (!firstRowText?.includes('No active tracks')) {
-            // Select the first track
-            console.log(`Detected ${trackRows.length} active tracks. Selecting first track...`);
-            await trackRows[0].click();
-            await new Promise((r) => setTimeout(r, 250));
-
-            // Extract mission telemetry & visible tracks
-            const captureDetails = await page.evaluate(() => {
-              const tickText = document.getElementById('missionTick')?.textContent?.trim() || '';
-              const timeText = document.getElementById('missionTime')?.textContent?.trim() || '';
-              const rows = Array.from(document.querySelectorAll('tbody tr'));
-              const tracks = rows.map((row) => {
-                const cells = Array.from(row.querySelectorAll('td')).map((c) => c.textContent?.trim());
-                return {
-                  id: cells[0] || '',
-                  state: cells[1] || '',
-                  range: cells[2] || '',
-                  bearing: cells[3] || '',
-                  course: cells[4] || '',
-                  speed: cells[6] || '',
-                };
-              });
-              return { tickText, timeText, tracks };
-            });
-
-            console.log('\n=== CONSOLE FULL SCREENSHOT CAPTURE DETAILS ===');
-            console.log(`Mission tick at capture: ${captureDetails.tickText} (${captureDetails.timeText})`);
-            console.log('Visible tracks:');
-            for (const trk of captureDetails.tracks) {
-              console.log(`  - Track ${trk.id} (${trk.state}): range = ${trk.range}, bearing = ${trk.bearing}, speed = ${trk.speed}`);
-            }
-            console.log('===============================================\n');
-
-            const fullPath = path.join(outDir, 'console-full.png');
-            await page.screenshot({ path: fullPath, fullPage: true });
-            console.log('Saved console-full.png to:', fullPath);
-            fullCaptured = true;
-            break;
-          }
+      // If in setup mode, click Start Mission to enter running console
+      const buttons = await page.$$('button');
+      for (const b of buttons) {
+        const text = await page.evaluate((el) => el.textContent, b);
+        if (text?.includes('START MISSION') || text?.trim() === 'Start Mission') {
+          console.log('Clicking START MISSION...');
+          await b.click();
+          break;
         }
-        await new Promise((r) => setTimeout(r, 200));
       }
 
-      if (!fullCaptured) {
-        console.warn('Timed out waiting for 2 tracks; capturing current state as console-full.png');
-        const fullPath = path.join(outDir, 'console-full.png');
-        await page.screenshot({ path: fullPath, fullPage: true });
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      const outDir = path.resolve('docs');
+      if (!fs.existsSync(outDir)) {
+        fs.mkdirSync(outDir, { recursive: true });
       }
 
-      // Switch to 4x speed to finish mission quickly
-      await page.click('#btn-speed-4');
+      // Test Viewport 1: 1366x768
+      console.log('Testing viewport 1366x768...');
+      await page.setViewport({ width: 1366, height: 768 });
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Wait for debrief screen to appear (button #btn-replay-same-seed)
-      console.log('Waiting for mission to finish and debrief screen to render...');
-      await page.waitForSelector('#btn-replay-same-seed', { timeout: 90000 });
+      const scrollHeight1366 = await page.evaluate(() => document.documentElement.scrollHeight);
+      const innerHeight1366 = await page.evaluate(() => window.innerHeight);
+      console.log(`1366x768: scrollHeight=${scrollHeight1366}, innerHeight=${innerHeight1366}`);
+      if (scrollHeight1366 > innerHeight1366) {
+        throw new Error(
+          `Page scroll detected at 1366x768: scrollHeight (${scrollHeight1366}) > innerHeight (${innerHeight1366})`
+        );
+      }
 
-      console.log('Mission finished! Capturing console-debrief.png...');
-      const debriefPath = path.join(outDir, 'console-debrief.png');
-      await page.screenshot({ path: debriefPath, fullPage: true });
-      console.log('Saved console-debrief.png to:', debriefPath);
+      const path1366 = path.join(outDir, 'console-1366.png');
+      await page.screenshot({ path: path1366, fullPage: false });
+      console.log('Saved console-1366.png to:', path1366);
 
-      console.log('Smoke test completed successfully!');
+      // Test Viewport 2: 1920x1080
+      console.log('Testing viewport 1920x1080...');
+      await page.setViewport({ width: 1920, height: 1080 });
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const scrollHeight1920 = await page.evaluate(() => document.documentElement.scrollHeight);
+      const innerHeight1920 = await page.evaluate(() => window.innerHeight);
+      console.log(`1920x1080: scrollHeight=${scrollHeight1920}, innerHeight=${innerHeight1920}`);
+      if (scrollHeight1920 > innerHeight1920) {
+        throw new Error(
+          `Page scroll detected at 1920x1080: scrollHeight (${scrollHeight1920}) > innerHeight (${innerHeight1920})`
+        );
+      }
+
+      const path1920 = path.join(outDir, 'console-1920.png');
+      await page.screenshot({ path: path1920, fullPage: false });
+      console.log('Saved console-1920.png to:', path1920);
+
+      console.log('PASSED: Both viewports fit with NO page scroll.');
     } finally {
       await browser.close();
     }
