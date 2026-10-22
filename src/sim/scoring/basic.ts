@@ -1,6 +1,6 @@
 import { SimEvent } from '../core/types.js';
 import { Actor } from '../model/actors.js';
-import { ThreatClassId } from '../model/threats.js';
+import { THREAT_LIBRARY, ThreatClassId } from '../model/threats.js';
 import { Track } from '../model/tracks.js';
 import {
   DETECTION_THRESHOLDS,
@@ -74,6 +74,53 @@ export function scoreSession(
   const penalties: ScorePenalty[] = [];
   const perContact: ContactScore[] = [];
 
+  // 1. Calculate generalized contact weights
+  const hostiles = actors.filter((a) => THREAT_LIBRARY[a.classId]?.hostile);
+  const neutrals = actors.filter((a) => !THREAT_LIBRARY[a.classId]?.hostile);
+
+  const actorWeights = new Map<number, number>();
+
+  if (actors.length > 0) {
+    if (hostiles.length === 0) {
+      const w = 1.0 / neutrals.length;
+      for (const a of neutrals) actorWeights.set(a.id, w);
+    } else if (neutrals.length === 0) {
+      const w = 1.0 / hostiles.length;
+      for (const a of hostiles) actorWeights.set(a.id, w);
+    } else {
+      let hostileEach: number;
+      if (hostiles.length === 1) {
+        hostileEach = 0.6;
+      } else if (hostiles.length === 2) {
+        hostileEach = 0.4;
+      } else {
+        hostileEach = Math.min(0.4, 0.8 / hostiles.length);
+      }
+
+      const totalHostileWeight = hostileEach * hostiles.length;
+      const remainingNeutralPool = Math.max(0.1 * neutrals.length, 1.0 - totalHostileWeight);
+      const neutralEach = remainingNeutralPool / neutrals.length;
+
+      let sumW = 0;
+      for (const a of hostiles) {
+        actorWeights.set(a.id, hostileEach);
+        sumW += hostileEach;
+      }
+      for (const a of neutrals) {
+        actorWeights.set(a.id, neutralEach);
+        sumW += neutralEach;
+      }
+
+      // Normalize sum to 1.0
+      if (sumW > 0) {
+        for (const a of actors) {
+          const w = actorWeights.get(a.id) ?? 0;
+          actorWeights.set(a.id, w / sumW);
+        }
+      }
+    }
+  }
+
   let weightedSum = 0;
   let totalWeight = 0;
 
@@ -86,10 +133,7 @@ export function scoreSession(
       .slice()
       .sort((a, b) => a.trackId - b.trackId);
 
-    const weight =
-      actor.classId === 'fpv_kamikaze'
-        ? SCORING_WEIGHTS.HOSTILE_CONTACT_WEIGHT
-        : SCORING_WEIGHTS.NEUTRAL_CONTACT_WEIGHT;
+    const weight = actorWeights.get(actor.id) ?? 0;
     totalWeight += weight;
 
     // 1. Detection scoring: best (lowest) ack latency across its tracks
@@ -173,23 +217,25 @@ export function scoreSession(
       }
     }
 
-    if (actor.classId === 'fpv_kamikaze') {
+    const isHostile = THREAT_LIBRARY[actor.classId]?.hostile ?? false;
+
+    if (isHostile) {
       if (actor.state === 'neutralized') {
         const neutralizedDist = actor.neutralizedDistanceToAsset ?? 0;
         if (neutralizedDist >= HOSTILE_STANDOFF_THRESHOLD_M) {
           decisionScore = 1.0;
           reasons.push(
-            `Hostile drone neutralized at ${Math.round(neutralizedDist)}m (>400m standoff): 100% decision score`
+            `Hostile drone (${actor.classId}) neutralized at ${Math.round(neutralizedDist)}m (>400m standoff): 100% decision score`
           );
         } else {
           decisionScore = 0.5;
           reasons.push(
-            `Hostile drone neutralized late at ${Math.round(neutralizedDist)}m (<400m standoff): 50% decision score`
+            `Hostile drone (${actor.classId}) neutralized late at ${Math.round(neutralizedDist)}m (<400m standoff): 50% decision score`
           );
         }
       } else {
         decisionScore = 0;
-        reasons.push(`Hostile drone was NOT neutralized: 0% decision score`);
+        reasons.push(`Hostile drone (${actor.classId}) was NOT neutralized: 0% decision score`);
       }
     } else {
       // Neutral contact (civilian quad or bird)
@@ -267,7 +313,22 @@ export function scoreSession(
     }
   }
 
-  // Penalty 3: Wasted jammer on non-RF target
+  // Penalty 3: Engaged radar ghost track (-5 per ghost track)
+  for (let i = 0; i < tracks.length; i++) {
+    const trk = tracks[i];
+    if (trk && trk.isGhost) {
+      const engagedEvt = events.find(
+        (e) => e.type === 'ENGAGEMENT_STARTED' && e.payload?.trackId === trk.trackId
+      );
+      if (engagedEvt) {
+        const penMsg = `Engaged radar ghost track at ${formatTickTime(engagedEvt.tick)}: -5`;
+        penalties.push({ reason: penMsg, points: 5 });
+        reasons.push(penMsg);
+      }
+    }
+  }
+
+  // Penalty 4: Wasted jammer on non-RF target
   const noEffectEvents = events.filter((e) => e.type === 'NO_EFFECT');
   for (let i = 0; i < noEffectEvents.length; i++) {
     const evt = noEffectEvents[i];
@@ -278,7 +339,7 @@ export function scoreSession(
     }
   }
 
-  // Penalty 4: Asset was hit
+  // Penalty 5: Asset was hit
   if (assetHit) {
     const penMsg = `Asset was hit: -${PENALTIES.ASSET_HIT}`;
     penalties.push({ reason: penMsg, points: PENALTIES.ASSET_HIT });
