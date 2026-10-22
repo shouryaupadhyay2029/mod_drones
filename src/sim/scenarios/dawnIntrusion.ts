@@ -10,6 +10,7 @@ export interface ScenarioSpawnSchedule {
   behaviourType: 'wander' | 'transit' | 'ingress_direct';
   speed: number;
   transitWaypointB?: Vec3;
+  departTick?: number;
 }
 
 export function buildDawnIntrusionSpawns(scenarioRng: Rng): ScenarioSpawnSchedule[] {
@@ -23,8 +24,8 @@ export function buildDawnIntrusionSpawns(scenarioRng: Rng): ScenarioSpawnSchedul
   // 2. Commercial Quad: t ~ 20s (400 ticks +- 5s), transit passing ~ 1.2 km from asset
   const quadTick = Math.max(birdTick + 40, 400 + Math.floor((scenarioRng.next() - 0.5) * 200));
   const quadStandoffY = 1200 + (scenarioRng.next() - 0.5) * 200;
-  const quadStartPos = vec3(-4000, quadStandoffY, 90);
-  const quadEndPos = vec3(4000, quadStandoffY, 90);
+  const quadStartPos = vec3(-1100, quadStandoffY, 90);
+  const quadEndPos = vec3(1100, quadStandoffY, 90);
 
   // 3. FPV Kamikaze: t ~ 45s (900 ticks +- 5s), bearing ~ 280 deg +- 15 deg, range 4 km, alt ~ 60m
   const fpvTick = Math.max(quadTick + 40, 900 + Math.floor((scenarioRng.next() - 0.5) * 200));
@@ -33,6 +34,9 @@ export function buildDawnIntrusionSpawns(scenarioRng: Rng): ScenarioSpawnSchedul
   const fpvRad = fpvBearingDeg * DEG_TO_RAD;
   const fpvPos = vec3(fpvRangeM * dSin(fpvRad), fpvRangeM * dCos(fpvRad), 60);
 
+  // Bird depart time: seeded between t=120s and t=150s (2400 to 3000 ticks)
+  const birdDepartTick = 2400 + Math.floor(scenarioRng.next() * 600);
+
   return [
     {
       tick: birdTick,
@@ -40,6 +44,7 @@ export function buildDawnIntrusionSpawns(scenarioRng: Rng): ScenarioSpawnSchedul
       pos: birdPos,
       behaviourType: 'wander',
       speed: 9,
+      departTick: birdDepartTick,
     },
     {
       tick: quadTick,
@@ -63,8 +68,9 @@ export function spawnScheduledActor(
   schedule: ScenarioSpawnSchedule,
   nextActorId: number
 ): Actor {
+  let actor: Actor;
   if (schedule.behaviourType === 'ingress_direct') {
-    return createActor(
+    actor = createActor(
       nextActorId,
       schedule.classId,
       schedule.pos,
@@ -72,19 +78,19 @@ export function spawnScheduledActor(
       schedule.speed
     );
   } else if (schedule.behaviourType === 'transit') {
-    return createActor(
+    actor = createActor(
       nextActorId,
       schedule.classId,
       schedule.pos,
       {
         type: 'transit',
         waypointA: schedule.pos,
-        waypointB: schedule.transitWaypointB ?? vec3(4000, 1200, 90),
+        waypointB: schedule.transitWaypointB ?? vec3(1100, 1200, 90),
       },
       schedule.speed
     );
   } else {
-    return createActor(
+    actor = createActor(
       nextActorId,
       schedule.classId,
       schedule.pos,
@@ -98,4 +104,10 @@ export function spawnScheduledActor(
       schedule.speed
     );
   }
+
+  if (schedule.departTick !== undefined) {
+    actor.departTick = schedule.departTick;
+  }
+
+  return actor;
 }

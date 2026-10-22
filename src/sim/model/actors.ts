@@ -9,6 +9,7 @@ export type ActorBehaviour =
   | { type: 'ingress_direct'; targetPos?: Vec3 }
   | { type: 'transit'; waypointA: Vec3; waypointB: Vec3 }
   | { type: 'wander'; headingDeg: number; pitchDeg: number; speed: number; lastHeadingChangeTick: number }
+  | { type: 'depart'; headingDeg?: number }
   | { type: 'neutralized' };
 
 export interface Actor {
@@ -19,6 +20,7 @@ export interface Actor {
   state: ActorState;
   behaviour: ActorBehaviour;
   speed: number;
+  departTick?: number;
   neutralizedTick?: number;
   neutralizedDistanceToAsset?: number;
 }
@@ -52,6 +54,11 @@ export function createActor(
       y: chosenSpeed * dCos(hRad) * dCos(pRad),
       z: chosenSpeed * dSin(pRad),
     };
+  } else if (behaviour.type === 'depart') {
+    const distFromOrigin = vDist2D(pos, vec3(0, 0, 0));
+    const outDir =
+      distFromOrigin > 0 ? vNormalize(vec3(pos.x, pos.y, 0)) : vec3(0, 1, 0);
+    initialVel = vScale(outDir, Math.max(chosenSpeed, 90));
   }
 
   return {
@@ -75,6 +82,21 @@ export function updateActorBehaviour(
   if (actor.state !== 'active') {
     actor.vel = vec3(0, 0, 0);
     return;
+  }
+
+  // Check scheduled departure (e.g. bird depart between t=120s and 150s)
+  if (
+    actor.departTick !== undefined &&
+    currentTick >= actor.departTick &&
+    actor.behaviour.type !== 'depart'
+  ) {
+    actor.behaviour = { type: 'depart' };
+    const distFromOrigin = vDist2D(actor.pos, vec3(0, 0, 0));
+    const outDir =
+      distFromOrigin > 0
+        ? vNormalize(vec3(actor.pos.x, actor.pos.y, 0))
+        : vec3(0, 1, 0);
+    actor.vel = vScale(outDir, Math.max(actor.speed, 90));
   }
 
   switch (actor.behaviour.type) {
@@ -106,8 +128,12 @@ export function updateActorBehaviour(
       actor.pos.y += actor.vel.y * dt;
       actor.pos.z += actor.vel.z * dt;
 
-      // Leaves area at 8 km from origin
-      if (vDist2D(actor.pos, vec3(0, 0, 0)) >= 8000) {
+      // Leaves area at 8 km from origin or upon completing transit past waypoint B
+      const distFromOrigin = vDist2D(actor.pos, vec3(0, 0, 0));
+      const distFromStart = vDist2D(actor.pos, actor.behaviour.waypointA);
+      const totalDist = vDist2D(actor.behaviour.waypointB, actor.behaviour.waypointA);
+
+      if (distFromOrigin >= 8000 || (totalDist > 0 && distFromStart >= totalDist)) {
         actor.state = 'left_area';
         actor.vel = vec3(0, 0, 0);
       }
@@ -143,6 +169,32 @@ export function updateActorBehaviour(
           z: actor.speed * dSin(pRad),
         };
       }
+
+      actor.pos.x += actor.vel.x * dt;
+      actor.pos.y += actor.vel.y * dt;
+      actor.pos.z += actor.vel.z * dt;
+
+      if (vDist2D(actor.pos, vec3(0, 0, 0)) >= 8000) {
+        actor.state = 'left_area';
+        actor.vel = vec3(0, 0, 0);
+      }
+      break;
+    }
+
+    case 'depart': {
+      // Flies straight out of the area and becomes left_area at 8 km
+      const distFromOrigin = vDist2D(actor.pos, vec3(0, 0, 0));
+      if (distFromOrigin >= 8000) {
+        actor.state = 'left_area';
+        actor.vel = vec3(0, 0, 0);
+        return;
+      }
+
+      const outDir =
+        distFromOrigin > 0
+          ? vNormalize(vec3(actor.pos.x, actor.pos.y, 0))
+          : vec3(0, 1, 0);
+      actor.vel = vScale(outDir, Math.max(actor.speed, 90));
 
       actor.pos.x += actor.vel.x * dt;
       actor.pos.y += actor.vel.y * dt;

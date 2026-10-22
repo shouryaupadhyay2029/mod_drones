@@ -303,4 +303,11 @@ describe('Phase 1A: Simulation Vertical Slice & Determinism', { timeout: 30000 }
     expect(engine.missionState.ended).toBe(true);
     expect(engine.missionState.reason).toBe('all_resolved');
   });
+
+  it('9d. Mission end condition: all_resolved fires for reference operator in Dawn Intrusion', () => {
+    const engine = runMissionWithBot('s1', referenceOperator);
+    expect(engine.missionState.ended).toBe(true);
+    expect(engine.missionState.reason).toBe('all_resolved');
+    expect(engine.world.tick).toBeLessThan(4800);
+  });
 });
