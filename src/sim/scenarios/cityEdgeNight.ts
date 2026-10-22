@@ -38,11 +38,11 @@ export function buildCityEdgeNightSpawns(scenarioRng: Rng): ScenarioSpawnSchedul
   const fpv1Rad = fpv1BearingDeg * DEG_TO_RAD;
   const fpv1Pos = vec3(fpv1RangeM * dSin(fpv1Rad), fpv1RangeM * dCos(fpv1Rad), 50);
 
-  // 3. Commercial Quad: t ~ 40s (800 +- 80 ticks), slow transit at 1.4 km standoff, speed 10 m/s
+  // 3. Commercial Quad: t ~ 40s (800 +- 80 ticks), transit at 1.4 km standoff, speed 14 m/s
   const quadTick = Math.max(fpv1Tick + 40, 800 + Math.floor((scenarioRng.next() - 0.5) * 160));
   const quadY = 1400 + (scenarioRng.next() - 0.5) * 150;
-  const quadStartPos = vec3(-1400, quadY, 70);
-  const quadEndPos = vec3(1400, quadY, 70);
+  const quadStartPos = vec3(-900, quadY, 70);
+  const quadEndPos = vec3(900, quadY, 70);
 
   // 4. Bird 2: t ~ 60s (1200 +- 80 ticks), range ~ 1.6 km
   const bird2Tick = Math.max(quadTick + 40, 1200 + Math.floor((scenarioRng.next() - 0.5) * 160));
@@ -52,10 +52,10 @@ export function buildCityEdgeNightSpawns(scenarioRng: Rng): ScenarioSpawnSchedul
   const bird2Pos = vec3(bird2RangeM * dSin(bird2Rad), bird2RangeM * dCos(bird2Rad), 55);
   const bird2DepartTick = 2600 + Math.floor(scenarioRng.next() * 500);
 
-  // 5. Hostile FPV 2: t ~ 90s (1800 +- 60 ticks), from ~120 deg, range 3500m, z 60m, speed 28 m/s
-  const fpv2Tick = Math.max(bird2Tick + 40, 1800 + Math.floor((scenarioRng.next() - 0.5) * 120));
+  // 5. Hostile FPV 2: t ~ 75s (1500 +- 60 ticks), from ~120 deg, range 3000m, z 60m, speed 28 m/s
+  const fpv2Tick = Math.max(bird2Tick + 40, 1500 + Math.floor((scenarioRng.next() - 0.5) * 120));
   const fpv2BearingDeg = 120 + (scenarioRng.next() - 0.5) * 12;
-  const fpv2RangeM = 3500;
+  const fpv2RangeM = 3000;
   const fpv2Rad = fpv2BearingDeg * DEG_TO_RAD;
   const fpv2Pos = vec3(fpv2RangeM * dSin(fpv2Rad), fpv2RangeM * dCos(fpv2Rad), 60);
 
@@ -80,7 +80,7 @@ export function buildCityEdgeNightSpawns(scenarioRng: Rng): ScenarioSpawnSchedul
       classId: 'commercial_quad',
       pos: quadStartPos,
       behaviourType: 'transit',
-      speed: 10,
+      speed: 14,
       transitWaypointB: quadEndPos,
     },
     {

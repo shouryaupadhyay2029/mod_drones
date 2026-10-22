@@ -51,11 +51,11 @@ export function buildRidgeRunnerSpawns(scenarioRng: Rng): ScenarioSpawnSchedule[
   const fpv1Rad = fpv1BearingDeg * DEG_TO_RAD;
   const fpv1Pos = vec3(fpv1RangeM * dSin(fpv1Rad), fpv1RangeM * dCos(fpv1Rad), 70);
 
-  // 3. Commercial Quad: t ~ 45s (900 ticks +- 100), transit at ~1.5 km, speed 12 m/s
+  // 3. Commercial Quad: t ~ 45s (900 ticks +- 100), transit at ~1.5 km, speed 14 m/s
   const quadTick = Math.max(fpv1Tick + 40, 900 + Math.floor((scenarioRng.next() - 0.5) * 200));
   const quadY = 1500 + (scenarioRng.next() - 0.5) * 200;
-  const quadStartPos = vec3(-1500, quadY, 90);
-  const quadEndPos = vec3(1500, quadY, 90);
+  const quadStartPos = vec3(-900, quadY, 90);
+  const quadEndPos = vec3(900, quadY, 90);
 
   // 4. Hostile FPV 2: t ~ 60s (1200 ticks +- 100), from ~100 deg, range 4000m, z 180m (unmasked), speed 28 m/s
   const fpv2Tick = Math.max(quadTick + 40, 1200 + Math.floor((scenarioRng.next() - 0.5) * 200));
@@ -85,7 +85,7 @@ export function buildRidgeRunnerSpawns(scenarioRng: Rng): ScenarioSpawnSchedule[
       classId: 'commercial_quad',
       pos: quadStartPos,
       behaviourType: 'transit',
-      speed: 12,
+      speed: 14,
       transitWaypointB: quadEndPos,
     },
     {

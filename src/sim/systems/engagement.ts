@@ -53,7 +53,10 @@ export function tryEngageTrack(
       });
       return;
     }
-    if (currentTick < effectorState.jammer.busyUntilTick) {
+    if (
+      effectorState.jammer.currentEngagement !== undefined ||
+      currentTick < effectorState.jammer.busyUntilTick
+    ) {
       events.push({
         tick: currentTick,
         type: 'ENGAGEMENT_REJECTED',
@@ -97,7 +100,10 @@ export function tryEngageTrack(
       });
       return;
     }
-    if (currentTick < effectorState.gun.busyUntilTick) {
+    if (
+      effectorState.gun.currentEngagement !== undefined ||
+      currentTick < effectorState.gun.busyUntilTick
+    ) {
       events.push({
         tick: currentTick,
         type: 'ENGAGEMENT_REJECTED',
