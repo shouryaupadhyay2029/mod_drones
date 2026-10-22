@@ -274,8 +274,7 @@ export function TopBar({
               <span style={styles.brandCrosshair}>✛</span>
             </div>
             <div style={styles.brandTextCol}>
-              <span style={styles.brandName}>VAJRA // AIR DEFENSE</span>
-              <span style={styles.brandTagline}>COUNTER-UAS SIMULATOR</span>
+              <span style={styles.brandName}>VAJRA</span>
             </div>
           </a>
         </div>
@@ -626,32 +625,7 @@ export function TopBar({
 
         {/* Right: Contextual Telemetry & Controls */}
         <div style={styles.navRight}>
-          {phase === 'setup' ? (
-            <div style={styles.setupActionCluster}>
-              <div style={styles.statusPulse}>
-                <span style={styles.pulseDot} />
-                <span style={styles.pulseText}>STANDBY</span>
-              </div>
-
-              <span style={styles.navDivider}>|</span>
-
-              <a href="#/check" style={styles.sysCheckLink}>
-                <TextRoll stagger={0.02}>System Check ↗</TextRoll>
-              </a>
-
-              <span style={styles.navDivider}>|</span>
-
-              <div style={styles.scenarioActiveChip} title="Current Scenario Selection">
-                <span style={styles.chipDot} />
-                <span style={styles.chipText}>{scTitle}</span>
-              </div>
-
-              <div style={styles.seedDisplayPill} title="Deterministic Pseudo-Random Seed">
-                <span style={styles.seedLabelText}>SEED:</span>
-                <span style={styles.seedValueText}>{seed}</span>
-              </div>
-            </div>
-          ) : (
+          {phase === 'setup' ? null : (
             <div style={styles.runningActionCluster}>
               {/* Mission Scenario and Environment */}
               <div style={styles.missionTitle}>
@@ -821,9 +795,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   brandName: {
     color: '#181716',
-    fontSize: '13px',
-    fontWeight: 800,
-    letterSpacing: '0.06em',
+    fontSize: '15px',
+    fontWeight: 900,
+    letterSpacing: '0.14em',
     fontFamily: 'monospace',
   },
   brandTagline: {

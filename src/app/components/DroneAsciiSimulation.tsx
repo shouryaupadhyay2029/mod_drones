@@ -173,9 +173,9 @@ export function DroneAsciiSimulation({
   const card4Ref = useRef<HTMLDivElement | null>(null);
 
   const [asciiText, setAsciiText] = useState<string>('');
-  const [isRotating, setIsRotating] = useState<boolean>(autoRotate);
-  const [activeColor, setActiveColor] = useState<string>(color);
-  const [wireframeOnly, setWireframeOnly] = useState<boolean>(false);
+  const isRotating = autoRotate;
+  const activeColor = color;
+  const wireframeOnly = false;
 
   // SVG HUD Leader Line direct DOM refs for 60fps synchronous tracking without React re-renders
   const lineTlRef = useRef<SVGPathElement | null>(null);
@@ -236,10 +236,6 @@ export function DroneAsciiSimulation({
 
   const handleMouseUp = () => {
     isDraggingRef.current = false;
-  };
-
-  const resetOrientation = () => {
-    anglesRef.current = { yaw: 0.5, pitch: 0.62, roll: 0.0 };
   };
 
   // Recompute layout bounds when window resizes or component mounts
@@ -559,114 +555,6 @@ export function DroneAsciiSimulation({
         ...style,
       }}
     >
-      {/* Centered Top Floating Controls Bar */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '16px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          gap: '8px',
-          zIndex: 10,
-          backgroundColor: 'rgba(222, 215, 202, 0.85)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          padding: '4px 6px',
-          borderRadius: '8px',
-          border: '1px solid rgba(45, 40, 35, 0.14)',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-        }}
-      >
-        <button
-          onClick={() => setIsRotating((prev) => !prev)}
-          title="Toggle Auto-Rotation"
-          style={{
-            backgroundColor: '#eae5dc',
-            border: '1px solid rgba(45, 40, 35, 0.25)',
-            color: isRotating ? '#181716' : '#78746c',
-            borderRadius: '6px',
-            padding: '5px 10px',
-            fontSize: '11px',
-            fontFamily: 'monospace',
-            fontWeight: 700,
-            cursor: 'pointer',
-            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
-          }}
-        >
-          {isRotating ? '⏸ PAUSE' : '▶ ROTATE'}
-        </button>
-
-        <button
-          onClick={resetOrientation}
-          title="Reset Orientation"
-          style={{
-            backgroundColor: '#eae5dc',
-            border: '1px solid rgba(45, 40, 35, 0.25)',
-            color: '#181716',
-            borderRadius: '6px',
-            padding: '5px 10px',
-            fontSize: '11px',
-            fontFamily: 'monospace',
-            fontWeight: 700,
-            cursor: 'pointer',
-            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
-          }}
-        >
-          ↺ RESET
-        </button>
-
-        <button
-          onClick={() => setWireframeOnly((prev) => !prev)}
-          title="Toggle ASCII Density"
-          style={{
-            backgroundColor: '#eae5dc',
-            border: '1px solid rgba(45, 40, 35, 0.25)',
-            color: wireframeOnly ? '#8e5b5d' : '#181716',
-            borderRadius: '6px',
-            padding: '5px 10px',
-            fontSize: '11px',
-            fontFamily: 'monospace',
-            fontWeight: 700,
-            cursor: 'pointer',
-            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
-          }}
-        >
-          {wireframeOnly ? 'WIREFRAME' : 'SHADED'}
-        </button>
-
-        <button
-          onClick={() => {
-            const nextColor =
-              activeColor === '#050505'
-                ? '#381417' // Deep Dark Terracotta Ink
-                : activeColor === '#381417'
-                  ? '#0d1829' // Deep Tactical Navy Ink
-                  : activeColor === '#0d1829'
-                    ? '#241030' // Deep Obsidian Plum Ink
-                    : activeColor === '#241030'
-                      ? '#10240e' // Deep Tactical Olive Ink
-                      : '#050505';
-            setActiveColor(nextColor);
-          }}
-          title="Switch Color Theme"
-          style={{
-            backgroundColor: '#eae5dc',
-            border: `1.5px solid ${activeColor}`,
-            color: activeColor,
-            borderRadius: '6px',
-            padding: '5px 10px',
-            fontSize: '11px',
-            fontFamily: 'monospace',
-            fontWeight: 800,
-            cursor: 'pointer',
-            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)',
-          }}
-        >
-          THEME
-        </button>
-      </div>
-
       {/* SVG Tactical HUD Overlay with Animated Leader Lines & Targeting Reticles */}
       <svg
         ref={svgRef}
