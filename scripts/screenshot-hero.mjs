@@ -63,6 +63,8 @@ async function run() {
 
       const heroPath = path.join(outDir, 'hero-ascii-drone.png');
       await page.screenshot({ path: heroPath });
+      const artifactDir = 'C:\\Users\\Shourya Upadhyay\\.gemini\\antigravity\\brain\\8764f751-615b-4181-97b2-67211edfa358';
+      fs.copyFileSync(heroPath, path.join(artifactDir, 'hero-seamless-drone.png'));
       console.log('Captured hero-ascii-drone.png at:', heroPath);
     } finally {
       await browser.close();

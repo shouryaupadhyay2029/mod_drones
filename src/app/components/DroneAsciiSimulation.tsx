@@ -328,9 +328,9 @@ export function DroneAsciiSimulation({
         width: '100%',
         height: '100%',
         minHeight: '480px',
-        backgroundColor,
-        borderRadius: '12px',
-        border: '1px solid rgba(203, 179, 232, 0.16)',
+        backgroundColor: backgroundColor || 'transparent',
+        borderRadius: '0',
+        border: 'none',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -338,7 +338,7 @@ export function DroneAsciiSimulation({
         justifyContent: 'center',
         userSelect: 'none',
         cursor: isDraggingRef.current ? 'grabbing' : 'grab',
-        boxShadow: `0 0 35px rgba(0, 0, 0, 0.8), 0 0 20px ${activeColor}15`,
+        boxShadow: 'none',
         ...style,
       }}
     >

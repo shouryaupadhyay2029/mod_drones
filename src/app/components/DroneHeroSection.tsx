@@ -4,11 +4,11 @@ import { DroneAsciiSimulation } from './DroneAsciiSimulation.js';
 export function DroneHeroSection(): React.JSX.Element {
   return (
     <section style={styles.heroSection}>
-      {/* Full-Width 3D Tactical Drone ASCII Canvas Container */}
+      {/* Full-Width 3D Tactical Drone ASCII Canvas Container — Seamless with page background */}
       <div style={styles.canvasWrapper}>
         <DroneAsciiSimulation
           color="#cbb3e8"
-          backgroundColor="#080808"
+          backgroundColor="transparent"
           fontSize={10}
           autoRotate={true}
           rotationSpeed={0.012}
@@ -25,17 +25,18 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     alignItems: 'center',
     backgroundColor: 'transparent',
-    borderBottom: 'none',
+    border: 'none',
     boxSizing: 'border-box',
-    padding: '4px 24px 24px 24px',
+    padding: '0 0 16px 0',
   },
   canvasWrapper: {
     position: 'relative',
     width: '100%',
-    maxWidth: '1440px',
     height: '520px',
-    borderRadius: '12px',
+    borderRadius: '0',
+    border: 'none',
+    boxShadow: 'none',
+    backgroundColor: 'transparent',
     overflow: 'hidden',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(203, 179, 232, 0.08)',
   },
 };
