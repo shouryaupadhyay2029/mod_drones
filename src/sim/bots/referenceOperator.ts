@@ -23,6 +23,36 @@ export function computeHeadingErrorToAsset(track: TraineeTrack): number | undefi
 export function referenceOperator(view: TraineeView): Command[] {
   const commands: Command[] = [];
 
+  // 0. EO Turret Management
+  // Lock nearest confirmed unclassified track within 3 km; release once classified
+  const lockedTrack =
+    view.eo.lockedTrackId !== undefined
+      ? view.tracks.find((t) => t.trackId === view.eo.lockedTrackId)
+      : undefined;
+
+  if (
+    view.eo.lockedTrackId !== undefined &&
+    (!lockedTrack || lockedTrack.state === 'dropped' || lockedTrack.assessedClass !== undefined)
+  ) {
+    commands.push({
+      tick: view.tick,
+      type: 'EO_RELEASE',
+      payload: {},
+    });
+  } else if (view.eo.state === 'idle' || view.eo.lockedTrackId === undefined) {
+    const unclassifiedTracks = view.tracks
+      .filter((t) => t.state === 'confirmed' && t.assessedClass === undefined && t.rangeM <= 3000)
+      .sort((a, b) => a.rangeM - b.rangeM);
+
+    if (unclassifiedTracks.length > 0) {
+      commands.push({
+        tick: view.tick,
+        type: 'EO_LOCK',
+        payload: { trackId: unclassifiedTracks[0]!.trackId },
+      });
+    }
+  }
+
   for (let i = 0; i < view.tracks.length; i++) {
     const track = view.tracks[i];
     if (!track) continue;
@@ -49,7 +79,7 @@ export function referenceOperator(view: TraineeView): Command[] {
     const turnRate = track.headingChangeRateDegPerS ?? 0;
     const headingError = computeHeadingErrorToAsset(track) ?? 180;
 
-    // 2. Classify or re-evaluate classification based on pure kinematic & radar cues
+    // 2. Classify using sensor fusion: EO identify > RF signature > EO recognize > Kinematics
     if (track.assessedClass === undefined) {
       let assessed:
         | 'fpv_kamikaze'
@@ -59,31 +89,83 @@ export function referenceOperator(view: TraineeView): Command[] {
         | 'clutter'
         | undefined;
 
-      // Cue A: False track / clutter (low quality blips, non-coherent velocity)
-      if (track.quality < 0.28) {
-        assessed = 'clutter';
+      // Priority 1: EO 'identify' hint (highest confidence sensor cue)
+      if (
+        view.eo.state === 'locked' &&
+        view.eo.lockedTrackId === track.trackId &&
+        view.eo.level === 'identify' &&
+        view.eo.hint
+      ) {
+        if (
+          view.eo.hint === 'fpv_kamikaze' ||
+          view.eo.hint === 'commercial_quad' ||
+          view.eo.hint === 'fixed_wing_recon' ||
+          view.eo.hint === 'bird'
+        ) {
+          assessed = view.eo.hint;
+        }
       }
-      // Cue B: Avian (tiny RCS bucket or erratic wander turn rates)
-      else if (track.rcsBucket === 'tiny' || (speed < 16 && turnRate > 3.5)) {
-        assessed = 'bird';
+
+      // Priority 2: Distinct RF signature cue
+      if (!assessed && track.rfStatus === 'emitting' && track.rfSignature) {
+        if (track.rfSignature === 'wideband_video') {
+          assessed = 'fpv_kamikaze';
+        } else if (track.rfSignature === 'telemetry_link') {
+          assessed = 'commercial_quad';
+        } else if (track.rfSignature === 'long_range_link') {
+          assessed = 'fixed_wing_recon';
+        }
       }
-      // Cue C1: High-altitude fixed-wing reconnaissance UAV (altitude >= 160m)
-      else if (track.altitudeM >= 160 && speed >= 18) {
-        assessed = 'fixed_wing_recon';
+
+      // Priority 3: EO 'recognize' category cue
+      if (
+        !assessed &&
+        view.eo.state === 'locked' &&
+        view.eo.lockedTrackId === track.trackId &&
+        view.eo.level === 'recognize' &&
+        view.eo.hint
+      ) {
+        if (view.eo.hint === 'bird') {
+          assessed = 'bird';
+        } else if (view.eo.hint === 'fixed_wing') {
+          assessed = 'fixed_wing_recon';
+        } else if (view.eo.hint === 'multirotor') {
+          if (speed >= 20 || (speed >= 18 && closingRate <= -15)) {
+            assessed = 'fpv_kamikaze';
+          } else {
+            assessed = 'commercial_quad';
+          }
+        }
       }
-      // Cue C2: High-speed direct closing threat (FPV strike drone)
-      else if (speed >= 24 && closingRate <= -20 && headingError <= 35) {
-        assessed = 'fpv_kamikaze';
-      }
-      // Cue D: Standoff transit corridor / non-closing crossing trajectory
-      else if (speed >= 6 && (closingRate > -16 || headingError > 40)) {
-        assessed = 'commercial_quad';
-      }
-      // Cue E: Low speed or ambiguous
-      else if (speed < 6) {
-        assessed = 'bird';
-      } else {
-        assessed = 'commercial_quad';
+
+      // Priority 4: Kinematics fallback
+      if (!assessed) {
+        // Cue A: False track / clutter (low quality blips, non-coherent velocity)
+        if (track.quality < 0.28) {
+          assessed = 'clutter';
+        }
+        // Cue B: Avian (tiny RCS bucket or erratic wander turn rates)
+        else if (track.rcsBucket === 'tiny' || (speed < 16 && turnRate > 3.5)) {
+          assessed = 'bird';
+        }
+        // Cue C1: High-altitude fixed-wing reconnaissance UAV (altitude >= 160m)
+        else if (track.altitudeM >= 160 && speed >= 18) {
+          assessed = 'fixed_wing_recon';
+        }
+        // Cue C2: High-speed direct closing threat (FPV strike drone)
+        else if (speed >= 24 && closingRate <= -20 && headingError <= 35) {
+          assessed = 'fpv_kamikaze';
+        }
+        // Cue D: Standoff transit corridor / non-closing crossing trajectory
+        else if (speed >= 6 && (closingRate > -16 || headingError > 40)) {
+          assessed = 'commercial_quad';
+        }
+        // Cue E: Low speed or ambiguous
+        else if (speed < 6) {
+          assessed = 'bird';
+        } else {
+          assessed = 'commercial_quad';
+        }
       }
 
       if (assessed) {
@@ -92,6 +174,15 @@ export function referenceOperator(view: TraineeView): Command[] {
           type: 'CLASSIFY_TRACK',
           payload: { trackId: track.trackId, assessedClass: assessed },
         });
+
+        // Release EO lock once target is classified
+        if (view.eo.lockedTrackId === track.trackId) {
+          commands.push({
+            tick: view.tick,
+            type: 'EO_RELEASE',
+            payload: {},
+          });
+        }
         continue;
       }
     }
@@ -99,6 +190,8 @@ export function referenceOperator(view: TraineeView): Command[] {
     // Re-evaluate if a previously non-hostile track turns into a high-speed direct inbound attack
     if (
       track.assessedClass !== 'fpv_kamikaze' &&
+      track.assessedClass !== 'fixed_wing_recon' &&
+      track.rfSignature !== 'telemetry_link' &&
       track.rcsBucket !== 'tiny' &&
       speed >= 24 &&
       closingRate <= -20 &&

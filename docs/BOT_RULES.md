@@ -23,12 +23,37 @@ From each `TraineeTrack`, the bot inspects:
 - `track.headingChangeRateDegPerS`: Smoothed turn rate ($\Delta \theta / \Delta t$ in deg/s).
 - `track.rcsBucket`: Radar cross section category (`'tiny'`, `'small'`, `'medium'`).
 - `track.quality`: Track correlation confidence metric ($0.0 - 1.0$).
+- `track.rfStatus`: Passive RF emission state (`'emitting'`, `'silent'`, `'unknown'`).
+- `track.rfSignature`: Intercepted RF modulation protocol (`'wideband_video'`, `'telemetry_link'`, `'long_range_link'`, `'unknown_link'`).
+- `view.eo`: Active EO/IR gimbal turret telemetry (`state`, `lockedTrackId`, `channel`, `level`, `hint`, `quality`).
 
 ---
 
-## 2. Decision Tree & Classification Rules
+## 2. Sensor Fusion Hierarchy & Classification Weights
 
-When a confirmed track with valid velocity has `assessedClass === undefined`:
+When a confirmed track with valid velocity has `assessedClass === undefined`, `referenceOperator` applies a prioritized sensor fusion cascade:
+
+1. **EO/IR Turret Cue (Weight: 1.0 - Definitive Sensor Resolution)**:
+   - When turret is locked on target contact with `level === 'identify'`:
+     - If `hint` matches a library threat class (`'fpv_kamikaze'`, `'commercial_quad'`, `'fixed_wing_recon'`, `'bird'`), accept hint directly ($95\%$ accuracy).
+   - Once classified, the bot immediately issues `EO_RELEASE` to free the gimbal for the next nearest unclassified contact within $3\text{ km}$.
+
+2. **RF Line-of-Bearing Intercept Cue (Weight: 0.85 - High Confidence Link Signature)**:
+   - If `track.rfStatus === 'emitting'`:
+     - `'wideband_video'` $\to$ assess `fpv_kamikaze` (high-bandwidth analogue/digital video feed).
+     - `'telemetry_link'` $\to$ assess `commercial_quad` (2.4/5.8 GHz bidirectional telemetry).
+     - `'long_range_link'` $\to$ assess `fixed_wing_recon` (high-gain directional command link).
+
+3. **EO/IR Recognition Category Cue (Weight: 0.70 - Airframe Shape)**:
+   - When turret is locked with `level === 'recognize'`:
+     - `'bird'` $\to$ assess `bird`.
+     - `'fixed_wing'` $\to$ assess `fixed_wing_recon`.
+     - `'multirotor'` $\to$ disambiguate via speed/closing rate:
+       - If $\text{speed} \ge 20\text{ m/s} \lor (\text{speed} \ge 18\text{ m/s} \land \text{closingRate} \le -15\text{ m/s})$ $\to$ assess `fpv_kamikaze`.
+       - Else $\to$ assess `commercial_quad`.
+
+4. **Kinematic & Radar Cross Section Fallback (Weight: 0.50 - Baseline Kinematics)**:
+   - Evaluated only when optical and RF sensor cues are unavailable or ambiguous:
 
 ```
                     [Confirmed Track with Valid Velocity]
