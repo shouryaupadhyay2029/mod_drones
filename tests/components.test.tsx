@@ -103,8 +103,8 @@ describe('Console UI Components & Logic Verification', () => {
           onSelectTrack={() => {}}
         />
       );
-      // Selected row has #1e293b background style
-      expect(html).toContain('background-color:#1e293b');
+      // Selected row has highlight background style
+      expect(html).toContain('background-color:rgba(255, 45, 171, 0.16)');
     });
   });
 

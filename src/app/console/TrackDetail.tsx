@@ -84,7 +84,7 @@ export function TrackDetail({
         <span
           style={{
             ...styles.lifecycleTag,
-            color: track.state === 'confirmed' ? '#38bdf8' : '#94a3b8',
+            color: track.state === 'confirmed' ? '#ff2dab' : '#a1a1aa',
           }}
         >
           {track.state.toUpperCase()}
@@ -110,7 +110,7 @@ export function TrackDetail({
           <span
             style={{
               ...styles.cueVal,
-              color: track.velocityValid && track.closingRateMps !== undefined && track.closingRateMps < -2 ? '#f87171' : '#cbd5e1',
+              color: track.velocityValid && track.closingRateMps !== undefined && track.closingRateMps < -2 ? '#ff2dab' : '#e4e4e7',
             }}
           >
             {track.velocityValid && track.closingRateMps !== undefined ? `${Math.round(track.closingRateMps)} m/s` : '—'}
@@ -145,7 +145,10 @@ export function TrackDetail({
             onClick={() => onAcknowledge(track.trackId)}
             style={{
               ...styles.btnAction,
-              backgroundColor: isAckDisabled ? '#1e293b' : '#0284c7',
+              backgroundColor: isAckDisabled ? '#262626' : '#ff2dab',
+              color: isAckDisabled ? '#71717a' : '#0b0b0b',
+              fontWeight: 800,
+              boxShadow: isAckDisabled ? 'none' : '0 0 10px rgba(255, 45, 171, 0.4)',
               opacity: isAckDisabled ? 0.6 : 1,
             }}
           >
@@ -163,7 +166,9 @@ export function TrackDetail({
             onClick={() => onHoldFire(track.trackId)}
             style={{
               ...styles.btnAction,
-              backgroundColor: isHoldDisabled ? '#1e293b' : '#334155',
+              backgroundColor: isHoldDisabled ? '#262626' : '#181818',
+              color: isHoldDisabled ? '#71717a' : '#ffffff',
+              border: '1px solid #3f3f46',
               opacity: isHoldDisabled ? 0.6 : 1,
             }}
           >
@@ -191,13 +196,14 @@ export function TrackDetail({
                 onClick={() => onClassify(track.trackId, opt.id)}
                 style={{
                   ...styles.btnClassify,
-                  backgroundColor: isAssessed ? '#065f46' : '#1e293b',
-                  borderColor: isAssessed ? '#10b981' : '#334155',
-                  color: isAssessed ? '#a7f3d0' : '#e2e8f0',
+                  backgroundColor: isAssessed ? 'rgba(255, 45, 171, 0.2)' : '#181818',
+                  borderColor: isAssessed ? '#ff2dab' : '#262626',
+                  color: isAssessed ? '#ff2dab' : '#e4e4e7',
+                  boxShadow: isAssessed ? '0 0 8px rgba(255, 45, 171, 0.35)' : 'none',
                 }}
               >
                 <span>{opt.label}</span>
-                <span style={styles.shortcutTag}>[{keyLabel}]</span>
+                <span style={{ ...styles.shortcutTag, color: isAssessed ? '#ff2dab' : '#a1a1aa' }}>[{keyLabel}]</span>
               </button>
             );
           })}
@@ -216,7 +222,9 @@ export function TrackDetail({
               style={{
                 ...styles.btnEngage,
                 backgroundColor:
-                  jammerDisabledReason !== null ? '#1e293b' : '#7c3aed',
+                  jammerDisabledReason !== null ? '#262626' : '#ff2dab',
+                color: jammerDisabledReason !== null ? '#71717a' : '#0b0b0b',
+                boxShadow: jammerDisabledReason !== null ? 'none' : '0 0 12px rgba(255, 45, 171, 0.4)',
                 opacity: jammerDisabledReason !== null ? 0.6 : 1,
               }}
             >
@@ -235,7 +243,9 @@ export function TrackDetail({
               style={{
                 ...styles.btnEngage,
                 backgroundColor:
-                  gunDisabledReason !== null ? '#1e293b' : '#dc2626',
+                  gunDisabledReason !== null ? '#262626' : '#e11d48',
+                color: gunDisabledReason !== null ? '#71717a' : '#ffffff',
+                boxShadow: gunDisabledReason !== null ? 'none' : '0 0 12px rgba(225, 29, 72, 0.4)',
                 opacity: gunDisabledReason !== null ? 0.6 : 1,
               }}
             >
@@ -253,8 +263,8 @@ export function TrackDetail({
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#0b111e',
-    border: '1px solid #1e293b',
+    backgroundColor: '#121212',
+    border: '1px solid #262626',
     borderRadius: '8px',
     padding: '14px',
     display: 'flex',
@@ -268,8 +278,8 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     fontSize: '12px',
     fontWeight: 700,
-    color: '#94a3b8',
-    borderBottom: '1px solid #1e293b',
+    color: '#ff2dab',
+    borderBottom: '1px solid #262626',
     paddingBottom: '8px',
   },
   lifecycleTag: {
@@ -277,7 +287,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
   },
   emptyPrompt: {
-    color: '#64748b',
+    color: '#71717a',
     fontSize: '12px',
     padding: '24px 12px',
     textAlign: 'center',
@@ -289,8 +299,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '8px',
   },
   cueBox: {
-    backgroundColor: '#030712',
-    border: '1px solid #1e293b',
+    backgroundColor: '#080808',
+    border: '1px solid #262626',
     borderRadius: '4px',
     padding: '6px 8px',
     display: 'flex',
@@ -298,12 +308,12 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '2px',
   },
   cueLabel: {
-    color: '#64748b',
+    color: '#a1a1aa',
     fontSize: '9px',
     fontWeight: 600,
   },
   cueVal: {
-    color: '#f8fafc',
+    color: '#ffffff',
     fontSize: '12px',
     fontWeight: 700,
   },
@@ -329,7 +339,7 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   disabledReasonText: {
-    color: '#f87171',
+    color: '#ff2dab',
     fontSize: '10px',
     textAlign: 'center',
   },
@@ -341,8 +351,8 @@ const styles: Record<string, React.CSSProperties> = {
   sectionLabel: {
     fontSize: '10px',
     fontWeight: 700,
-    color: '#64748b',
-    letterSpacing: '0.05em',
+    color: '#ff2dab',
+    letterSpacing: '0.06em',
   },
   classifyGrid: {
     display: 'grid',
@@ -363,7 +373,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '4px',
   },
   shortcutTag: {
-    color: '#94a3b8',
+    color: '#a1a1aa',
     fontSize: '10px',
   },
   effectorButtonsRow: {

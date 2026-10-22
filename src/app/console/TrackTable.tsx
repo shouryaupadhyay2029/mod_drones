@@ -57,19 +57,19 @@ export function TrackTable({
                     onClick={() => onSelectTrack(t.trackId)}
                     style={{
                       ...styles.tr,
-                      backgroundColor: isSelected ? '#1e293b' : 'transparent',
-                      borderLeft: isSelected ? '3px solid #38bdf8' : '3px solid transparent',
+                      backgroundColor: isSelected ? 'rgba(255, 45, 171, 0.16)' : 'transparent',
+                      borderLeft: isSelected ? '3px solid #ff2dab' : '3px solid transparent',
                     }}
                   >
-                    <td style={{ ...styles.td, color: '#38bdf8', fontWeight: 700 }}>
+                    <td style={{ ...styles.td, color: '#ff2dab', fontWeight: 700 }}>
                       T{t.trackId}
                     </td>
                     <td style={styles.td}>
                       <span
                         style={{
                           ...styles.stateBadge,
-                          color: t.state === 'confirmed' ? '#38bdf8' : '#94a3b8',
-                          borderColor: t.state === 'confirmed' ? '#0284c7' : '#334155',
+                          color: t.state === 'confirmed' ? '#ff2dab' : '#a1a1aa',
+                          borderColor: t.state === 'confirmed' ? 'rgba(255, 45, 171, 0.5)' : '#262626',
                         }}
                       >
                         {t.state.toUpperCase()}
@@ -135,20 +135,20 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#0b111e',
-    border: '1px solid #1e293b',
+    backgroundColor: '#121212',
+    border: '1px solid #262626',
     borderRadius: '8px',
     overflow: 'hidden',
   },
   headerTitle: {
     padding: '8px 12px',
-    backgroundColor: '#030712',
-    borderBottom: '1px solid #1e293b',
-    color: '#94a3b8',
+    backgroundColor: '#080808',
+    borderBottom: '1px solid #262626',
+    color: '#ff2dab',
     fontSize: '11px',
     fontWeight: 700,
     fontFamily: 'monospace',
-    letterSpacing: '0.05em',
+    letterSpacing: '0.06em',
   },
   tableWrapper: {
     overflowX: 'auto',
@@ -164,26 +164,26 @@ const styles: Record<string, React.CSSProperties> = {
   th: {
     textAlign: 'left',
     padding: '8px 10px',
-    color: '#64748b',
+    color: '#a1a1aa',
     fontSize: '10px',
     fontWeight: 600,
-    borderBottom: '1px solid #1e293b',
+    borderBottom: '1px solid #262626',
     whiteSpace: 'nowrap',
   },
   tr: {
     cursor: 'pointer',
-    borderBottom: '1px solid #0f172a',
+    borderBottom: '1px solid #1a1a1a',
     transition: 'background-color 0.1s ease',
   },
   td: {
     padding: '7px 10px',
-    color: '#e2e8f0',
+    color: '#f4f4f5',
     whiteSpace: 'nowrap',
   },
   emptyCell: {
     padding: '24px 12px',
     textAlign: 'center',
-    color: '#64748b',
+    color: '#71717a',
     fontSize: '12px',
     fontStyle: 'italic',
   },

@@ -15,22 +15,22 @@ function formatClock(tick: number): string {
 function getEventColor(type: string): string {
   switch (type) {
     case 'TRACK_CONFIRMED':
-      return '#38bdf8';
+      return '#ff2dab';
     case 'TRACK_LOST':
-      return '#94a3b8';
+      return '#71717a';
     case 'ENGAGEMENT_STARTED':
       return '#f59e0b';
     case 'ENGAGEMENT_RESOLVED':
-      return '#4ade80';
+      return '#10b981';
     case 'NO_EFFECT':
-      return '#f87171';
+      return '#ff2dab';
     case 'COMMAND_REJECTED':
     case 'ENGAGEMENT_REJECTED':
       return '#ef4444';
     case 'MISSION_END':
-      return '#a855f7';
+      return '#ff54be';
     default:
-      return '#cbd5e1';
+      return '#e4e4e7';
   }
 }
 
@@ -89,8 +89,8 @@ export function EventFeed({ events }: EventFeedProps): React.JSX.Element {
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#0b111e',
-    border: '1px solid #1e293b',
+    backgroundColor: '#121212',
+    border: '1px solid #262626',
     borderRadius: '8px',
     padding: '12px',
     display: 'flex',
@@ -103,9 +103,9 @@ const styles: Record<string, React.CSSProperties> = {
   header: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#94a3b8',
-    letterSpacing: '0.05em',
-    borderBottom: '1px solid #1e293b',
+    color: '#ff2dab',
+    letterSpacing: '0.06em',
+    borderBottom: '1px solid #262626',
     paddingBottom: '6px',
   },
   list: {
@@ -117,7 +117,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '11px',
   },
   empty: {
-    color: '#64748b',
+    color: '#71717a',
     fontSize: '11px',
     fontStyle: 'italic',
     padding: '12px 0',
@@ -129,7 +129,7 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: '1.4',
   },
   time: {
-    color: '#64748b',
+    color: '#a1a1aa',
     fontWeight: 600,
     fontSize: '10px',
   },
@@ -139,6 +139,6 @@ const styles: Record<string, React.CSSProperties> = {
     whiteSpace: 'nowrap',
   },
   msg: {
-    color: '#e2e8f0',
+    color: '#f4f4f5',
   },
 };

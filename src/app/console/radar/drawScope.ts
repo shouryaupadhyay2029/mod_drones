@@ -10,16 +10,19 @@ export interface ScopeDrawOptions {
 
 export function getAssessedColor(assessedClass?: string): string {
   if (!assessedClass || assessedClass === 'unknown') {
+    return '#f43f5e'; // default unassessed rose
+  }
+  if (assessedClass === 'bird') {
+    return '#10b981'; // emerald green
+  }
+  if (assessedClass === 'commercial_quad') {
     return '#f59e0b'; // amber
   }
-  if (assessedClass === 'bird' || assessedClass === 'commercial_quad') {
-    return '#22c55e'; // green
-  }
   if (assessedClass === 'fpv_kamikaze' || assessedClass === 'fixed_wing_recon') {
-    return '#ef4444'; // red
+    return '#ff2dab'; // HOT PINK
   }
   if (assessedClass === 'clutter') {
-    return '#94a3b8'; // gray
+    return '#71717a'; // gray
   }
   return '#f59e0b';
 }
@@ -61,14 +64,17 @@ export function drawScope(
 
   const center = { x: centerX, y: centerY };
 
-  // Scope background
+  // Scope background: Jet Black #0B0B0B
   ctx.beginPath();
   ctx.arc(centerX, centerY, radiusPx, 0, Math.PI * 2);
-  ctx.fillStyle = '#050a12';
+  ctx.fillStyle = '#0b0b0b';
   ctx.fill();
-  ctx.strokeStyle = '#1e3a5f';
+  ctx.strokeStyle = '#ff2dab';
   ctx.lineWidth = 2;
+  ctx.shadowColor = 'rgba(255, 45, 171, 0.4)';
+  ctx.shadowBlur = 8;
   ctx.stroke();
+  ctx.shadowBlur = 0;
 
   // Range rings every 1 km
   const rings: RangeRing[] = ringRadii(options.scaleM, radiusPx);
@@ -78,11 +84,11 @@ export function drawScope(
     if (!ring) continue;
     ctx.beginPath();
     ctx.arc(centerX, centerY, ring.radiusPx, 0, Math.PI * 2);
-    ctx.strokeStyle = '#16283f';
+    ctx.strokeStyle = 'rgba(255, 45, 171, 0.16)';
     ctx.stroke();
 
     // Ring distance label
-    ctx.fillStyle = '#475569';
+    ctx.fillStyle = 'rgba(255, 45, 171, 0.55)';
     ctx.font = '10px ui-monospace, monospace';
     ctx.fillText(ring.label, centerX + 4, centerY - ring.radiusPx + 12);
   }
@@ -102,7 +108,7 @@ export function drawScope(
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
-    ctx.strokeStyle = isMajor ? '#334155' : '#1e293b';
+    ctx.strokeStyle = isMajor ? 'rgba(255, 45, 171, 0.4)' : '#262626';
     ctx.lineWidth = isMajor ? 1.5 : 1;
     ctx.stroke();
 
@@ -117,8 +123,8 @@ export function drawScope(
       else if (deg === 180) text = 'S';
       else if (deg === 270) text = 'W';
 
-      ctx.fillStyle = deg === 0 ? '#38bdf8' : '#94a3b8';
-      ctx.font = 'bold 11px ui-monospace, monospace';
+      ctx.fillStyle = deg === 0 ? '#ff2dab' : '#a1a1aa';
+      ctx.font = deg === 0 ? 'bold 12px ui-monospace, monospace' : 'bold 11px ui-monospace, monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(text, lx, ly);
@@ -131,7 +137,7 @@ export function drawScope(
   ctx.lineTo(centerX + radiusPx, centerY);
   ctx.moveTo(centerX, centerY - radiusPx);
   ctx.lineTo(centerX, centerY + radiusPx);
-  ctx.strokeStyle = '#0f2035';
+  ctx.strokeStyle = 'rgba(255, 45, 171, 0.12)';
   ctx.lineWidth = 1;
   ctx.stroke();
 
@@ -145,10 +151,10 @@ export function drawScope(
     if (gunRPx <= radiusPx) {
       ctx.beginPath();
       ctx.arc(centerX, centerY, gunRPx, 0, Math.PI * 2);
-      ctx.strokeStyle = '#ea580c'; // orange
+      ctx.strokeStyle = '#ff70cd'; // lighter hot pink
       ctx.lineWidth = 1.2;
       ctx.stroke();
-      ctx.fillStyle = '#ea580c';
+      ctx.fillStyle = '#ff70cd';
       ctx.font = '9px ui-monospace, monospace';
       ctx.textAlign = 'left';
       ctx.fillText('GUN 1km', centerX + gunRPx - 45, centerY - 4);
@@ -159,10 +165,10 @@ export function drawScope(
     if (jamRPx <= radiusPx) {
       ctx.beginPath();
       ctx.arc(centerX, centerY, jamRPx, 0, Math.PI * 2);
-      ctx.strokeStyle = '#8b5cf6'; // purple
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = '#ff2dab'; // Hot Pink
+      ctx.lineWidth = 1.4;
       ctx.stroke();
-      ctx.fillStyle = '#8b5cf6';
+      ctx.fillStyle = '#ff2dab';
       ctx.font = '9px ui-monospace, monospace';
       ctx.textAlign = 'left';
       ctx.fillText('JAM 1.5km', centerX + jamRPx - 50, centerY - 4);
@@ -175,11 +181,11 @@ export function drawScope(
     const sweepRad = (view.radarSweepDeg * Math.PI) / 180;
     const wedgeAngleRad = (40 * Math.PI) / 180; // 40 degree trail wedge
 
-    // Fading wedge behind sweep arm
+    // Fading wedge behind sweep arm in Hot Pink
     const wedgeGrad = ctx.createConicGradient(sweepRad - Math.PI / 2, centerX, centerY);
-    wedgeGrad.addColorStop(0, 'rgba(56, 189, 248, 0.15)');
-    wedgeGrad.addColorStop(0.12, 'rgba(56, 189, 248, 0.0)');
-    wedgeGrad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+    wedgeGrad.addColorStop(0, 'rgba(255, 45, 171, 0.22)');
+    wedgeGrad.addColorStop(0.12, 'rgba(255, 45, 171, 0.0)');
+    wedgeGrad.addColorStop(1, 'rgba(255, 45, 171, 0.0)');
 
     ctx.save();
     ctx.beginPath();
@@ -206,22 +212,25 @@ export function drawScope(
       centerX + radiusPx * Math.sin(sweepRad),
       centerY - radiusPx * Math.cos(sweepRad)
     );
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
-    ctx.lineWidth = 1.8;
+    ctx.strokeStyle = '#ff2dab';
+    ctx.lineWidth = 2.0;
+    ctx.shadowColor = '#ff2dab';
+    ctx.shadowBlur = 6;
     ctx.stroke();
+    ctx.shadowBlur = 0;
     ctx.restore();
   }
 
-  // Asset symbol at centre: square symbol labelled ASSET
+  // Asset symbol at centre: square symbol labelled ASSET in Hot Pink
   const assetSize = 10;
-  ctx.fillStyle = '#38bdf8';
+  ctx.fillStyle = '#ff2dab';
   ctx.fillRect(
     centerX - assetSize / 2,
     centerY - assetSize / 2,
     assetSize,
     assetSize
   );
-  ctx.fillStyle = '#94a3b8';
+  ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 9px ui-monospace, monospace';
   ctx.textAlign = 'center';
   ctx.fillText('ASSET', centerX, centerY + 16);
@@ -296,7 +305,7 @@ function drawTrack(
     ctx.moveTo(plotPx.x, plotPx.y);
     ctx.lineTo(vEnd.x, vEnd.y);
     ctx.strokeStyle = color;
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1.4;
     ctx.stroke();
   }
 
@@ -325,36 +334,39 @@ function drawTrack(
     ctx.stroke();
   }
 
-  // 4. Selection outer ring
+  // 4. Selection outer ring: Hot Pink with subtle glow
   if (isSelected) {
     ctx.beginPath();
     ctx.arc(plotPx.x, plotPx.y, 11, 0, Math.PI * 2);
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#ff2dab';
+    ctx.lineWidth = 2.2;
+    ctx.shadowColor = '#ff2dab';
+    ctx.shadowBlur = 6;
     ctx.stroke();
+    ctx.shadowBlur = 0;
   }
 
   // 5. Track label: "T<id>" + assessed abbreviation
   const abbr = getAssessedAbbr(track.assessedClass);
   const label = abbr ? `T${track.trackId} [${abbr}]` : `T${track.trackId}`;
 
-  ctx.fillStyle = '#e2e8f0';
+  ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 10px ui-monospace, monospace';
   ctx.textAlign = 'left';
   ctx.fillText(label, plotPx.x + 9, plotPx.y - 7);
 
   // Status indicators: ACK status / Hold fire
   if (!track.acked) {
-    ctx.fillStyle = '#f87171';
+    ctx.fillStyle = '#f43f5e';
     ctx.font = '9px ui-monospace, monospace';
     ctx.fillText('UNACK', plotPx.x + 9, plotPx.y + 4);
   } else if (track.engagementStatus === 'holding_fire') {
-    ctx.fillStyle = '#38bdf8';
+    ctx.fillStyle = '#10b981';
     ctx.font = '9px ui-monospace, monospace';
     ctx.fillText('HOLD', plotPx.x + 9, plotPx.y + 4);
   } else if (track.engagementStatus === 'engaged') {
-    ctx.fillStyle = '#f59e0b';
-    ctx.font = '9px ui-monospace, monospace';
+    ctx.fillStyle = '#ff2dab';
+    ctx.font = 'bold 9px ui-monospace, monospace';
     ctx.fillText('ENGAGED', plotPx.x + 9, plotPx.y + 4);
   }
 

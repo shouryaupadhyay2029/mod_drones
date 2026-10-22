@@ -33,8 +33,10 @@ export function EffectorPanel({
             <span
               style={{
                 ...styles.statusBadge,
-                backgroundColor: isJammerReady ? '#064e3b' : '#78350f',
-                color: isJammerReady ? '#6ee7b7' : '#fcd34d',
+                backgroundColor: isJammerReady ? 'rgba(255, 45, 171, 0.15)' : '#262626',
+                border: isJammerReady ? '1px solid #ff2dab' : '1px solid #3f3f46',
+                color: isJammerReady ? '#ff2dab' : '#fcd34d',
+                boxShadow: isJammerReady ? '0 0 8px rgba(255, 45, 171, 0.3)' : 'none',
               }}
             >
               {isJammerReady ? 'READY' : `ACTIVE (${jammerBusySec}s)`}
@@ -64,15 +66,21 @@ export function EffectorPanel({
               style={{
                 ...styles.statusBadge,
                 backgroundColor: isGunReady
-                  ? '#064e3b'
+                  ? 'rgba(255, 45, 171, 0.15)'
                   : effectors.gun.ammo <= 0
-                    ? '#7f1d1d'
-                    : '#78350f',
+                    ? '#261515'
+                    : '#262626',
+                border: isGunReady
+                  ? '1px solid #ff2dab'
+                  : effectors.gun.ammo <= 0
+                    ? '1px solid #ef4444'
+                    : '1px solid #3f3f46',
                 color: isGunReady
-                  ? '#6ee7b7'
+                  ? '#ff2dab'
                   : effectors.gun.ammo <= 0
                     ? '#fca5a5'
                     : '#fcd34d',
+                boxShadow: isGunReady ? '0 0 8px rgba(255, 45, 171, 0.3)' : 'none',
               }}
             >
               {effectors.gun.ammo <= 0
@@ -88,7 +96,7 @@ export function EffectorPanel({
               <span
                 style={{
                   ...styles.val,
-                  color: effectors.gun.ammo <= 5 ? '#f87171' : '#38bdf8',
+                  color: effectors.gun.ammo <= 5 ? '#f87171' : '#ff2dab',
                   fontWeight: 700,
                 }}
               >
@@ -112,8 +120,8 @@ export function EffectorPanel({
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#0b111e',
-    border: '1px solid #1e293b',
+    backgroundColor: '#121212',
+    border: '1px solid #262626',
     borderRadius: '8px',
     padding: '12px',
     display: 'flex',
@@ -124,8 +132,8 @@ const styles: Record<string, React.CSSProperties> = {
   header: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#94a3b8',
-    letterSpacing: '0.05em',
+    color: '#ff2dab',
+    letterSpacing: '0.06em',
   },
   grid: {
     display: 'grid',
@@ -133,8 +141,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '10px',
   },
   card: {
-    backgroundColor: '#030712',
-    border: '1px solid #1e293b',
+    backgroundColor: '#080808',
+    border: '1px solid #262626',
     borderRadius: '6px',
     padding: '10px 12px',
     display: 'flex',
@@ -147,7 +155,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
   },
   cardTitle: {
-    color: '#f8fafc',
+    color: '#ffffff',
     fontSize: '12px',
     fontWeight: 700,
   },
@@ -169,9 +177,9 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
   },
   label: {
-    color: '#64748b',
+    color: '#a1a1aa',
   },
   val: {
-    color: '#cbd5e1',
+    color: '#ffffff',
   },
 };
