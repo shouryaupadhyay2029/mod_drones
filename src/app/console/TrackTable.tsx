@@ -78,17 +78,19 @@ export function TrackTable({
                     <td style={styles.td}>{Math.round(t.rangeM)} m</td>
                     <td style={styles.td}>{Math.round(t.bearingDeg)}°</td>
                     <td style={styles.td}>
-                      {t.courseDeg !== undefined ? `${Math.round(t.courseDeg)}°` : '---'}
+                      {t.velocityValid && t.courseDeg !== undefined ? `${Math.round(t.courseDeg)}°` : '—'}
                     </td>
                     <td style={styles.td}>{Math.round(t.altitudeM)} m</td>
-                    <td style={styles.td}>{Math.round(t.speedMps)} m/s</td>
+                    <td style={styles.td}>
+                      {t.velocityValid && t.speedMps !== undefined ? `${Math.round(t.speedMps)} m/s` : '—'}
+                    </td>
                     <td
                       style={{
                         ...styles.td,
-                        color: t.closingRateMps < -2 ? '#f87171' : '#cbd5e1',
+                        color: t.velocityValid && t.closingRateMps !== undefined && t.closingRateMps < -2 ? '#f87171' : '#cbd5e1',
                       }}
                     >
-                      {Math.round(t.closingRateMps)} m/s
+                      {t.velocityValid && t.closingRateMps !== undefined ? `${Math.round(t.closingRateMps)} m/s` : '—'}
                     </td>
                     <td style={styles.td}>{t.rcsBucket}</td>
                     <td style={styles.td}>{(t.quality * 100).toFixed(0)}%</td>

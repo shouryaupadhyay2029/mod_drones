@@ -274,7 +274,12 @@ function drawTrack(
   }
 
   // 2. Velocity vector: length = speed * 10 s (capped at 3 km), along estimated courseDeg
-  if (track.speedMps > 1 && track.courseDeg !== undefined) {
+  if (
+    track.velocityValid &&
+    track.speedMps !== undefined &&
+    track.speedMps > 1 &&
+    track.courseDeg !== undefined
+  ) {
     const vectorLenM = Math.min(3000, track.speedMps * 10);
     const velRPx = (vectorLenM / options.scaleM) * radiusPx;
     const courseRad = (track.courseDeg * Math.PI) / 180;

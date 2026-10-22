@@ -11,10 +11,11 @@ export interface TraineeTrack {
   rangeM: number;
   bearingDeg: number;
   altitudeM: number;
-  speedMps: number;
+  velocityValid: boolean;
+  speedMps?: number;
   courseDeg?: number;
-  closingRateMps: number; // negative = approaching asset
-  headingChangeRateDegPerS: number;
+  closingRateMps?: number; // negative = approaching asset
+  headingChangeRateDegPerS?: number;
   rcsBucket: RcsBucket;
   quality: number;
   acked: boolean;
@@ -61,18 +62,22 @@ export function buildTraineeView(
     const t = tracks[i];
     if (!t || t.state === 'dropped') continue;
 
+    const plots = t.totalPlots ?? t.consecutiveHits;
+    const velocityValid = plots >= 2;
     const r = vDist(t.estimatedPos, origin);
-    const speed = vLen(t.estimatedVel);
+    const speed = velocityValid ? vLen(t.estimatedVel) : undefined;
     const courseDeg =
-      speed > 1.0 ? bearingDeg(origin, vec3(t.estimatedVel.x, t.estimatedVel.y, 0)) : undefined;
-    // closing rate = (r . v) / |r|: negative if approaching
+      velocityValid && speed !== undefined && speed > 1.0
+        ? bearingDeg(origin, vec3(t.estimatedVel.x, t.estimatedVel.y, 0))
+        : undefined;
     const closingRate =
-      r > 0
+      velocityValid && r > 0
         ? (t.estimatedPos.x * t.estimatedVel.x +
             t.estimatedPos.y * t.estimatedVel.y +
             t.estimatedPos.z * t.estimatedVel.z) /
           r
-        : 0;
+        : undefined;
+    const headingChangeRate = velocityValid ? t.headingChangeRateSmoothed : undefined;
 
     traineeTracks.push({
       trackId: t.trackId,
@@ -81,10 +86,11 @@ export function buildTraineeView(
       rangeM: r,
       bearingDeg: bearingDeg(origin, t.estimatedPos),
       altitudeM: t.estimatedPos.z,
+      velocityValid,
       speedMps: speed,
       courseDeg,
       closingRateMps: closingRate,
-      headingChangeRateDegPerS: t.headingChangeRateSmoothed,
+      headingChangeRateDegPerS: headingChangeRate,
       rcsBucket: t.rcsBucket,
       quality: t.quality,
       acked: t.acked,

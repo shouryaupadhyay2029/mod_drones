@@ -98,6 +98,7 @@ export function runRadarSystem(
           firstSeenTick: currentTick,
           consecutiveHits: 1,
           consecutiveMisses: 0,
+          totalPlots: 1,
           rcsBucket,
           measuredRcs,
           quality: 0.3,
@@ -110,6 +111,7 @@ export function runRadarSystem(
       } else {
         // Consecutive hit
         existingTrack.consecutiveHits++;
+        existingTrack.totalPlots = (existingTrack.totalPlots ?? 1) + 1;
         existingTrack.consecutiveMisses = 0;
         existingTrack.rcsBucket = rcsBucket;
         existingTrack.measuredRcs = measuredRcs;
@@ -121,7 +123,7 @@ export function runRadarSystem(
           const rawVz = (measPos.z - existingTrack.estimatedPos.z) / dtSec;
 
           // On first velocity calculation (second hit), initialize directly from finite difference
-          if (existingTrack.consecutiveHits === 2) {
+          if (existingTrack.totalPlots === 2) {
             existingTrack.estimatedVel = { x: rawVx, y: rawVy, z: rawVz };
           } else {
             // Exponential smoothing (alpha = 0.4)

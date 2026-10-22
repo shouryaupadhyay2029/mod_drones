@@ -17,6 +17,8 @@ export interface Track {
   lostTick?: number;
   consecutiveHits: number;
   consecutiveMisses: number;
+  totalPlots: number;
+  isGhost?: boolean;
   rcsBucket: RcsBucket;
   measuredRcs: number;
   quality: number;

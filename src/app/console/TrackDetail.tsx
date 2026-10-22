@@ -95,12 +95,14 @@ export function TrackDetail({
       <div style={styles.cuesGrid}>
         <div style={styles.cueBox}>
           <span style={styles.cueLabel}>SPEED</span>
-          <span style={styles.cueVal}>{Math.round(track.speedMps)} m/s</span>
+          <span style={styles.cueVal}>
+            {track.velocityValid && track.speedMps !== undefined ? `${Math.round(track.speedMps)} m/s` : '—'}
+          </span>
         </div>
         <div style={styles.cueBox}>
           <span style={styles.cueLabel}>COURSE</span>
           <span style={styles.cueVal}>
-            {track.courseDeg !== undefined ? `${Math.round(track.courseDeg)}°` : 'N/A'}
+            {track.velocityValid && track.courseDeg !== undefined ? `${Math.round(track.courseDeg)}°` : '—'}
           </span>
         </div>
         <div style={styles.cueBox}>
@@ -108,16 +110,16 @@ export function TrackDetail({
           <span
             style={{
               ...styles.cueVal,
-              color: track.closingRateMps < -2 ? '#f87171' : '#cbd5e1',
+              color: track.velocityValid && track.closingRateMps !== undefined && track.closingRateMps < -2 ? '#f87171' : '#cbd5e1',
             }}
           >
-            {Math.round(track.closingRateMps)} m/s
+            {track.velocityValid && track.closingRateMps !== undefined ? `${Math.round(track.closingRateMps)} m/s` : '—'}
           </span>
         </div>
         <div style={styles.cueBox}>
           <span style={styles.cueLabel}>TURN RATE</span>
           <span style={styles.cueVal}>
-            {track.headingChangeRateDegPerS.toFixed(1)}°/s
+            {track.velocityValid && track.headingChangeRateDegPerS !== undefined ? `${track.headingChangeRateDegPerS.toFixed(1)}°/s` : '—'}
           </span>
         </div>
         <div style={styles.cueBox}>
