@@ -1,3 +1,4 @@
+/* global document */
 import { spawn } from 'node:child_process';
 import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
@@ -59,7 +60,7 @@ async function run() {
     const browser = await puppeteer.launch({
       executablePath: chromePath,
       headless: true,
-      defaultViewport: { width: 1400, height: 900 },
+      defaultViewport: { width: 1440, height: 960 },
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
@@ -81,41 +82,74 @@ async function run() {
       console.log('Starting mission...');
       await page.click('#btn-start-mission');
 
-      // Enable Autopilot and 4x speed
+      // Enable Autopilot and 2x speed for stable capture
       console.log('Waiting for TopBar controls...');
       await page.waitForSelector('#btn-toggle-autopilot');
 
-      console.log('Enabling Autopilot & 4x speed...');
+      console.log('Enabling Autopilot & 2x speed...');
       await page.click('#btn-toggle-autopilot');
-      await page.click('#btn-speed-4');
+      await page.click('#btn-speed-2');
 
-      // Wait until at least 2 tracks are visible
+      // Wait until at least 2 tracks are visible on radar
       console.log('Waiting for at least 2 tracks to be visible on radar...');
-      let midCaptured = false;
+      let fullCaptured = false;
       const startTime = Date.now();
 
       while (Date.now() - startTime < 45000) {
         const trackRows = await page.$$('tbody tr');
-        // Make sure it's not the empty cell row
         if (trackRows.length >= 2) {
           const firstRowText = await page.evaluate((el) => el.textContent, trackRows[0]);
           if (!firstRowText?.includes('No active tracks')) {
-            console.log(`Detected ${trackRows.length} active tracks. Capturing console-mid.png...`);
-            const midPath = path.join(outDir, 'console-mid.png');
-            await page.screenshot({ path: midPath, fullPage: true });
-            console.log('Saved console-mid.png to:', midPath);
-            midCaptured = true;
+            // Select the first track
+            console.log(`Detected ${trackRows.length} active tracks. Selecting first track...`);
+            await trackRows[0].click();
+            await new Promise((r) => setTimeout(r, 250));
+
+            // Extract mission telemetry & visible tracks
+            const captureDetails = await page.evaluate(() => {
+              const tickText = document.getElementById('missionTick')?.textContent?.trim() || '';
+              const timeText = document.getElementById('missionTime')?.textContent?.trim() || '';
+              const rows = Array.from(document.querySelectorAll('tbody tr'));
+              const tracks = rows.map((row) => {
+                const cells = Array.from(row.querySelectorAll('td')).map((c) => c.textContent?.trim());
+                return {
+                  id: cells[0] || '',
+                  state: cells[1] || '',
+                  range: cells[2] || '',
+                  bearing: cells[3] || '',
+                  course: cells[4] || '',
+                  speed: cells[6] || '',
+                };
+              });
+              return { tickText, timeText, tracks };
+            });
+
+            console.log('\n=== CONSOLE FULL SCREENSHOT CAPTURE DETAILS ===');
+            console.log(`Mission tick at capture: ${captureDetails.tickText} (${captureDetails.timeText})`);
+            console.log('Visible tracks:');
+            for (const trk of captureDetails.tracks) {
+              console.log(`  - Track ${trk.id} (${trk.state}): range = ${trk.range}, bearing = ${trk.bearing}, speed = ${trk.speed}`);
+            }
+            console.log('===============================================\n');
+
+            const fullPath = path.join(outDir, 'console-full.png');
+            await page.screenshot({ path: fullPath, fullPage: true });
+            console.log('Saved console-full.png to:', fullPath);
+            fullCaptured = true;
             break;
           }
         }
         await new Promise((r) => setTimeout(r, 200));
       }
 
-      if (!midCaptured) {
-        console.warn('Timed out waiting for 2 tracks; capturing current state as console-mid.png');
-        const midPath = path.join(outDir, 'console-mid.png');
-        await page.screenshot({ path: midPath, fullPage: true });
+      if (!fullCaptured) {
+        console.warn('Timed out waiting for 2 tracks; capturing current state as console-full.png');
+        const fullPath = path.join(outDir, 'console-full.png');
+        await page.screenshot({ path: fullPath, fullPage: true });
       }
+
+      // Switch to 4x speed to finish mission quickly
+      await page.click('#btn-speed-4');
 
       // Wait for debrief screen to appear (button #btn-replay-same-seed)
       console.log('Waiting for mission to finish and debrief screen to render...');

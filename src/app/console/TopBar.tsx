@@ -48,11 +48,11 @@ export function TopBar({
         {/* Left: Mission Info & Clock */}
         <div style={styles.leftGroup}>
           <div style={styles.missionTitle}>DAWN INTRUSION</div>
-          <div style={styles.clockBox}>
+          <div style={styles.clockBox} id="missionClock">
             <span style={styles.clockLabel}>TICK</span>
-            <span style={styles.clockValue}>{tick.toLocaleString()}</span>
+            <span style={styles.clockValue} id="missionTick">{tick}</span>
             <span style={styles.clockLabel}>TIME</span>
-            <span style={styles.timeValue}>{formatClock(tick)}</span>
+            <span style={styles.timeValue} id="missionTime">{formatClock(tick)}</span>
           </div>
           <div style={styles.seedBadge}>
             <span style={styles.seedLabel}>SEED:</span>
