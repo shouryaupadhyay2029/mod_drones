@@ -72,7 +72,16 @@ async function run() {
       const heroPath = path.join(outDir, 'hero-ascii-drone.png');
       await page.screenshot({ path: heroPath });
       fs.copyFileSync(heroPath, path.join(artifactDir, 'hero-seamless-drone.png'));
-      console.log('Captured hero-ascii-drone.png at:', heroPath);
+      console.log('Captured clean home hero at:', heroPath);
+
+      // Click the navbar "LAUNCH MISSION ⚡" button to open the briefing modal
+      await page.click('#btn-nav-launch-mission');
+      await new Promise((r) => setTimeout(r, 500));
+
+      const modalPath = path.join(outDir, 'briefing-modal.png');
+      await page.screenshot({ path: modalPath });
+      fs.copyFileSync(modalPath, path.join(artifactDir, 'briefing-modal.png'));
+      console.log('Captured briefing modal at:', modalPath);
     } finally {
       await browser.close();
     }

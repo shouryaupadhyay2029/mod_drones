@@ -519,6 +519,116 @@ button, a, input, select {
 .anim-delay-7 { animation-delay: 0.42s; }
 .anim-delay-8 { animation-delay: 0.48s; }
 
+/* ==========================================================================
+   Mission Briefing Tactical Modal Overlay
+   ========================================================================== */
+
+.briefing-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background-color: rgba(24, 23, 22, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  animation: fadeInModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.briefing-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 860px;
+  max-height: 92vh;
+  overflow-y: auto;
+  background-color: #e7e2d6;
+  border: 1px solid rgba(45, 40, 35, 0.22);
+  border-radius: 12px;
+  padding: 28px 32px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: scaleUpModal 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes scaleUpModal {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-close-button {
+  background: transparent;
+  border: 1px solid rgba(45, 40, 35, 0.2);
+  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-family: inherit;
+  color: #181716;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modal-close-button:hover {
+  background-color: #181716;
+  color: #ffffff;
+  border-color: #181716;
+  transform: scale(1.05);
+}
+
+.nav-launch-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #181716 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-family: monospace;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-launch-cta:hover {
+  background-color: #2b2825 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.24);
+  border-color: rgba(211, 86, 35, 0.6) !important;
+}
+
+.hero-launch-btn:hover {
+  background-color: #2b2825 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+}
+
 .text-roll-char-bottom {
   display: inline-block;
   transform: translateY(100%);

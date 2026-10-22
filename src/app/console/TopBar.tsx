@@ -224,19 +224,14 @@ export function TopBar({
     setActiveDropdown(null);
   };
 
-  const handleSelectScenario = (scId: string) => {
+  const openBriefingModal = (scId?: string) => {
     isPinnedRef.current = false;
     setActiveDropdown(null);
-    window.dispatchEvent(new CustomEvent('mod:select-scenario', { detail: scId }));
-    const el = document.getElementById('scenario-selection-card');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    window.dispatchEvent(new CustomEvent('mod:open-briefing', { detail: scId }));
   };
 
-  const scrollToBriefing = () => {
-    isPinnedRef.current = false;
-    setActiveDropdown(null);
-    const el = document.getElementById('scenario-selection-card');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  const handleSelectScenario = (scId: string) => {
+    openBriefingModal(scId);
   };
 
   useEffect(() => {
@@ -381,10 +376,10 @@ export function TopBar({
                     </p>
                   </div>
                   <button
-                    onClick={scrollToBriefing}
+                    onClick={() => openBriefingModal()}
                     style={styles.previewCardBtn}
                   >
-                    SELECT SCENARIO ↓
+                    CONFIGURE & LAUNCH ⚡
                   </button>
                 </div>
               </div>
@@ -613,7 +608,7 @@ export function TopBar({
                       and target discrimination govern scoring.
                     </p>
                   </div>
-                  <button onClick={scrollToBriefing} style={styles.previewCardBtn}>
+                  <button onClick={() => openBriefingModal()} style={styles.previewCardBtn}>
                     START INTERCEPTION ⚡
                   </button>
                 </div>
@@ -632,9 +627,24 @@ export function TopBar({
           </div>
         </div>
 
-        {/* Right: Contextual Telemetry & Controls */}
+        {/* Right: Contextual Telemetry & Controls or Setup Launch Button */}
         <div style={styles.navRight}>
-          {phase === 'setup' ? null : (
+          {phase === 'setup' ? (
+            <div style={styles.setupNavRight} className="anim-curved-slide anim-delay-5">
+              <button
+                id="btn-nav-launch-mission"
+                className="nav-launch-cta"
+                onClick={() => openBriefingModal()}
+                title="Launch Mission Simulator"
+              >
+                <span style={styles.navLaunchDot} />
+                <span>
+                  <TextRoll center stagger={0.02}>LAUNCH MISSION</TextRoll>
+                </span>
+                <span style={{ fontSize: '11px', color: '#f59e0b' }}>⚡</span>
+              </button>
+            </div>
+          ) : (
             <div style={styles.runningActionCluster}>
               {/* Mission Scenario and Environment */}
               <div style={styles.missionTitle}>
@@ -1075,5 +1085,18 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: 'monospace',
     cursor: 'pointer',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+  },
+  setupNavRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  navLaunchDot: {
+    width: '6px',
+    height: '6px',
+    borderRadius: '50%',
+    backgroundColor: '#d35623',
+    boxShadow: '0 0 6px #d35623',
+    display: 'inline-block',
   },
 };

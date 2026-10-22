@@ -53,16 +53,36 @@ function generateRandomSeed(): string {
 export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element {
   const [selectedScenario, setSelectedScenario] = useState<string>('dawn_intrusion');
   const [seedInput, setSeedInput] = useState<string>(() => generateRandomSeed());
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    const handleSelect = (e: Event) => {
-      const customEvent = e as CustomEvent<string>;
+    const handleOpen = (e: Event) => {
+      const customEvent = e as CustomEvent<string | undefined>;
       if (customEvent.detail && ['dawn_intrusion', 'ridge_runner', 'city_edge_night'].includes(customEvent.detail)) {
         setSelectedScenario(customEvent.detail);
       }
+      setIsModalOpen(true);
     };
-    window.addEventListener('mod:select-scenario', handleSelect);
-    return () => window.removeEventListener('mod:select-scenario', handleSelect);
+
+    const handleClose = () => setIsModalOpen(false);
+
+    window.addEventListener('mod:select-scenario', handleOpen);
+    window.addEventListener('mod:open-briefing', handleOpen);
+    window.addEventListener('mod:close-briefing', handleClose);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('mod:select-scenario', handleOpen);
+      window.removeEventListener('mod:open-briefing', handleOpen);
+      window.removeEventListener('mod:close-briefing', handleClose);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const handleRandomize = () => {
@@ -71,6 +91,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
 
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsModalOpen(false);
     const clean = seedInput.trim() || 's1';
     onStart(clean, selectedScenario);
   };
@@ -83,110 +104,154 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
       {/* Skiper14-Inspired 3D ASCII Drone Hero Section */}
       <DroneHeroSection />
 
-      <div id="scenario-selection-card" style={styles.card} className="anim-curved-slide anim-delay-2">
-        <div style={styles.header}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }} className="anim-curved-slide anim-delay-3">
-            <img src="/vajra-emblem.png" alt="VAJRA" style={{ width: '18px', height: '20px', opacity: 0.85 }} />
-            <div style={styles.missionTag}>VAJRA // MISSION BRIEFING</div>
-          </div>
-          <h2 style={styles.title} className="anim-curved-slide anim-delay-4">
-            <TextRoll center stagger={0.025}>{activeScenario.title}</TextRoll>
-          </h2>
-          <p style={styles.subtitle} className="anim-curved-slide anim-delay-4">
-            Autonomous Asset Defense • Radar Surveillance & Threat Interception
-          </p>
-        </div>
+      {/* Hero Tactical Launch CTA */}
+      <div style={styles.heroActionHub} className="anim-curved-slide anim-delay-3">
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          style={styles.heroPrimaryBtn}
+          id="btn-hero-launch-mission"
+          className="hero-launch-btn"
+          title="Open Scenario Setup & Launch Simulator"
+        >
+          <span style={styles.heroBtnDot} />
+          <span>LAUNCH MISSION SIMULATOR</span>
+          <span style={{ fontSize: '13px', color: '#f59e0b' }}>⚡</span>
+        </button>
 
-        {/* Scenario Selection Cards */}
-        <div style={styles.scenarioList} className="anim-curved-slide anim-delay-5">
-          {SCENARIO_OPTIONS.map((sc) => {
-            const isSelected = sc.id === selectedScenario;
-            return (
-              <div
-                key={sc.id}
-                onClick={() => setSelectedScenario(sc.id)}
-                style={{
-                  ...styles.scenarioCard,
-                  borderColor: isSelected ? '#181716' : 'rgba(45, 40, 35, 0.18)',
-                  backgroundColor: isSelected ? '#f2ece0' : '#ded8cd',
-                  boxShadow: isSelected ? '0 3px 12px rgba(0, 0, 0, 0.08)' : 'none',
-                }}
-              >
-                <div style={styles.scenarioCardHeader}>
-                  <input
-                    type="radio"
-                    name="scenarioPicker"
-                    checked={isSelected}
-                    onChange={() => setSelectedScenario(sc.id)}
-                    style={{ cursor: 'pointer', accentColor: '#181716' }}
-                  />
-                  <span style={styles.scenarioCardTitle}>
-                    <TextRoll stagger={0.02}>{sc.title}</TextRoll>
-                  </span>
-                </div>
-                <div style={styles.scenarioCardSubtitle}>{sc.subtitle}</div>
-                <div style={styles.chipsRow}>
-                  {sc.chips.map((chip, idx) => (
-                    <span key={idx} style={styles.chipTag}>
-                      {chip}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <a href="#/check" style={styles.heroSecondaryLink}>
+          <span>SYSTEM CHECK & DIAGNOSTICS</span>
+          <span style={{ fontSize: '11px', color: '#2d6b75' }}>↗</span>
+        </a>
+      </div>
 
-        <div style={styles.briefingBox} className="anim-curved-slide anim-delay-6">
-          <h3 style={styles.briefingHeading}>SITUATION REPORT</h3>
-          <p style={styles.briefingText}>{activeScenario.description}</p>
-          <ul style={styles.briefingList}>
-            <li>
-              <strong>Detect & Acknowledge:</strong> Swiftly acknowledge incoming radar tracks
-              (under 3.0s latency for full marks).
-            </li>
-            <li>
-              <strong>Classify:</strong> Assess kinematics, closing rate, altitude, and radar cross
-              section (RCS) to classify bird, civilian quadcopter, hostile FPV, recon UAV, or clutter.
-            </li>
-            <li>
-              <strong>Decide & Engage:</strong> Neutralize confirmed hostile threats with Jammer
-              (&le;1.5km) or Gun (&le;1.0km). Exercise strict fire discipline for non-hostiles and clutter blips.
-            </li>
-          </ul>
-        </div>
-
-        <form onSubmit={handleStart} style={styles.form} className="anim-curved-slide anim-delay-7">
-          <div style={styles.inputGroup}>
-            <label htmlFor="missionSeed" style={styles.label}>
-              SIMULATION SEED
-            </label>
-            <div style={styles.inputRow}>
-              <input
-                id="missionSeed"
-                type="text"
-                value={seedInput}
-                onChange={(e) => setSeedInput(e.target.value)}
-                style={styles.input}
-                placeholder="Enter seed (e.g. s1, 42, delta-9)"
-              />
-              <button
-                type="button"
-                onClick={handleRandomize}
-                style={styles.buttonRandom}
-              >
-                🎲 <TextRoll stagger={0.02}>Random</TextRoll>
-              </button>
+      {/* Tactical Mission Briefing Modal Overlay (Triggered from Navbar or Hero CTA) */}
+      <div
+        className={`briefing-modal-overlay ${isModalOpen ? 'is-open' : ''}`}
+        style={{
+          display: isModalOpen ? 'flex' : 'none',
+        }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setIsModalOpen(false);
+        }}
+      >
+        <div id="scenario-selection-card" style={styles.cardModal} className="briefing-modal-card">
+          <div style={styles.modalHeaderRow}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <img src="/vajra-emblem.png" alt="VAJRA" style={{ width: '18px', height: '20px', opacity: 0.85 }} />
+              <div style={styles.missionTag}>VAJRA // MISSION BRIEFING</div>
             </div>
-            <span style={styles.hint}>
-              Same seed always generates the exact same radar noise and flight paths.
-            </span>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="modal-close-button"
+              aria-label="Close Briefing"
+              title="Close (Esc)"
+            >
+              ✕
+            </button>
           </div>
 
-          <button type="submit" id="btn-start-mission" style={styles.buttonStart}>
-            <TextRoll center duration={0.32} stagger={0.025}>START MISSION</TextRoll>
-          </button>
-        </form>
+          <div style={styles.header}>
+            <h2 style={styles.title}>
+              <TextRoll center stagger={0.025}>{activeScenario.title}</TextRoll>
+            </h2>
+            <p style={styles.subtitle}>
+              Autonomous Asset Defense • Radar Surveillance & Threat Interception
+            </p>
+          </div>
+
+          {/* Scenario Selection Cards */}
+          <div style={styles.scenarioList}>
+            {SCENARIO_OPTIONS.map((sc) => {
+              const isSelected = sc.id === selectedScenario;
+              return (
+                <div
+                  key={sc.id}
+                  onClick={() => setSelectedScenario(sc.id)}
+                  style={{
+                    ...styles.scenarioCard,
+                    borderColor: isSelected ? '#181716' : 'rgba(45, 40, 35, 0.18)',
+                    backgroundColor: isSelected ? '#f2ece0' : '#ded8cd',
+                    boxShadow: isSelected ? '0 3px 12px rgba(0, 0, 0, 0.08)' : 'none',
+                  }}
+                >
+                  <div style={styles.scenarioCardHeader}>
+                    <input
+                      type="radio"
+                      name="scenarioPicker"
+                      checked={isSelected}
+                      onChange={() => setSelectedScenario(sc.id)}
+                      style={{ cursor: 'pointer', accentColor: '#181716' }}
+                    />
+                    <span style={styles.scenarioCardTitle}>
+                      <TextRoll stagger={0.02}>{sc.title}</TextRoll>
+                    </span>
+                  </div>
+                  <div style={styles.scenarioCardSubtitle}>{sc.subtitle}</div>
+                  <div style={styles.chipsRow}>
+                    {sc.chips.map((chip, idx) => (
+                      <span key={idx} style={styles.chipTag}>
+                        {chip}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={styles.briefingBox}>
+            <h3 style={styles.briefingHeading}>SITUATION REPORT</h3>
+            <p style={styles.briefingText}>{activeScenario.description}</p>
+            <ul style={styles.briefingList}>
+              <li>
+                <strong>Detect & Acknowledge:</strong> Swiftly acknowledge incoming radar tracks
+                (under 3.0s latency for full marks).
+              </li>
+              <li>
+                <strong>Classify:</strong> Assess kinematics, closing rate, altitude, and radar cross
+                section (RCS) to classify bird, civilian quadcopter, hostile FPV, recon UAV, or clutter.
+              </li>
+              <li>
+                <strong>Decide & Engage:</strong> Neutralize confirmed hostile threats with Jammer
+                (&le;1.5km) or Gun (&le;1.0km). Exercise strict fire discipline for non-hostiles and clutter blips.
+              </li>
+            </ul>
+          </div>
+
+          <form onSubmit={handleStart} style={styles.form}>
+            <div style={styles.inputGroup}>
+              <label htmlFor="missionSeed" style={styles.label}>
+                SIMULATION SEED
+              </label>
+              <div style={styles.inputRow}>
+                <input
+                  id="missionSeed"
+                  type="text"
+                  value={seedInput}
+                  onChange={(e) => setSeedInput(e.target.value)}
+                  style={styles.input}
+                  placeholder="Enter seed (e.g. s1, 42, delta-9)"
+                />
+                <button
+                  type="button"
+                  onClick={handleRandomize}
+                  style={styles.buttonRandom}
+                >
+                  🎲 <TextRoll stagger={0.02}>Random</TextRoll>
+                </button>
+              </div>
+              <span style={styles.hint}>
+                Same seed always generates the exact same radar noise and flight paths.
+              </span>
+            </div>
+
+            <button type="submit" id="btn-start-mission" style={styles.buttonStart}>
+              <TextRoll center duration={0.32} stagger={0.025}>START MISSION</TextRoll>
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
@@ -202,6 +267,77 @@ const styles: Record<string, React.CSSProperties> = {
     backgroundColor: 'transparent',
     overflowY: 'auto',
     width: '100%',
+  },
+  heroActionHub: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '14px',
+    marginTop: '-8px',
+    marginBottom: '28px',
+    zIndex: 10,
+    flexWrap: 'wrap',
+  },
+  heroPrimaryBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '10px',
+    backgroundColor: '#181716',
+    color: '#ffffff',
+    border: '1px solid rgba(255, 255, 255, 0.16)',
+    borderRadius: '6px',
+    padding: '11px 24px',
+    fontSize: '12px',
+    fontWeight: 700,
+    fontFamily: 'monospace',
+    letterSpacing: '0.08em',
+    cursor: 'pointer',
+    boxShadow: '0 4px 16px rgba(24, 23, 22, 0.2)',
+    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+  },
+  heroBtnDot: {
+    width: '7px',
+    height: '7px',
+    borderRadius: '50%',
+    backgroundColor: '#d35623',
+    boxShadow: '0 0 6px #d35623',
+    display: 'inline-block',
+  },
+  heroSecondaryLink: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    backgroundColor: 'transparent',
+    color: '#58544e',
+    border: '1px solid rgba(45, 40, 35, 0.2)',
+    borderRadius: '6px',
+    padding: '10px 20px',
+    fontSize: '11.5px',
+    fontWeight: 600,
+    fontFamily: 'monospace',
+    letterSpacing: '0.06em',
+    textDecoration: 'none',
+    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+  },
+  modalHeaderRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingBottom: '2px',
+  },
+  cardModal: {
+    width: '100%',
+    maxWidth: '860px',
+    backgroundColor: '#e7e2d6',
+    border: '1px solid rgba(45, 40, 35, 0.22)',
+    borderRadius: '12px',
+    padding: '24px 28px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '14px',
+    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.35)',
+    boxSizing: 'border-box',
   },
   card: {
     width: '100%',
