@@ -43,22 +43,29 @@ When a confirmed track with valid velocity has `assessedClass === undefined`:
                                            [YES]                    [NO]
                                              │                       │
                                       [Assess BIRD]                  ▼
-                                                        Speed >= 18 &
-                                                        Closing <= -15 &
-                                                        HeadingError <= 40?
-                                                          │            │
-                                                        [YES]         [NO]
-                                                          │            │
-                                                  [Assess FPV]         ▼
-                                                             Speed >= 6 &
-                                                      (Closing > -14 OR HeadingError > 45)?
-                                                          │            │
-                                                        [YES]         [NO]
-                                                          │            │
-                                                     [Assess QUAD]  [Assess BIRD / QUAD]
+                                                               Altitude >= 160 &
+                                                               Speed >= 18?
+                                                                 │        │
+                                                               [YES]     [NO]
+                                                                 │        │
+                                                   [Assess RECON]         ▼
+                                                                    Speed >= 18 &
+                                                                    Closing <= -15 &
+                                                                    HeadingError <= 40?
+                                                                      │            │
+                                                                    [YES]         [NO]
+                                                                      │            │
+                                                              [Assess FPV]         ▼
+                                                                          Speed >= 6 &
+                                                                   (Closing > -14 OR HeadingError > 45)?
+                                                                      │            │
+                                                                    [YES]         [NO]
+                                                                      │            │
+                                                                 [Assess QUAD]  [Assess BIRD / QUAD]
 ```
 
-### Dynamic Inbound Threat Re-evaluation
+### High-Altitude Reconnaissance & Inbound Threat Re-evaluation
+If a track exhibits high altitude ($\ge 160\text{ m}$) and cruise speed ($\ge 18\text{ m/s}$), it is assessed as `fixed_wing_recon`.
 If a track was initially assessed as neutral or civilian, but subsequent telemetry shows:
 $$\text{rcsBucket} \neq \text{'tiny'} \land \text{speed} \ge 18\text{ m/s} \land \text{closingRate} \le -15\text{ m/s} \land \text{headingError} \le 35^\circ$$
 The bot immediately promotes its assessment to `fpv_kamikaze`.
@@ -67,7 +74,7 @@ The bot immediately promotes its assessment to `fpv_kamikaze`.
 
 ## 3. Weapon Engagement Rules
 
-For tracks assessed as `fpv_kamikaze`:
+For tracks assessed as `fpv_kamikaze` or `fixed_wing_recon`:
 1. If $\text{range} \le 1500\text{ m}$ and `jammer.busyUntilTick <= currentTick`:
    $\to$ Dispatch `ENGAGE_TRACK` with `effector: 'jammer'` (soft-kill).
 2. Else if $\text{range} \le 1000\text{ m}$ and `gun.busyUntilTick <= currentTick` and `gun.ammo > 0`:

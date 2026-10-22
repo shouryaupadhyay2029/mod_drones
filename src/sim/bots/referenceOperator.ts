@@ -51,7 +51,13 @@ export function referenceOperator(view: TraineeView): Command[] {
 
     // 2. Classify or re-evaluate classification based on pure kinematic & radar cues
     if (track.assessedClass === undefined) {
-      let assessed: 'fpv_kamikaze' | 'commercial_quad' | 'bird' | 'clutter' | undefined;
+      let assessed:
+        | 'fpv_kamikaze'
+        | 'commercial_quad'
+        | 'fixed_wing_recon'
+        | 'bird'
+        | 'clutter'
+        | undefined;
 
       // Cue A: False track / clutter (low quality blips, non-coherent velocity)
       if (track.quality < 0.28) {
@@ -61,7 +67,11 @@ export function referenceOperator(view: TraineeView): Command[] {
       else if (track.rcsBucket === 'tiny' || (speed < 16 && turnRate > 3.5)) {
         assessed = 'bird';
       }
-      // Cue C: High-speed direct closing threat (FPV strike drone)
+      // Cue C1: High-altitude fixed-wing reconnaissance UAV (altitude >= 160m)
+      else if (track.altitudeM >= 160 && speed >= 18) {
+        assessed = 'fixed_wing_recon';
+      }
+      // Cue C2: High-speed direct closing threat (FPV strike drone)
       else if (speed >= 22 && closingRate <= -18 && headingError <= 35) {
         assessed = 'fpv_kamikaze';
       }
@@ -103,7 +113,7 @@ export function referenceOperator(view: TraineeView): Command[] {
     }
 
     // 3. Action based on classification
-    if (track.assessedClass === 'fpv_kamikaze') {
+    if (track.assessedClass === 'fpv_kamikaze' || track.assessedClass === 'fixed_wing_recon') {
       if (track.engagementStatus !== 'engaged') {
         if (track.rangeM <= 1500 && view.effectors.jammer.busyUntilTick <= view.tick) {
           commands.push({
