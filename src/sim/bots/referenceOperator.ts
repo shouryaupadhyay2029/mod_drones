@@ -1,16 +1,24 @@
 import { Command } from '../core/types.js';
-import { TraineeView } from '../view/traineeView.js';
+import { TraineeTrack, TraineeView } from '../view/traineeView.js';
+
+/**
+ * Computes angular heading error (0 - 180 deg) between the track's course
+ * and the direct line-of-bearing from the track to the defended asset.
+ * A heading error near 0 indicates direct inbound attack toward the asset.
+ */
+export function computeHeadingErrorToAsset(track: TraineeTrack): number | undefined {
+  if (track.courseDeg === undefined) return undefined;
+  const bearingToAsset = (track.bearingDeg + 180) % 360;
+  let diff = Math.abs(track.courseDeg - bearingToAsset);
+  if (diff > 180) diff = 360 - diff;
+  return diff;
+}
 
 /**
  * Reference Operator Bot:
- * 1. Acknowledges confirmed tracks immediately upon confirmation (<= 3s latency for 100% score).
- * 2. Classifies tracks via kinematic & sector cues:
- *    - Bird: tiny RCS bucket or erratic wander heading changes (>4 deg/s).
- *    - FPV strike drone: Western threat axis (bearing 260-300 deg) with direct closing ingress (<=-16 m/s) or close-in terminal ingress (<=1800m).
- *    - Commercial quad: moderate transit speed (8-16 m/s), standoff crossing vector (closing rate > -15 m/s).
- * 3. Re-evaluates if an inbound track approaches inside 1800m (quad never closes inside 1.1km).
- * 4. Engages confirmed hostile FPV with jammer when in range (<=1500m), gun as fallback (<=1000m).
- * 5. Issues HOLD_FIRE for neutral/civilian tracks.
+ * Purely cue-driven tactical classifier and decision maker.
+ * Strictly adheres to trainee-accessible cues without scenario knowledge or bearing-sector bias.
+ * Requires confirmed state AND valid velocity before classifying or engaging.
  */
 export function referenceOperator(view: TraineeView): Command[] {
   const commands: Command[] = [];
@@ -19,7 +27,7 @@ export function referenceOperator(view: TraineeView): Command[] {
     const track = view.tracks[i];
     if (!track) continue;
 
-    // 1. Acknowledge confirmed track immediately
+    // 1. Acknowledge confirmed track immediately upon confirmation
     if (track.state === 'confirmed' && !track.acked) {
       commands.push({
         tick: view.tick,
@@ -31,21 +39,40 @@ export function referenceOperator(view: TraineeView): Command[] {
 
     if (!track.acked) continue;
 
-    // 2. Classify track
-    if (track.assessedClass === undefined) {
-      let assessed: 'fpv_kamikaze' | 'commercial_quad' | 'bird' | undefined;
+    // Both classification and engagement require confirmed state and valid velocity estimates
+    if (track.state !== 'confirmed' || !track.velocityValid) {
+      continue;
+    }
 
-      if (track.rcsBucket === 'tiny' || (track.speedMps < 16 && track.headingChangeRateDegPerS > 4)) {
+    const speed = track.speedMps ?? 0;
+    const closingRate = track.closingRateMps ?? 0;
+    const turnRate = track.headingChangeRateDegPerS ?? 0;
+    const headingError = computeHeadingErrorToAsset(track) ?? 180;
+
+    // 2. Classify or re-evaluate classification based on pure kinematic & radar cues
+    if (track.assessedClass === undefined) {
+      let assessed: 'fpv_kamikaze' | 'commercial_quad' | 'bird' | 'clutter' | undefined;
+
+      // Cue A: False track / clutter (low quality blips, non-coherent velocity)
+      if (track.quality < 0.28) {
+        assessed = 'clutter';
+      }
+      // Cue B: Avian (tiny RCS bucket or erratic wander turn rates)
+      else if (track.rcsBucket === 'tiny' || (speed < 16 && turnRate > 3.5)) {
         assessed = 'bird';
-      } else if (
-        track.bearingDeg >= 250 &&
-        track.bearingDeg <= 310 &&
-        track.closingRateMps <= -18
-      ) {
-        // High-speed direct closing ingress from Western sector
+      }
+      // Cue C: High-speed direct closing threat (FPV strike drone)
+      else if (speed >= 22 && closingRate <= -18 && headingError <= 35) {
         assessed = 'fpv_kamikaze';
+      }
+      // Cue D: Standoff transit corridor / non-closing crossing trajectory
+      else if (speed >= 6 && (closingRate > -14 || headingError > 45)) {
+        assessed = 'commercial_quad';
+      }
+      // Cue E: Low speed or ambiguous
+      else if (speed < 6) {
+        assessed = 'bird';
       } else {
-        // Transit / standoff crossing vector
         assessed = 'commercial_quad';
       }
 
@@ -59,14 +86,13 @@ export function referenceOperator(view: TraineeView): Command[] {
       }
     }
 
-    // Re-evaluate ONLY if track is in the Western threat axis, has non-tiny RCS, and penetrates terminal zone closing fast
+    // Re-evaluate if a previously non-hostile track turns into a high-speed direct inbound attack
     if (
       track.assessedClass !== 'fpv_kamikaze' &&
       track.rcsBucket !== 'tiny' &&
-      track.bearingDeg >= 250 &&
-      track.bearingDeg <= 310 &&
-      track.rangeM <= 1800 &&
-      track.closingRateMps <= -18
+      speed >= 22 &&
+      closingRate <= -18 &&
+      headingError <= 30
     ) {
       commands.push({
         tick: view.tick,
@@ -97,7 +123,11 @@ export function referenceOperator(view: TraineeView): Command[] {
           });
         }
       }
-    } else if (track.assessedClass === 'commercial_quad' || track.assessedClass === 'bird') {
+    } else if (
+      track.assessedClass === 'commercial_quad' ||
+      track.assessedClass === 'bird' ||
+      track.assessedClass === 'clutter'
+    ) {
       if (track.engagementStatus !== 'holding_fire') {
         commands.push({
           tick: view.tick,

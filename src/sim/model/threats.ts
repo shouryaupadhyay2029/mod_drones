@@ -1,6 +1,11 @@
 // Generic illustrative parameters for training; not real specifications.
 
-export type ThreatClassId = 'fpv_kamikaze' | 'commercial_quad' | 'fixed_wing_recon' | 'bird';
+export type ThreatClassId =
+  | 'fpv_kamikaze'
+  | 'commercial_quad'
+  | 'fixed_wing_recon'
+  | 'bird'
+  | 'clutter';
 
 export interface ThreatClass {
   id: ThreatClassId;
@@ -46,6 +51,15 @@ export const THREAT_LIBRARY: Record<ThreatClassId, ThreatClass> = {
     speedRangeMps: [4, 14],
     altitudeBandM: [10, 150],
     rcsM2: 0.001,
+    rfControlled: false,
+    hostile: false,
+  },
+  clutter: {
+    id: 'clutter',
+    label: 'False / Clutter',
+    speedRangeMps: [0, 6],
+    altitudeBandM: [0, 50],
+    rcsM2: 0.005,
     rfControlled: false,
     hostile: false,
   },
