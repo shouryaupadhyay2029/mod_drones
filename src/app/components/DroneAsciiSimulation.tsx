@@ -242,8 +242,8 @@ export function DroneAsciiSimulation({
       // Combine base model + dynamic spinning props
       const allPoints = [...baseModelRef.current, ...dynamicProps];
 
-      // Grid dimensions (cols x rows)
-      const cols = 96;
+      // Grid dimensions (cols x rows) - Optimized for wide cinematic hero display
+      const cols = 116;
       const rows = 48;
       const buffer: string[] = new Array(cols * rows).fill(' ');
       const zBuffer: number[] = new Array(cols * rows).fill(-Infinity);
@@ -256,8 +256,8 @@ export function DroneAsciiSimulation({
 
       // Camera & projection parameters
       const distance = 2.85;
-      const scaleX = 58;
-      const scaleY = 30; // Aspect ratio adjustment for monospace characters
+      const scaleX = 66;
+      const scaleY = 32; // Aspect ratio adjustment for monospace characters
 
       for (let i = 0; i < allPoints.length; i++) {
         const pt = allPoints[i]!;
@@ -327,10 +327,10 @@ export function DroneAsciiSimulation({
         position: 'relative',
         width: '100%',
         height: '100%',
-        minHeight: '440px',
+        minHeight: '480px',
         backgroundColor,
         borderRadius: '12px',
-        border: '1px solid #262626',
+        border: '1px solid rgba(203, 179, 237, 0.16)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -338,7 +338,7 @@ export function DroneAsciiSimulation({
         justifyContent: 'center',
         userSelect: 'none',
         cursor: isDraggingRef.current ? 'grabbing' : 'grab',
-        boxShadow: `0 0 30px ${activeColor}15`,
+        boxShadow: `0 0 35px rgba(0, 0, 0, 0.8), 0 0 20px ${activeColor}15`,
         ...style,
       }}
     >

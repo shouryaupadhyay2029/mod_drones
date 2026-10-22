@@ -147,6 +147,184 @@ body {
 }
 
 /* ==========================================================================
+   Luxury Mega-Menu Animated Dropdown
+   ========================================================================== */
+
+.nav-mega-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nav-mega-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-mega-btn:hover,
+.nav-mega-btn.is-active {
+  color: #ffffff;
+  background-color: rgba(203, 179, 237, 0.1);
+  border-color: rgba(203, 179, 237, 0.25);
+}
+
+.nav-mega-chevron {
+  font-size: 9px;
+  transition: transform 0.22s ease;
+  color: var(--accent-lavender);
+}
+
+.nav-mega-item:hover .nav-mega-chevron,
+.nav-mega-btn.is-active .nav-mega-chevron {
+  transform: rotate(180deg);
+}
+
+.mega-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px) scale(0.97);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background: rgba(14, 16, 24, 0.96);
+  border: 1px solid rgba(203, 179, 237, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 25px rgba(203, 179, 237, 0.1);
+  backdrop-filter: blur(20px);
+  z-index: 1000;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.22s;
+}
+
+.nav-mega-item:hover .mega-dropdown-panel,
+.mega-dropdown-panel.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.mega-menu-grid {
+  display: grid;
+  grid-template-columns: 340px 280px;
+  gap: 20px;
+  padding: 22px;
+  font-family: inherit;
+}
+
+.mega-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mega-menu-card-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.mega-menu-card-item:hover {
+  background: rgba(203, 179, 237, 0.08);
+  border-color: rgba(203, 179, 237, 0.22);
+  transform: translateX(3px);
+}
+
+.mega-menu-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: rgba(203, 179, 237, 0.12);
+  border: 1px solid rgba(203, 179, 237, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.mega-menu-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mega-menu-item-title {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mega-menu-item-desc {
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.mega-preview-card {
+  background: rgba(10, 11, 14, 0.9);
+  border: 1px solid rgba(203, 179, 237, 0.16);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mega-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mega-preview-tag {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--accent-chartreuse);
+  text-transform: uppercase;
+}
+
+.mega-preview-title {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 6px 0 4px 0;
+}
+
+.mega-preview-text {
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* ==========================================================================
    Smooth Micro-Interactions & TextRoll
    ========================================================================== */
 

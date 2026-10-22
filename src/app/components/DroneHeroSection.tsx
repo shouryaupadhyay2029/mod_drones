@@ -13,41 +13,25 @@ export function DroneHeroSection({
 }: DroneHeroSectionProps): React.JSX.Element {
   return (
     <section style={styles.heroSection}>
-      {/* Left Column: Briefing & Skiper14 Style Typography */}
-      <div style={styles.leftCol}>
-        {/* Category breadcrumb */}
-        <div style={styles.breadcrumbRow}>
-          <span style={styles.categoryTag}>
-            MoD Simulator • Defense AI • Ascii Tactical Simulation
-          </span>
-        </div>
+      {/* Full-Width 3D Tactical Drone ASCII Canvas Container */}
+      <div style={styles.canvasWrapper}>
+        <DroneAsciiSimulation
+          color="#cbb3ed"
+          backgroundColor="#0a0b0e"
+          fontSize={10}
+          autoRotate={true}
+          rotationSpeed={0.012}
+        />
 
-        {/* Section tag */}
-        <div style={styles.tagBadge}>
-          <span style={styles.tagText}>ASCII SIMULATION // FPV THREAT</span>
-        </div>
-
-        {/* Hero Title */}
-        <h1 style={styles.headline}>
-          A stunning ASCII art effect that renders 3D tactical drones in real-time.
-        </h1>
-
-        {/* Description */}
-        <p style={styles.subtext}>
-          Defend high-value assets against autonomous FPV kamikaze drones, low-RCS quadcopters,
-          and hostile EW reconnaissance swarms. Features real-time interactive 3D rotation,
-          customizable styling, and smooth physical kinematics.
-        </p>
-
-        {/* Action Buttons */}
-        <div style={styles.btnRow}>
+        {/* Floating Action Capsule (Center Bottom) */}
+        <div style={styles.floatingActionCapsule}>
           {onStartMission && (
             <button
               id="hero-btn-start"
               onClick={onStartMission}
               style={styles.btnPrimary}
             >
-              <TextRoll center duration={0.32} stagger={0.025}>
+              <TextRoll center duration={0.3} stagger={0.025}>
                 START MISSION
               </TextRoll>
             </button>
@@ -70,36 +54,25 @@ export function DroneHeroSection({
           </a>
         </div>
 
-        {/* Tactical Telemetry Metrics */}
-        <div style={styles.statsRow}>
-          <div style={styles.statBox}>
-            <span style={styles.statLabel}>SIM ENGINE</span>
-            <span style={styles.statVal}>20 Hz Fixed</span>
-          </div>
-          <div style={styles.statBox}>
-            <span style={styles.statLabel}>FPV MODEL</span>
-            <span style={styles.statVal}>4-Rotor 3D</span>
-          </div>
-          <div style={styles.statBox}>
-            <span style={styles.statLabel}>EFFECTORS</span>
-            <span style={styles.statVal}>Jammer + Gun</span>
-          </div>
-          <div style={styles.statBox}>
-            <span style={styles.statLabel}>DETERMINISM</span>
-            <span style={styles.statVal}>100% Bit-Parity</span>
-          </div>
+        {/* Floating Bottom Left Telemetry HUD */}
+        <div style={styles.floatingBottomLeft}>
+          <span style={styles.hudStatItem}>
+            <strong style={styles.hudLabel}>MODEL:</strong> 4-Rotor FPV Interceptor
+          </span>
+          <span style={styles.hudDivider}>•</span>
+          <span style={styles.hudStatItem}>
+            <strong style={styles.hudLabel}>RCS:</strong> 0.02 m²
+          </span>
+          <span style={styles.hudDivider}>•</span>
+          <span style={styles.hudStatItem}>
+            <strong style={styles.hudLabel}>ENGINE:</strong> 20 Hz Deterministic Bit-Parity
+          </span>
         </div>
-      </div>
 
-      {/* Right Column: Interactive 3D ASCII Simulation */}
-      <div style={styles.rightCol}>
-        <DroneAsciiSimulation
-          color="#cbb3ed"
-          backgroundColor="#0a0b0e"
-          fontSize={10}
-          autoRotate={true}
-          rotationSpeed={0.012}
-        />
+        {/* Floating Bottom Right Interactive Cue */}
+        <div style={styles.floatingBottomRight}>
+          <span style={styles.dragCueText}>[CLICK & DRAG TO ORBIT 360°]</span>
+        </div>
       </div>
     </section>
   );
@@ -107,87 +80,61 @@ export function DroneHeroSection({
 
 const styles: Record<string, React.CSSProperties> = {
   heroSection: {
-    display: 'grid',
-    gridTemplateColumns: 'minmax(420px, 1fr) minmax(460px, 1.1fr)',
-    gap: '32px',
-    alignItems: 'center',
-    padding: '36px 32px',
-    backgroundColor: '#0a0b0e',
-    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
     width: '100%',
-    maxWidth: '1440px',
-    margin: '0 auto',
-    boxSizing: 'border-box',
-  },
-  leftCol: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '18px',
-    fontFamily: 'monospace',
-  },
-  breadcrumbRow: {
-    display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    backgroundColor: '#0a0b0e',
+    borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
+    boxSizing: 'border-box',
+    padding: '16px 24px 20px 24px',
   },
-  categoryTag: {
-    color: '#cbb3ed',
-    fontSize: '12px',
-    fontWeight: 500,
-    letterSpacing: '0.04em',
+  canvasWrapper: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: '1440px',
+    height: '520px',
+    borderRadius: '12px',
+    overflow: 'hidden',
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(203, 179, 237, 0.08)',
   },
-  tagBadge: {
-    alignSelf: 'flex-start',
-  },
-  tagText: {
-    color: '#d4ff3f',
-    fontSize: '11px',
-    fontWeight: 800,
-    letterSpacing: '0.12em',
-    textTransform: 'uppercase',
-  },
-  headline: {
-    margin: 0,
-    fontSize: '28px',
-    fontWeight: 800,
-    lineHeight: '1.25',
-    color: '#ffffff',
-    letterSpacing: '-0.02em',
-  },
-  subtext: {
-    margin: 0,
-    fontSize: '14px',
-    lineHeight: '1.6',
-    color: '#c4c7d4',
-    maxWidth: '560px',
-  },
-  btnRow: {
+  floatingActionCapsule: {
+    position: 'absolute',
+    bottom: '22px',
+    left: '50%',
+    transform: 'translateX(-50%)',
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    flexWrap: 'wrap',
-    marginTop: '6px',
+    backgroundColor: 'rgba(17, 19, 25, 0.85)',
+    border: '1px solid rgba(203, 179, 237, 0.25)',
+    borderRadius: '30px',
+    padding: '8px 18px',
+    backdropFilter: 'blur(16px)',
+    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(212, 255, 63, 0.15)',
+    zIndex: 20,
+    fontFamily: 'monospace',
   },
   btnPrimary: {
-    padding: '12px 22px',
+    padding: '10px 22px',
     backgroundColor: '#d4ff3f',
     color: '#0a0b0e',
     border: 'none',
-    borderRadius: '6px',
-    fontSize: '13px',
+    borderRadius: '20px',
+    fontSize: '12px',
     fontWeight: 800,
     letterSpacing: '0.06em',
     cursor: 'pointer',
-    boxShadow: '0 0 16px rgba(212, 255, 63, 0.45)',
+    boxShadow: '0 0 16px rgba(212, 255, 63, 0.5)',
     transition: 'all 0.15s ease',
   },
   btnSecondary: {
-    padding: '12px 18px',
+    padding: '10px 18px',
     backgroundColor: '#161822',
     color: '#ffffff',
     border: '1px solid rgba(203, 179, 237, 0.22)',
-    borderRadius: '6px',
-    fontSize: '13px',
+    borderRadius: '20px',
+    fontSize: '12px',
     fontWeight: 600,
     cursor: 'pointer',
     transition: 'all 0.15s ease',
@@ -197,41 +144,52 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '12px',
     textDecoration: 'none',
     fontWeight: 600,
-    marginLeft: '6px',
+    padding: '4px 8px',
   },
-  statsRow: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '10px',
-    marginTop: '12px',
-    paddingTop: '16px',
-    borderTop: '1px solid rgba(203, 179, 237, 0.1)',
-  },
-  statBox: {
+  floatingBottomLeft: {
+    position: 'absolute',
+    bottom: '20px',
+    left: '20px',
     display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    backgroundColor: '#111319',
+    alignItems: 'center',
+    gap: '8px',
+    backgroundColor: 'rgba(10, 11, 14, 0.75)',
     border: '1px solid rgba(203, 179, 237, 0.14)',
     borderRadius: '6px',
-    padding: '8px 10px',
+    padding: '6px 12px',
+    backdropFilter: 'blur(8px)',
+    fontSize: '11px',
+    fontFamily: 'monospace',
+    zIndex: 10,
+    pointerEvents: 'none',
   },
-  statLabel: {
+  hudStatItem: {
+    color: '#c4c7d4',
+  },
+  hudLabel: {
     color: '#cbb3ed',
-    fontSize: '9px',
     fontWeight: 700,
-    letterSpacing: '0.06em',
   },
-  statVal: {
+  hudDivider: {
+    color: '#767a8f',
+  },
+  floatingBottomRight: {
+    position: 'absolute',
+    bottom: '20px',
+    right: '20px',
+    backgroundColor: 'rgba(10, 11, 14, 0.75)',
+    border: '1px solid rgba(203, 179, 237, 0.14)',
+    borderRadius: '6px',
+    padding: '6px 12px',
+    backdropFilter: 'blur(8px)',
+    zIndex: 10,
+    pointerEvents: 'none',
+  },
+  dragCueText: {
     color: '#d4ff3f',
-    fontSize: '12px',
+    fontSize: '10px',
     fontWeight: 700,
-  },
-  rightCol: {
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    letterSpacing: '0.08em',
+    fontFamily: 'monospace',
   },
 };

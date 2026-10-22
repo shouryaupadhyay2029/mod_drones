@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TraineeEnvironmentView } from '../../sim/index.js';
 import { TextRoll } from '../components/TextRoll.js';
 
@@ -36,6 +36,8 @@ export function TopBar({
   onSetSpeed,
   onToggleAutopilot,
 }: TopBarProps): React.JSX.Element {
+  const [activeDropdown, setActiveDropdown] = useState<'scenarios' | 'systems' | 'intel' | null>(null);
+
   const scTitle =
     scenarioId === 'ridge_runner'
       ? 'RIDGE RUNNER'
@@ -47,145 +49,678 @@ export function TopBar({
     ? `${environment.timeOfDay} · ${environment.weather} · Vis ${environment.visibilityKm}km · ${environment.terrainKind}`
     : null;
 
+  const handleDropdownEnter = (menu: 'scenarios' | 'systems' | 'intel') => {
+    setActiveDropdown(menu);
+  };
+
+  const handleDropdownLeave = () => {
+    setActiveDropdown(null);
+  };
+
+  const scrollToBriefing = () => {
+    setActiveDropdown(null);
+    const el = document.getElementById('scenario-selection-card');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <div style={styles.container}>
-      {/* Top Banner */}
-      <div style={styles.banner}>
-        <span style={styles.bannerBadge}>
-          <TextRoll center stagger={0.02}>DISCLAIMER</TextRoll>
-        </span>
-        <span style={styles.bannerText}>
-          TRAINING SIMULATION — generic open-source parameters only
-        </span>
-        <a href="#/check" style={styles.sysCheckLink}>
-          <TextRoll stagger={0.02}>System Check ↗</TextRoll>
-        </a>
+    <header style={styles.headerRoot}>
+      {/* Top Disclaimer / Operational Sub-Bar */}
+      <div style={styles.topSubBar}>
+        <div style={styles.subBarLeft}>
+          <span style={styles.disclaimerPill}>
+            <TextRoll center stagger={0.02}>DISCLAIMER</TextRoll>
+          </span>
+          <span style={styles.disclaimerText}>
+            TRAINING SIMULATION — generic open-source parameters only
+          </span>
+        </div>
+        <div style={styles.subBarRight}>
+          <div style={styles.statusPulse}>
+            <span style={styles.pulseDot} />
+            <span style={styles.pulseText}>
+              {phase === 'running' ? 'LIVE 20 HZ RUNTIME' : 'SIMULATION STANDBY'}
+            </span>
+          </div>
+          <a href="#/check" style={styles.sysCheckLink}>
+            <TextRoll stagger={0.02}>System Check ↗</TextRoll>
+          </a>
+        </div>
       </div>
 
-      {/* Action / Telemetry Bar */}
-      <div style={styles.actionBar}>
-        {/* Left: Mission Info & Clock */}
-        <div style={styles.leftGroup}>
-          <div style={styles.missionTitle}>
-            <TextRoll center stagger={0.03}>{scTitle}</TextRoll>
-          </div>
-          {envStr && (
-            <div style={styles.envChipBadge}>
-              {envStr}
+      {/* Main Luxury Navigation Bar */}
+      <nav style={styles.mainNav}>
+        {/* Left: Brand Identity */}
+        <div style={styles.brandGroup}>
+          <a href="#/" style={styles.brandLink}>
+            <div style={styles.brandIconBox}>
+              <span style={styles.brandCrosshair}>✛</span>
             </div>
-          )}
-          <div style={styles.clockBox} id="missionClock">
-            <span style={styles.clockLabel}>TICK</span>
-            <span style={styles.clockValue} id="missionTick">{tick}</span>
-            <span style={styles.clockLabel}>TIME</span>
-            <span style={styles.timeValue} id="missionTime">{formatClock(tick)}</span>
+            <div style={styles.brandTextCol}>
+              <span style={styles.brandName}>MoD // AIR DEFENSE</span>
+              <span style={styles.brandTagline}>COUNTER-UAS SIMULATOR</span>
+            </div>
+          </a>
+        </div>
+
+        {/* Center: Luxury Mega-Menu Nav Items */}
+        <div style={styles.navCenter}>
+          {/* Tab 1: Scenarios */}
+          <div
+            className="nav-mega-item"
+            onMouseEnter={() => handleDropdownEnter('scenarios')}
+            onMouseLeave={handleDropdownLeave}
+          >
+            <button
+              className={`nav-mega-btn ${activeDropdown === 'scenarios' ? 'is-active' : ''}`}
+              onClick={() => setActiveDropdown((prev) => (prev === 'scenarios' ? null : 'scenarios'))}
+            >
+              <span>SCENARIOS</span>
+              <span className="nav-mega-chevron">▾</span>
+            </button>
+
+            {/* Mega Dropdown Panel: Scenarios */}
+            <div className={`mega-dropdown-panel ${activeDropdown === 'scenarios' ? 'is-open' : ''}`}>
+              <div className="mega-menu-grid">
+                <div className="mega-menu-list">
+                  <div className="mega-menu-card-item" onClick={scrollToBriefing}>
+                    <div className="mega-menu-item-icon">🎯</div>
+                    <div className="mega-menu-item-body">
+                      <span className="mega-menu-item-title">
+                        Dawn Intrusion
+                        <span style={styles.menuBadgeActive}>BASELINE</span>
+                      </span>
+                      <span className="mega-menu-item-desc">
+                        1 hostile FPV + civilian quad transit + avian clutter in rural dusk.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mega-menu-card-item" onClick={scrollToBriefing}>
+                    <div className="mega-menu-item-icon">⛰️</div>
+                    <div className="mega-menu-item-body">
+                      <span className="mega-menu-item-title">
+                        Ridge Runner
+                        <span style={styles.menuBadgeTag}>MASKING</span>
+                      </span>
+                      <span className="mega-menu-item-desc">
+                        Terrain masking in hilly fog valleys with light electronic warfare.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mega-menu-card-item" onClick={scrollToBriefing}>
+                    <div className="mega-menu-item-icon">🏙️</div>
+                    <div className="mega-menu-item-body">
+                      <span className="mega-menu-item-title">
+                        City Edge Night
+                        <span style={styles.menuBadgeTag}>HEAVY EW</span>
+                      </span>
+                      <span className="mega-menu-item-desc">
+                        High-altitude recon UAV + low strike drone in dense urban clutter.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Preview Card */}
+                <div className="mega-preview-card">
+                  <div className="mega-preview-header">
+                    <span className="mega-preview-tag">SCENARIO INTELLIGENCE</span>
+                    <span style={{ fontSize: '11px', color: '#cbb3ed' }}>v2.4</span>
+                  </div>
+                  <div>
+                    <h4 className="mega-preview-title">Autonomous Mission Suite</h4>
+                    <p className="mega-preview-text">
+                      Three operational environments testing radar horizon line-of-sight, terrain
+                      masking, and electronic counter-measures.
+                    </p>
+                  </div>
+                  <button
+                    onClick={scrollToBriefing}
+                    style={styles.previewCardBtn}
+                  >
+                    SELECT SCENARIO ↓
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div style={styles.seedBadge}>
-            <span style={styles.seedLabel}>SEED:</span>
-            <span style={styles.seedValue}>{seed}</span>
+
+          {/* Tab 2: Defense Systems */}
+          <div
+            className="nav-mega-item"
+            onMouseEnter={() => handleDropdownEnter('systems')}
+            onMouseLeave={handleDropdownLeave}
+          >
+            <button
+              className={`nav-mega-btn ${activeDropdown === 'systems' ? 'is-active' : ''}`}
+              onClick={() => setActiveDropdown((prev) => (prev === 'systems' ? null : 'systems'))}
+            >
+              <span>DEFENSE SYSTEMS</span>
+              <span className="nav-mega-chevron">▾</span>
+            </button>
+
+            {/* Mega Dropdown Panel: Systems */}
+            <div className={`mega-dropdown-panel ${activeDropdown === 'systems' ? 'is-open' : ''}`}>
+              <div className="mega-menu-grid">
+                <div className="mega-menu-list">
+                  <div className="mega-menu-card-item">
+                    <div className="mega-menu-item-icon">📡</div>
+                    <div className="mega-menu-item-body">
+                      <span className="mega-menu-item-title">Pulse-Doppler Radar</span>
+                      <span className="mega-menu-item-desc">
+                        2D range-azimuth tracking with RCS-dependent Pd, noise & false alarms.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mega-menu-card-item">
+                    <div className="mega-menu-item-icon">⚡</div>
+                    <div className="mega-menu-item-body">
+                      <span className="mega-menu-item-title">Directional RF Jammer</span>
+                      <span className="mega-menu-item-desc">
+                        1,500m standoff RF link disruption for drone command & control.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mega-menu-card-item">
+                    <div className="mega-menu-item-icon">💥</div>
+                    <div className="mega-menu-item-body">
+                      <span className="mega-menu-item-title">Kinetic 30mm CIWS</span>
+                      <span className="mega-menu-item-desc">
+                        1,000m automated rapid-fire anti-air cannon with 20-round magazine.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mega-menu-card-item">
+                    <div className="mega-menu-item-icon">🛡️</div>
+                    <div className="mega-menu-item-body">
+                      <span className="mega-menu-item-title">TraineeView Isolation</span>
+                      <span className="mega-menu-item-desc">
+                        Cryptographically verified isolation with zero ground-truth leakage.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Preview Card */}
+                <div className="mega-preview-card">
+                  <div className="mega-preview-header">
+                    <span className="mega-preview-tag">INTEGRATED C2 SUITE</span>
+                    <span style={{ fontSize: '11px', color: '#d4ff3f' }}>ARMED</span>
+                  </div>
+                  <div>
+                    <h4 className="mega-preview-title">Layered Air Defense</h4>
+                    <p className="mega-preview-text">
+                      Multi-tier counter-UAS pairing non-kinetic RF interference at 1.5 km with
+                      kinetic point-defense cannon at 1.0 km.
+                    </p>
+                  </div>
+                  <a href="#/check" style={styles.previewCardLink}>
+                    DIAGNOSTICS & VERIFY ↗
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tab 3: Threat Intel */}
+          <div
+            className="nav-mega-item"
+            onMouseEnter={() => handleDropdownEnter('intel')}
+            onMouseLeave={handleDropdownLeave}
+          >
+            <button
+              className={`nav-mega-btn ${activeDropdown === 'intel' ? 'is-active' : ''}`}
+              onClick={() => setActiveDropdown((prev) => (prev === 'intel' ? null : 'intel'))}
+            >
+              <span>THREAT INTEL</span>
+              <span className="nav-mega-chevron">▾</span>
+            </button>
+
+            {/* Mega Dropdown Panel: Intel */}
+            <div className={`mega-dropdown-panel ${activeDropdown === 'intel' ? 'is-open' : ''}`}>
+              <div className="mega-menu-grid">
+                <div className="mega-menu-list">
+                  <div className="mega-menu-card-item">
+                    <div className="mega-menu-item-icon">🚀</div>
+                    <div className="mega-menu-item-body">
+                      <span className="mega-menu-item-title">
+                        FPV Kamikaze Drones
+                        <span style={styles.menuBadgeAlert}>HOSTILE</span>
+                      </span>
+                      <span className="mega-menu-item-desc">
+                        Small RCS, high speed (&gt;20 m/s), fast closing rate, lethal direct impact.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mega-menu-card-item">
+                    <div className="mega-menu-item-icon">✈️</div>
+                    <div className="mega-menu-item-body">
+                      <span className="mega-menu-item-title">Reconnaissance UAV</span>
+                      <span className="mega-menu-item-desc">
+                        High altitude, steady linear trajectory, persistent surveillance payload.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mega-menu-card-item">
+                    <div className="mega-menu-item-icon">🚁</div>
+                    <div className="mega-menu-item-body">
+                      <span className="mega-menu-item-title">Commercial Quadcopters</span>
+                      <span className="mega-menu-item-desc">
+                        Low speed, civilian telemetry, non-hostile. -25 point penalty if engaged.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mega-menu-card-item">
+                    <div className="mega-menu-item-icon">🦅</div>
+                    <div className="mega-menu-item-body">
+                      <span className="mega-menu-item-title">Avian Biologicals</span>
+                      <span className="mega-menu-item-desc">
+                        Migratory bird tracks with high turn rates. Non-threat clutter.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Preview Card */}
+                <div className="mega-preview-card">
+                  <div className="mega-preview-header">
+                    <span className="mega-preview-tag">DOCTRINE & ROE</span>
+                    <span style={{ fontSize: '11px', color: '#e34234' }}>STRICT</span>
+                  </div>
+                  <div>
+                    <h4 className="mega-preview-title">Rules of Engagement</h4>
+                    <p className="mega-preview-text">
+                      Maintain &gt;400m standoff defense. Rapid detection, timely classification,
+                      and target discrimination govern scoring.
+                    </p>
+                  </div>
+                  <button onClick={scrollToBriefing} style={styles.previewCardBtn}>
+                    START INTERCEPTION ⚡
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tab 4: Diagnostics Direct Link */}
+          <div className="nav-mega-item">
+            <a href="#/check" style={styles.navDirectLink}>
+              <span>DIAGNOSTICS</span>
+              <span style={{ fontSize: '10px', color: '#d4ff3f' }}>↗</span>
+            </a>
           </div>
         </div>
 
-        {/* Right: Controls & Speed */}
-        {phase === 'running' && (
-          <div style={styles.rightGroup}>
-            {/* Speed Multiplier Buttons */}
-            <div style={styles.buttonGroup}>
+        {/* Right: Contextual Telemetry & Controls */}
+        <div style={styles.navRight}>
+          {phase === 'setup' ? (
+            <div style={styles.setupActionCluster}>
+              <div style={styles.scenarioActiveChip} title="Current Scenario Selection">
+                <span style={styles.chipDot} />
+                <span style={styles.chipText}>{scTitle}</span>
+              </div>
+
+              <div style={styles.seedDisplayPill} title="Deterministic Pseudo-Random Seed">
+                <span style={styles.seedLabelText}>SEED:</span>
+                <span style={styles.seedValueText}>{seed}</span>
+              </div>
+
               <button
-                id="btn-speed-1"
-                onClick={() => onSetSpeed(1)}
-                style={speed === 1 ? styles.speedActive : styles.speedButton}
+                onClick={scrollToBriefing}
+                style={styles.btnNavCta}
+                title="Scroll to Mission Setup"
               >
-                <TextRoll center>1x</TextRoll>
-              </button>
-              <button
-                id="btn-speed-2"
-                onClick={() => onSetSpeed(2)}
-                style={speed === 2 ? styles.speedActive : styles.speedButton}
-              >
-                <TextRoll center>2x</TextRoll>
-              </button>
-              <button
-                id="btn-speed-4"
-                onClick={() => onSetSpeed(4)}
-                style={speed === 4 ? styles.speedActive : styles.speedButton}
-              >
-                <TextRoll center>4x</TextRoll>
+                <TextRoll center stagger={0.02}>BRIEFING ↓</TextRoll>
               </button>
             </div>
+          ) : (
+            <div style={styles.runningActionCluster}>
+              {/* Mission Scenario and Environment */}
+              <div style={styles.missionTitle}>
+                <TextRoll center stagger={0.03}>{scTitle}</TextRoll>
+              </div>
 
-            {/* Pause / Resume Button */}
-            <button
-              id="btn-toggle-pause"
-              onClick={onTogglePause}
-              style={styles.pauseButton}
-            >
-              <TextRoll center>{isPaused ? '▶ RESUME' : '⏸ PAUSE'}</TextRoll>
-            </button>
+              {envStr && (
+                <div style={styles.envChipBadge}>
+                  {envStr}
+                </div>
+              )}
 
-            {/* Autopilot Toggle */}
-            <button
-              id="btn-toggle-autopilot"
-              onClick={onToggleAutopilot}
-              style={autopilot ? styles.autopilotActive : styles.autopilotButton}
-            >
-              <TextRoll center>{autopilot ? '🤖 AUTOPILOT: ON' : '🤖 AUTOPILOT: OFF'}</TextRoll>
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+              {/* Mission Clock */}
+              <div style={styles.clockBox} id="missionClock">
+                <span style={styles.clockLabel}>TICK</span>
+                <span style={styles.clockValue} id="missionTick">{tick}</span>
+                <span style={styles.clockLabel}>TIME</span>
+                <span style={styles.timeValue} id="missionTime">{formatClock(tick)}</span>
+              </div>
+
+              {/* Seed Badge */}
+              <div style={styles.seedBadge}>
+                <span style={styles.seedLabel}>SEED:</span>
+                <span style={styles.seedValue}>{seed}</span>
+              </div>
+
+              {/* Speed Buttons */}
+              <div style={styles.buttonGroup}>
+                <button
+                  id="btn-speed-1"
+                  onClick={() => onSetSpeed(1)}
+                  style={speed === 1 ? styles.speedActive : styles.speedButton}
+                >
+                  <TextRoll center>1x</TextRoll>
+                </button>
+                <button
+                  id="btn-speed-2"
+                  onClick={() => onSetSpeed(2)}
+                  style={speed === 2 ? styles.speedActive : styles.speedButton}
+                >
+                  <TextRoll center>2x</TextRoll>
+                </button>
+                <button
+                  id="btn-speed-4"
+                  onClick={() => onSetSpeed(4)}
+                  style={speed === 4 ? styles.speedActive : styles.speedButton}
+                >
+                  <TextRoll center>4x</TextRoll>
+                </button>
+              </div>
+
+              {/* Pause Button */}
+              <button
+                id="btn-toggle-pause"
+                onClick={onTogglePause}
+                style={styles.pauseButton}
+              >
+                <TextRoll center>{isPaused ? '▶ RESUME' : '⏸ PAUSE'}</TextRoll>
+              </button>
+
+              {/* Autopilot Button */}
+              <button
+                id="btn-toggle-autopilot"
+                onClick={onToggleAutopilot}
+                style={autopilot ? styles.autopilotActive : styles.autopilotButton}
+              >
+                <TextRoll center>{autopilot ? '🤖 AUTOPILOT: ON' : '🤖 AUTOPILOT: OFF'}</TextRoll>
+              </button>
+            </div>
+          )}
+        </div>
+      </nav>
+    </header>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: {
+  headerRoot: {
     display: 'flex',
     flexDirection: 'column',
     backgroundColor: '#0a0b0e',
     borderBottom: '1px solid rgba(203, 179, 237, 0.14)',
+    position: 'relative',
+    zIndex: 100,
   },
-  banner: {
+  topSubBar: {
     backgroundColor: '#060709',
-    borderBottom: '1px solid rgba(203, 179, 237, 0.1)',
-    padding: '6px 16px',
+    borderBottom: '1px solid rgba(203, 179, 237, 0.08)',
+    padding: '5px 20px',
     display: 'flex',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: '12px',
     fontSize: '11px',
     fontFamily: 'monospace',
   },
-  bannerBadge: {
+  subBarLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  disclaimerPill: {
     backgroundColor: '#cbb3ed',
     color: '#0a0b0e',
     padding: '2px 7px',
     borderRadius: '3px',
     fontWeight: 800,
-    boxShadow: '0 0 8px rgba(203, 179, 237, 0.4)',
+    fontSize: '10px',
+    boxShadow: '0 0 8px rgba(203, 179, 237, 0.35)',
   },
-  bannerText: {
+  disclaimerText: {
     color: '#c4c7d4',
-    flex: 1,
+  },
+  subBarRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  statusPulse: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  pulseDot: {
+    width: '6px',
+    height: '6px',
+    borderRadius: '50%',
+    backgroundColor: '#d4ff3f',
+    boxShadow: '0 0 6px #d4ff3f',
+  },
+  pulseText: {
+    color: '#d4ff3f',
+    fontSize: '10px',
+    fontWeight: 700,
+    letterSpacing: '0.04em',
   },
   sysCheckLink: {
-    color: '#d4ff3f',
+    color: '#cbb3ed',
     textDecoration: 'none',
     fontSize: '11px',
     fontWeight: 600,
   },
-  actionBar: {
-    padding: '10px 16px',
+  mainNav: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '12px',
-  },
-  leftGroup: {
-    display: 'flex',
-    alignItems: 'center',
+    padding: '10px 20px',
+    backgroundColor: 'rgba(10, 11, 14, 0.95)',
+    backdropFilter: 'blur(12px)',
     gap: '16px',
     flexWrap: 'wrap',
+  },
+  brandGroup: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  brandLink: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    textDecoration: 'none',
+  },
+  brandIconBox: {
+    width: '28px',
+    height: '28px',
+    borderRadius: '6px',
+    backgroundColor: 'rgba(212, 255, 63, 0.12)',
+    border: '1px solid rgba(212, 255, 63, 0.4)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 0 10px rgba(212, 255, 63, 0.25)',
+  },
+  brandCrosshair: {
+    color: '#d4ff3f',
+    fontSize: '14px',
+    fontWeight: 900,
+  },
+  brandTextCol: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1px',
+  },
+  brandName: {
+    color: '#ffffff',
+    fontSize: '13px',
+    fontWeight: 800,
+    letterSpacing: '0.06em',
+    fontFamily: 'monospace',
+  },
+  brandTagline: {
+    color: '#cbb3ed',
+    fontSize: '9px',
+    fontWeight: 600,
+    letterSpacing: '0.08em',
+    fontFamily: 'monospace',
+  },
+  navCenter: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  navDirectLink: {
+    color: '#c4c7d4',
+    textDecoration: 'none',
+    fontSize: '12px',
+    fontWeight: 700,
+    letterSpacing: '0.06em',
+    padding: '8px 14px',
+    borderRadius: '6px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    transition: 'all 0.2s ease',
+  },
+  menuBadgeActive: {
+    fontSize: '9px',
+    padding: '1px 5px',
+    borderRadius: '3px',
+    backgroundColor: 'rgba(212, 255, 63, 0.15)',
+    border: '1px solid rgba(212, 255, 63, 0.4)',
+    color: '#d4ff3f',
+  },
+  menuBadgeTag: {
+    fontSize: '9px',
+    padding: '1px 5px',
+    borderRadius: '3px',
+    backgroundColor: 'rgba(203, 179, 237, 0.12)',
+    border: '1px solid rgba(203, 179, 237, 0.3)',
+    color: '#cbb3ed',
+  },
+  menuBadgeAlert: {
+    fontSize: '9px',
+    padding: '1px 5px',
+    borderRadius: '3px',
+    backgroundColor: 'rgba(227, 66, 52, 0.15)',
+    border: '1px solid rgba(227, 66, 52, 0.4)',
+    color: '#e34234',
+  },
+  previewCardBtn: {
+    padding: '8px 12px',
+    backgroundColor: '#d4ff3f',
+    color: '#0a0b0e',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '11px',
+    fontWeight: 800,
+    fontFamily: 'monospace',
+    cursor: 'pointer',
+    letterSpacing: '0.04em',
+    boxShadow: '0 0 10px rgba(212, 255, 63, 0.35)',
+    marginTop: '6px',
+  },
+  previewCardLink: {
+    padding: '8px 12px',
+    backgroundColor: '#161822',
+    color: '#cbb3ed',
+    border: '1px solid rgba(203, 179, 237, 0.25)',
+    borderRadius: '6px',
+    fontSize: '11px',
+    fontWeight: 700,
+    fontFamily: 'monospace',
+    textDecoration: 'none',
+    textAlign: 'center',
+    marginTop: '6px',
+  },
+  navRight: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  setupActionCluster: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+  scenarioActiveChip: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    backgroundColor: '#111319',
+    border: '1px solid rgba(203, 179, 237, 0.2)',
+    borderRadius: '6px',
+    padding: '6px 10px',
+  },
+  chipDot: {
+    width: '6px',
+    height: '6px',
+    borderRadius: '50%',
+    backgroundColor: '#d4ff3f',
+  },
+  chipText: {
+    color: '#ffffff',
+    fontSize: '11px',
+    fontWeight: 700,
+    fontFamily: 'monospace',
+  },
+  seedDisplayPill: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    backgroundColor: '#111319',
+    border: '1px solid rgba(203, 179, 237, 0.16)',
+    borderRadius: '6px',
+    padding: '6px 10px',
+    fontSize: '11px',
+    fontFamily: 'monospace',
+  },
+  seedLabelText: {
+    color: '#cbb3ed',
+  },
+  seedValueText: {
+    color: '#ffffff',
+    fontWeight: 600,
+  },
+  btnNavCta: {
+    backgroundColor: '#d4ff3f',
+    color: '#0a0b0e',
+    border: 'none',
+    borderRadius: '6px',
+    padding: '7px 14px',
+    fontSize: '12px',
+    fontWeight: 800,
+    fontFamily: 'monospace',
+    cursor: 'pointer',
+    letterSpacing: '0.04em',
+    boxShadow: '0 0 10px rgba(212, 255, 63, 0.35)',
+  },
+  runningActionCluster: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    flexWrap: 'wrap',
+  },
+  missionTitle: {
+    color: '#d4ff3f',
+    fontWeight: 800,
+    fontSize: '14px',
+    letterSpacing: '0.06em',
+    fontFamily: 'monospace',
+    textShadow: '0 0 10px rgba(212, 255, 63, 0.4)',
   },
   envChipBadge: {
     backgroundColor: '#111319',
@@ -196,14 +731,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '11px',
     fontWeight: 600,
     textTransform: 'capitalize',
-  },
-  missionTitle: {
-    color: '#d4ff3f',
-    fontWeight: 800,
-    fontSize: '15px',
-    letterSpacing: '0.06em',
-    fontFamily: 'monospace',
-    textShadow: '0 0 10px rgba(212, 255, 63, 0.4)',
   },
   clockBox: {
     display: 'flex',
@@ -246,11 +773,6 @@ const styles: Record<string, React.CSSProperties> = {
   seedValue: {
     color: '#e4e4e7',
     fontWeight: 600,
-  },
-  rightGroup: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
   },
   buttonGroup: {
     display: 'flex',
