@@ -34,6 +34,7 @@ export interface TraineeEffectorsView {
 export interface TraineeView {
   tick: number;
   timeS: number;
+  radarSweepDeg: number;
   missionState: {
     ended: boolean;
     reason?: 'asset_hit' | 'all_resolved' | 'time_limit';
@@ -104,6 +105,7 @@ export function buildTraineeView(
   return {
     tick,
     timeS: tick / 20,
+    radarSweepDeg: (tick % 40) * 9,
     missionState: {
       ended: missionEnded,
       reason: missionEndReason,

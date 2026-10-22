@@ -1,11 +1,20 @@
 import { Command, EngineSnapshot, SessionLog } from '../core/types.js';
+import { ScoreReport } from '../scoring/basic.js';
+import { TraineeView } from '../view/traineeView.js';
+
+export interface EnqueueCommandInput {
+  tick?: number;
+  type: string;
+  payload?: Record<string, unknown>;
+}
 
 export type WorkerCommand =
   | { type: 'INIT'; payload: { seed: string | number; scenarioId?: string } }
   | { type: 'START' }
   | { type: 'PAUSE' }
   | { type: 'STEP_N'; payload: { n: number } }
-  | { type: 'ENQUEUE'; payload: { command: Command } }
+  | { type: 'SET_SPEED'; payload: { multiplier: 1 | 2 | 4 } }
+  | { type: 'ENQUEUE'; payload: { command: Command | EnqueueCommandInput } }
   | { type: 'GET_STATE' }
   | { type: 'GET_LOG' }
   | { type: 'SNAPSHOT' }
@@ -19,6 +28,19 @@ export type WorkerEvent =
         hash: string;
         entityCount: number;
         isRunning: boolean;
+      };
+    }
+  | {
+      type: 'VIEW';
+      payload: {
+        view: TraineeView;
+      };
+    }
+  | {
+      type: 'REPORT';
+      payload: {
+        score: ScoreReport;
+        sessionLog: SessionLog;
       };
     }
   | {

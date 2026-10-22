@@ -109,4 +109,31 @@ describe('ESLint Negative Rules Verification (src/sim & src/sim/core)', { timeou
       expect(messagesInterval.some((m) => m.message.includes('setInterval is forbidden'))).toBe(false);
     });
   });
+
+  describe('src/app/** import restrictions and permissions', () => {
+    const appPath = 'src/app/routes/test-app.ts';
+
+    it('reports error on importing internal sim modules directly from src/app', async () => {
+      const messages = await lintSnippet("import { Engine } from '../../sim/core/engine.js';", appPath);
+      expect(
+        messages.some((m) =>
+          m.message.includes('src/app may import from src/sim ONLY via src/sim/index.ts')
+        )
+      ).toBe(true);
+    });
+
+    it('allows importing from src/sim/index.js in src/app', async () => {
+      const messages = await lintSnippet("import { Engine } from '../../sim/index.js';", appPath);
+      expect(
+        messages.some((m) =>
+          m.message.includes('src/app may import from src/sim ONLY via src/sim/index.ts')
+        )
+      ).toBe(false);
+    });
+
+    it('allows Math.random in src/app', async () => {
+      const messages = await lintSnippet('export const r = Math.random();', appPath);
+      expect(messages.some((m) => m.message.includes('Math.random is forbidden'))).toBe(false);
+    });
+  });
 });

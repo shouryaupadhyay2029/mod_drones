@@ -23,9 +23,12 @@ src/
 │   │   ├── protocol.ts      # Strongly-typed worker messaging contracts
 │   │   └── sim.worker.ts    # Web Worker execution harness for the Engine
 │   └── index.ts             # Public export surface of sim
-├── app/                     # React UI (System Check Page)
+├── app/                     # React UI (System Check Page & Console UI)
 │   ├── main.tsx             # React entrypoint
 │   ├── App.tsx              # System Check dashboard and verification controls
+│   ├── routes/
+│   │   └── ConsolePage.tsx  # Operator Console root view
+│   ├── console/             # Operator Console components (Radar, TrackTable, Debrief, etc.)
 │   └── simClient.ts         # SimClient RPC/Event bridge to the Web Worker
 └── shared/
     └── version.ts           # LOG_FORMAT_VERSION = 1
@@ -97,3 +100,21 @@ Every tick in `Engine.step()` executes exactly five systems in fixed order:
   - Classification accuracy.
   - Engagement decisions and standoff distance ($>400$m).
 - Incurs heavy deductions for collateral civilian quad engagement, bird engagement, wasted jamming cycles on non-RF targets, and asset hits.
+
+## 5. Phase 1B Architecture Additions: Operator Console & Headless Protocol
+
+### Operator Console UI Layer (`src/app/console/`)
+- Pure presentation layer communicating with the background simulation engine exclusively through `SimClient` and the Web Worker protocol.
+- **Strict Boundary Enforcement**: ESLint rules forbid `src/app` from importing any internals of `src/sim` except via the public contract barrel `src/sim/index.ts`. Zero direct access to simulation ground truth, world state, or hidden actor kinematics.
+- **TopBar**: Telemetry indicators (mission clock, threat condition DEFCON 1..5, simulation speed controls 1x/2x/4x, pause/resume, and Autopilot toggle driving `referenceOperator`).
+- **Radar Scope (`RadarScope.tsx`, `drawScope.ts`)**: Canvas PPI display featuring device-pixel-ratio scaling, range rings (500m to 3000m), rotating radar beam wedge with fading phosphor persistence, effector coverage rings (gun 1000m, jammer 1500m), history trails, velocity predictor vectors, and clickable track selection. Contact symbols and colors are strictly keyed to trainee assessed classification (`pending` = amber, `hostile` = red, `civilian` = green, `bird` = gray).
+- **Track Table & Track Detail (`TrackTable.tsx`, `TrackDetail.tsx`)**: Tabular contact summary with hotkey shortcuts (`1`-`9`, `j`/`k`), status badges, and actionable control panel (ACK, Classify, Jam, Gun, Hold Fire) with explicit disabled-state justifications.
+- **Effector Panel & Event Feed (`EffectorPanel.tsx`, `EventFeed.tsx`)**: Real-time effector status monitors (cooldowns, burst durations, target locks) and chronological mission events log.
+- **Debrief Screen (`DebriefScreen.tsx`)**: Comprehensive post-mission report displaying total score, breakdown sub-scores (detection, classification, engagement, collateral, standoff), rule deductions with timestamps, timeline analysis, and JSON export/copy capabilities.
+
+### Headless Worker Messaging Protocol (`src/sim/worker/protocol.ts`)
+- **`INIT`**: Initializes an engine with specified scenario (`dawn_intrusion`) and seed.
+- **`SET_SPEED`**: Adjusts tick pacing multiplier (`1x`, `2x`, `4x`) in the worker run loop.
+- **`ENQUEUE`**: Submits operator commands with optional target `tick`.
+- **`VIEW`**: Worker streams `TraineeView` payloads at $\le 100$ms intervals (every 2 ticks) and immediately upon command execution or discrete mission events.
+- **`REPORT`**: On mission termination (`asset_hit`, `all_resolved`, `time_limit`), worker computes `ScoreReport` using `scoreSession` and emits `ScoreReport` together with the complete `SessionLog`.

@@ -21,6 +21,7 @@ export * from './systems/engagement.js';
 export * from './systems/radar.js';
 
 export * from './view/traineeView.js';
+export * from './view/classificationOptions.js';
 
 export * from './bots/referenceOperator.js';
 export * from './bots/idleOperator.js';

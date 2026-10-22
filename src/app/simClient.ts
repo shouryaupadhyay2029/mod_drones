@@ -1,5 +1,13 @@
-import { Command, EngineSnapshot, SessionLog } from '../sim/core/types.js';
-import { WorkerCommand, WorkerEvent } from '../sim/worker/protocol.js';
+import {
+  Command,
+  EngineSnapshot,
+  EnqueueCommandInput,
+  ScoreReport,
+  SessionLog,
+  TraineeView,
+  WorkerCommand,
+  WorkerEvent,
+} from '../sim/index.js';
 
 export interface SimStateUpdate {
   tick: number;
@@ -11,6 +19,10 @@ export interface SimStateUpdate {
 export class SimClient {
   private worker: Worker | null = null;
   private stateListeners: Set<(state: SimStateUpdate) => void> = new Set();
+  private viewListeners: Set<(view: TraineeView) => void> = new Set();
+  private reportListeners: Set<
+    (report: { score: ScoreReport; sessionLog: SessionLog }) => void
+  > = new Set();
   private pendingLogResolvers: Array<(log: SessionLog) => void> = [];
   private pendingSnapshotResolvers: Array<(snapshot: EngineSnapshot) => void> = [];
   private lastState: SimStateUpdate = {
@@ -19,6 +31,7 @@ export class SimClient {
     entityCount: 0,
     isRunning: false,
   };
+  private lastView: TraineeView | null = null;
 
   constructor(customWorker?: Worker) {
     if (customWorker) {
@@ -44,6 +57,21 @@ export class SimClient {
         this.lastState = msg.payload;
         for (const listener of this.stateListeners) {
           listener(this.lastState);
+        }
+        break;
+      }
+
+      case 'VIEW': {
+        this.lastView = msg.payload.view;
+        for (const listener of this.viewListeners) {
+          listener(msg.payload.view);
+        }
+        break;
+      }
+
+      case 'REPORT': {
+        for (const listener of this.reportListeners) {
+          listener(msg.payload);
         }
         break;
       }
@@ -75,7 +103,7 @@ export class SimClient {
     this.worker?.postMessage(cmd);
   }
 
-  public init(seed: string | number, scenarioId = 'sandbox'): void {
+  public init(seed: string | number, scenarioId = 'dawn_intrusion'): void {
     this.send({ type: 'INIT', payload: { seed, scenarioId } });
   }
 
@@ -87,11 +115,15 @@ export class SimClient {
     this.send({ type: 'PAUSE' });
   }
 
+  public setSpeed(multiplier: 1 | 2 | 4): void {
+    this.send({ type: 'SET_SPEED', payload: { multiplier } });
+  }
+
   public stepN(n: number): void {
     this.send({ type: 'STEP_N', payload: { n } });
   }
 
-  public enqueue(command: Command): void {
+  public enqueue(command: Command | EnqueueCommandInput): void {
     this.send({ type: 'ENQUEUE', payload: { command } });
   }
 
@@ -125,13 +157,38 @@ export class SimClient {
     };
   }
 
+  public onView(listener: (view: TraineeView) => void): () => void {
+    this.viewListeners.add(listener);
+    if (this.lastView) {
+      listener(this.lastView);
+    }
+    return () => {
+      this.viewListeners.delete(listener);
+    };
+  }
+
+  public onReport(
+    listener: (report: { score: ScoreReport; sessionLog: SessionLog }) => void
+  ): () => void {
+    this.reportListeners.add(listener);
+    return () => {
+      this.reportListeners.delete(listener);
+    };
+  }
+
   public getLastState(): SimStateUpdate {
     return this.lastState;
+  }
+
+  public getLastView(): TraineeView | null {
+    return this.lastView;
   }
 
   public terminate(): void {
     this.worker?.terminate();
     this.worker = null;
     this.stateListeners.clear();
+    this.viewListeners.clear();
+    this.reportListeners.clear();
   }
 }

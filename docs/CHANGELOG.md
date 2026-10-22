@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - Phase 1B: Operator Console UI & Verification
+
+### Added
+- **Operator Console UI (`src/app/console/`)**:
+  - `TopBar`: Mission clock, threat DEFCON badge, sim speed toggles (`1x`, `2x`, `4x`), and Autopilot driving `referenceOperator`.
+  - `RadarScope` & `drawScope`: High-DPI HTML5 Canvas PPI scope with fading sweep wedge, range rings, effector rings (1000m gun, 1500m jammer), history trails, velocity vectors, and interactive plot selection.
+  - `TrackTable` & `TrackDetail`: Tactical tracks table with hotkeys (`1`-`9`, `j`/`k`, `a`, `c`, `j`, `g`, `h`) and control panel with explicit disabled reasons.
+  - `EffectorPanel` & `EventFeed`: Effector cooldown/target monitors and chronological event stream.
+  - `DebriefScreen`: Post-mission score summary, breakdown, deductions, and timeline review with JSON copy.
+  - `MissionSetup`: Scenario selection (`Dawn Intrusion`), custom seed input, and mission launcher.
+  - `useMission`: Hook orchestrating worker lifecycle, command dispatch, and state synchronisation.
+- **Worker Protocol Extensions (`src/sim/worker/protocol.ts`, `sim.worker.ts`)**:
+  - `SET_SPEED` command supporting 1x, 2x, and 4x execution multipliers.
+  - `ENQUEUE` command with optional `tick` parameter.
+  - Streaming `VIEW` messages (at $\le 100$ms intervals and on discrete events).
+  - Terminal `REPORT` messages containing the calculated `ScoreReport` and complete `SessionLog`.
+- **ESLint UI Boundary Rule**:
+  - Prohibits imports in `src/app` from `src/sim` except via the public entry barrel `src/sim/index.ts`.
+- **Automated Verification Suites**:
+  - `tests/geometry.test.ts`: Polar/pixel mapping, azimuth, ring radii, and contact picking.
+  - `tests/worker-protocol.test.ts`: Deterministic headless worker lifecycle verification without wall-clock sleeps, scoring 100 on seed 1 and confirming absence of ground-truth leaks.
+  - `tests/components.test.tsx`: Component unit tests for TopBar, TrackTable, TrackDetail, and DebriefScreen.
+  - `scripts/screenshot-console.mjs`: Automated Puppeteer screenshot pipeline capturing `console-mid.png` and `console-debrief.png`.
+
+### Changed
+- **System Check Navigation**: Moved System Check dashboard to route `#/check` with updated document title.
+- **Scoring Aggregation**: Resolved multi-track scoring bug by aggregating ack latency, classification, and engagement across all tracks associated with an actor.
+- **Bird Departure Kinematics**: Removed artificial high-speed sprint; bird transitions immediately to `left_area` at `departTick` with natural radar track drop.
+
 ## [0.2.0] - Phase 1A: Single-Drone Mission Simulation, Radar, Effectors, Basic Scoring
 
 ### Changed

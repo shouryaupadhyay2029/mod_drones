@@ -25,6 +25,32 @@ export default tseslint.config(
         ...globals.browser,
       },
     },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '**/sim/*',
+                '!**/sim/index.js',
+                '!**/sim/index.ts',
+                '!**/sim/index',
+                '../sim/*',
+                '!../sim/index.js',
+                '!../sim/index.ts',
+                '!../sim/index',
+                '../../sim/*',
+                '!../../sim/index.js',
+                '!../../sim/index.ts',
+                '!../../sim/index',
+              ],
+              message: 'src/app may import from src/sim ONLY via src/sim/index.ts.',
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     files: ['src/sim/**/*.ts'],

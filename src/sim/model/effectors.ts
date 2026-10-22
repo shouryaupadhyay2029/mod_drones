@@ -1,5 +1,10 @@
 export type EffectorType = 'jammer' | 'gun';
 
+export const EFFECTOR_RANGES = {
+  jammer: 1500,
+  gun: 1000,
+} as const;
+
 export interface ActiveEngagement {
   effector: EffectorType;
   trackId: number;

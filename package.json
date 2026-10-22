@@ -10,7 +10,8 @@
     "headless": "tsx scripts/headless.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "typecheck:sim": "tsc -p tsconfig.sim.json --noEmit"
+    "typecheck:sim": "tsc -p tsconfig.sim.json --noEmit",
+    "screenshot:console": "node scripts/screenshot-console.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
