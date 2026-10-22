@@ -223,22 +223,14 @@ export class Engine {
         this.scheduledSpawns.length === 0 ||
         this.scheduledSpawns.every((s) => s.tick <= currentTick);
       if (allSpawned) {
-        const allHostilesNeutralized = this.actors
-          .filter((a) => THREAT_LIBRARY[a.classId].hostile)
-          .every((a) => a.state === 'neutralized');
+        const allResolved = this.actors.every(
+          (a) =>
+            a.state === 'neutralized' ||
+            a.state === 'impacted' ||
+            a.state === 'left_area'
+        );
 
-        const allNeutralsResolved = this.actors
-          .filter((a) => !THREAT_LIBRARY[a.classId].hostile)
-          .every((a) => {
-            if (a.state === 'left_area' || a.state === 'neutralized') return true;
-            const tracksForActor = this.tracks.filter((t) => t.actorId === a.id);
-            return (
-              tracksForActor.length > 0 &&
-              tracksForActor.some((t) => t.engagementStatus === 'holding_fire')
-            );
-          });
-
-        if (allHostilesNeutralized && allNeutralsResolved) {
+        if (allResolved) {
           this.missionState.ended = true;
           this.missionState.reason = 'all_resolved';
           this.events.push({
