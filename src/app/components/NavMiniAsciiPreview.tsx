@@ -249,7 +249,7 @@ function generateFpvModel(): Point3D[] {
 export function NavMiniAsciiPreview({
   modelType,
   color,
-  backgroundColor = '#0b0908',
+  backgroundColor = 'rgba(0, 0, 0, 0.10)',
   className = '',
   style,
 }: NavMiniAsciiPreviewProps): React.JSX.Element {
@@ -260,14 +260,14 @@ export function NavMiniAsciiPreview({
   const isDraggingRef = useRef(false);
   const lastMousePosRef = useRef({ x: 0, y: 0 });
 
-  // Luxury tactical theme colors per model type
+  // High-contrast tactical theme colors per model type on orange background
   const themeColor =
     color ||
     (modelType === 'terrain'
-      ? '#f5e4d0' // Crisp warm cream phosphor
+      ? '#ffd480' // Warm luminous gold terrain contours
       : modelType === 'radar'
-        ? '#d4ff3f' // Precision tactical lime phosphor
-        : '#ff7b59'); // Vivid ember FPV phosphor
+        ? '#d4ff3f' // Precision tactical lime phosphor radar sweep
+        : '#ffffff'); // Crisp pure-white FPV quadrotor wireframe
 
   // Load static point model
   const basePointsRef = useRef<Point3D[]>([]);
@@ -461,7 +461,7 @@ export function NavMiniAsciiPreview({
         justifyContent: 'center',
         userSelect: 'none',
         cursor: isDraggingRef.current ? 'grabbing' : 'grab',
-        border: '1px solid rgba(255, 255, 255, 0.16)',
+        border: '1px solid rgba(255, 255, 255, 0.18)',
         position: 'relative',
         ...style,
       }}
@@ -477,7 +477,7 @@ export function NavMiniAsciiPreview({
           whiteSpace: 'pre',
           textAlign: 'center',
           letterSpacing: '-0.02em',
-          textShadow: `0 0 8px ${themeColor}40`,
+          textShadow: `0 0 8px ${themeColor}60`,
         }}
       >
         {asciiText}

@@ -362,10 +362,10 @@ export function TopBar({
                 <div className="mega-preview-card">
                   <div className="mega-preview-header">
                     <span className="mega-preview-tag">
-                      <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b', boxShadow: '0 0 6px #f59e0b' }} />
+                      <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ffd480', boxShadow: '0 0 6px #ffd480' }} />
                       SCENARIO INTEL
                     </span>
-                    <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.5)', fontFamily: 'monospace', fontWeight: 600 }}>v2.4 [LIVE]</span>
+                    <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.75)', fontFamily: 'monospace', fontWeight: 600 }}>v2.4 [LIVE]</span>
                   </div>
                   <NavMiniAsciiPreview modelType="terrain" />
                   <div>
@@ -623,10 +623,10 @@ export function TopBar({
                 <div className="mega-preview-card">
                   <div className="mega-preview-header">
                     <span className="mega-preview-tag">
-                      <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ff7b59', boxShadow: '0 0 6px #ff7b59' }} />
+                      <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ffffff', boxShadow: '0 0 6px rgba(255, 255, 255, 0.8)' }} />
                       DOCTRINE & ROE
                     </span>
-                    <span style={{ fontSize: '10px', color: '#ff7b59', fontFamily: 'monospace', fontWeight: 700 }}>STRICT</span>
+                    <span style={{ fontSize: '10px', color: '#ffffff', fontFamily: 'monospace', fontWeight: 700 }}>STRICT</span>
                   </div>
                   <NavMiniAsciiPreview modelType="fpv" />
                   <div>

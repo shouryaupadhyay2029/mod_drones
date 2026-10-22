@@ -332,17 +332,17 @@ body {
   font-weight: 400;
 }
 
-/* Right-Hand Cockpit Preview Card */
+/* Right-Hand Cockpit Preview Card (Unified Orange Theme) */
 .mega-preview-card {
-  background: #13100e;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 10px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .mega-preview-header {
@@ -355,7 +355,7 @@ body {
   font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: #f59e0b;
+  color: #ffd580;
   text-transform: uppercase;
   font-family: monospace;
   display: flex;
@@ -372,7 +372,7 @@ body {
 }
 
 .mega-preview-text {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 242, 235, 0.88);
   font-size: 11.5px;
   line-height: 1.45;
   margin: 0;
