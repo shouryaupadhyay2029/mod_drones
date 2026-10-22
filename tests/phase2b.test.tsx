@@ -174,6 +174,29 @@ describe('Phase 2B Acceptance Test Suite', () => {
     expect(['wideband_video', 'unknown_link']).toContain(fpvTrack?.rfSignature);
     expect(birdTrack?.rfStatus).toBe('silent');
     expect(ghostTrack?.rfStatus).toBe('silent');
+
+    // 1d. Step 0.3: Smallest angular difference with two emitters 8 deg apart
+    rfState.lines = [
+      { tick: 140, bearingDeg: 40, signature: 'wideband_video' },
+      { tick: 145, bearingDeg: 48, signature: 'telemetry_link' },
+    ];
+    // Track 4 at bearing ~41 deg (closer to 40 deg: 1 deg vs 7 deg)
+    const track4: Track = {
+      ...fpvTrack!,
+      trackId: 4,
+      estimatedPos: vec3(656, 755, 50), // bearing ~41 deg
+      firstSeenTick: 100,
+    };
+    // Track 5 at bearing ~47 deg (closer to 48 deg: 1 deg vs 7 deg)
+    const track5: Track = {
+      ...fpvTrack!,
+      trackId: 5,
+      estimatedPos: vec3(731, 682, 50), // bearing ~47 deg
+      firstSeenTick: 100,
+    };
+    runRfSystem(150, [], [track4, track5], rfState, rfRng, envRuralNone, dummyTerrain);
+    expect(track4.rfSignature).toBe('wideband_video');
+    expect(track5.rfSignature).toBe('telemetry_link');
   });
 
   // 2. EO Ranges for a commercial_quad

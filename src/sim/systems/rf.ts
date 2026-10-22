@@ -96,12 +96,21 @@ export function associateRfWithTracks(
     const trkBearing = bearingDeg(origin, track.estimatedPos);
 
     // Look for matching line within +/- 10 deg
+    // Choose the line with smallest angular difference (tie: newest line, i.e. highest tick)
     let matchedLine: RfLine | undefined;
-    for (let j = recentLines.length - 1; j >= 0; j--) {
+    let minDiff = 999;
+    for (let j = 0; j < recentLines.length; j++) {
       const line = recentLines[j]!;
-      if (angleDiffDeg(line.bearingDeg, trkBearing) <= 10) {
-        matchedLine = line;
-        break;
+      const diff = angleDiffDeg(line.bearingDeg, trkBearing);
+      if (diff <= 10) {
+        if (matchedLine === undefined || diff < minDiff - 1e-4) {
+          matchedLine = line;
+          minDiff = diff;
+        } else if (Math.abs(diff - minDiff) <= 1e-4 && line.tick > matchedLine.tick) {
+          // Tie: newest line (largest tick)
+          matchedLine = line;
+          minDiff = diff;
+        }
       }
     }
 
