@@ -81,56 +81,94 @@ export function scoreSession(
     const actor = actors[i];
     if (!actor) continue;
 
-    const track = tracks.find((t) => t.actorId === actor.id);
+    const actorTracks = tracks
+      .filter((t) => t.actorId === actor.id)
+      .slice()
+      .sort((a, b) => a.trackId - b.trackId);
+
     const weight =
       actor.classId === 'fpv_kamikaze'
         ? SCORING_WEIGHTS.HOSTILE_CONTACT_WEIGHT
         : SCORING_WEIGHTS.NEUTRAL_CONTACT_WEIGHT;
     totalWeight += weight;
 
-    // 1. Detection scoring
+    // 1. Detection scoring: best (lowest) ack latency across its tracks
     let detectionScore = 0;
     let latencySec: number | undefined;
 
-    if (track && track.confirmedTick !== undefined) {
-      if (track.acked && track.ackTick !== undefined) {
-        latencySec = Math.max(0, (track.ackTick - track.confirmedTick) / 20);
-        if (latencySec <= DETECTION_THRESHOLDS.PERFECT_LATENCY_S) {
-          detectionScore = 1.0;
-        } else if (latencySec <= DETECTION_THRESHOLDS.MAX_LATENCY_S) {
-          detectionScore =
+    for (let j = 0; j < actorTracks.length; j++) {
+      const t = actorTracks[j];
+      if (t && t.confirmedTick !== undefined && t.acked && t.ackTick !== undefined) {
+        const lat = Math.max(0, (t.ackTick - t.confirmedTick) / 20);
+        let score = 0;
+        if (lat <= DETECTION_THRESHOLDS.PERFECT_LATENCY_S) {
+          score = 1.0;
+        } else if (lat <= DETECTION_THRESHOLDS.MAX_LATENCY_S) {
+          score =
             1.0 -
-            (latencySec - DETECTION_THRESHOLDS.PERFECT_LATENCY_S) /
+            (lat - DETECTION_THRESHOLDS.PERFECT_LATENCY_S) /
               (DETECTION_THRESHOLDS.MAX_LATENCY_S - DETECTION_THRESHOLDS.PERFECT_LATENCY_S);
         } else {
-          detectionScore = 0;
+          score = 0;
         }
-      } else {
-        detectionScore = 0;
+
+        if (latencySec === undefined || lat < latencySec) {
+          latencySec = lat;
+          detectionScore = score;
+        }
       }
     }
 
-    // 2. Classification scoring
+    // 2. Classification scoring: assessedClass of the track with the latest classifyTick
+    let latestClassifiedTrack: Track | undefined;
+    for (let j = 0; j < actorTracks.length; j++) {
+      const t = actorTracks[j];
+      if (t && t.classifyTick !== undefined) {
+        if (
+          !latestClassifiedTrack ||
+          (latestClassifiedTrack.classifyTick !== undefined &&
+            t.classifyTick > latestClassifiedTrack.classifyTick)
+        ) {
+          latestClassifiedTrack = t;
+        }
+      }
+    }
+    if (!latestClassifiedTrack) {
+      latestClassifiedTrack = actorTracks.find((t) => t.assessedClass !== undefined);
+    }
+
+    const assessedClass = latestClassifiedTrack?.assessedClass;
     let classificationScore = 0;
-    if (track && track.assessedClass) {
-      if (track.assessedClass === actor.classId) {
+    if (assessedClass) {
+      if (assessedClass === actor.classId) {
         classificationScore = 1.0;
       } else {
         classificationScore = 0;
       }
     }
 
-    // 3. Decision scoring
+    // 3. Decision scoring: engagement set = ENGAGEMENT_STARTED events whose trackId belongs to ANY of its tracks
     let decisionScore = 0;
-    const engagementsOnTrack = events.filter(
-      (e) => e.type === 'ENGAGEMENT_STARTED' && e.payload?.trackId === track?.trackId
+    const engagementsOnActor = events.filter(
+      (e) =>
+        e.type === 'ENGAGEMENT_STARTED' &&
+        actorTracks.some((t) => t.trackId === e.payload?.trackId)
     );
-    const firstEngagement = engagementsOnTrack[0];
-    const engaged = engagementsOnTrack.length > 0;
+    const firstEngagement = engagementsOnActor[0];
+    const engaged = engagementsOnActor.length > 0;
 
     let engagedWithoutClassification = false;
     if (engaged && firstEngagement) {
-      if (track?.classifyTick === undefined || firstEngagement.tick < track.classifyTick) {
+      let minClassifyTick: number | undefined;
+      for (let j = 0; j < actorTracks.length; j++) {
+        const ct = actorTracks[j]?.classifyTick;
+        if (ct !== undefined) {
+          if (minClassifyTick === undefined || ct < minClassifyTick) {
+            minClassifyTick = ct;
+          }
+        }
+      }
+      if (minClassifyTick === undefined || firstEngagement.tick < minClassifyTick) {
         engagedWithoutClassification = true;
       }
     }
@@ -159,13 +197,17 @@ export function scoreSession(
         decisionScore = 0;
       } else {
         decisionScore = 1.0;
-        reasons.push(`Held fire / avoided engaging neutral contact (${actor.classId}): 100% decision score`);
+        reasons.push(
+          `Held fire / avoided engaging neutral contact (${actor.classId}): 100% decision score`
+        );
       }
     }
 
     if (engagedWithoutClassification) {
       decisionScore *= 0.5;
-      reasons.push(`Contact ${actor.classId} engaged without prior classification: decision score halved`);
+      reasons.push(
+        `Contact ${actor.classId} engaged without prior classification: decision score halved`
+      );
     }
 
     const contactTotal =
@@ -181,7 +223,7 @@ export function scoreSession(
       decisionScore,
       contactTotal,
       ackLatencySec: latencySec,
-      assessedClass: track?.assessedClass,
+      assessedClass,
       engagedWithoutClassification,
     });
 
@@ -189,28 +231,40 @@ export function scoreSession(
   }
 
   // Calculate penalties
-  // Penalty 1: Engaged civilian quad
-  const quadActor = actors.find((a) => a.classId === 'commercial_quad');
-  const quadTrack = tracks.find((t) => t.actorId === quadActor?.id);
-  const quadEngagedEvent = events.find(
-    (e) => e.type === 'ENGAGEMENT_STARTED' && e.payload?.trackId === quadTrack?.trackId
-  );
-  if (quadEngagedEvent) {
-    const penMsg = `Engaged civilian quad at ${formatTickTime(quadEngagedEvent.tick)}: -${PENALTIES.ENGAGE_CIVILIAN_QUAD}`;
-    penalties.push({ reason: penMsg, points: PENALTIES.ENGAGE_CIVILIAN_QUAD });
-    reasons.push(penMsg);
+  // Penalty 1: Engaged civilian quad (per actor)
+  for (let i = 0; i < actors.length; i++) {
+    const actor = actors[i];
+    if (actor && actor.classId === 'commercial_quad') {
+      const actorTracks = tracks.filter((t) => t.actorId === actor.id);
+      const engagedEvt = events.find(
+        (e) =>
+          e.type === 'ENGAGEMENT_STARTED' &&
+          actorTracks.some((t) => t.trackId === e.payload?.trackId)
+      );
+      if (engagedEvt) {
+        const penMsg = `Engaged civilian quad at ${formatTickTime(engagedEvt.tick)}: -${PENALTIES.ENGAGE_CIVILIAN_QUAD}`;
+        penalties.push({ reason: penMsg, points: PENALTIES.ENGAGE_CIVILIAN_QUAD });
+        reasons.push(penMsg);
+      }
+    }
   }
 
-  // Penalty 2: Engaged bird
-  const birdActor = actors.find((a) => a.classId === 'bird');
-  const birdTrack = tracks.find((t) => t.actorId === birdActor?.id);
-  const birdEngagedEvent = events.find(
-    (e) => e.type === 'ENGAGEMENT_STARTED' && e.payload?.trackId === birdTrack?.trackId
-  );
-  if (birdEngagedEvent) {
-    const penMsg = `Engaged bird at ${formatTickTime(birdEngagedEvent.tick)}: -${PENALTIES.ENGAGE_BIRD}`;
-    penalties.push({ reason: penMsg, points: PENALTIES.ENGAGE_BIRD });
-    reasons.push(penMsg);
+  // Penalty 2: Engaged bird (per actor)
+  for (let i = 0; i < actors.length; i++) {
+    const actor = actors[i];
+    if (actor && actor.classId === 'bird') {
+      const actorTracks = tracks.filter((t) => t.actorId === actor.id);
+      const engagedEvt = events.find(
+        (e) =>
+          e.type === 'ENGAGEMENT_STARTED' &&
+          actorTracks.some((t) => t.trackId === e.payload?.trackId)
+      );
+      if (engagedEvt) {
+        const penMsg = `Engaged bird at ${formatTickTime(engagedEvt.tick)}: -${PENALTIES.ENGAGE_BIRD}`;
+        penalties.push({ reason: penMsg, points: PENALTIES.ENGAGE_BIRD });
+        reasons.push(penMsg);
+      }
+    }
   }
 
   // Penalty 3: Wasted jammer on non-RF target

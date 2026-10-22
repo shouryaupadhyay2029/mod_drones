@@ -6,7 +6,8 @@ import { Engine } from '../src/sim/core/engine.js';
 import { replay } from '../src/sim/core/log.js';
 import { Command } from '../src/sim/core/types.js';
 import { vec3, vDist } from '../src/sim/core/vec.js';
-import { createActor } from '../src/sim/model/actors.js';
+import { Actor, createActor } from '../src/sim/model/actors.js';
+import { Track } from '../src/sim/model/tracks.js';
 import { scoreSession } from '../src/sim/scoring/basic.js';
 import { TraineeView } from '../src/sim/view/traineeView.js';
 
@@ -309,5 +310,133 @@ describe('Phase 1A: Simulation Vertical Slice & Determinism', { timeout: 30000 }
     expect(engine.missionState.ended).toBe(true);
     expect(engine.missionState.reason).toBe('all_resolved');
     expect(engine.world.tick).toBeLessThan(4800);
+  });
+
+  // Step 0.1 Multi-track Scoring Tests
+  it('10a. Multi-track scoring: two tracks on civilian quad, engagement on second track applies -25 penalty', () => {
+    const quadActor: Actor = {
+      id: 2,
+      classId: 'commercial_quad',
+      pos: vec3(1000, 1000, 50),
+      vel: vec3(0, 0, 0),
+      state: 'left_area',
+      behaviour: { type: 'transit', waypointA: vec3(0, 0, 0), waypointB: vec3(1000, 1000, 0) },
+      speed: 12,
+    };
+    const track1: Track = {
+      trackId: 10,
+      actorId: 2,
+      state: 'dropped',
+      estimatedPos: vec3(1000, 1000, 50),
+      estimatedVel: vec3(0, 0, 0),
+      lastDetectedTick: 100,
+      firstSeenTick: 50,
+      consecutiveHits: 3,
+      consecutiveMisses: 5,
+      rcsBucket: 'small',
+      measuredRcs: 0.01,
+      quality: 0.1,
+      acked: false,
+      engagementStatus: 'none',
+      headingChangeRateSmoothed: 0,
+      lastSweepChecked: 100,
+    };
+    const track2: Track = {
+      trackId: 11,
+      actorId: 2,
+      state: 'confirmed',
+      confirmedTick: 200,
+      estimatedPos: vec3(900, 900, 50),
+      estimatedVel: vec3(0, 0, 0),
+      lastDetectedTick: 250,
+      firstSeenTick: 180,
+      consecutiveHits: 4,
+      consecutiveMisses: 0,
+      rcsBucket: 'small',
+      measuredRcs: 0.01,
+      quality: 0.8,
+      acked: true,
+      ackTick: 220,
+      engagementStatus: 'engaged',
+      headingChangeRateSmoothed: 0,
+      lastSweepChecked: 250,
+    };
+
+    const report = scoreSession({
+      actors: [quadActor],
+      tracks: [track1, track2],
+      events: [
+        {
+          tick: 230,
+          type: 'ENGAGEMENT_STARTED',
+          payload: { trackId: 11, effectorType: 'gun' },
+        },
+      ],
+    });
+
+    const quadPenalty = report.penalties.find((p) => p.points === 25);
+    expect(quadPenalty).toBeDefined();
+    expect(quadPenalty?.reason).toContain('Engaged civilian quad');
+  });
+
+  it('10b. Multi-track scoring: detection credit earned on second track when first track was not acked', () => {
+    const quadActor: Actor = {
+      id: 2,
+      classId: 'commercial_quad',
+      pos: vec3(1000, 1000, 50),
+      vel: vec3(0, 0, 0),
+      state: 'left_area',
+      behaviour: { type: 'transit', waypointA: vec3(0, 0, 0), waypointB: vec3(1000, 1000, 0) },
+      speed: 12,
+    };
+    const track1: Track = {
+      trackId: 10,
+      actorId: 2,
+      state: 'dropped',
+      estimatedPos: vec3(1000, 1000, 50),
+      estimatedVel: vec3(0, 0, 0),
+      lastDetectedTick: 100,
+      firstSeenTick: 50,
+      consecutiveHits: 3,
+      consecutiveMisses: 5,
+      rcsBucket: 'small',
+      measuredRcs: 0.01,
+      quality: 0.1,
+      acked: false,
+      engagementStatus: 'none',
+      headingChangeRateSmoothed: 0,
+      lastSweepChecked: 100,
+    };
+    const track2: Track = {
+      trackId: 11,
+      actorId: 2,
+      state: 'confirmed',
+      confirmedTick: 200,
+      estimatedPos: vec3(900, 900, 50),
+      estimatedVel: vec3(0, 0, 0),
+      lastDetectedTick: 250,
+      firstSeenTick: 180,
+      consecutiveHits: 4,
+      consecutiveMisses: 0,
+      rcsBucket: 'small',
+      measuredRcs: 0.01,
+      quality: 0.8,
+      acked: true,
+      ackTick: 240, // 40 ticks = 2.0s <= 3.0s => perfect detection score 1.0
+      engagementStatus: 'none',
+      headingChangeRateSmoothed: 0,
+      lastSweepChecked: 250,
+    };
+
+    const report = scoreSession({
+      actors: [quadActor],
+      tracks: [track1, track2],
+      events: [],
+    });
+
+    const contact = report.perContact.find((c) => c.actorId === 2);
+    expect(contact).toBeDefined();
+    expect(contact?.detectionScore).toBe(1.0);
+    expect(contact?.ackLatencySec).toBe(2.0);
   });
 });
