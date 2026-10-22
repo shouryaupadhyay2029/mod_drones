@@ -266,6 +266,8 @@ export function runEoSystem(
       } else {
         const allClasses: ThreatClassId[] = [
           'fpv_kamikaze',
+          'fpv_fiber',
+          'decoy_drone',
           'commercial_quad',
           'fixed_wing_recon',
           'bird',
@@ -275,11 +277,13 @@ export function runEoSystem(
         eo.hint = others[idx] ?? 'fpv_kamikaze';
       }
     } else if (level === 'recognize') {
-      // Correct p = 0.9: 'multirotor' | 'fixed_wing' | 'bird' (quad & FPV are both 'multirotor')
+      // Correct p = 0.9: 'multirotor' | 'fixed_wing' | 'bird' (quad, FPV, fiber are 'multirotor'; decoy, fixed-wing are 'fixed_wing')
       const trueCategory: 'multirotor' | 'fixed_wing' | 'bird' =
-        actor.classId === 'fpv_kamikaze' || actor.classId === 'commercial_quad'
+        actor.classId === 'fpv_kamikaze' ||
+        actor.classId === 'fpv_fiber' ||
+        actor.classId === 'commercial_quad'
           ? 'multirotor'
-          : actor.classId === 'fixed_wing_recon'
+          : actor.classId === 'fixed_wing_recon' || actor.classId === 'decoy_drone'
           ? 'fixed_wing'
           : 'bird';
 

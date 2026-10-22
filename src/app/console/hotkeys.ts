@@ -147,6 +147,16 @@ export function useHotkeys({
         onClassify(selectedTrackId, 'clutter');
         return;
       }
+      if (e.key === '6') {
+        e.preventDefault();
+        onClassify(selectedTrackId, 'fpv_fiber');
+        return;
+      }
+      if (e.key === '7') {
+        e.preventDefault();
+        onClassify(selectedTrackId, 'decoy_drone');
+        return;
+      }
       if (e.key === '0') {
         e.preventDefault();
         onClassify(selectedTrackId, 'unknown');

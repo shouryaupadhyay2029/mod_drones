@@ -222,13 +222,26 @@ export class Engine {
       if (!actor) continue;
 
       const actorRng = this.rng.fork(`actor:${actor.id}`);
-      updateActorBehaviour(actor, DT, currentTick, actorRng, (hitActor) => {
-        this.events.push({
-          tick: currentTick,
-          type: 'ASSET_HIT',
-          payload: { actorId: hitActor.id, classId: hitActor.classId },
-        });
-      });
+      updateActorBehaviour(
+        actor,
+        DT,
+        currentTick,
+        actorRng,
+        (hitActor) => {
+          this.events.push({
+            tick: currentTick,
+            type: 'ASSET_HIT',
+            payload: { actorId: hitActor.id, classId: hitActor.classId },
+          });
+        },
+        (decoyActor) => {
+          this.events.push({
+            tick: currentTick,
+            type: 'DECOY_IMPACT',
+            payload: { actorId: decoyActor.id },
+          });
+        }
+      );
     }
 
     // Update Phase 0 placeholder entities (for System Check backwards-compat)

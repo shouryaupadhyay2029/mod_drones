@@ -152,7 +152,7 @@ export function EoPanel({
                 </g>
               )}
 
-              {eo.hint === 'fpv_kamikaze' && (
+              {(eo.hint === 'fpv_kamikaze' || eo.hint === 'fpv_fiber') && (
                 <g transform="translate(150, 60)" fill={silhouetteColor} stroke={silhouetteColor}>
                   {/* Compact aggressive X-frame */}
                   <rect x="-8" y="-14" width="16" height="28" rx="3" />
@@ -169,7 +169,9 @@ export function EoPanel({
                 </g>
               )}
 
-              {eo.hint === 'fixed_wing_recon' || eo.hint === 'fixed_wing' && (
+              {(eo.hint === 'fixed_wing_recon' ||
+                eo.hint === 'fixed_wing' ||
+                eo.hint === 'decoy_drone') && (
                 <g transform="translate(150, 60)" fill={silhouetteColor} stroke={silhouetteColor}>
                   {/* Fuselage */}
                   <ellipse cx="0" cy="0" rx="6" ry="30" />

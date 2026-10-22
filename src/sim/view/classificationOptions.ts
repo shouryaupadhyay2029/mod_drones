@@ -12,5 +12,7 @@ export const CLASSIFICATION_OPTIONS: readonly ClassificationOption[] = [
   { id: 'fpv_kamikaze', label: 'FPV Strike Drone', hotkey: '3' },
   { id: 'fixed_wing_recon', label: 'Fixed-Wing Recon', hotkey: '4' },
   { id: 'clutter', label: 'False / Clutter', hotkey: '5' },
+  { id: 'fpv_fiber', label: 'FPV-type (no RF)', hotkey: '6' },
+  { id: 'decoy_drone', label: 'Decoy / low-cost target', hotkey: '7' },
   { id: 'unknown', label: 'Unknown', hotkey: '0' },
 ] as const;

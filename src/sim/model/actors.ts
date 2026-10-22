@@ -23,6 +23,8 @@ export interface Actor {
   departTick?: number;
   neutralizedTick?: number;
   neutralizedDistanceToAsset?: number;
+  groupId?: number | string;
+  role?: 'striker' | 'decoy';
 }
 
 export function createActor(
@@ -78,7 +80,8 @@ export function updateActorBehaviour(
   dt: number,
   currentTick: number,
   actorRng: Rng,
-  onAssetHit: (actor: Actor) => void
+  onAssetHit: (actor: Actor) => void,
+  onDecoyImpact?: (actor: Actor) => void
 ): void {
   if (actor.state !== 'active') {
     actor.vel = vec3(0, 0, 0);
@@ -105,7 +108,11 @@ export function updateActorBehaviour(
       if (dist2D <= 25) {
         actor.state = 'impacted';
         actor.vel = vec3(0, 0, 0);
-        onAssetHit(actor);
+        if (actor.classId === 'decoy_drone' || actor.role === 'decoy') {
+          onDecoyImpact?.(actor);
+        } else {
+          onAssetHit(actor);
+        }
         return;
       }
 

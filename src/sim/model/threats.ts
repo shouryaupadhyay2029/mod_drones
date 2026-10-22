@@ -5,7 +5,9 @@ export type ThreatClassId =
   | 'commercial_quad'
   | 'fixed_wing_recon'
   | 'bird'
-  | 'clutter';
+  | 'clutter'
+  | 'fpv_fiber'
+  | 'decoy_drone';
 
 export type RfSignature =
   | 'none'
@@ -84,6 +86,30 @@ export const THREAT_LIBRARY: Record<ThreatClassId, ThreatClass> = {
     rcsM2: 0.005,
     sizeM: 0.1,
     thermalSignature: 0.1,
+    rfSignature: 'none',
+    rfControlled: false,
+    hostile: false,
+  },
+  fpv_fiber: {
+    id: 'fpv_fiber',
+    label: 'Fiber-Optic FPV Strike Drone',
+    speedRangeMps: [20, 30],
+    altitudeBandM: [20, 80],
+    rcsM2: 0.02,
+    sizeM: 0.35,
+    thermalSignature: 0.8,
+    rfSignature: 'none',
+    rfControlled: false,
+    hostile: true,
+  },
+  decoy_drone: {
+    id: 'decoy_drone',
+    label: 'Decoy Drone',
+    speedRangeMps: [20, 30],
+    altitudeBandM: [20, 80],
+    rcsM2: 0.05,
+    sizeM: 1.2,
+    thermalSignature: 0.3,
     rfSignature: 'none',
     rfControlled: false,
     hostile: false,
