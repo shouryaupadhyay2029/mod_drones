@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DroneHeroSection } from '../components/DroneHeroSection.js';
 import { TextRoll } from '../components/TextRoll.js';
 
 export interface MissionSetupProps {
@@ -68,7 +69,16 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
 
   return (
     <div style={styles.container}>
-      <div style={styles.card}>
+      {/* Skiper14-Inspired 3D ASCII Drone Hero Section */}
+      <DroneHeroSection
+        onStartMission={() => onStart(seedInput.trim() || 's1', selectedScenario)}
+        onExploreScenarios={() => {
+          const el = document.getElementById('scenario-selection-card');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
+
+      <div id="scenario-selection-card" style={styles.card}>
         <div style={styles.header}>
           <div style={styles.missionTag}>MISSION SELECTION & BRIEFING</div>
           <h2 style={styles.title}>
@@ -177,24 +187,26 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
 const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
     flex: 1,
-    padding: '20px',
+    padding: '0 0 50px 0',
     backgroundColor: '#0b0b0b',
     overflowY: 'auto',
+    width: '100%',
   },
   card: {
     width: '100%',
-    maxWidth: '720px',
+    maxWidth: '800px',
     backgroundColor: '#121212',
     border: '1px solid #262626',
     borderRadius: '10px',
-    padding: '24px 28px',
+    padding: '28px 32px',
     display: 'flex',
     flexDirection: 'column',
     gap: '16px',
     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.8)',
+    marginTop: '36px',
   },
   header: {
     borderBottom: '1px solid #262626',
