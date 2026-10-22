@@ -274,7 +274,7 @@ export function TopBar({
               <span style={styles.brandCrosshair}>✛</span>
             </div>
             <div style={styles.brandTextCol}>
-              <span style={styles.brandName}>MoD // AIR DEFENSE</span>
+              <span style={styles.brandName}>VAJRA // AIR DEFENSE</span>
               <span style={styles.brandTagline}>COUNTER-UAS SIMULATOR</span>
             </div>
           </a>

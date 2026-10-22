@@ -742,43 +742,43 @@ export function DroneAsciiSimulation({
         <circle ref={dotBrRef} r="3" fill="#d35623" />
       </svg>
 
-      {/* Feature Card 1: Top-Left (Radar Tracking) */}
+      {/* Feature 1: Top-Left (Radar Tracking) */}
       <div
         ref={card1Ref}
         className="hero-feature-card"
         style={{
           position: 'absolute',
-          top: '24px',
-          left: '28px',
-          width: '245px',
-          backgroundColor: '#eae5dc',
-          border: '1px solid rgba(45, 40, 35, 0.18)',
-          borderRadius: '8px',
-          padding: '12px 14px',
-          boxShadow: '0 4px 14px rgba(45, 40, 35, 0.06)',
+          top: '28px',
+          left: '32px',
+          width: '240px',
+          backgroundColor: 'transparent',
+          border: 'none',
+          borderRadius: '0',
+          padding: '4px 0',
+          boxShadow: 'none',
           zIndex: 8,
           pointerEvents: 'auto',
           textAlign: 'left',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
           <span
             style={{
               fontFamily: 'monospace',
               fontSize: '10px',
               fontWeight: 800,
-              letterSpacing: '0.08em',
+              letterSpacing: '0.1em',
               color: '#d35623',
             }}
           >
             01 // RADAR TRACKING
           </span>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d35623' }} />
+          <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#d35623' }} />
         </div>
-        <div style={{ fontSize: '13px', fontWeight: 700, color: '#181716', marginBottom: '4px', letterSpacing: '-0.01em' }}>
+        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#181716', marginBottom: '3px', letterSpacing: '-0.015em' }}>
           Pulse-Doppler Telemetry
         </div>
-        <div style={{ fontSize: '11px', color: '#58544e', lineHeight: 1.35, marginBottom: '6px' }}>
+        <div style={{ fontSize: '11px', color: '#58544e', lineHeight: 1.4, marginBottom: '6px' }}>
           20Hz scan kinematics, micro-RCS signature classification & velocity vectors.
         </div>
         <div
@@ -786,10 +786,11 @@ export function DroneAsciiSimulation({
             fontFamily: 'monospace',
             fontSize: '9.5px',
             color: '#7a746b',
-            borderTop: '1px dashed rgba(45, 40, 35, 0.14)',
+            borderTop: '1px dashed rgba(45, 40, 35, 0.18)',
             paddingTop: '4px',
             display: 'flex',
             justifyContent: 'space-between',
+            letterSpacing: '0.04em',
           }}
         >
           <span>ACC: ±0.3m</span>
@@ -797,43 +798,43 @@ export function DroneAsciiSimulation({
         </div>
       </div>
 
-      {/* Feature Card 2: Top-Right (Layered Defense) */}
+      {/* Feature 2: Top-Right (Layered Defense) */}
       <div
         ref={card2Ref}
         className="hero-feature-card"
         style={{
           position: 'absolute',
-          top: '24px',
-          right: '28px',
-          width: '245px',
-          backgroundColor: '#eae5dc',
-          border: '1px solid rgba(45, 40, 35, 0.18)',
-          borderRadius: '8px',
-          padding: '12px 14px',
-          boxShadow: '0 4px 14px rgba(45, 40, 35, 0.06)',
+          top: '28px',
+          right: '32px',
+          width: '240px',
+          backgroundColor: 'transparent',
+          border: 'none',
+          borderRadius: '0',
+          padding: '4px 0',
+          boxShadow: 'none',
           zIndex: 8,
           pointerEvents: 'auto',
           textAlign: 'left',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
           <span
             style={{
               fontFamily: 'monospace',
               fontSize: '10px',
               fontWeight: 800,
-              letterSpacing: '0.08em',
+              letterSpacing: '0.1em',
               color: '#d35623',
             }}
           >
             02 // LAYERED DEFENSE
           </span>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d35623' }} />
+          <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#d35623' }} />
         </div>
-        <div style={{ fontSize: '13px', fontWeight: 700, color: '#181716', marginBottom: '4px', letterSpacing: '-0.01em' }}>
+        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#181716', marginBottom: '3px', letterSpacing: '-0.015em' }}>
           Dual Hard/Soft Kill
         </div>
-        <div style={{ fontSize: '11px', color: '#58544e', lineHeight: 1.35, marginBottom: '6px' }}>
+        <div style={{ fontSize: '11px', color: '#58544e', lineHeight: 1.4, marginBottom: '6px' }}>
           1,500m RF directional jamming paired with 1,000m high-rate 30mm CIWS.
         </div>
         <div
@@ -841,10 +842,11 @@ export function DroneAsciiSimulation({
             fontFamily: 'monospace',
             fontSize: '9.5px',
             color: '#7a746b',
-            borderTop: '1px dashed rgba(45, 40, 35, 0.14)',
+            borderTop: '1px dashed rgba(45, 40, 35, 0.18)',
             paddingTop: '4px',
             display: 'flex',
             justifyContent: 'space-between',
+            letterSpacing: '0.04em',
           }}
         >
           <span>JAM: 1,500m</span>
@@ -852,43 +854,43 @@ export function DroneAsciiSimulation({
         </div>
       </div>
 
-      {/* Feature Card 3: Bottom-Left (Zero Leakage) */}
+      {/* Feature 3: Bottom-Left (Zero Leakage) */}
       <div
         ref={card3Ref}
         className="hero-feature-card"
         style={{
           position: 'absolute',
-          bottom: '24px',
-          left: '28px',
-          width: '245px',
-          backgroundColor: '#eae5dc',
-          border: '1px solid rgba(45, 40, 35, 0.18)',
-          borderRadius: '8px',
-          padding: '12px 14px',
-          boxShadow: '0 4px 14px rgba(45, 40, 35, 0.06)',
+          bottom: '28px',
+          left: '32px',
+          width: '240px',
+          backgroundColor: 'transparent',
+          border: 'none',
+          borderRadius: '0',
+          padding: '4px 0',
+          boxShadow: 'none',
           zIndex: 8,
           pointerEvents: 'auto',
           textAlign: 'left',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
           <span
             style={{
               fontFamily: 'monospace',
               fontSize: '10px',
               fontWeight: 800,
-              letterSpacing: '0.08em',
+              letterSpacing: '0.1em',
               color: '#d35623',
             }}
           >
             03 // ZERO LEAKAGE
           </span>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d35623' }} />
+          <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#d35623' }} />
         </div>
-        <div style={{ fontSize: '13px', fontWeight: 700, color: '#181716', marginBottom: '4px', letterSpacing: '-0.01em' }}>
+        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#181716', marginBottom: '3px', letterSpacing: '-0.015em' }}>
           TraineeView Isolation
         </div>
-        <div style={{ fontSize: '11px', color: '#58544e', lineHeight: 1.35, marginBottom: '6px' }}>
+        <div style={{ fontSize: '11px', color: '#58544e', lineHeight: 1.4, marginBottom: '6px' }}>
           Cryptographic air-gap preventing ground truth leakage and sensor spoofing.
         </div>
         <div
@@ -896,10 +898,11 @@ export function DroneAsciiSimulation({
             fontFamily: 'monospace',
             fontSize: '9.5px',
             color: '#7a746b',
-            borderTop: '1px dashed rgba(45, 40, 35, 0.14)',
+            borderTop: '1px dashed rgba(45, 40, 35, 0.18)',
             paddingTop: '4px',
             display: 'flex',
             justifyContent: 'space-between',
+            letterSpacing: '0.04em',
           }}
         >
           <span>AIR-GAP: SECURE</span>
@@ -907,43 +910,43 @@ export function DroneAsciiSimulation({
         </div>
       </div>
 
-      {/* Feature Card 4: Bottom-Right (Deterministic Core) */}
+      {/* Feature 4: Bottom-Right (Deterministic Core) */}
       <div
         ref={card4Ref}
         className="hero-feature-card"
         style={{
           position: 'absolute',
-          bottom: '24px',
-          right: '28px',
-          width: '245px',
-          backgroundColor: '#eae5dc',
-          border: '1px solid rgba(45, 40, 35, 0.18)',
-          borderRadius: '8px',
-          padding: '12px 14px',
-          boxShadow: '0 4px 14px rgba(45, 40, 35, 0.06)',
+          bottom: '28px',
+          right: '32px',
+          width: '240px',
+          backgroundColor: 'transparent',
+          border: 'none',
+          borderRadius: '0',
+          padding: '4px 0',
+          boxShadow: 'none',
           zIndex: 8,
           pointerEvents: 'auto',
           textAlign: 'left',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
           <span
             style={{
               fontFamily: 'monospace',
               fontSize: '10px',
               fontWeight: 800,
-              letterSpacing: '0.08em',
+              letterSpacing: '0.1em',
               color: '#d35623',
             }}
           >
             04 // DETERMINISTIC CORE
           </span>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d35623' }} />
+          <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#d35623' }} />
         </div>
-        <div style={{ fontSize: '13px', fontWeight: 700, color: '#181716', marginBottom: '4px', letterSpacing: '-0.01em' }}>
+        <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#181716', marginBottom: '3px', letterSpacing: '-0.015em' }}>
           Bit-Exact Replay Engine
         </div>
-        <div style={{ fontSize: '11px', color: '#58544e', lineHeight: 1.35, marginBottom: '6px' }}>
+        <div style={{ fontSize: '11px', color: '#58544e', lineHeight: 1.4, marginBottom: '6px' }}>
           PRNG-seeded physics simulation guaranteeing identical scenario reproduction.
         </div>
         <div
@@ -951,10 +954,11 @@ export function DroneAsciiSimulation({
             fontFamily: 'monospace',
             fontSize: '9.5px',
             color: '#7a746b',
-            borderTop: '1px dashed rgba(45, 40, 35, 0.14)',
+            borderTop: '1px dashed rgba(45, 40, 35, 0.18)',
             paddingTop: '4px',
             display: 'flex',
             justifyContent: 'space-between',
+            letterSpacing: '0.04em',
           }}
         >
           <span>SEED: DETERMINISTIC</span>

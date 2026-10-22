@@ -418,15 +418,14 @@ button, a, input, select {
 }
 
 .hero-feature-card {
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.22s ease,
-              box-shadow 0.22s ease;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hero-feature-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(211, 86, 35, 0.55) !important;
-  box-shadow: 0 12px 28px rgba(184, 68, 20, 0.16), 0 0 1px #d35623 !important;
 }
 
 @media (max-width: 1080px) {
