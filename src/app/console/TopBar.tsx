@@ -372,14 +372,6 @@ export function TopBar({
                 <span style={styles.seedLabelText}>SEED:</span>
                 <span style={styles.seedValueText}>{seed}</span>
               </div>
-
-              <button
-                onClick={scrollToBriefing}
-                style={styles.btnNavCta}
-                title="Scroll to Mission Setup"
-              >
-                <TextRoll center stagger={0.02}>BRIEFING ↓</TextRoll>
-              </button>
             </div>
           ) : (
             <div style={styles.runningActionCluster}>

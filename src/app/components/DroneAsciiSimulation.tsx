@@ -433,44 +433,6 @@ export function DroneAsciiSimulation({
         </button>
       </div>
 
-      {/* Top Left Badge */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '14px',
-          left: '14px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          zIndex: 10,
-        }}
-      >
-        <span
-          style={{
-            backgroundColor: 'rgba(203, 179, 232, 0.15)',
-            border: '1px solid rgba(203, 179, 232, 0.35)',
-            color: activeColor,
-            borderRadius: '4px',
-            padding: '2px 8px',
-            fontSize: '10px',
-            fontWeight: 700,
-            fontFamily: 'monospace',
-            letterSpacing: '0.08em',
-          }}
-        >
-          3D ASCII // TACTICAL DRONE
-        </span>
-        <span
-          style={{
-            color: '#767a8f',
-            fontSize: '10px',
-            fontFamily: 'monospace',
-          }}
-        >
-          Drag to rotate • 20 Hz
-        </span>
-      </div>
-
       {/* ASCII Output Display */}
       <pre
         style={{

@@ -70,13 +70,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
   return (
     <div style={styles.container}>
       {/* Skiper14-Inspired 3D ASCII Drone Hero Section */}
-      <DroneHeroSection
-        onStartMission={() => onStart(seedInput.trim() || 's1', selectedScenario)}
-        onExploreScenarios={() => {
-          const el = document.getElementById('scenario-selection-card');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }}
-      />
+      <DroneHeroSection />
 
       <div id="scenario-selection-card" style={styles.card}>
         <div style={styles.header}>
