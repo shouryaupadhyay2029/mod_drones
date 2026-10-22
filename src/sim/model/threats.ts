@@ -7,12 +7,22 @@ export type ThreatClassId =
   | 'bird'
   | 'clutter';
 
+export type RfSignature =
+  | 'none'
+  | 'telemetry_link'
+  | 'wideband_video'
+  | 'long_range_link'
+  | 'unknown_link';
+
 export interface ThreatClass {
   id: ThreatClassId;
   label: string;
   speedRangeMps: [number, number];
   altitudeBandM: [number, number];
   rcsM2: number;
+  sizeM: number;
+  thermalSignature: number;
+  rfSignature: RfSignature;
   rfControlled: boolean;
   hostile: boolean;
 }
@@ -24,6 +34,9 @@ export const THREAT_LIBRARY: Record<ThreatClassId, ThreatClass> = {
     speedRangeMps: [25, 35],
     altitudeBandM: [20, 80],
     rcsM2: 0.02,
+    sizeM: 0.35,
+    thermalSignature: 0.8,
+    rfSignature: 'wideband_video',
     rfControlled: true,
     hostile: true,
   },
@@ -33,6 +46,9 @@ export const THREAT_LIBRARY: Record<ThreatClassId, ThreatClass> = {
     speedRangeMps: [8, 16],
     altitudeBandM: [40, 120],
     rcsM2: 0.01,
+    sizeM: 0.5,
+    thermalSignature: 0.6,
+    rfSignature: 'telemetry_link',
     rfControlled: true,
     hostile: false,
   },
@@ -42,6 +58,9 @@ export const THREAT_LIBRARY: Record<ThreatClassId, ThreatClass> = {
     speedRangeMps: [22, 32],
     altitudeBandM: [150, 400],
     rcsM2: 0.05,
+    sizeM: 2.0,
+    thermalSignature: 0.7,
+    rfSignature: 'long_range_link',
     rfControlled: true,
     hostile: true,
   },
@@ -51,6 +70,9 @@ export const THREAT_LIBRARY: Record<ThreatClassId, ThreatClass> = {
     speedRangeMps: [4, 14],
     altitudeBandM: [10, 150],
     rcsM2: 0.001,
+    sizeM: 0.3,
+    thermalSignature: 0.2,
+    rfSignature: 'none',
     rfControlled: false,
     hostile: false,
   },
@@ -60,6 +82,9 @@ export const THREAT_LIBRARY: Record<ThreatClassId, ThreatClass> = {
     speedRangeMps: [0, 6],
     altitudeBandM: [0, 50],
     rcsM2: 0.005,
+    sizeM: 0.1,
+    thermalSignature: 0.1,
+    rfSignature: 'none',
     rfControlled: false,
     hostile: false,
   },
