@@ -116,15 +116,16 @@ function buildSingleScenario(
 
   switch (tier) {
     case 'recruit': {
-      // 1 striker, 0 decoys, 0 fiber, 1 civilian, 1 bird
-      // Environment: rural, clear, day, ew 0
-      numStrikers = 1;
+      // 1-2 strikers, 0 decoys, 0 fiber, 1-2 civilians, 1 bird
+      // Environment: rural/hilly, clear, day, ew 0
+      numStrikers = 1 + Math.floor(rng.next() * 2); // 1 or 2
       numDecoys = 0;
       maxFiberShare = 0;
-      numCivilians = 1;
+      numCivilians = 1 + Math.floor(rng.next() * 2); // 1 or 2
       numBirds = 1;
+      const terrainKind: TerrainKind = rng.next() < 0.5 ? 'rural' : 'hilly';
       env = createEnvironment({
-        terrainKind: 'rural',
+        terrainKind,
         weather: 'clear',
         timeOfDay: 'day',
         ewLevel: 'none',
@@ -134,16 +135,16 @@ function buildSingleScenario(
     }
 
     case 'operator': {
-      // 2-3 strikers, 0-1 decoys, 0 fiber, 1 civilian, 1 bird
-      // Environment: rural/hilly, clear/haze, day/dusk, ew 0-1
-      numStrikers = 2 + Math.floor(rng.next() * 2); // 2 or 3
+      // 3-5 strikers, 0-1 decoys, <= 0.25 fiber share, 1-2 civilians, 1 bird
+      // Environment: rural/hilly, clear/fog, day/dusk, ew 0-1
+      numStrikers = 3 + Math.floor(rng.next() * 3); // 3, 4, or 5
       numDecoys = rng.next() < 0.5 ? 0 : 1;
-      maxFiberShare = 0;
-      numCivilians = 1;
+      maxFiberShare = 0.25;
+      numCivilians = 1 + Math.floor(rng.next() * 2); // 1 or 2
       numBirds = 1;
 
       const terrainKind: TerrainKind = rng.next() < 0.5 ? 'rural' : 'hilly';
-      const weather: Weather = rng.next() < 0.5 ? 'clear' : 'haze';
+      const weather: Weather = rng.next() < 0.5 ? 'clear' : 'fog';
       const timeOfDay: TimeOfDay = rng.next() < 0.5 ? 'day' : 'dusk';
       const ewLevel: EwLevel = rng.next() < 0.5 ? 'none' : 'light';
       env = createEnvironment({ terrainKind, weather, timeOfDay, ewLevel });
@@ -154,24 +155,24 @@ function buildSingleScenario(
     }
 
     case 'veteran': {
-      // 4-8 strikers, 1-3 decoys, <= 15% fiber share, 1-2 civilians, 1-2 birds
-      // Environment: any, ew 0-1; tactics saturation/split/decoy_screen
-      numStrikers = 4 + Math.floor(rng.next() * 5); // 4 to 8
+      // 6-10 strikers, 1-3 decoys, <= 0.40 fiber share, 1-3 civilians, 1-2 birds
+      // Environment: any, ew 1-2; tactics saturation/split/decoy_screen
+      numStrikers = 6 + Math.floor(rng.next() * 5); // 6 to 10
       numDecoys = 1 + Math.floor(rng.next() * 3); // 1 to 3
-      maxFiberShare = 0.15;
-      numCivilians = 1 + Math.floor(rng.next() * 2); // 1 or 2
+      maxFiberShare = 0.40;
+      numCivilians = 1 + Math.floor(rng.next() * 3); // 1 to 3
       numBirds = 1 + Math.floor(rng.next() * 2); // 1 or 2
 
       const terrains: TerrainKind[] = ['rural', 'hilly', 'urban'];
-      const weathers: Weather[] = ['clear', 'haze', 'fog', 'rain'];
+      const weathers: Weather[] = ['clear', 'fog', 'rain'];
       const times: TimeOfDay[] = ['day', 'dusk', 'night'];
-      const ews: EwLevel[] = ['none', 'light'];
+      const ewLevel: EwLevel = rng.next() < 0.5 ? 'light' : 'heavy';
 
       env = createEnvironment({
         terrainKind: terrains[Math.floor(rng.next() * terrains.length)]!,
         weather: weathers[Math.floor(rng.next() * weathers.length)]!,
         timeOfDay: times[Math.floor(rng.next() * times.length)]!,
-        ewLevel: ews[Math.floor(rng.next() * ews.length)]!,
+        ewLevel,
       });
 
       const tactics: SwarmTactic[] = ['saturation', 'split', 'decoy_screen'];
@@ -180,27 +181,26 @@ function buildSingleScenario(
     }
 
     case 'elite': {
-      // 8-16 strikers, 3-6 decoys, <= 35% fiber share, 2-3 civilians, 2 birds
-      // Environment: any, ew 1-2, night/rain/urban allowed; one pop-up striker wave after t=150 s
-      numStrikers = 8 + Math.floor(rng.next() * 9); // 8 to 16
-      numDecoys = 3 + Math.floor(rng.next() * 4); // 3 to 6
-      maxFiberShare = 0.35;
-      numCivilians = 2 + Math.floor(rng.next() * 2); // 2 or 3
-      numBirds = 2;
+      // 10-16 total strikers (9-15 swarm + 1 pop-up), 2-4 decoys, <= 0.50 fiber share, 0-2 civilians, 1-2 birds
+      // Environment: any, ew 2; split or saturation + screen; pop-up wave after t=150s
+      numStrikers = 9 + Math.floor(rng.next() * 7); // 9 to 15 (+ 1 pop-up = 10 to 16)
+      numDecoys = 2 + Math.floor(rng.next() * 3); // 2 to 4
+      maxFiberShare = 0.50;
+      numCivilians = Math.floor(rng.next() * 3); // 0 to 2
+      numBirds = 1 + Math.floor(rng.next() * 2);
 
       const terrains: TerrainKind[] = ['rural', 'hilly', 'urban'];
-      const weathers: Weather[] = ['clear', 'haze', 'fog', 'rain'];
+      const weathers: Weather[] = ['clear', 'fog', 'rain'];
       const times: TimeOfDay[] = ['day', 'dusk', 'night'];
-      const ews: EwLevel[] = ['light', 'heavy'];
 
       env = createEnvironment({
         terrainKind: terrains[Math.floor(rng.next() * terrains.length)]!,
         weather: weathers[Math.floor(rng.next() * weathers.length)]!,
         timeOfDay: times[Math.floor(rng.next() * times.length)]!,
-        ewLevel: ews[Math.floor(rng.next() * ews.length)]!,
+        ewLevel: 'heavy',
       });
 
-      const tactics: SwarmTactic[] = ['saturation', 'split', 'decoy_screen'];
+      const tactics: SwarmTactic[] = ['split', 'decoy_screen', 'saturation'];
       tactic = tactics[Math.floor(rng.next() * tactics.length)];
       break;
     }
@@ -311,11 +311,16 @@ function buildSingleScenario(
   // 3. Civilian Quads: Transit across airspace at standoff
   for (let c = 0; c < numCivilians; c++) {
     const civTick = startTick + 100 + c * 250;
-    const standoffY = (c % 2 === 0 ? 1 : -1) * (1200 + rng.next() * 300);
-    const startX = -850;
-    const endX = 850;
-    const startPos = vec3(startX, standoffY, 70);
-    const endPos = vec3(endX, standoffY, 70);
+    const civBearing = (c * 135 + rng.next() * 90) % 360;
+    const cRad = civBearing * DEG_TO_RAD;
+    const standoffDist = 1200 + rng.next() * 400;
+    const midX = standoffDist * dSin(cRad);
+    const midY = standoffDist * dCos(cRad);
+    const perpX = -dCos(cRad);
+    const perpY = dSin(cRad);
+    const halfLen = 850;
+    const startPos = vec3(midX - halfLen * perpX, midY - halfLen * perpY, 70);
+    const endPos = vec3(midX + halfLen * perpX, midY + halfLen * perpY, 70);
 
     spawns.push({
       tick: civTick,
@@ -325,7 +330,7 @@ function buildSingleScenario(
       speed: 13,
       transitWaypointB: endPos,
     });
-    recordedBearings.push(standoffY > 0 ? 0 : 180);
+    recordedBearings.push(civBearing);
   }
 
   // 4. Birds: Avian clutter wandering with departTick
