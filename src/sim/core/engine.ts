@@ -5,7 +5,6 @@ import {
   EffectorState,
 } from '../model/effectors.js';
 import { generateTerrain, TerrainMap } from '../model/terrain.js';
-import { THREAT_LIBRARY } from '../model/threats.js';
 import { Track } from '../model/tracks.js';
 import {
   SCENARIOS,

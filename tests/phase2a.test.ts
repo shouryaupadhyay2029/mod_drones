@@ -211,10 +211,10 @@ describe('Phase 2A Acceptance Test Suite', () => {
     }
     expect(totalGhostsRuralNone).toBe(0);
 
-    // 2. Mean ghost plot rate per rotation within +/-25% for ew 1 and ew 2 in urban
-    // Configured rate for urban + ew 1: ewRate 0.5 + urban 0.5 = 1.0 per rotation
+    // 2. Mean ghost rate within +/-25% over 200 seeds
+    // Configured rate for urban + ew 1 (light): 4 (ew 1) + 3 (urban) = 7 per minute (7 / 30 per rotation)
     let totalGhostsUrbanEw1 = 0;
-    const testRotations = 10;
+    const testRotations = 30; // 1 minute (1200 ticks)
     const numSeeds = 200;
 
     for (let s = 1; s <= numSeeds; s++) {
@@ -231,10 +231,10 @@ describe('Phase 2A Acceptance Test Suite', () => {
       totalGhostsUrbanEw1 += tracks.filter((t) => t.isGhost).length;
     }
 
-    const meanRate = totalGhostsUrbanEw1 / (numSeeds * testRotations);
-    // Configured rate is 1.0 per rotation. Mean rate should be within [0.75, 1.25]
-    expect(meanRate).toBeGreaterThanOrEqual(0.75);
-    expect(meanRate).toBeLessThanOrEqual(1.25);
+    const meanRatePerMin = totalGhostsUrbanEw1 / numSeeds;
+    // Configured rate is 7.0 per minute. Mean rate should be within +/-25% -> [5.25, 8.75]
+    expect(meanRatePerMin).toBeGreaterThanOrEqual(7.0 * 0.75);
+    expect(meanRatePerMin).toBeLessThanOrEqual(7.0 * 1.25);
   });
 
   // 6. View privacy & information leakage

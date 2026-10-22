@@ -177,7 +177,7 @@ export function runRadarSystem(
         existingTrack.measuredRcs = measuredRcs;
 
         const dtSec = (currentTick - existingTrack.lastDetectedTick) * DT;
-        if (dtSec > 0) {
+        if (dtSec >= 0.5) {
           const rawVx = (measPos.x - existingTrack.estimatedPos.x) / dtSec;
           const rawVy = (measPos.y - existingTrack.estimatedPos.y) / dtSec;
           const rawVz = (measPos.z - existingTrack.estimatedPos.z) / dtSec;
@@ -291,7 +291,12 @@ export function runRadarSystem(
       const gBearing = bearingDeg(origin, trk.estimatedPos);
       if (isAngleInSector(gBearing, startAzimuth, endAzimuth)) {
         trk.ghostRotationsSeen = (trk.ghostRotationsSeen ?? 0) + 1;
-        const maxRotations = trk.ghostRemainingRotations ?? 2;
+        const maxRotations = trk.ghostRemainingRotations ?? (trk.ghostWillConfirm ? 6 : 2);
+
+        // Quality decay for confirmed ghosts: decays 0.25 -> 0.1 over up to 6 rotations
+        if (trk.ghostWillConfirm || trk.state === 'confirmed') {
+          trk.quality = Math.max(0.1, 0.25 - ((trk.ghostRotationsSeen - 1) / 5) * 0.15);
+        }
 
         // Re-plotted on later sweeps with probability 0.6 while lifespan active
         if (trk.ghostRotationsSeen <= maxRotations && ghostRng.next() < 0.6) {
@@ -322,9 +327,12 @@ export function runRadarSystem(
           // Missed detection on this sweep
           trk.consecutiveMisses++;
           trk.consecutiveHits = 0;
-          trk.quality = Math.max(0.0, trk.quality - 0.05);
+          if (!trk.ghostWillConfirm && trk.state !== 'confirmed') {
+            trk.quality = Math.max(0.0, trk.quality - 0.05);
+          }
 
-          if (trk.consecutiveMisses >= 5) {
+          // Tentative and confirmed ghosts drop after 2 missed rotations after their last plot
+          if (trk.consecutiveMisses >= 2) {
             trk.state = 'dropped';
             trk.lostTick = currentTick;
             events.push({
@@ -339,16 +347,16 @@ export function runRadarSystem(
       }
     }
 
-    // Expected ghost plots per 40-tick rotation = ewLevel [0, 0.5, 2.0] plus 0.5 in urban
-    // Evaluated per sweep (every 10 ticks): expectedPerSweep = expectedPerRotation / 4
+    // Ghost rates per MINUTE: ew 0 -> 0, ew 1 -> 4, ew 2 -> 12, urban +3
+    // Evaluated per sweep (every 10 ticks): check with p = ratePerMin / 120
     if (currentTick % 10 === 0) {
-      const ewRate =
-        env.ewLevel === 'heavy' ? 2.0 : env.ewLevel === 'light' ? 0.5 : 0.0;
-      const urbanRate = env.terrainKind === 'urban' ? 0.5 : 0.0;
-      const expectedPerRotation = ewRate + urbanRate;
-      const expectedPerSweep = expectedPerRotation / 4;
+      const ewRatePerMin =
+        env.ewLevel === 'heavy' ? 12 : env.ewLevel === 'light' ? 4 : 0;
+      const urbanRatePerMin = env.terrainKind === 'urban' ? 3 : 0;
+      const ratePerMin = ewRatePerMin + urbanRatePerMin;
+      const p = ratePerMin / 120;
 
-      if (expectedPerSweep > 0 && ghostRng.next() < expectedPerSweep) {
+      if (p > 0 && ghostRng.next() < p) {
         const bGhostDeg = startAzimuth + ghostRng.next() * 90;
         const bGhostRad = bGhostDeg * DEG_TO_RAD;
         const rGhost = 800 + ghostRng.next() * (5500 - 800);
@@ -366,13 +374,12 @@ export function runRadarSystem(
         const ghostVel = vec3(ghostSpd * dSin(ghostHdgRad), ghostSpd * dCos(ghostHdgRad), 0);
         const ghostRcs = 0.003 + ghostRng.next() * 0.005;
 
-        // Lives 1-3 rotations; at ewLevel 2, 10% become confirmed for up to 6 rotations
-        let maxRotations = 1 + Math.floor(ghostRng.next() * 3);
-        let willConfirm = false;
-        if (env.ewLevel === 'heavy' && ghostRng.next() < 0.1) {
-          willConfirm = true;
-          maxRotations = 6;
-        }
+        // Confirmation probability: 10% at ew 1, 30% at ew 2
+        // Confirmed ghosts live up to 6 rotations, quality decaying 0.25 -> 0.1
+        const confirmProb =
+          env.ewLevel === 'heavy' ? 0.3 : env.ewLevel === 'light' ? 0.1 : 0.0;
+        const willConfirm = ghostRng.next() < confirmProb;
+        const maxRotations = willConfirm ? 6 : (1 + Math.floor(ghostRng.next() * 2));
 
         const newGhost: Track = {
           trackId: nextTrackIdRef.current++,
