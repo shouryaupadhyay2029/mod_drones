@@ -85,12 +85,15 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
 
       <div id="scenario-selection-card" style={styles.card}>
         <div style={styles.header}>
-          <div style={styles.missionTag}>MISSION SELECTION & BRIEFING</div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <img src="/vajra-emblem.png" alt="VAJRA" style={{ width: '18px', height: '20px', opacity: 0.85 }} />
+            <div style={styles.missionTag}>VAJRA // MISSION BRIEFING</div>
+          </div>
           <h2 style={styles.title}>
             <TextRoll center stagger={0.025}>{activeScenario.title}</TextRoll>
           </h2>
           <p style={styles.subtitle}>
-            Asset Defense Exercise • Radar Surveillance & Threat Interception
+            Autonomous Asset Defense • Radar Surveillance & Threat Interception
           </p>
         </div>
 

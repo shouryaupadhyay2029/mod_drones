@@ -271,7 +271,16 @@ export function TopBar({
         <div style={styles.brandGroup}>
           <a href="#/" style={styles.brandLink}>
             <div style={styles.brandIconBox}>
-              <span style={styles.brandCrosshair}>✛</span>
+              <img
+                src="/vajra-emblem.png"
+                alt="VAJRA"
+                style={{
+                  width: '26px',
+                  height: '28px',
+                  objectFit: 'contain',
+                  display: 'block',
+                }}
+              />
             </div>
             <div style={styles.brandTextCol}>
               <span style={styles.brandName}>VAJRA</span>
@@ -769,19 +778,15 @@ const styles: Record<string, React.CSSProperties> = {
   brandLink: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
+    gap: '8px',
     textDecoration: 'none',
   },
   brandIconBox: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '6px',
-    backgroundColor: '#eae5dc',
-    border: '1px solid rgba(45, 40, 35, 0.2)',
+    width: '28px',
+    height: '28px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
   },
   brandCrosshair: {
     color: '#181716',
