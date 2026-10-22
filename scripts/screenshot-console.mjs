@@ -73,29 +73,41 @@ async function run() {
       console.log('Navigating to http://127.0.0.1:4173 ...');
       await page.goto('http://127.0.0.1:4173/#/', { waitUntil: 'networkidle0' });
 
-      // If in setup mode, open briefing modal and click Start Mission to enter running console
+      // 1. Setup ridge_runner
+      console.log('Selecting ridge_runner scenario...');
       await page.evaluate(() => {
+        window.dispatchEvent(
+          new CustomEvent('mod:select-scenario', { detail: { scenarioId: 'ridge_runner' } })
+        );
         window.dispatchEvent(new CustomEvent('mod:open-briefing'));
       });
       await new Promise((resolve) => setTimeout(resolve, 400));
 
       const startBtn = await page.$('#btn-start-mission');
       if (startBtn) {
-        console.log('Clicking START MISSION...');
         await startBtn.click();
-      } else {
-        const buttons = await page.$$('button');
-        for (const b of buttons) {
-          const text = await page.evaluate((el) => el.textContent, b);
-          if (text?.includes('START MISSION') || text?.trim() === 'Start Mission') {
-            console.log('Clicking START MISSION button...');
-            await b.click();
-            break;
-          }
-        }
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      // Turn on autopilot and 4x speed
+      const autopilotBtn = await page.$('#btn-toggle-autopilot');
+      if (autopilotBtn) await autopilotBtn.click();
+      const speed4Btn = await page.$('#btn-speed-4');
+      if (speed4Btn) await speed4Btn.click();
+
+      // Wait until track appears and EO is locked
+      console.log('Advancing ridge_runner at 4x until track and EO lock active...');
+      await page.waitForFunction(
+        () => {
+          const rows = document.querySelectorAll('tbody tr');
+          const eoHeader = document.querySelector('.eo-hud-target');
+          return rows.length >= 1 && eoHeader && !eoHeader.textContent?.includes('IDLE');
+        },
+        { timeout: 15000 }
+      ).catch(() => console.log('Timeout waiting for EO lock; continuing...'));
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const outDir = path.resolve('docs');
       if (!fs.existsSync(outDir)) {
@@ -120,8 +132,8 @@ async function run() {
       await page.screenshot({ path: path1366, fullPage: false });
       console.log('Saved console-1366.png to:', path1366);
 
-      // Test Viewport 2: 1920x1080
-      console.log('Testing viewport 1920x1080...');
+      // Test Viewport 2: 1920x1080 (ridge_runner, day, TV, EO LOCKED)
+      console.log('Testing viewport 1920x1080 (ridge_runner day TV)...');
       await page.setViewport({ width: 1920, height: 1080 });
       await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -138,21 +150,41 @@ async function run() {
       await page.screenshot({ path: path1920, fullPage: false });
       console.log('Saved console-1920.png to:', path1920);
 
-      // Test Viewport 3: Night / IR scenario screenshot (city_edge_night)
+      // Test Viewport 3: Night / IR scenario screenshot (city_edge_night, night, IR, EO LOCKED)
       console.log('Capturing Night / IR scenario screenshot (city_edge_night)...');
       await page.goto('http://127.0.0.1:4173/#/', { waitUntil: 'networkidle0' });
       await page.evaluate(() => {
         window.dispatchEvent(
           new CustomEvent('mod:select-scenario', { detail: { scenarioId: 'city_edge_night' } })
         );
+        window.dispatchEvent(new CustomEvent('mod:open-briefing'));
       });
       await new Promise((resolve) => setTimeout(resolve, 400));
       const startNightBtn = await page.$('#btn-start-mission');
       if (startNightBtn) {
         await startNightBtn.click();
       }
-      // Wait for tracks and simulation to advance
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      // Autopilot + 4x speed on night mission
+      const nightAutopilotBtn = await page.$('#btn-toggle-autopilot');
+      if (nightAutopilotBtn) await nightAutopilotBtn.click();
+      const nightSpeed4Btn = await page.$('#btn-speed-4');
+      if (nightSpeed4Btn) await nightSpeed4Btn.click();
+
+      // Wait until track appears and EO is locked in IR channel
+      console.log('Advancing city_edge_night at 4x until track and EO lock active...');
+      await page.waitForFunction(
+        () => {
+          const rows = document.querySelectorAll('tbody tr');
+          const eoHeader = document.querySelector('.eo-hud-target');
+          return rows.length >= 1 && eoHeader && !eoHeader.textContent?.includes('IDLE');
+        },
+        { timeout: 15000 }
+      ).catch(() => console.log('Timeout waiting for night EO lock; continuing...'));
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       const pathNight = path.join(outDir, 'console-night-ir.png');
       await page.screenshot({ path: pathNight, fullPage: false });
       console.log('Saved console-night-ir.png to:', pathNight);
