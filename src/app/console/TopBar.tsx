@@ -395,10 +395,24 @@ export function TopBar({
             onMouseLeave={handleDropdownLeave}
           >
             <button
-              className={`nav-mega-btn ${activeDropdown === 'systems' ? 'is-active' : ''}`}
+              className={`nav-mega-btn is-disabled ${activeDropdown === 'systems' ? 'is-active' : ''}`}
               onClick={() => handleDropdownToggleClick('systems')}
+              style={{ opacity: 0.55 }}
+              title="Defense Systems (Telemetry Offline - Informational Only)"
             >
               <span>DEFENSE SYSTEMS</span>
+              <span
+                style={{
+                  fontSize: '9px',
+                  marginLeft: '4px',
+                  opacity: 0.7,
+                  border: '1px solid rgba(0,0,0,0.2)',
+                  padding: '0 3px',
+                  borderRadius: '2px',
+                }}
+              >
+                OFFLINE
+              </span>
               <span className="nav-mega-chevron">▾</span>
             </button>
 
@@ -510,10 +524,24 @@ export function TopBar({
             onMouseLeave={handleDropdownLeave}
           >
             <button
-              className={`nav-mega-btn ${activeDropdown === 'intel' ? 'is-active' : ''}`}
+              className={`nav-mega-btn is-disabled ${activeDropdown === 'intel' ? 'is-active' : ''}`}
               onClick={() => handleDropdownToggleClick('intel')}
+              style={{ opacity: 0.55 }}
+              title="Threat Intel (Database Offline - Informational Only)"
             >
               <span>THREAT INTEL</span>
+              <span
+                style={{
+                  fontSize: '9px',
+                  marginLeft: '4px',
+                  opacity: 0.7,
+                  border: '1px solid rgba(0,0,0,0.2)',
+                  padding: '0 3px',
+                  borderRadius: '2px',
+                }}
+              >
+                OFFLINE
+              </span>
               <span className="nav-mega-chevron">▾</span>
             </button>
 
