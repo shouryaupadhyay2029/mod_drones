@@ -58,8 +58,8 @@ async function run() {
 
     try {
       const page = await browser.newPage();
-      console.log('Navigating to http://127.0.0.1:4173 ...');
-      await page.goto('http://127.0.0.1:4173', { waitUntil: 'networkidle0' });
+      console.log('Navigating to http://127.0.0.1:4173/#/check ...');
+      await page.goto('http://127.0.0.1:4173/#/check', { waitUntil: 'networkidle0' });
 
       console.log('Waiting for system check UI to mount...');
       await page.waitForSelector('#btn-verify-replay');
