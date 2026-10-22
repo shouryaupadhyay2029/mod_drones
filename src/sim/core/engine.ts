@@ -11,6 +11,7 @@ import {
   ScenarioSpawnSchedule,
   spawnScheduledActor,
 } from '../scenarios/index.js';
+import { generateScenario, Tier } from '../scenarios/generator.js';
 import { runEngagementSystem, tryEngageTrack } from '../systems/engagement.js';
 import { runRadarSystem } from '../systems/radar.js';
 import {
@@ -82,6 +83,14 @@ export class Engine {
     if (scenarioId === 'sandbox' || scenarioId === 'scenario-replay-check') {
       this.world = createInitialWorld();
       this.scheduledSpawns = [];
+    } else if (scenarioId.startsWith('proc:v1:')) {
+      const tier = scenarioId.slice('proc:v1:'.length) as Tier;
+      const proc = generateScenario(seed, tier);
+      this.world = createInitialWorld(proc.environment);
+      this.scheduledSpawns = proc.spawns;
+      this.terrain =
+        proc.terrain ??
+        generateTerrain(proc.environment.terrainKind, this.rng.fork('terrain'));
     } else {
       const def = SCENARIOS[scenarioId] ?? SCENARIOS['dawn_intrusion']!;
       this.world = createInitialWorld(def.environment);
@@ -140,7 +149,8 @@ export class Engine {
     const isMissionScenario =
       this.scenarioId === 'dawn_intrusion' ||
       this.scenarioId === 'ridge_runner' ||
-      this.scenarioId === 'city_edge_night';
+      this.scenarioId === 'city_edge_night' ||
+      this.scenarioId.startsWith('proc:v1:');
 
     const trackRef = { current: this.nextTrackId };
     runRadarSystem(
