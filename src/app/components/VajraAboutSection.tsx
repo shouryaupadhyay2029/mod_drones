@@ -68,13 +68,6 @@ const PILLARS: Pillar[] = [
   },
 ];
 
-const STATS: Array<{ to: number; suffix: string; label: string }> = [
-  { to: 20, suffix: ' Hz', label: 'Fixed-step simulation' },
-  { to: 4, suffix: '', label: 'Difficulty tiers' },
-  { to: 8, suffix: '', label: 'Threat & clutter classes' },
-  { to: 100, suffix: '%', label: 'Deterministic replay' },
-];
-
 function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }
@@ -363,27 +356,105 @@ export function VajraAboutSection(): React.JSX.Element {
         </div>
       </section>
 
-      {/* SCENE 3 — Mission loop count-up stats */}
-      <section className="vj-scene vj-loop" data-scene="pin" data-counters="">
-        <div className="vj-sticky">
-          <div className="vj-loop-inner">
-            <div className="vj-eyebrow">
-              04 // THE MISSION LOOP
-            </div>
-            <h2 className="vj-loop-title">
-              From first plot to final verdict in <em>under five minutes.</em>
-            </h2>
+      {/* SCENE 3 — Mission Launch & Operations Manual (Complete Operator Guide) */}
+      <section className="vj-scene vj-guide-section">
+        <div className="vj-guide-container">
+          <div className="vj-guide-header">
+            <div className="vj-eyebrow">04 // OPERATOR FLIGHT MANUAL</div>
+            <h2 className="vj-guide-headline">How to Run a Mission in VAJRA</h2>
+            <p className="vj-guide-subhead">
+              Step-by-step operating guide from mission configuration to console engagement and post-action debriefing.
+            </p>
+          </div>
 
-            <div className="vj-stats">
-              {STATS.map((s) => (
-                <div key={s.label} className="vj-stat">
-                  <div className="vj-stat-value">
-                    <span data-count-to={s.to}>0</span>
-                    <small>{s.suffix}</small>
-                  </div>
-                  <div className="vj-stat-label">{s.label}</div>
-                </div>
-              ))}
+          <div className="vj-guide-grid">
+            {/* Step 1 */}
+            <div className="vj-guide-card">
+              <div className="vj-guide-num">STEP 01</div>
+              <h3 className="vj-guide-title">Pre-Flight & Scenario Setup</h3>
+              <p className="vj-guide-desc">
+                Click <b>LAUNCH MISSION</b> in the top right to open the mission configuration modal. Choose between scripted training scenarios or procedural generation:
+              </p>
+              <ul className="vj-guide-list">
+                <li><b>Dawn Intrusion:</b> Baseline rural scenario with clear weather and light avian clutter.</li>
+                <li><b>Ridge Runner:</b> Low-altitude terrain masking in hilly fog with light EW jamming.</li>
+                <li><b>City Edge Night:</b> Dense urban clutter, rain, reduced visibility and heavy EW spoofing.</li>
+                <li><b>Procedural Swarm:</b> Dynamic generator across 4 difficulty tiers (Recruit, Operator, Veteran, Elite) with seeded jitter.</li>
+              </ul>
+              <div className="vj-guide-tip">
+                <b>Seed Determinism:</b> Enter any alphanumeric seed string (e.g. <code>s1</code>) or click <i>Randomize</i>. Sharing the exact seed allows peers to face the exact same physical trajectory.
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="vj-guide-card">
+              <div className="vj-guide-num">STEP 02</div>
+              <h3 className="vj-guide-title">Console Radar & Track Table</h3>
+              <p className="vj-guide-desc">
+                When the mission starts, the 20 Hz Pulse-Doppler radar sweeps across your sector. Raw radar plots are fused into numbered track symbols:
+              </p>
+              <ul className="vj-guide-list">
+                <li><b>Radar PPI Scope:</b> Displays range rings (500m, 1km, 1.5km, 3km, 5km), antenna heading, and moving target tracks with fading motion trails.</li>
+                <li><b>Track Selection:</b> Click any track on the scope or track table, or press <kbd>Tab</kbd> to cycle targets and <kbd>N</kbd> for unclassified targets.</li>
+                <li><b>Acknowledge Contact:</b> Press <kbd>A</kbd> (or <kbd>Shift+A</kbd> to ack all) to flag that you have detected and acknowledged incoming blips.</li>
+              </ul>
+              <div className="vj-guide-tip">
+                <b>Clutter & Ghosts:</b> High EW or city terrain spawns false radar blips. Watch velocity vectors and consistency before committing munitions.
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="vj-guide-card">
+              <div className="vj-guide-num">STEP 03</div>
+              <h3 className="vj-guide-title">EO/IR Turret & Threat Classification</h3>
+              <p className="vj-guide-desc">
+                Inspect ambiguous tracks visually using the slewable electro-optical gimbal in the right panel:
+              </p>
+              <ul className="vj-guide-list">
+                <li><b>Lock Slew Turret:</b> Press <kbd>E</kbd> to slave the EO/IR camera directly onto the selected track.</li>
+                <li><b>Thermal / Daylight:</b> Press <kbd>T</kbd> to toggle between Daylight (TV) and Thermal Infrared (FLIR) optical sensors.</li>
+                <li><b>Kinematic Cues:</b> Analyze speed, altitude, turn rate, RF signature, and RCS bucket to identify the threat.</li>
+                <li><b>Assign Classification:</b> Press hotkeys <kbd>1</kbd> to <kbd>7</kbd> or <kbd>0</kbd> (FPV Strike, Fibre-guided, Decoy, Commercial Quad, Fixed-Wing UAV, Bird, Clutter, Neutral).</li>
+              </ul>
+              <div className="vj-guide-tip">
+                <b>Hold Fire:</b> If a track is classified as a bird or civilian neutral, press <kbd>H</kbd> to issue a Hold Fire directive to protect non-combatants.
+              </div>
+            </div>
+
+            {/* Step 4 */}
+            <div className="vj-guide-card">
+              <div className="vj-guide-num">STEP 04</div>
+              <h3 className="vj-guide-title">Effector Engagement & Scoring</h3>
+              <p className="vj-guide-desc">
+                Once a hostile target crosses into range, select the optimal neutralization effector before asset impact:
+              </p>
+              <ul className="vj-guide-list">
+                <li><b>RF Directional Jammer (Soft Kill):</b> Effective up to <b>1,500 m</b>. Press <kbd>J</kbd> to jam standard wireless links and neutralize non-fibre drones.</li>
+                <li><b>30mm CIWS Auto-Gun (Hard Kill):</b> Effective up to <b>1,000 m</b>. Press <kbd>G</kbd> to fire a kinetic burst. Ammunition is limited (20 bursts) — conserve ammo.</li>
+                <li><b>Time Compression:</b> Press <kbd>Space</kbd> to pause or <kbd>+</kbd> / <kbd>-</kbd> to adjust simulation speed (1x, 2x, 5x, 10x).</li>
+              </ul>
+              <div className="vj-guide-tip">
+                <b>Scoring Breakdown:</b> Missions end upon threat resolution or asset breach. Your performance is scored out of 100 on detection speed, classification accuracy, effector choice, and asset integrity.
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Key Reference Strip */}
+          <div className="vj-guide-keys-strip">
+            <span className="vj-guide-keys-label">KEYBOARD SHORTCUTS</span>
+            <div className="vj-guide-keys-grid">
+              <div><kbd>Tab</kbd> Next Track</div>
+              <div><kbd>N</kbd> Next Unclassified</div>
+              <div><kbd>A</kbd> Acknowledge</div>
+              <div><kbd>Shift+A</kbd> Ack All</div>
+              <div><kbd>1-7, 0</kbd> Classify Target</div>
+              <div><kbd>E</kbd> Lock EO/IR Turret</div>
+              <div><kbd>T</kbd> Toggle TV / IR</div>
+              <div><kbd>J</kbd> Fire Jammer (1.5km)</div>
+              <div><kbd>G</kbd> Fire 30mm Gun (1km)</div>
+              <div><kbd>H</kbd> Hold Fire</div>
+              <div><kbd>Space</kbd> Pause/Resume</div>
+              <div><kbd>+/-</kbd> Change Speed</div>
             </div>
           </div>
         </div>
