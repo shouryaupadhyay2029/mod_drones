@@ -41,8 +41,10 @@ export function buildCityEdgeNightSpawns(scenarioRng: Rng): ScenarioSpawnSchedul
   // 3. Commercial Quad: t ~ 40s (800 +- 80 ticks), transit at 1.4 km standoff, speed 14 m/s
   const quadTick = Math.max(fpv1Tick + 40, 800 + Math.floor((scenarioRng.next() - 0.5) * 160));
   const quadY = 1400 + (scenarioRng.next() - 0.5) * 150;
-  const quadStartPos = vec3(-900, quadY, 70);
-  const quadEndPos = vec3(900, quadY, 70);
+  const quadStartX = -900 + (scenarioRng.next() - 0.5) * 160;
+  const quadEndX = 900 + (scenarioRng.next() - 0.5) * 160;
+  const quadStartPos = vec3(quadStartX, quadY, 70);
+  const quadEndPos = vec3(quadEndX, quadY, 70);
 
   // 4. Bird 2: t ~ 60s (1200 +- 80 ticks), range ~ 1.6 km
   const bird2Tick = Math.max(quadTick + 40, 1200 + Math.floor((scenarioRng.next() - 0.5) * 160));
