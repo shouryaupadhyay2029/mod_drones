@@ -460,32 +460,60 @@ export function VajraAboutSection(): React.JSX.Element {
         </div>
       </section>
 
-      {/* SCENE 4 — Closing call to action */}
-      <section className="vj-scene vj-cta" data-scene="enter">
-        <div className="vj-cta-inner">
-          <div className="vj-eyebrow">
-            05 // READY ROOM
+      {/* SCENE 4 — Grand Editorial Typography Footer */}
+      <footer className="vj-grand-footer">
+        <div className="vj-grand-footer-inner">
+          {/* Top meta row */}
+          <div className="vj-grand-top-row">
+            <div className="vj-grand-tagline">
+              Deterministic Air-Defence & Counter-UAS Simulation Platform
+            </div>
+            <div className="vj-grand-top-links">
+              <button type="button" onClick={openBriefing} className="vj-grand-link-btn">
+                Launch Mission
+              </button>
+              <a href="#/check" className="vj-grand-link">System Diagnostics</a>
+              <span className="vj-grand-link-disabled">Scenarios</span>
+              <span className="vj-grand-link-disabled">Threat Intel</span>
+              <span className="vj-grand-link-disabled">Documentation</span>
+            </div>
           </div>
-          <h2 className="vj-cta-title">
-            <span className="vj-line"><span>Train the reflex</span></span>
-            <span className="vj-line"><span><em>before</em> the threat arrives.</span></span>
-          </h2>
-          <div className="vj-cta-actions">
-            <button type="button" className="vj-cta-btn" onClick={openBriefing}>
-              <span>LAUNCH MISSION</span>
-              <i>→</i>
-            </button>
-            <a href="#/check" className="vj-cta-link">
-              Run system diagnostics ↗
-            </a>
+
+          {/* Massive Editorial Brand Wordmark */}
+          <div className="vj-grand-brand-wrap" aria-label="VAJRA">
+            <span className="vj-grand-brand-text">VAJRA</span>
+          </div>
+
+          {/* Sub-row links */}
+          <div className="vj-grand-sub-row">
+            <div className="vj-grand-sub-left">
+              <span>Radar Telemetry</span>
+              <span>RF Direction-Finding</span>
+              <span>EO/IR Slew Gimbal</span>
+              <span>Deterministic Core</span>
+            </div>
+            <div className="vj-grand-sub-right">
+              <span>20 Hz Simulation</span>
+              <span>4 Difficulty Tiers</span>
+              <span>8 Threat Classes</span>
+              <span>100% Bit-Exact Replay</span>
+            </div>
+          </div>
+
+          {/* Bottom legal & disclaimer strip */}
+          <div className="vj-grand-bottom-strip">
+            <div className="vj-grand-bottom-left">
+              <span>Simulation Platform</span>
+              <span>Cryptographic Air-Gap</span>
+              <span>TraineeView Isolation</span>
+              <span>Zero Ground-Truth Leakage</span>
+            </div>
+            <div className="vj-grand-bottom-right">
+              © {new Date().getFullYear()} VAJRA C-UAS Simulator. All scenarios fictional. No real units or insignia.
+            </div>
           </div>
         </div>
-        <footer className="vj-footer">
-          <span>VAJRA</span>
-          <span>Counter-UAS training simulator · Deterministic build</span>
-          <span>All scenarios fictional · No real units or insignia</span>
-        </footer>
-      </section>
+      </footer>
     </div>
   );
 }

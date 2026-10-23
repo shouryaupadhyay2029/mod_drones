@@ -652,129 +652,167 @@
 }
 
 /* --------------------------------------------------------------------------
-   Scene 4 — Closing CTA
+   Scene 4 — Massive Editorial Brand Footer (Habitat Style)
    -------------------------------------------------------------------------- */
 
-.vj-cta {
-  min-height: var(--vh);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+.vj-grand-footer {
+  width: 100%;
+  background: var(--vj-ink);
+  color: #ded7ca;
+  padding: 56px 0 36px;
+  border-top: 1px solid rgba(222, 215, 202, 0.15);
+  box-sizing: border-box;
 }
 
-.vj-cta-inner {
-  flex: 1;
-  width: min(1180px, 88vw);
+.vj-grand-footer-inner {
+  width: min(1280px, 92vw);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 32px;
-  padding: 80px 0 40px;
 }
 
-.vj-cta-title {
-  margin: 0;
-  font-size: clamp(44px, 7vw, 120px);
-  line-height: 0.98;
-  font-weight: 600;
-  letter-spacing: -0.055em;
-}
-
-.vj-line {
-  display: block;
-  overflow: hidden;
-  padding-bottom: 0.08em;
-}
-
-.vj-line > span {
-  display: inline-block;
-  transform: translate3d(0, clamp(0%, calc((0.62 - var(--p)) * 320%), 110%), 0);
-}
-
-.vj-line + .vj-line > span {
-  transform: translate3d(0, clamp(0%, calc((0.72 - var(--p)) * 320%), 110%), 0);
-}
-
-.vj-cta-title em { color: var(--vj-accent); }
-
-.vj-cta-actions {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  opacity: clamp(0, calc((var(--p) - 0.6) * 5), 1);
-  transform: translate3d(0, clamp(0px, calc((0.8 - var(--p)) * 100px), 20px), 0);
-}
-
-.vj-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 18px;
-  padding: 16px 18px 16px 26px;
-  border-radius: 999px;
-  border: none;
-  background: var(--vj-ink);
-  color: #f5f1ea;
-  font-family: ui-monospace, Menlo, Consolas, monospace;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  cursor: pointer;
-  box-shadow: 0 18px 40px -16px rgba(24, 23, 22, 0.6);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease;
-}
-
-.vj-cta-btn i {
-  font-style: normal;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--vj-accent);
-  display: grid;
-  place-items: center;
-  font-size: 14px;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.vj-cta-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 24px 50px -16px rgba(24, 23, 22, 0.7);
-}
-
-.vj-cta-btn:hover i {
-  transform: translateX(4px) rotate(-45deg);
-}
-
-.vj-cta-link {
-  font-size: 14px;
-  color: var(--vj-ink-soft);
-  text-decoration: none;
-  border-bottom: 1px solid var(--vj-line);
-  padding-bottom: 3px;
-  transition: color 0.2s ease, border-color 0.2s ease;
-}
-
-.vj-cta-link:hover {
-  color: var(--vj-ink);
-  border-color: var(--vj-ink);
-}
-
-.vj-footer {
+/* Top Meta Row */
+.vj-grand-top-row {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
-  padding: 22px 6vw;
-  border-top: 1px solid var(--vj-line);
-  font-family: ui-monospace, Menlo, Consolas, monospace;
-  font-size: 10.5px;
-  letter-spacing: 0.1em;
-  color: var(--vj-muted);
+  align-items: baseline;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(222, 215, 202, 0.15);
 }
 
-.vj-footer span:first-child {
-  font-weight: 700;
-  color: var(--vj-ink);
-  letter-spacing: 0.3em;
+.vj-grand-tagline {
+  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  font-size: clamp(16px, 1.8vw, 22px);
+  font-style: italic;
+  font-weight: 400;
+  color: #ded7ca;
+  letter-spacing: -0.01em;
+}
+
+.vj-grand-top-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  font-size: 13px;
+  color: rgba(222, 215, 202, 0.7);
+}
+
+.vj-grand-link-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vj-accent);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.vj-grand-link-btn:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.vj-grand-link {
+  color: #ded7ca;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.vj-grand-link:hover {
+  color: #fff;
+}
+
+.vj-grand-link-disabled {
+  color: rgba(222, 215, 202, 0.35);
+  cursor: default;
+}
+
+/* Massive Brand Wordmark */
+.vj-grand-brand-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  user-select: none;
+  padding: 10px 0;
+}
+
+.vj-grand-brand-text {
+  font-family: 'Impact', 'Arial Black', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: clamp(80px, 19vw, 290px);
+  font-weight: 900;
+  line-height: 0.82;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: #ded7ca;
+  display: block;
+  width: 100%;
+  text-align: justify;
+  text-align-last: justify;
+}
+
+/* Sub-row Links */
+.vj-grand-sub-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(222, 215, 202, 0.85);
+  padding: 12px 0;
+}
+
+.vj-grand-sub-left,
+.vj-grand-sub-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+/* Bottom Legal Strip */
+.vj-grand-bottom-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(222, 215, 202, 0.12);
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: rgba(222, 215, 202, 0.45);
+  letter-spacing: 0.04em;
+}
+
+.vj-grand-bottom-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .vj-grand-top-row,
+  .vj-grand-sub-row,
+  .vj-grand-bottom-strip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .vj-grand-top-links,
+  .vj-grand-sub-left,
+  .vj-grand-sub-right,
+  .vj-grand-bottom-left {
+    gap: 12px;
+  }
 }
 
 /* --------------------------------------------------------------------------
