@@ -172,17 +172,44 @@ function useScrollEngine(rootRef: React.RefObject<HTMLDivElement>): void {
 }
 
 function renderManifesto(): React.ReactNode[] {
-  const words = MANIFESTO.split(' ');
-  return words.map((raw, i) => {
-    const accent = raw.startsWith('*');
-    const word = raw.replace(/\*/g, '');
+  // Group words into semantic lines / rising phrases so each phrase slides up smoothly as a coherent unit
+  const phrases = [
+    { text: 'VAJRA is a *deterministic* *counter-drone* training simulator.', accentIdxs: [2, 3] },
+    { text: 'It puts operators behind a live air-defence console —', accentIdxs: [] },
+    { text: 'radar, RF direction-finding and EO/IR —', accentIdxs: [] },
+    { text: 'and asks one question, over and over:', accentIdxs: [] },
+    { text: 'is that contact a *threat,* and what will you do about it?', accentIdxs: [4] },
+  ];
+
+  let wordGlobalIndex = 0;
+  const totalWords = MANIFESTO.split(' ').length;
+
+  return phrases.map((phrase, lineIdx) => {
+    const words = phrase.text.split(' ');
+    const lineElements = words.map((raw) => {
+      const isAccent = raw.startsWith('*');
+      const cleanWord = raw.replace(/\*/g, '');
+      const idx = wordGlobalIndex++;
+      return (
+        <span
+          key={idx}
+          className={`vj-word${isAccent ? ' vj-word-accent' : ''}`}
+          style={{ '--i': idx, '--n': totalWords } as React.CSSProperties}
+        >
+          {cleanWord}{' '}
+        </span>
+      );
+    });
+
     return (
       <span
-        key={i}
-        className={`vj-word${accent ? ' vj-word-accent' : ''}`}
-        style={{ '--i': i, '--n': words.length } as React.CSSProperties}
+        key={lineIdx}
+        className="vj-manifesto-line"
+        style={{ '--l': lineIdx, '--line-count': phrases.length } as React.CSSProperties}
       >
-        {word}{' '}
+        <span className="vj-manifesto-line-inner">
+          {lineElements}
+        </span>
       </span>
     );
   });

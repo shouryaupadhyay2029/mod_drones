@@ -85,20 +85,44 @@
 .vj-manifesto-text {
   margin: 0;
   font-size: clamp(30px, 4.1vw, 64px);
-  line-height: 1.12;
+  line-height: 1.22;
   font-weight: 500;
   letter-spacing: -0.035em;
   color: var(--vj-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+}
+
+/* Line mask wrapper: hides overflow for a razor-sharp rise-up from below */
+.vj-manifesto-line {
+  display: block;
+  overflow: hidden;
+  padding: 4px 0 6px;
+}
+
+/* Line container rising up from below the line baseline */
+.vj-manifesto-line-inner {
+  display: inline-block;
+  --line-progress: clamp(0, calc((var(--p) * 1.5 * var(--line-count) - var(--l)) * 1.1), 1);
+  --rise-y: calc((1 - var(--line-progress)) * 105%);
+  --rise-rot: calc((1 - var(--line-progress)) * 3deg);
+  transform: translate3d(0, var(--rise-y), 0) rotate(var(--rise-rot));
+  transform-origin: left bottom;
+  opacity: clamp(0.04, calc(var(--line-progress) * 1.2), 1);
+  transition: transform 0.08s ease-out, opacity 0.08s ease-out;
+  will-change: transform, opacity;
 }
 
 .vj-word {
-  --x: calc(var(--p) * 1.35 * var(--n) - var(--i));
+  --x: calc(var(--p) * 1.45 * var(--n) - var(--i));
   display: inline-block;
   white-space: pre;
-  opacity: clamp(0.12, var(--x), 1);
-  transform: translate3d(0, clamp(0px, calc((1 - var(--x)) * 16px), 16px), 0);
-  filter: blur(clamp(0px, calc((1 - var(--x)) * 5px), 5px));
+  opacity: clamp(0.18, calc(var(--x) * 1.2), 1);
+  transform: translate3d(0, clamp(0px, calc((1 - var(--x)) * 24px), 24px), 0);
+  filter: blur(clamp(0px, calc((1 - var(--x)) * 3.5px), 3.5px));
   will-change: opacity, transform, filter;
+  transition: opacity 0.06s linear, transform 0.06s ease-out;
 }
 
 .vj-word-accent {
