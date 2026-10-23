@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { generateScenario, Tier } from '../../sim/index.js';
 import { DroneHeroSection } from '../components/DroneHeroSection.js';
+import { VajraAboutSection } from '../components/VajraAboutSection.js';
+import '../styles/about.css';
 import { TextRoll } from '../components/TextRoll.js';
 
 export interface MissionSetupProps {
@@ -152,9 +154,12 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
       : SCENARIO_OPTIONS.find((s) => s.id === selectedScenario) || SCENARIO_OPTIONS[0]!;
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} data-scroll-root="">
       {/* Skiper14-Inspired 3D ASCII Drone Hero Section */}
       <DroneHeroSection />
+
+      {/* Scroll story: What is VAJRA? */}
+      <VajraAboutSection />
 
       {/* Tactical Mission Briefing Modal Overlay (Triggered from Navbar or Hero) */}
       <div
@@ -375,17 +380,16 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'stretch',
+    display: 'block',
     flex: 1,
     padding: 0,
     margin: 0,
     backgroundColor: 'transparent',
-    overflow: 'hidden',
+    overflowX: 'hidden',
+    overflowY: 'auto',
     width: '100%',
     height: '100%',
-    minHeight: 'calc(100vh - 68px)',
+    minHeight: 0,
     position: 'relative',
   },
   modalHeaderRow: {
