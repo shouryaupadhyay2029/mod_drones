@@ -209,16 +209,17 @@
 .vj-panel {
   --a: 0;
   --d: 0;
-  width: min(78vw, 1040px);
-  height: min(64vh, 560px);
+  width: min(84vw, 1100px);
+  min-height: min(60vh, 520px);
   flex-shrink: 0;
   display: grid;
-  grid-template-columns: 1fr 1.05fr;
-  gap: 48px;
+  grid-template-columns: 1.15fr 0.95fr;
+  gap: 64px;
   align-items: center;
-  opacity: calc(1 - var(--a) * 0.62);
-  transform: scale(calc(1 - var(--a) * 0.07));
+  opacity: calc(1 - var(--a) * 0.55);
+  transform: translate3d(calc(var(--d) * -30px), 0, 0);
   transition: opacity 0.1s linear;
+  position: relative;
 }
 
 .vj-panel-intro {
@@ -359,61 +360,40 @@
   color: var(--vj-ink);
 }
 
+/* Embedded seamless visual viewport — NO SEPARATE CARD BOX */
 .vj-panel-visual {
-  height: 100%;
-  border-radius: 12px;
-  background: #ded7ca;
-  border: 1px solid rgba(45, 40, 35, 0.18);
-  box-shadow:
-    0 24px 48px -20px rgba(45, 40, 35, 0.18),
-    0 1px 2px rgba(45, 40, 35, 0.08);
+  height: min(440px, 52vh);
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transform: translate3d(calc(var(--d) * -40px), 0, 0);
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
 }
 
 .vj-visual-chrome {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 18px;
-  border-bottom: 1px solid rgba(45, 40, 35, 0.12);
-  font-family: ui-monospace, Menlo, Consolas, monospace;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: #78716c;
-  background: rgba(45, 40, 35, 0.03);
-}
-
-.vj-live {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #c2410c;
-  font-weight: 600;
-}
-
-.vj-live i {
   display: none;
 }
 
 .vj-visual-body {
-  flex: 1;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(194, 65, 12, 0.03), transparent 65%),
-    linear-gradient(rgba(45, 40, 35, 0.05) 1px, transparent 1px) 0 0 / 28px 28px,
-    linear-gradient(90deg, rgba(45, 40, 35, 0.05) 1px, transparent 1px) 0 0 / 28px 28px;
+  padding: 0;
+  background: transparent;
 }
 
 .vj-visual-svg {
-  width: min(100%, 320px);
+  width: min(100%, 340px);
   height: auto;
   overflow: visible;
+  filter: drop-shadow(0 2px 8px rgba(45, 40, 35, 0.05));
 }
 
 .vj-v-ring { fill: none; stroke: rgba(45, 40, 35, 0.18); stroke-width: 1; }
@@ -507,59 +487,8 @@
 }
 
 .vj-debrief {
-  width: 100%;
-  max-width: 380px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  font-family: ui-monospace, Menlo, Consolas, monospace;
+  display: none;
 }
-
-.vj-debrief-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: #78716c;
-}
-
-.vj-debrief-head b { color: #181716; font-size: 12px; }
-.vj-debrief-ok { margin-left: auto; color: #c2410c; font-weight: 600; }
-
-.vj-debrief-bars {
-  height: 90px;
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  border-bottom: 1px solid rgba(45, 40, 35, 0.18);
-}
-
-.vj-debrief-bars i {
-  flex: 1;
-  height: calc(var(--h) * 100%);
-  border-radius: 2px 2px 0 0;
-  background: #181716;
-  opacity: 0.82;
-  transform-origin: bottom;
-  transform: scaleY(calc(1 - var(--a, 0) * 0.85));
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  transition-delay: calc(var(--k) * 8ms);
-}
-
-.vj-debrief-rows { display: flex; flex-direction: column; }
-
-.vj-debrief-rows div {
-  display: flex;
-  justify-content: space-between;
-  padding: 9px 0;
-  border-bottom: 1px solid rgba(45, 40, 35, 0.1);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: #78716c;
-}
-
-.vj-debrief-rows b { color: #181716; font-size: 12px; }
 
 /* --------------------------------------------------------------------------
    Scene 3 — Mission loop

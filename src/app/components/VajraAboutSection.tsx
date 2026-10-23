@@ -19,7 +19,7 @@ interface Pillar {
   title: string;
   body: string;
   metrics: Array<[string, string]>;
-  visual: 'detect' | 'classify' | 'decide' | 'debrief';
+  visual?: 'detect' | 'classify' | 'decide';
 }
 
 const PILLARS: Pillar[] = [
@@ -65,7 +65,6 @@ const PILLARS: Pillar[] = [
       ['REPLAY', 'BIT-EXACT'],
       ['SCORING', 'PER CONTACT'],
     ],
-    visual: 'debrief',
   },
 ];
 
@@ -213,7 +212,7 @@ function renderManifesto(): React.ReactNode[] {
   });
 }
 
-function PillarVisual({ kind }: { kind: Pillar['visual'] }): React.JSX.Element {
+function PillarVisual({ kind }: { kind: NonNullable<Pillar['visual']> }): React.JSX.Element {
   if (kind === 'detect') {
     return (
       <svg viewBox="0 0 240 240" className="vj-visual-svg">
@@ -263,39 +262,18 @@ function PillarVisual({ kind }: { kind: Pillar['visual'] }): React.JSX.Element {
       </div>
     );
   }
-  if (kind === 'decide') {
-    return (
-      <svg viewBox="0 0 240 240" className="vj-visual-svg">
-        <circle cx="120" cy="140" r="92" className="vj-v-ring-jam" />
-        <circle cx="120" cy="140" r="62" className="vj-v-ring-gun" />
-        <text x="120" y="42" className="vj-v-label vj-v-label-jam">JAM 1.5 KM</text>
-        <text x="120" y="72" className="vj-v-label vj-v-label-gun">GUN 1.0 KM</text>
-        <path d="M228 18 C 190 60, 170 90, 150 118" className="vj-v-track" />
-        <circle cx="150" cy="118" r="4" className="vj-v-blip-hostile vj-v-target" />
-        <path d="M144 112 h-6 v6 M156 112 h6 v6 M144 124 h-6 v-6 M156 124 h6 v-6" className="vj-v-reticle" />
-        <circle cx="120" cy="140" r="5" className="vj-v-asset" />
-      </svg>
-    );
-  }
-  const bars = Array.from({ length: 36 }, (_, i) => 0.25 + 0.75 * Math.abs(Math.sin(i * 1.7) * Math.cos(i * 0.45)));
+  // fallback default: radar
   return (
-    <div className="vj-debrief">
-      <div className="vj-debrief-head">
-        <span>SEED</span>
-        <b>c8f5ec92</b>
-        <span className="vj-debrief-ok">HASH MATCH ✓</span>
-      </div>
-      <div className="vj-debrief-bars">
-        {bars.map((h, i) => (
-          <i key={i} style={{ '--h': h, '--k': i } as React.CSSProperties} />
-        ))}
-      </div>
-      <div className="vj-debrief-rows">
-        <div><span>DETECTION</span><b>96</b></div>
-        <div><span>CLASSIFICATION</span><b>88</b></div>
-        <div><span>DECISION</span><b>91</b></div>
-      </div>
-    </div>
+    <svg viewBox="0 0 240 240" className="vj-visual-svg">
+      <circle cx="120" cy="140" r="92" className="vj-v-ring-jam" />
+      <circle cx="120" cy="140" r="62" className="vj-v-ring-gun" />
+      <text x="120" y="42" className="vj-v-label vj-v-label-jam">JAM 1.5 KM</text>
+      <text x="120" y="72" className="vj-v-label vj-v-label-gun">GUN 1.0 KM</text>
+      <path d="M228 18 C 190 60, 170 90, 150 118" className="vj-v-track" />
+      <circle cx="150" cy="118" r="4" className="vj-v-blip-hostile vj-v-target" />
+      <path d="M144 112 h-6 v6 M156 112 h6 v6 M144 124 h-6 v-6 M156 124 h6 v-6" className="vj-v-reticle" />
+      <circle cx="120" cy="140" r="5" className="vj-v-asset" />
+    </svg>
   );
 }
 
@@ -372,17 +350,13 @@ export function VajraAboutSection(): React.JSX.Element {
                     ))}
                   </div>
                 </div>
-                <div className="vj-panel-visual">
-                  <div className="vj-visual-chrome">
-                    <span>VAJRA // {p.tag}</span>
-                    <span className="vj-live">
-                      <i /> LIVE
-                    </span>
+                {p.visual && (
+                  <div className="vj-panel-visual">
+                    <div className="vj-visual-body">
+                      <PillarVisual kind={p.visual} />
+                    </div>
                   </div>
-                  <div className="vj-visual-body">
-                    <PillarVisual kind={p.visual} />
-                  </div>
-                </div>
+                )}
               </article>
             ))}
           </div>
