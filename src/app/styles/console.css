@@ -258,54 +258,54 @@ body {
 .mega-menu-grid {
   display: grid;
   grid-template-columns: 360px 290px;
-  gap: 16px;
-  padding: 16px;
+  gap: 20px;
+  padding: 16px 18px;
   font-family: inherit;
 }
 
 .mega-menu-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
 }
 
 .mega-menu-card-item {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 10px 12px;
-  border-radius: 9px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.12);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .mega-menu-card-item:hover {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
   transform: translateX(3px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  box-shadow: none;
 }
 
 .mega-menu-item-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 7px;
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.24);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
   flex-shrink: 0;
-  transition: all 0.18s ease;
+  transition: all 0.16s ease;
 }
 
 .mega-menu-card-item:hover .mega-menu-item-icon {
-  background: rgba(0, 0, 0, 0.45);
-  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.40);
   transform: scale(1.05);
 }
 
@@ -328,24 +328,25 @@ body {
 }
 
 .mega-menu-item-desc {
-  color: rgba(255, 242, 235, 0.82);
+  color: rgba(255, 242, 235, 0.85);
   font-size: 11.5px;
   line-height: 1.4;
   letter-spacing: -0.005em;
   font-weight: 400;
 }
 
-/* Right-Hand Cockpit Preview Card (Unified Orange Theme) */
+/* Right-Hand Cockpit Preview Section (Seamless Unified Whole) */
 .mega-preview-card {
-  background: rgba(0, 0, 0, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 10px;
-  padding: 16px;
+  background: transparent;
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0;
+  padding: 0 0 0 18px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 12px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  gap: 10px;
+  box-shadow: none;
 }
 
 .mega-preview-header {

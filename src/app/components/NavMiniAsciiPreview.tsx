@@ -249,7 +249,7 @@ function generateFpvModel(): Point3D[] {
 export function NavMiniAsciiPreview({
   modelType,
   color,
-  backgroundColor = 'rgba(0, 0, 0, 0.10)',
+  backgroundColor = 'transparent',
   className = '',
   style,
 }: NavMiniAsciiPreviewProps): React.JSX.Element {
@@ -461,7 +461,7 @@ export function NavMiniAsciiPreview({
         justifyContent: 'center',
         userSelect: 'none',
         cursor: isDraggingRef.current ? 'grabbing' : 'grab',
-        border: '1px solid rgba(255, 255, 255, 0.18)',
+        border: 'none',
         position: 'relative',
         ...style,
       }}

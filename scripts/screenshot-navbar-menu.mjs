@@ -29,11 +29,13 @@ function waitForServer(url, timeout = 10000) {
 }
 
 async function run() {
+  const rootDir = path.resolve('C:\\Users\\Shourya Upadhyay\\OneDrive\\Documents\\ALL CODES\\MoD\\mod_drones');
   const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
   const server = spawn(
     npxCmd,
     ['vite', 'preview', '--host', '127.0.0.1', '--port', '4173', '--strictPort'],
     {
+      cwd: rootDir,
       shell: true,
       stdio: 'inherit',
     }
