@@ -265,15 +265,21 @@ function buildSingleScenario(
       recordedBearings.push(b);
     }
   } else {
-    // Single recruit striker
-    for (const s of strikerConfigs) {
-      const bRad = baseBearingDeg * DEG_TO_RAD;
-      const range = 4200;
-      const posX = range * dSin(bRad);
-      const posY = range * dCos(bRad);
+    // Recruit strikers (1 or 2) with lateral separation and tick offset
+    for (let i = 0; i < strikerConfigs.length; i++) {
+      const s = strikerConfigs[i]!;
+      const lateralSign = i % 2 === 0 ? 1 : -1;
+      const lateralDist = i === 0 ? 0 : 60 * lateralSign;
+      const tick = startTick + i * 50;
+      const range = 4200 + i * 150;
+      const bRad = (baseBearingDeg + (i === 0 ? 0 : (rng.next() - 0.5) * 16)) * DEG_TO_RAD;
+      const latX = dCos(bRad);
+      const latY = -dSin(bRad);
+      const posX = range * dSin(bRad) + lateralDist * latX;
+      const posY = range * dCos(bRad) + lateralDist * latY;
       const posZ = Math.max(50, terrain.heightAt(posX, posY) + 25);
       spawns.push({
-        tick: startTick,
+        tick,
         classId: s.classId,
         pos: vec3(posX, posY, posZ),
         behaviourType: 'ingress_direct',

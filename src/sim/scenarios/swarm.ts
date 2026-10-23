@@ -63,8 +63,8 @@ export function buildSwarmSpawns(params: SwarmParams, rng: Rng): ScenarioSpawnSc
         const bearingJitterDeg = (rng.next() - 0.5) * 24; // +/- 12 deg
         const finalBearingRad = (baseBearingDeg + bearingJitterDeg) * DEG_TO_RAD;
 
-        const posX = baseRange * dSin(finalBearingRad) + lateralDist * latX * 0.2;
-        const posY = baseRange * dCos(finalBearingRad) + lateralDist * latY * 0.2;
+        const posX = baseRange * dSin(finalBearingRad) + lateralDist * latX;
+        const posY = baseRange * dCos(finalBearingRad) + lateralDist * latY;
         const altNominal = 40 + rng.next() * 80; // 40-120 m
         const posZ = clampAltitude(posX, posY, altNominal);
 
@@ -83,6 +83,7 @@ export function buildSwarmSpawns(params: SwarmParams, rng: Rng): ScenarioSpawnSc
 
     case 'split': {
       // Split: two subgroups from bearings 70-120 deg apart; the second is delayed 10-25 s.
+      // Both groups receive lateral spacing (40-80 m) and seeded jitter.
       const delayTicks = 200 + Math.floor(rng.next() * 300); // 10-25 s
       const splitAngleDeg = 70 + rng.next() * 50; // 70-120 deg
       const bearing1 = baseBearingDeg;
@@ -105,14 +106,20 @@ export function buildSwarmSpawns(params: SwarmParams, rng: Rng): ScenarioSpawnSc
         subStartTick: number,
         groupId: string
       ) => {
+        const subRad = bearingDeg * DEG_TO_RAD;
+        const subLatX = dCos(subRad);
+        const subLatY = -dSin(subRad);
+
         for (let i = 0; i < members.length; i++) {
           const m = members[i]!;
-          const tickJitter = Math.floor(rng.next() * 60);
-          const tick = subStartTick + i * 30 + tickJitter;
+          const tickJitter = Math.floor((rng.next() - 0.5) * 40);
+          const tick = Math.max(1, subStartTick + i * 45 + tickJitter);
           const range = 4200 + rng.next() * 1200;
           const bRad = (bearingDeg + (rng.next() - 0.5) * 16) * DEG_TO_RAD; // +/- 8 deg
-          const posX = range * dSin(bRad);
-          const posY = range * dCos(bRad);
+          const lateralSign = i % 2 === 0 ? 1 : -1;
+          const lateralDist = (Math.floor(i / 2) + 1) * (45 + rng.next() * 35) * lateralSign;
+          const posX = range * dSin(bRad) + lateralDist * subLatX;
+          const posY = range * dCos(bRad) + lateralDist * subLatY;
           const posZ = clampAltitude(posX, posY, 40 + rng.next() * 80);
 
           spawns.push({
