@@ -69,8 +69,6 @@ const PILLARS: Pillar[] = [
   },
 ];
 
-const LOOP_NODES = ['SCAN', 'TRACK', 'IDENTIFY', 'ENGAGE', 'ASSESS'];
-
 const STATS: Array<{ to: number; suffix: string; label: string }> = [
   { to: 20, suffix: ' Hz', label: 'Fixed-step simulation' },
   { to: 4, suffix: '', label: 'Difficulty tiers' },
@@ -319,13 +317,6 @@ export function VajraAboutSection(): React.JSX.Element {
               02 // WHAT IS VAJRA
             </div>
             <p className="vj-manifesto-text">{renderManifesto()}</p>
-            <div className="vj-manifesto-foot">
-              <span>COUNTER-UAS OPERATOR TRAINING</span>
-              <div className="vj-progress">
-                <i />
-              </div>
-              <span>BROWSER-NATIVE · NO INSTALL</span>
-            </div>
           </div>
         </div>
       </section>
@@ -398,7 +389,7 @@ export function VajraAboutSection(): React.JSX.Element {
         </div>
       </section>
 
-      {/* SCENE 3 — Mission loop line-draw + count-up stats */}
+      {/* SCENE 3 — Mission loop count-up stats */}
       <section className="vj-scene vj-loop" data-scene="pin" data-counters="">
         <div className="vj-sticky">
           <div className="vj-loop-inner">
@@ -408,22 +399,6 @@ export function VajraAboutSection(): React.JSX.Element {
             <h2 className="vj-loop-title">
               From first plot to final verdict in <em>under five minutes.</em>
             </h2>
-
-            <div className="vj-loop-diagram">
-              <svg viewBox="0 0 1000 120" preserveAspectRatio="none" className="vj-loop-svg">
-                <path d="M40 60 C 180 10, 260 110, 400 60 S 620 10, 760 60 S 900 110, 960 60" className="vj-loop-path-bg" pathLength={1} />
-                <path d="M40 60 C 180 10, 260 110, 400 60 S 620 10, 760 60 S 900 110, 960 60" className="vj-loop-path" pathLength={1} />
-              </svg>
-              <div className="vj-loop-nodes">
-                {LOOP_NODES.map((n, i) => (
-                  <div key={n} className="vj-loop-node" style={{ '--k': i, '--n': LOOP_NODES.length } as React.CSSProperties}>
-                    <i />
-                    <span className="vj-loop-node-num">0{i + 1}</span>
-                    <span className="vj-loop-node-label">{n}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
             <div className="vj-stats">
               {STATS.map((s) => (
