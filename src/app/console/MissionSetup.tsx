@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { generateScenario, Tier } from '../../sim/index.js';
 import { DroneHeroSection } from '../components/DroneHeroSection.js';
+import { TacticalMark } from '../components/TacticalMark.js';
 import { TextRoll } from '../components/TextRoll.js';
 
 export interface MissionSetupProps {
@@ -169,7 +170,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
         <div id="scenario-selection-card" style={styles.cardModal} className="briefing-modal-card">
           <div style={styles.modalHeaderRow}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              <img src="/vajra-emblem.png" alt="VAJRA" style={{ width: '18px', height: '20px', opacity: 0.85 }} />
+              <TacticalMark size={18} color="#d4a373" style={{ opacity: 0.9 }} />
               <div style={styles.missionTag}>VAJRA // MISSION BRIEFING</div>
             </div>
             <button

@@ -91,3 +91,8 @@ Under swarm conditions with up to 16 concurrent hostile strikers, raw range is a
 - `N`: Instantly cycles focus to the next unclassified confirmed track ordered by proximity to the defended asset.
 - `6` and `7`: Hotkey assignments for `fpv_fiber` ("FPV-type (no RF)") and `decoy_drone` ("Decoy / low-cost target").
 
+## ADR-008: Neutral Generic Tactical Branding & Insignia Prohibition
+- **Project Rule**: Strictly prohibit the use of real military unit names, national branch designations, or real-world military insignia (including Indian Air Force / IAF roundels, emblems, or heraldry).
+- **Design Philosophy**: As an autonomous training and research simulator, all branding and visual assets must use neutral, generic illustrative symbols. The application mark is a geometric vector crosshair/octagonal shield representing generic air defense intercept concepts. Training project codenames (such as VAJRA) are treated as purely fictional designations with no real-world military attribution.
+
+

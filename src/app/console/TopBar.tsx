@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { TraineeEnvironmentView } from '../../sim/index.js';
 import { NavMiniAsciiPreview } from '../components/NavMiniAsciiPreview.js';
+import { TacticalMark } from '../components/TacticalMark.js';
 import { TextRoll } from '../components/TextRoll.js';
 
 // Minimalist High-Precision SVG Tactical Icons (replacing generic emojis)
@@ -266,16 +267,7 @@ export function TopBar({
         <div style={styles.brandGroup} className="anim-curved-slide anim-delay-1">
           <a href="#/" style={styles.brandLink}>
             <div style={styles.brandIconBox}>
-              <img
-                src="/vajra-emblem.png"
-                alt="VAJRA"
-                style={{
-                  width: '26px',
-                  height: '28px',
-                  objectFit: 'contain',
-                  display: 'block',
-                }}
-              />
+              <TacticalMark size={22} color="#181716" />
             </div>
             <div style={styles.brandTextCol}>
               <span style={styles.brandName}>VAJRA</span>
