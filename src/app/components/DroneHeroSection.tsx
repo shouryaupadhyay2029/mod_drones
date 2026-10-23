@@ -9,7 +9,7 @@ export function DroneHeroSection(): React.JSX.Element {
         <DroneAsciiSimulation
           color="#050505"
           backgroundColor="transparent"
-          fontSize={10}
+          fontSize={11}
           autoRotate={true}
           rotationSpeed={0.012}
         />
@@ -21,22 +21,33 @@ export function DroneHeroSection(): React.JSX.Element {
 const styles: Record<string, React.CSSProperties> = {
   heroSection: {
     width: '100%',
+    height: '100%',
+    flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
+    alignItems: 'stretch',
+    justifyContent: 'center',
     backgroundColor: 'transparent',
     border: 'none',
     boxSizing: 'border-box',
-    padding: '0 0 16px 0',
+    padding: 0,
+    margin: 0,
+    overflow: 'hidden',
+    position: 'relative',
   },
   canvasWrapper: {
     position: 'relative',
     width: '100%',
-    height: '600px',
+    height: '100%',
+    flex: 1,
+    minHeight: 'calc(100vh - 68px)',
     borderRadius: '0',
     border: 'none',
     boxShadow: 'none',
     backgroundColor: 'transparent',
     overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 };
