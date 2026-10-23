@@ -118,15 +118,26 @@ export function oracleStep(view: TraineeView, engine: Engine): Command[] {
         jammerBusy = true;
         continue;
       }
-    }
 
-    if (!gunBusy && target.rangeM <= 1000) {
-      commands.push({
-        tick: view.tick,
-        type: 'ENGAGE_TRACK',
-        payload: { trackId: target.trackId, effector: 'gun' },
-      });
-      gunBusy = true;
+      // Close-in defense backup: gun RF target if within effective range (<= 750m) and jammer won't resolve in time
+      if (!gunBusy && target.rangeM <= 750 && target.timeToImpact < 4.5) {
+        commands.push({
+          tick: view.tick,
+          type: 'ENGAGE_TRACK',
+          payload: { trackId: target.trackId, effector: 'gun' },
+        });
+        gunBusy = true;
+      }
+    } else {
+      // Non-RF target (fiber): must engage with gun within effective lethal envelope (<= 750m)
+      if (!gunBusy && target.rangeM <= 750) {
+        commands.push({
+          tick: view.tick,
+          type: 'ENGAGE_TRACK',
+          payload: { trackId: target.trackId, effector: 'gun' },
+        });
+        gunBusy = true;
+      }
     }
   }
 

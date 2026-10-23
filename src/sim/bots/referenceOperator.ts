@@ -176,12 +176,16 @@ export function referenceOperator(view: TraineeView): Command[] {
         else if (track.rcsBucket === 'tiny' || (speed < 16 && turnRate > 3.5)) {
           assessed = 'bird';
         }
-        // Cue C1: High-altitude fixed-wing reconnaissance UAV (altitude >= 160m)
-        else if (track.altitudeM >= 160 && speed >= 18) {
+        // Cue C1: High-altitude fixed-wing reconnaissance UAV (altitude >= 160m, requires medium RCS or long-range link)
+        else if (
+          track.altitudeM >= 160 &&
+          speed >= 20 &&
+          (track.rcsBucket === 'medium' || track.rfSignature === 'long_range_link')
+        ) {
           assessed = 'fixed_wing_recon';
         }
         // Cue C2: High-speed direct closing threat (FPV strike drone or decoy)
-        else if (speed >= 24 && closingRate <= -20 && headingError <= 35) {
+        else if (speed >= 18 && closingRate <= -14 && headingError <= 35) {
           if (track.rfStatus === 'silent' && track.rcsBucket === 'medium') {
             assessed = 'decoy_drone';
           } else if (track.rfStatus === 'silent') {
@@ -191,12 +195,20 @@ export function referenceOperator(view: TraineeView): Command[] {
           }
         }
         // Cue D: Standoff transit corridor / non-closing crossing trajectory
-        else if (speed >= 6 && (closingRate > -16 || headingError > 40)) {
+        else if (speed >= 6 && headingError > 35) {
           assessed = 'commercial_quad';
         }
         // Cue E: Low speed or ambiguous
         else if (speed < 6) {
           assessed = 'bird';
+        } else if (headingError <= 35 && closingRate <= -5) {
+          if (track.rfStatus === 'silent' && track.rcsBucket === 'medium') {
+            assessed = 'decoy_drone';
+          } else if (track.rfStatus === 'silent') {
+            assessed = 'fpv_fiber';
+          } else {
+            assessed = 'fpv_kamikaze';
+          }
         } else {
           assessed = 'commercial_quad';
         }
@@ -221,6 +233,21 @@ export function referenceOperator(view: TraineeView): Command[] {
       }
     }
 
+    // Re-evaluate if jammer proved ineffective on this track (it is fiber FPV)
+    const jammerIneffective = view.events.some(
+      (e) =>
+        e.type === 'NO_EFFECT' &&
+        e.payload?.trackId === track.trackId
+    );
+    if (jammerIneffective && track.assessedClass !== 'fpv_fiber') {
+      commands.push({
+        tick: view.tick,
+        type: 'CLASSIFY_TRACK',
+        payload: { trackId: track.trackId, assessedClass: 'fpv_fiber' },
+      });
+      continue;
+    }
+
     // Re-evaluate if a previously non-hostile track turns into a high-speed direct inbound attack
     if (
       track.assessedClass !== 'fpv_kamikaze' &&
@@ -243,9 +270,12 @@ export function referenceOperator(view: TraineeView): Command[] {
     }
 
     // Re-evaluate if a track assessed as FPV proves to be crossing or slow civilian transit
+    // NEVER downgrade if actively engaged or if heading directly on the asset
     if (
       (track.assessedClass === 'fpv_kamikaze' || track.assessedClass === 'fpv_fiber') &&
-      (speed < 18 || headingError > 45)
+      track.engagementStatus !== 'engaged' &&
+      headingError > 45 &&
+      closingRate > -8
     ) {
       commands.push({
         tick: view.tick,
@@ -286,12 +316,12 @@ export function referenceOperator(view: TraineeView): Command[] {
 
   for (let i = 0; i < view.tracks.length; i++) {
     const track = view.tracks[i];
-    if (
-      !track ||
-      track.state !== 'confirmed' ||
-      !track.velocityValid ||
-      track.engagementStatus === 'engaged'
-    ) {
+    if (!track || track.state !== 'confirmed' || !track.velocityValid) {
+      continue;
+    }
+    const isPenetrating = track.rangeM <= 650;
+    const gunAvailable = view.effectors.gun.busyUntilTick <= view.tick && view.effectors.gun.ammo > 0;
+    if (track.engagementStatus === 'engaged' && (!isPenetrating || !gunAvailable)) {
       continue;
     }
 
@@ -317,11 +347,28 @@ export function referenceOperator(view: TraineeView): Command[] {
     if (!item) continue;
     const track = item.track;
 
-    const isSilent = track.rfStatus === 'silent' || track.assessedClass === 'fpv_fiber';
+    const jammerFailedOnTrack = view.events.some(
+      (e) =>
+        e.type === 'NO_EFFECT' &&
+        e.payload?.trackId === track.trackId
+    );
+    const isSilent = track.rfStatus === 'silent' || track.assessedClass === 'fpv_fiber' || jammerFailedOnTrack;
     const isEmitting =
-      track.rfStatus === 'emitting' ||
-      track.rfSignature === 'wideband_video' ||
-      track.rfSignature === 'long_range_link';
+      !jammerFailedOnTrack &&
+      (track.rfStatus === 'emitting' ||
+        track.rfSignature === 'wideband_video' ||
+        track.rfSignature === 'long_range_link');
+
+    // High priority gun engagement for penetrating threats (<600m)
+    if (!gunUsed && track.rangeM <= 600) {
+      commands.push({
+        tick: view.tick,
+        type: 'ENGAGE_TRACK',
+        payload: { trackId: track.trackId, effector: 'gun' },
+      });
+      gunUsed = true;
+      if (isSilent) continue;
+    }
 
     if (isSilent) {
       // RF-silent FPV-like: jammer is ineffective, use gun only
