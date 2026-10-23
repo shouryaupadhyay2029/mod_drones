@@ -33,10 +33,9 @@ export function EffectorPanel({
             <span
               style={{
                 ...styles.statusBadge,
-                backgroundColor: isJammerReady ? 'rgba(212, 255, 63, 0.15)' : '#181818',
-                border: isJammerReady ? '1px solid #d4ff3f' : '1px solid #2a2a2e',
-                color: isJammerReady ? '#d4ff3f' : '#fcd34d',
-                boxShadow: isJammerReady ? '0 0 10px rgba(212, 255, 63, 0.35)' : 'none',
+                backgroundColor: isJammerReady ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                border: isJammerReady ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(245, 158, 11, 0.4)',
+                color: isJammerReady ? '#34d399' : '#fbbf24',
               }}
             >
               {isJammerReady ? 'READY' : `ACTIVE (${jammerBusySec}s)`}
@@ -66,21 +65,20 @@ export function EffectorPanel({
               style={{
                 ...styles.statusBadge,
                 backgroundColor: isGunReady
-                  ? 'rgba(212, 255, 63, 0.15)'
+                  ? 'rgba(16, 185, 129, 0.15)'
                   : effectors.gun.ammo <= 0
-                    ? 'rgba(227, 66, 52, 0.2)'
-                    : '#181818',
+                    ? 'rgba(244, 63, 94, 0.18)'
+                    : 'rgba(245, 158, 11, 0.15)',
                 border: isGunReady
-                  ? '1px solid #d4ff3f'
+                  ? '1px solid rgba(16, 185, 129, 0.4)'
                   : effectors.gun.ammo <= 0
-                    ? '1px solid #e34234'
-                    : '1px solid #2a2a2e',
+                    ? '1px solid rgba(244, 63, 94, 0.4)'
+                    : '1px solid rgba(245, 158, 11, 0.4)',
                 color: isGunReady
-                  ? '#d4ff3f'
+                  ? '#34d399'
                   : effectors.gun.ammo <= 0
-                    ? '#e34234'
-                    : '#fcd34d',
-                boxShadow: isGunReady ? '0 0 10px rgba(212, 255, 63, 0.35)' : 'none',
+                    ? '#fb7185'
+                    : '#fbbf24',
               }}
             >
               {effectors.gun.ammo <= 0
@@ -96,7 +94,7 @@ export function EffectorPanel({
               <span
                 style={{
                   ...styles.val,
-                  color: effectors.gun.ammo <= 5 ? '#e34234' : '#d4ff3f',
+                  color: effectors.gun.ammo <= 5 ? '#fb7185' : '#34d399',
                   fontWeight: 700,
                 }}
               >
@@ -120,34 +118,35 @@ export function EffectorPanel({
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
-    borderRadius: '8px',
-    padding: '12px',
+    backgroundColor: '#0c1015',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    borderRadius: '10px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+    padding: '12px 14px',
     display: 'flex',
     flexDirection: 'column',
     gap: '10px',
-    fontFamily: 'monospace',
+    fontFamily: 'ui-monospace, monospace',
   },
   header: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#d4ff3f',
+    color: '#f8fafc',
     letterSpacing: '0.06em',
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '10px',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+    gap: '8px',
   },
   card: {
-    backgroundColor: '#0c0c0e',
-    border: '1px solid #262626',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    border: '1px solid rgba(255, 255, 255, 0.06)',
     borderRadius: '6px',
-    padding: '10px 12px',
+    padding: '9px 11px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '6px',
   },
   cardTitleRow: {
     display: 'flex',
@@ -155,21 +154,24 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
   },
   cardTitle: {
-    color: '#ffffff',
-    fontSize: '12px',
+    color: '#f8fafc',
+    fontSize: '11px',
     fontWeight: 700,
+    letterSpacing: '0.04em',
   },
   statusBadge: {
-    padding: '2px 6px',
+    padding: '1px 6px',
     borderRadius: '3px',
-    fontSize: '10px',
+    fontSize: '9.5px',
     fontWeight: 700,
+    fontFamily: 'ui-monospace, monospace',
+    letterSpacing: '0.04em',
   },
   cardDetail: {
     display: 'flex',
     flexDirection: 'column',
     gap: '4px',
-    fontSize: '11px',
+    fontSize: '10.5px',
   },
   row: {
     display: 'flex',
@@ -177,9 +179,12 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
   },
   label: {
-    color: '#cbb3e8',
+    color: '#64748b',
+    fontSize: '9.5px',
+    letterSpacing: '0.02em',
   },
   val: {
-    color: '#ffffff',
+    color: '#e2e8f0',
+    fontWeight: 600,
   },
 };

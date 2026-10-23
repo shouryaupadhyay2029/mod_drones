@@ -187,55 +187,115 @@ export function RadarScope({
         width: '100%',
         flex: 1,
         minHeight: '260px',
-        backgroundColor: '#080808',
-        borderRadius: '8px',
-        border: '1px solid #262626',
+        backgroundColor: '#070a0e',
+        borderRadius: '10px',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      {/* Scope Controls Overlay */}
+      {/* Scope Controls HUD Overlay */}
       <div
         style={{
           position: 'absolute',
           top: '12px',
-          left: '12px',
+          left: '14px',
+          right: '14px',
           display: 'flex',
-          gap: '8px',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pointerEvents: 'none',
           zIndex: 10,
         }}
       >
-        <button
-          onClick={() => setShowEffectorRings((prev) => !prev)}
-          style={{
-            backgroundColor: showEffectorRings ? 'rgba(212, 255, 63, 0.15)' : '#181818',
-            border: showEffectorRings ? '1px solid #d4ff3f' : '1px solid #2a2a2e',
-            color: showEffectorRings ? '#d4ff3f' : '#767a8f',
-            borderRadius: '4px',
-            padding: '4px 8px',
-            fontSize: '11px',
-            fontFamily: 'monospace',
-            cursor: 'pointer',
-            boxShadow: showEffectorRings ? '0 0 10px rgba(212, 255, 63, 0.3)' : 'none',
-          }}
-        >
-          {showEffectorRings ? 'EFFECTOR RINGS: ON' : 'EFFECTOR RINGS: OFF'}
-        </button>
+        <div style={{ display: 'flex', gap: '8px', pointerEvents: 'auto' }}>
+          <button
+            onClick={() => setShowEffectorRings((prev) => !prev)}
+            style={{
+              backgroundColor: showEffectorRings ? 'rgba(56, 189, 248, 0.12)' : 'rgba(15, 23, 42, 0.75)',
+              border: showEffectorRings ? '1px solid rgba(56, 189, 248, 0.45)' : '1px solid rgba(255, 255, 255, 0.12)',
+              color: showEffectorRings ? '#38bdf8' : '#94a3b8',
+              borderRadius: '6px',
+              padding: '4px 9px',
+              fontSize: '10.5px',
+              fontFamily: 'ui-monospace, monospace',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              cursor: 'pointer',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              transition: 'all 0.18s ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: showEffectorRings ? '#38bdf8' : '#64748b',
+                boxShadow: showEffectorRings ? '0 0 6px rgba(56, 189, 248, 0.8)' : 'none',
+              }}
+            />
+            {showEffectorRings ? 'EFFECTOR RINGS: ON' : 'EFFECTOR RINGS: OFF'}
+          </button>
 
-        <span
+          <span
+            style={{
+              backgroundColor: 'rgba(15, 23, 42, 0.75)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: '#cbd5e1',
+              borderRadius: '6px',
+              padding: '4px 9px',
+              fontSize: '10.5px',
+              fontFamily: 'ui-monospace, monospace',
+              letterSpacing: '0.04em',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+            }}
+          >
+            SCALE: {scaleM / 1000} km <span style={{ opacity: 0.5 }}>(scroll to zoom)</span>
+          </span>
+        </div>
+
+        <div
           style={{
-            backgroundColor: '#121212',
-            border: '1px solid #2a2a2e',
-            color: '#b5b5be',
-            borderRadius: '4px',
-            padding: '4px 8px',
-            fontSize: '11px',
-            fontFamily: 'monospace',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            border: '1px solid rgba(255, 255, 255, 0.10)',
+            borderRadius: '6px',
+            padding: '4px 9px',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
           }}
         >
-          SCALE: {scaleM / 1000} km (scroll to zoom)
-        </span>
+          <span
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: '#10b981',
+              boxShadow: '0 0 6px #10b981',
+            }}
+          />
+          <span
+            style={{
+              fontSize: '10px',
+              fontFamily: 'ui-monospace, monospace',
+              color: 'rgba(226, 232, 240, 0.7)',
+              fontWeight: 600,
+              letterSpacing: '0.06em',
+            }}
+          >
+            20Hz PULSE-DOPPLER
+          </span>
+        </div>
       </div>
 
       <canvas

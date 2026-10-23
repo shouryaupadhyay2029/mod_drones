@@ -15,22 +15,22 @@ function formatClock(tick: number): string {
 function getEventColor(type: string): string {
   switch (type) {
     case 'TRACK_CONFIRMED':
-      return '#d4ff3f'; // Chartreuse
+      return '#34d399'; // Emerald
     case 'TRACK_LOST':
-      return '#767a8f';
+      return '#64748b';
     case 'ENGAGEMENT_STARTED':
-      return '#cbb3e8'; // Lavender
+      return '#38bdf8'; // Tactical Cyan
     case 'ENGAGEMENT_RESOLVED':
-      return '#d4ff3f'; // Chartreuse
+      return '#34d399'; // Emerald
     case 'NO_EFFECT':
-      return '#e34234'; // Tomato Red
+      return '#fb7185'; // Soft Red
     case 'COMMAND_REJECTED':
     case 'ENGAGEMENT_REJECTED':
-      return '#e34234'; // Tomato Red
+      return '#fb7185'; // Soft Red
     case 'MISSION_END':
-      return '#cbb3e8'; // Lavender
+      return '#94a3b8'; // Slate
     default:
-      return '#c4c7d4';
+      return '#cbd5e1';
   }
 }
 
@@ -89,24 +89,25 @@ export function EventFeed({ events }: EventFeedProps): React.JSX.Element {
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
-    borderRadius: '8px',
-    padding: '12px',
+    backgroundColor: '#0c1015',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    borderRadius: '10px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+    padding: '12px 14px',
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
-    fontFamily: 'monospace',
+    fontFamily: 'ui-monospace, monospace',
     height: '100%',
     minHeight: '220px',
   },
   header: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#d4ff3f',
+    color: '#f8fafc',
     letterSpacing: '0.06em',
-    borderBottom: '1px solid #262626',
-    paddingBottom: '6px',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+    paddingBottom: '8px',
   },
   list: {
     display: 'flex',
@@ -117,10 +118,10 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '11px',
   },
   empty: {
-    color: '#767a8f',
+    color: '#64748b',
     fontSize: '11px',
     fontStyle: 'italic',
-    padding: '12px 0',
+    padding: '14px 0',
   },
   item: {
     display: 'flex',
@@ -129,16 +130,17 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: '1.4',
   },
   time: {
-    color: '#cbb3e8',
+    color: '#64748b',
     fontWeight: 600,
-    fontSize: '10px',
+    fontSize: '9.5px',
   },
   typeTag: {
     fontWeight: 700,
     fontSize: '10px',
     whiteSpace: 'nowrap',
+    letterSpacing: '0.02em',
   },
   msg: {
-    color: '#ffffff',
+    color: '#cbd5e1',
   },
 };

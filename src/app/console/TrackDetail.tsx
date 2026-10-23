@@ -81,11 +81,26 @@ export function TrackDetail({
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <span>TRACK DETAIL: T{track.trackId}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: track.state === 'confirmed' ? '#10b981' : '#f59e0b',
+              boxShadow: track.state === 'confirmed' ? '0 0 6px #10b981' : 'none',
+            }}
+          />
+          <span style={{ color: '#f8fafc', letterSpacing: '0.04em' }}>TRACK DETAIL: T{track.trackId}</span>
+        </div>
         <span
           style={{
             ...styles.lifecycleTag,
-            color: track.state === 'confirmed' ? '#d4ff3f' : '#cbb3e8',
+            backgroundColor: track.state === 'confirmed' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+            color: track.state === 'confirmed' ? '#34d399' : '#fbbf24',
+            border: track.state === 'confirmed' ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(245, 158, 11, 0.35)',
+            padding: '2px 8px',
+            borderRadius: '4px',
           }}
         >
           {track.state.toUpperCase()}
@@ -111,7 +126,7 @@ export function TrackDetail({
           <span
             style={{
               ...styles.cueVal,
-              color: track.velocityValid && track.closingRateMps !== undefined && track.closingRateMps < -2 ? '#e34234' : '#e4e4e7',
+              color: track.velocityValid && track.closingRateMps !== undefined && track.closingRateMps < -2 ? '#fb7185' : '#f8fafc',
             }}
           >
             {track.velocityValid && track.closingRateMps !== undefined ? `${Math.round(track.closingRateMps)} m/s` : '—'}
@@ -133,13 +148,16 @@ export function TrackDetail({
         </div>
         <div style={styles.cueBox}>
           <span style={styles.cueLabel}>TRACK QUALITY</span>
-          <span style={styles.cueVal}>{(track.quality * 100).toFixed(0)}%</span>
+          <span style={{ ...styles.cueVal, color: track.quality >= 0.8 ? '#34d399' : '#f8fafc' }}>
+            {(track.quality * 100).toFixed(0)}%
+          </span>
         </div>
         <div style={styles.cueBox}>
           <span style={styles.cueLabel}>RF EMISSION</span>
           <span
             style={{
               ...styles.cueVal,
+              fontSize: '11px',
               color:
                 track.rfStatus === 'emitting'
                   ? '#38bdf8'
@@ -166,10 +184,12 @@ export function TrackDetail({
             onClick={() => onAcknowledge(track.trackId)}
             style={{
               ...styles.btnAction,
-              backgroundColor: isAckDisabled ? '#181818' : '#d4ff3f',
-              color: isAckDisabled ? '#71717a' : '#080808',
-              fontWeight: 800,
-              boxShadow: isAckDisabled ? 'none' : '0 0 10px rgba(212, 255, 63, 0.4)',
+              background: isAckDisabled
+                ? 'rgba(255, 255, 255, 0.04)'
+                : 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
+              color: isAckDisabled ? '#64748b' : '#ffffff',
+              border: isAckDisabled ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(52, 211, 153, 0.6)',
+              boxShadow: isAckDisabled ? 'none' : '0 2px 10px rgba(16, 185, 129, 0.35)',
               opacity: isAckDisabled ? 0.6 : 1,
             }}
           >
@@ -187,9 +207,9 @@ export function TrackDetail({
             onClick={() => onHoldFire(track.trackId)}
             style={{
               ...styles.btnAction,
-              backgroundColor: isHoldDisabled ? '#262626' : '#181818',
-              color: isHoldDisabled ? '#71717a' : '#ffffff',
-              border: '1px solid #3f3f46',
+              background: isHoldDisabled ? 'rgba(255, 255, 255, 0.04)' : 'rgba(245, 158, 11, 0.08)',
+              color: isHoldDisabled ? '#64748b' : '#fbbf24',
+              border: isHoldDisabled ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(245, 158, 11, 0.4)',
               opacity: isHoldDisabled ? 0.6 : 1,
             }}
           >
@@ -217,16 +237,16 @@ export function TrackDetail({
                 onClick={() => onClassify(track.trackId, opt.id)}
                 style={{
                   ...styles.btnClassify,
-                  backgroundColor: isAssessed ? 'rgba(203, 179, 232, 0.16)' : '#181818',
-                  borderColor: isAssessed ? '#cbb3e8' : '#262626',
-                  color: isAssessed ? '#d4ff3f' : '#e4e4e7',
-                  boxShadow: isAssessed ? '0 0 8px rgba(203, 179, 232, 0.25)' : 'none',
+                  backgroundColor: isAssessed ? 'rgba(56, 189, 248, 0.12)' : 'rgba(255, 255, 255, 0.03)',
+                  borderColor: isAssessed ? '#38bdf8' : 'rgba(255, 255, 255, 0.08)',
+                  color: isAssessed ? '#38bdf8' : '#cbd5e1',
+                  boxShadow: isAssessed ? '0 0 10px rgba(56, 189, 248, 0.25)' : 'none',
                 }}
               >
                 <span>
                   <TextRoll stagger={0.02}>{opt.label}</TextRoll>
                 </span>
-                <span style={{ ...styles.shortcutTag, color: isAssessed ? '#d4ff3f' : '#cbb3e8' }}>[{keyLabel}]</span>
+                <span style={{ ...styles.shortcutTag, color: isAssessed ? '#38bdf8' : '#64748b' }}>[{keyLabel}]</span>
               </button>
             );
           })}
@@ -244,10 +264,13 @@ export function TrackDetail({
               onClick={() => onEngage(track.trackId, 'jammer')}
               style={{
                 ...styles.btnEngage,
-                backgroundColor:
-                  jammerDisabledReason !== null ? '#181818' : '#d4ff3f',
-                color: jammerDisabledReason !== null ? '#71717a' : '#080808',
-                boxShadow: jammerDisabledReason !== null ? 'none' : '0 0 12px rgba(212, 255, 63, 0.4)',
+                background:
+                  jammerDisabledReason !== null
+                    ? 'rgba(255, 255, 255, 0.04)'
+                    : 'linear-gradient(180deg, #0284c7 0%, #0369a1 100%)',
+                color: jammerDisabledReason !== null ? '#64748b' : '#ffffff',
+                border: jammerDisabledReason !== null ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(56, 189, 248, 0.6)',
+                boxShadow: jammerDisabledReason !== null ? 'none' : '0 2px 14px rgba(2, 132, 199, 0.4)',
                 opacity: jammerDisabledReason !== null ? 0.6 : 1,
               }}
             >
@@ -265,10 +288,13 @@ export function TrackDetail({
               onClick={() => onEngage(track.trackId, 'gun')}
               style={{
                 ...styles.btnEngage,
-                backgroundColor:
-                  gunDisabledReason !== null ? '#181818' : '#e34234',
-                color: gunDisabledReason !== null ? '#71717a' : '#ffffff',
-                boxShadow: gunDisabledReason !== null ? 'none' : '0 0 12px rgba(227, 66, 52, 0.45)',
+                background:
+                  gunDisabledReason !== null
+                    ? 'rgba(255, 255, 255, 0.04)'
+                    : 'linear-gradient(180deg, #dc2626 0%, #b91c1c 100%)',
+                color: gunDisabledReason !== null ? '#64748b' : '#ffffff',
+                border: gunDisabledReason !== null ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(248, 113, 113, 0.6)',
+                boxShadow: gunDisabledReason !== null ? 'none' : '0 2px 14px rgba(220, 38, 38, 0.45)',
                 opacity: gunDisabledReason !== null ? 0.6 : 1,
               }}
             >
@@ -286,63 +312,67 @@ export function TrackDetail({
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
-    borderRadius: '8px',
+    backgroundColor: '#0c1015',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    borderRadius: '10px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
     padding: '14px',
     display: 'flex',
     flexDirection: 'column',
     gap: '14px',
-    fontFamily: 'monospace',
+    fontFamily: 'ui-monospace, monospace',
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    fontSize: '12px',
+    fontSize: '11.5px',
     fontWeight: 700,
-    color: '#d4ff3f',
-    borderBottom: '1px solid #262626',
-    paddingBottom: '8px',
+    color: '#f8fafc',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+    paddingBottom: '10px',
   },
   lifecycleTag: {
-    fontSize: '11px',
+    fontSize: '10px',
     fontWeight: 700,
+    letterSpacing: '0.04em',
   },
   emptyPrompt: {
-    color: '#767a8f',
-    fontSize: '12px',
-    padding: '24px 12px',
+    color: '#64748b',
+    fontSize: '11.5px',
+    padding: '28px 14px',
     textAlign: 'center',
     fontStyle: 'italic',
+    lineHeight: 1.5,
   },
   cuesGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '8px',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '6px',
   },
   cueBox: {
-    backgroundColor: '#0c0c0e',
-    border: '1px solid #262626',
-    borderRadius: '4px',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    border: '1px solid rgba(255, 255, 255, 0.06)',
+    borderRadius: '6px',
     padding: '6px 8px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '2px',
+    gap: '3px',
   },
   cueLabel: {
-    color: '#cbb3e8',
-    fontSize: '9px',
+    color: '#64748b',
+    fontSize: '8.5px',
     fontWeight: 600,
+    letterSpacing: '0.06em',
   },
   cueVal: {
-    color: '#ffffff',
+    color: '#f8fafc',
     fontSize: '12px',
     fontWeight: 700,
   },
   sectionRow: {
     display: 'flex',
-    gap: '10px',
+    gap: '8px',
   },
   actionBlock: {
     flex: 1,
@@ -354,17 +384,19 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     color: '#fff',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     padding: '8px 12px',
-    fontSize: '12px',
+    fontSize: '11.5px',
     fontWeight: 600,
-    fontFamily: 'monospace',
+    fontFamily: 'ui-monospace, monospace',
     cursor: 'pointer',
+    transition: 'all 0.16s ease',
   },
   disabledReasonText: {
-    color: '#e34234',
-    fontSize: '10px',
+    color: '#f87171',
+    fontSize: '9.5px',
     textAlign: 'center',
+    fontFamily: 'ui-monospace, monospace',
   },
   actionSection: {
     display: 'flex',
@@ -372,46 +404,48 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '8px',
   },
   sectionLabel: {
-    fontSize: '10px',
+    fontSize: '9.5px',
     fontWeight: 700,
-    color: '#cbb3e8',
+    color: '#94a3b8',
     letterSpacing: '0.06em',
   },
   classifyGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+    gridTemplateColumns: 'repeat(2, 1fr)',
     gap: '6px',
   },
   btnClassify: {
     border: '1px solid',
-    borderRadius: '4px',
-    padding: '6px 8px',
+    borderRadius: '6px',
+    padding: '6px 9px',
     fontSize: '11px',
     fontWeight: 600,
-    fontFamily: 'monospace',
+    fontFamily: 'ui-monospace, monospace',
     cursor: 'pointer',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: '4px',
+    transition: 'all 0.16s ease',
   },
   shortcutTag: {
-    color: '#a1a1aa',
-    fontSize: '10px',
+    fontSize: '9.5px',
+    fontFamily: 'ui-monospace, monospace',
   },
   effectorButtonsRow: {
     display: 'flex',
-    gap: '10px',
+    gap: '8px',
   },
   btnEngage: {
     width: '100%',
     color: '#fff',
     border: 'none',
-    borderRadius: '4px',
-    padding: '10px 14px',
-    fontSize: '12px',
+    borderRadius: '6px',
+    padding: '9px 12px',
+    fontSize: '11.5px',
     fontWeight: 700,
-    fontFamily: 'monospace',
+    fontFamily: 'ui-monospace, monospace',
     cursor: 'pointer',
+    transition: 'all 0.16s ease',
   },
 };

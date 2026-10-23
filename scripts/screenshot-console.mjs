@@ -96,18 +96,22 @@ async function run() {
       const speed4Btn = await page.$('#btn-speed-4');
       if (speed4Btn) await speed4Btn.click();
 
-      // Wait until track appears and EO is locked
-      console.log('Advancing ridge_runner at 4x until track and EO lock active...');
+      // Wait until track appears in table
+      console.log('Advancing ridge_runner at 4x until track is active...');
       await page.waitForFunction(
-        () => {
-          const rows = document.querySelectorAll('tbody tr');
-          const eoHeader = document.querySelector('.eo-hud-target');
-          return rows.length >= 1 && eoHeader && !eoHeader.textContent?.includes('IDLE');
-        },
+        () => document.querySelectorAll('tbody tr').length >= 1,
         { timeout: 15000 }
-      ).catch(() => console.log('Timeout waiting for EO lock; continuing...'));
+      ).catch(() => console.log('Timeout waiting for tracks; continuing...'));
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Click first track row to select it and show full Track Detail
+      await page.evaluate(() => {
+        const row = document.querySelector('tbody tr');
+        if (row) row.click();
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
       const outDir = path.resolve('docs');
       if (!fs.existsSync(outDir)) {

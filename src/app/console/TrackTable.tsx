@@ -62,15 +62,16 @@ export function TrackTable({
                       borderLeft: isSelected ? '3px solid #d4ff3f' : '3px solid transparent',
                     }}
                   >
-                    <td style={{ ...styles.td, color: '#d4ff3f', fontWeight: 700 }}>
+                    <td style={{ ...styles.td, color: '#38bdf8', fontWeight: 700 }}>
                       T{t.trackId}
                     </td>
                     <td style={styles.td}>
                       <span
                         style={{
                           ...styles.stateBadge,
-                          color: t.state === 'confirmed' ? '#d4ff3f' : '#cbb3e8',
-                          borderColor: t.state === 'confirmed' ? 'rgba(212, 255, 63, 0.5)' : 'rgba(203, 179, 232, 0.3)',
+                          color: t.state === 'confirmed' ? '#34d399' : '#fbbf24',
+                          borderColor: t.state === 'confirmed' ? 'rgba(52, 211, 153, 0.4)' : 'rgba(245, 158, 11, 0.3)',
+                          backgroundColor: t.state === 'confirmed' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
                         }}
                       >
                         {t.state.toUpperCase()}
@@ -88,7 +89,7 @@ export function TrackTable({
                     <td
                       style={{
                         ...styles.td,
-                        color: t.velocityValid && t.closingRateMps !== undefined && t.closingRateMps < -2 ? '#e34234' : '#cbd5e1',
+                        color: t.velocityValid && t.closingRateMps !== undefined && t.closingRateMps < -2 ? '#fb7185' : '#cbd5e1',
                       }}
                     >
                       {t.velocityValid && t.closingRateMps !== undefined ? `${Math.round(t.closingRateMps)} m/s` : '—'}
@@ -99,7 +100,7 @@ export function TrackTable({
                       {t.rfStatus === 'emitting' ? (
                         <span style={{ color: '#38bdf8', fontWeight: 700 }}>EMIT</span>
                       ) : t.rfStatus === 'silent' ? (
-                        <span style={{ color: '#94a3b8' }}>silent</span>
+                        <span style={{ color: '#64748b' }}>silent</span>
                       ) : (
                         '—'
                       )}
@@ -109,8 +110,9 @@ export function TrackTable({
                         <span
                           style={{
                             ...styles.ackTag,
-                            backgroundColor: t.acked ? 'rgba(212, 255, 63, 0.16)' : 'rgba(227, 66, 52, 0.2)',
-                            color: t.acked ? '#d4ff3f' : '#e34234',
+                            backgroundColor: t.acked ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.16)',
+                            borderColor: t.acked ? 'rgba(16, 185, 129, 0.4)' : 'rgba(244, 63, 94, 0.4)',
+                            color: t.acked ? '#34d399' : '#fb7185',
                           }}
                         >
                           {t.acked ? 'ACK' : 'UNACK'}
@@ -122,7 +124,7 @@ export function TrackTable({
                           <span
                             style={{
                               ...styles.engageTag,
-                              color: t.engagementStatus === 'engaged' ? '#d4ff3f' : '#cbb3e8',
+                              color: t.engagementStatus === 'engaged' ? '#34d399' : '#fbbf24',
                             }}
                           >
                             {t.engagementStatus.toUpperCase()}
@@ -145,19 +147,20 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
-    borderRadius: '8px',
+    backgroundColor: '#0c1015',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    borderRadius: '10px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
     overflow: 'hidden',
   },
   headerTitle: {
-    padding: '8px 12px',
-    backgroundColor: '#0c0c0e',
-    borderBottom: '1px solid #262626',
-    color: '#d4ff3f',
+    padding: '9px 14px',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+    color: '#f8fafc',
     fontSize: '11px',
     fontWeight: 700,
-    fontFamily: 'monospace',
+    fontFamily: 'ui-monospace, monospace',
     letterSpacing: '0.06em',
   },
   tableWrapper: {
@@ -168,8 +171,8 @@ const styles: Record<string, React.CSSProperties> = {
   table: {
     width: '100%',
     borderCollapse: 'collapse',
-    fontFamily: 'monospace',
-    fontSize: '12px',
+    fontFamily: 'ui-monospace, monospace',
+    fontSize: '11.5px',
   },
   th: {
     position: 'sticky',
@@ -177,35 +180,36 @@ const styles: Record<string, React.CSSProperties> = {
     zIndex: 2,
     textAlign: 'left',
     padding: '8px 10px',
-    color: '#cbb3e8',
-    fontSize: '10px',
+    color: '#64748b',
+    fontSize: '9.5px',
     fontWeight: 600,
-    borderBottom: '1px solid #262626',
+    letterSpacing: '0.05em',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
     whiteSpace: 'nowrap',
-    backgroundColor: '#0c0c0e',
+    backgroundColor: '#0c1015',
   },
   tr: {
     cursor: 'pointer',
-    borderBottom: '1px solid #1f1f1f',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
     transition: 'background-color 0.15s ease',
   },
   td: {
-    padding: '7px 10px',
-    color: '#f4f4f5',
+    padding: '6px 10px',
+    color: '#e2e8f0',
     whiteSpace: 'nowrap',
   },
   emptyCell: {
     padding: '24px 12px',
     textAlign: 'center',
-    color: '#71717a',
-    fontSize: '12px',
+    color: '#64748b',
+    fontSize: '11.5px',
     fontStyle: 'italic',
   },
   stateBadge: {
     border: '1px solid',
     borderRadius: '3px',
     padding: '1px 5px',
-    fontSize: '10px',
+    fontSize: '9.5px',
     fontWeight: 600,
   },
   statusGroup: {
@@ -214,9 +218,10 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '6px',
   },
   ackTag: {
+    border: '1px solid',
     padding: '1px 5px',
     borderRadius: '3px',
-    fontSize: '10px',
+    fontSize: '9.5px',
     fontWeight: 700,
   },
   classTag: {
@@ -224,7 +229,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
   },
   engageTag: {
-    fontSize: '10px',
+    fontSize: '9.5px',
     fontWeight: 700,
   },
 };

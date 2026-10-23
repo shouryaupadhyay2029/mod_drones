@@ -114,7 +114,7 @@ export function ConsolePage(): React.JSX.Element {
 
             {/* Hotkeys Legend */}
             <div className="hotkeys-legend">
-              <span style={{ fontWeight: 700, color: '#f8fafc' }}>HOTKEYS:</span>
+              <span style={{ fontWeight: 700, color: '#38bdf8', letterSpacing: '0.06em' }}>HOTKEYS:</span>
               <span className="legend-item">
                 <kbd className="legend-key">Tab</kbd> Next Track
               </span>
