@@ -316,7 +316,6 @@ export function VajraAboutSection(): React.JSX.Element {
         <div className="vj-sticky">
           <div className="vj-manifesto-inner">
             <div className="vj-eyebrow">
-              <span className="vj-eyebrow-dot" />
               02 // WHAT IS VAJRA
             </div>
             <p className="vj-manifesto-text">{renderManifesto()}</p>
@@ -336,7 +335,6 @@ export function VajraAboutSection(): React.JSX.Element {
         <div className="vj-sticky vj-sticky-clip">
           <div className="vj-pillars-head">
             <span className="vj-eyebrow">
-              <span className="vj-eyebrow-dot" />
               03 // HOW IT TRAINS
             </span>
             <div className="vj-pillars-counter">
@@ -405,7 +403,6 @@ export function VajraAboutSection(): React.JSX.Element {
         <div className="vj-sticky">
           <div className="vj-loop-inner">
             <div className="vj-eyebrow">
-              <span className="vj-eyebrow-dot" />
               04 // THE MISSION LOOP
             </div>
             <h2 className="vj-loop-title">
@@ -447,7 +444,6 @@ export function VajraAboutSection(): React.JSX.Element {
       <section className="vj-scene vj-cta" data-scene="enter">
         <div className="vj-cta-inner">
           <div className="vj-eyebrow">
-            <span className="vj-eyebrow-dot" />
             05 // READY ROOM
           </div>
           <h2 className="vj-cta-title">

@@ -861,10 +861,7 @@ export function DroneAsciiSimulation({
         </defs>
 
         {/* Card Connection Boundary Pins */}
-        <circle ref={pinTlRef} r="3.5" fill="#d35623" />
-        <circle ref={pinTrRef} r="3.5" fill="#d35623" />
-        <circle ref={pinBlRef} r="3.5" fill="#d35623" />
-        <circle ref={pinBrRef} r="3.5" fill="#d35623" />
+        {/* Connection Pins removed for ultra-clean minimalist look */}
 
         {/* Top-Left Leader Line & Reticle */}
         <path
@@ -942,7 +939,6 @@ export function DroneAsciiSimulation({
           >
             01 // RADAR TRACKING
           </span>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d35623', boxShadow: '0 0 6px rgba(211, 86, 35, 0.6)' }} />
         </div>
         <div style={{ fontSize: '14px', fontWeight: 700, color: '#181716', marginBottom: '4px', letterSpacing: '-0.015em' }}>
           Pulse-Doppler Telemetry
@@ -998,7 +994,6 @@ export function DroneAsciiSimulation({
           >
             02 // LAYERED DEFENSE
           </span>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d35623', boxShadow: '0 0 6px rgba(211, 86, 35, 0.6)' }} />
         </div>
         <div style={{ fontSize: '14px', fontWeight: 700, color: '#181716', marginBottom: '4px', letterSpacing: '-0.015em' }}>
           Dual Hard/Soft Kill
@@ -1054,7 +1049,6 @@ export function DroneAsciiSimulation({
           >
             03 // ZERO LEAKAGE
           </span>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d35623', boxShadow: '0 0 6px rgba(211, 86, 35, 0.6)' }} />
         </div>
         <div style={{ fontSize: '14px', fontWeight: 700, color: '#181716', marginBottom: '4px', letterSpacing: '-0.015em' }}>
           TraineeView Isolation
@@ -1110,7 +1104,6 @@ export function DroneAsciiSimulation({
           >
             04 // DETERMINISTIC CORE
           </span>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#d35623', boxShadow: '0 0 6px rgba(211, 86, 35, 0.6)' }} />
         </div>
         <div style={{ fontSize: '14px', fontWeight: 700, color: '#181716', marginBottom: '4px', letterSpacing: '-0.015em' }}>
           Bit-Exact Replay Engine

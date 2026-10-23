@@ -51,20 +51,11 @@
 .vj-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-weight: 600;
+  letter-spacing: 0.16em;
   color: var(--vj-accent);
-}
-
-.vj-eyebrow-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--vj-accent);
-  box-shadow: 0 0 0 4px var(--vj-accent-soft);
 }
 
 /* --------------------------------------------------------------------------
@@ -84,32 +75,33 @@
 
 .vj-manifesto-text {
   margin: 0;
-  font-size: clamp(30px, 4.1vw, 64px);
-  line-height: 1.22;
-  font-weight: 500;
-  letter-spacing: -0.035em;
+  max-width: 980px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Text', 'Segoe UI', sans-serif;
+  font-size: clamp(24px, 3.2vw, 42px);
+  line-height: 1.45;
+  font-weight: 350;
+  letter-spacing: -0.015em;
   color: var(--vj-ink);
   display: flex;
   flex-direction: column;
-  gap: 0.15em;
+  gap: 0.35em;
 }
 
-/* Line mask wrapper: hides overflow for a razor-sharp rise-up from below */
+/* Line mask wrapper: hides overflow for a clean, subtle rise-up */
 .vj-manifesto-line {
   display: block;
   overflow: hidden;
-  padding: 4px 0 6px;
+  padding: 2px 0 4px;
 }
 
 /* Line container rising up from below the line baseline */
 .vj-manifesto-line-inner {
   display: inline-block;
   --line-progress: clamp(0, calc((var(--p) * 1.5 * var(--line-count) - var(--l)) * 1.1), 1);
-  --rise-y: calc((1 - var(--line-progress)) * 105%);
-  --rise-rot: calc((1 - var(--line-progress)) * 3deg);
-  transform: translate3d(0, var(--rise-y), 0) rotate(var(--rise-rot));
+  --rise-y: calc((1 - var(--line-progress)) * 40px);
+  transform: translate3d(0, var(--rise-y), 0);
   transform-origin: left bottom;
-  opacity: clamp(0.04, calc(var(--line-progress) * 1.2), 1);
+  opacity: clamp(0.08, var(--line-progress), 1);
   transition: transform 0.08s ease-out, opacity 0.08s ease-out;
   will-change: transform, opacity;
 }
@@ -118,17 +110,16 @@
   --x: calc(var(--p) * 1.45 * var(--n) - var(--i));
   display: inline-block;
   white-space: pre;
-  opacity: clamp(0.18, calc(var(--x) * 1.2), 1);
-  transform: translate3d(0, clamp(0px, calc((1 - var(--x)) * 24px), 24px), 0);
-  filter: blur(clamp(0px, calc((1 - var(--x)) * 3.5px), 3.5px));
-  will-change: opacity, transform, filter;
+  opacity: clamp(0.2, var(--x), 1);
+  transform: translate3d(0, clamp(0px, calc((1 - var(--x)) * 10px), 10px), 0);
+  will-change: opacity, transform;
   transition: opacity 0.06s linear, transform 0.06s ease-out;
 }
 
 .vj-word-accent {
-  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
-  font-style: italic;
-  font-weight: 400;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Text', sans-serif;
+  font-style: normal;
+  font-weight: 500;
   color: var(--vj-accent);
 }
 
