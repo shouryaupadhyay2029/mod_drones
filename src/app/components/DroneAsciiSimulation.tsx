@@ -390,6 +390,15 @@ export function DroneAsciiSimulation({
   const baseModelRef = useRef<AssembledPoint3D[]>(createAssembledModel(generateDroneModel()));
   const assemblyStartTimeRef = useRef<number | null>(null);
 
+  // Scroll tracking refs for companion flight mechanics
+  const scrollerRef = useRef<HTMLElement | null>(null);
+  const lastScrollTopRef = useRef<number>(0);
+  const lastScrollTimeRef = useRef<number>(performance.now());
+  const scrollVelRef = useRef<number>(0);
+  const smoothedScrollRef = useRef<number>(0);
+  const dynamicBankRef = useRef<number>(0);
+  const dynamicPitchRef = useRef<number>(0);
+
   // Mouse drag listeners for interactive 3D inspection
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!enableMouseRotate) return;
@@ -489,6 +498,11 @@ export function DroneAsciiSimulation({
 
     const timer = setTimeout(updateLayoutBounds, 120);
 
+    // Bind closest scroll root container
+    if (containerRef.current) {
+      scrollerRef.current = containerRef.current.closest<HTMLElement>('[data-scroll-root]');
+    }
+
     const handleReassemble = () => {
       assemblyStartTimeRef.current = performance.now();
     };
@@ -528,6 +542,88 @@ export function DroneAsciiSimulation({
         anglesRef.current.yaw += rotationSpeed + swirlBoost;
       }
       propAngleRef.current += 0.38;
+
+      // --- SCROLL-DRIVEN FLIGHT KINEMATICS & COMPANION NAVIGATION ---
+      let scrollProgress = 0;
+      let scrollDelta = 0;
+      if (scrollerRef.current) {
+        const scroller = scrollerRef.current;
+        const sTop = scroller.scrollTop;
+        const maxScroll = Math.max(1, scroller.scrollHeight - scroller.clientHeight);
+        scrollProgress = Math.min(1.0, Math.max(0, sTop / maxScroll));
+
+        const nowScrollTime = currentTime;
+        const dt = Math.max(0.001, (nowScrollTime - lastScrollTimeRef.current) / 1000);
+        const rawVel = (sTop - lastScrollTopRef.current) / dt;
+        lastScrollTopRef.current = sTop;
+        lastScrollTimeRef.current = nowScrollTime;
+
+        // Smooth scroll velocity (damped inertia)
+        scrollVelRef.current += (rawVel - scrollVelRef.current) * 0.14;
+        scrollDelta = scrollVelRef.current;
+      }
+
+      // Smooth lerp smoothedScrollRef towards actual scroll progress
+      smoothedScrollRef.current += (scrollProgress - smoothedScrollRef.current) * 0.10;
+      const sP = smoothedScrollRef.current;
+
+      // Aerodynamic bank and pitch response while scrolling
+      const bankAngle = Math.max(-0.45, Math.min(0.45, -scrollDelta * 0.00028));
+      const climbPitch = Math.max(-0.35, Math.min(0.35, scrollDelta * 0.00018));
+      dynamicBankRef.current += (bankAngle - dynamicBankRef.current) * 0.12;
+      dynamicPitchRef.current += (climbPitch - dynamicPitchRef.current) * 0.12;
+
+      // Fade out hero leader lines & feature cards as user scrolls away from hero
+      const heroExit = Math.min(1.0, Math.max(0, sP / 0.08));
+      const hudHeroOpacity = Math.max(0, 1.0 - heroExit);
+      if (svgRef.current) {
+        svgRef.current.style.opacity = String(hudHeroOpacity * (globalProgress >= 0.7 ? 1 : 0));
+        svgRef.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
+      }
+      if (card1Ref.current) {
+        card1Ref.current.style.opacity = String(hudHeroOpacity);
+        card1Ref.current.style.transform = `translate3d(0, ${-sP * 120}px, 0)`;
+        card1Ref.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
+      }
+      if (card2Ref.current) {
+        card2Ref.current.style.opacity = String(hudHeroOpacity);
+        card2Ref.current.style.transform = `translate3d(0, ${-sP * 120}px, 0)`;
+        card2Ref.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
+      }
+      if (card3Ref.current) {
+        card3Ref.current.style.opacity = String(hudHeroOpacity);
+        card3Ref.current.style.transform = `translate3d(0, ${-sP * 120}px, 0)`;
+        card3Ref.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
+      }
+      if (card4Ref.current) {
+        card4Ref.current.style.opacity = String(hudHeroOpacity);
+        card4Ref.current.style.transform = `translate3d(0, ${-sP * 120}px, 0)`;
+        card4Ref.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
+      }
+
+      // Dynamic Flight Path: Translate, Scale, and Float
+      // Hero (sP = 0): Center, scale 1.0, 0px X, 0px Y
+      // Section 2 Manifesto (sP ~ 0.12..0.35): Escorts to top-right flank, scales down to 0.42
+      // Section 3 Pillars (sP ~ 0.35..0.65): Glides to right margin, dynamic bank
+      // Section 4 Guide (sP ~ 0.65..0.85): hovers high escort
+      // Approaching Grand Footer (sP > 0.88): soft fade out into launch hangar
+      const escortPhase = Math.min(1.0, Math.max(0, (sP - 0.04) / 0.18));
+      const footerExit = Math.min(1.0, Math.max(0, (sP - 0.86) / 0.08));
+      const overallDroneOpacity = Math.max(0, 1.0 - footerExit * 0.95);
+
+      // Flank translation in viewport percentage
+      // In Hero: 0px offset. In Section 2+: drifts to flank (+32vw or ~360px on desktop) and -14vh up
+      const targetTransX = escortPhase * 34; // vw
+      const targetTransY = escortPhase * -12; // vh
+      const droneScale = 1.0 - escortPhase * 0.58; // 1.0 -> 0.42 scale
+
+      // Floating hover bobbing
+      const hoverAltitude = Math.sin(currentTime * 0.0028) * (escortPhase > 0.2 ? 10 : 3);
+
+      if (preRef.current) {
+        preRef.current.style.transform = `translate3d(calc(${targetTransX}vw + 0px), calc(${targetTransY}vh + ${hoverAltitude}px), 0) scale(${droneScale.toFixed(3)})`;
+        preRef.current.style.opacity = overallDroneOpacity.toFixed(3);
+      }
 
       // Generate dynamic 3-blade spinning propellers cleanly contained inside ducted guards
       const dynamicProps: Point3D[] = [];
@@ -606,11 +702,13 @@ export function DroneAsciiSimulation({
       const buffer: string[] = new Array(cols * rows).fill(' ');
       const zBuffer: number[] = new Array(cols * rows).fill(-Infinity);
 
-      const { yaw, pitch } = anglesRef.current;
-      const cosY = Math.cos(yaw);
-      const sinY = Math.sin(yaw);
-      const cosP = Math.cos(pitch);
-      const sinP = Math.sin(pitch);
+      const basePitch = anglesRef.current.pitch + dynamicPitchRef.current;
+      const effectivePitch = Math.max(0.15, Math.min(1.25, basePitch));
+      const effectiveYaw = anglesRef.current.yaw + dynamicBankRef.current * 0.45;
+      const cosY = Math.cos(effectiveYaw);
+      const sinY = Math.sin(effectiveYaw);
+      const cosP = Math.cos(effectivePitch);
+      const sinP = Math.sin(effectivePitch);
 
       // Camera projection parameters scaled for wide full-screen presence
       const distance = 3.0;
