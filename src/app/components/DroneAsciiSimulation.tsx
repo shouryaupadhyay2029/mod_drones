@@ -252,7 +252,7 @@ function generateDroneModel(): Point3D[] {
   // 5. Four Carbon-Fiber Motor Arms with Ducted Rotor Guards
   const armAngles = [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4, (7 * Math.PI) / 4];
   const armLength = 1.55;
-  const guardRadius = 0.56;
+  const guardRadius = 0.62;
 
   for (const angle of armAngles) {
     const cosA = Math.cos(angle);
@@ -286,8 +286,8 @@ function generateDroneModel(): Point3D[] {
       }
     }
 
-    // 360-Degree Circular Rotor Guard Duct around each motor
-    for (let theta = 0; theta < Math.PI * 2; theta += 0.11) {
+    // 360-Degree Circular Rotor Guard Duct around each motor (high-density continuous rim)
+    for (let theta = 0; theta < Math.PI * 2; theta += 0.06) {
       const gx = guardRadius * Math.cos(theta);
       const gz = guardRadius * Math.sin(theta);
 
@@ -529,9 +529,9 @@ export function DroneAsciiSimulation({
       }
       propAngleRef.current += 0.38;
 
-      // Generate dynamic 3-blade spinning propellers with aerodynamic normals
+      // Generate dynamic 3-blade spinning propellers cleanly contained inside ducted guards
       const dynamicProps: Point3D[] = [];
-      const propRadius = 0.52;
+      const propRadius = 0.40;
 
       const propProgress = Math.min(1.0, Math.max(0, (globalProgress - 0.50) / 0.50));
       const propEase = cubicEaseOut(propProgress);
