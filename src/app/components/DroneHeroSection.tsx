@@ -3,18 +3,9 @@ import { DroneAsciiSimulation } from './DroneAsciiSimulation.js';
 
 export function DroneHeroSection(): React.JSX.Element {
   return (
-    <>
-      {/* 100vh Hero Spacer for naturally initiating the scroll journey */}
-      <section style={styles.heroSpacer} aria-label="VAJRA Tactical Drone Presentation">
-        {/* Scroll cue into the "What is VAJRA?" story */}
-        <div className="vj-scroll-cue" aria-hidden="true">
-          <span>SCROLL</span>
-          <i />
-        </div>
-      </section>
-
-      {/* Floating Escort 3D Tactical Drone ASCII Canvas */}
-      <div style={styles.floatingDroneLayer} aria-hidden="true">
+    <section style={styles.heroSection} aria-label="VAJRA Tactical Drone Presentation">
+      {/* 3D Tactical Drone ASCII Canvas Container in normal flow */}
+      <div style={styles.canvasWrapper}>
         <DroneAsciiSimulation
           color="#050505"
           backgroundColor="transparent"
@@ -23,40 +14,47 @@ export function DroneHeroSection(): React.JSX.Element {
           rotationSpeed={0.012}
         />
       </div>
-    </>
+
+      {/* Scroll cue into the "What is VAJRA?" story */}
+      <div className="vj-scroll-cue" aria-hidden="true">
+        <span>SCROLL</span>
+        <i />
+      </div>
+    </section>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  heroSpacer: {
+  heroSection: {
     width: '100%',
-    height: '100vh',
-    minHeight: '100vh',
+    minHeight: 'calc(100vh - 68px)',
+    height: 'calc(100vh - 68px)',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    alignItems: 'stretch',
+    justifyContent: 'center',
     backgroundColor: 'transparent',
     border: 'none',
     boxSizing: 'border-box',
     padding: 0,
     margin: 0,
+    overflow: 'hidden',
     position: 'relative',
-    pointerEvents: 'none',
   },
-  floatingDroneLayer: {
-    position: 'fixed',
-    top: '68px',
-    left: 0,
-    right: 0,
-    bottom: 0,
+  canvasWrapper: {
+    position: 'relative',
     width: '100%',
-    height: 'calc(100vh - 68px)',
-    pointerEvents: 'none',
-    zIndex: 14,
-    overflow: 'visible',
+    height: '100%',
+    flex: 1,
+    minHeight: 'calc(100vh - 68px)',
+    borderRadius: '0',
+    border: 'none',
+    boxShadow: 'none',
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
 };
+

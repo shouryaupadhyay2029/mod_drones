@@ -546,6 +546,9 @@ export function DroneAsciiSimulation({
       // --- SCROLL-DRIVEN FLIGHT KINEMATICS & COMPANION NAVIGATION ---
       let scrollProgress = 0;
       let scrollDelta = 0;
+      if (!scrollerRef.current) {
+        scrollerRef.current = document.querySelector<HTMLElement>('[data-scroll-root]');
+      }
       if (scrollerRef.current) {
         const scroller = scrollerRef.current;
         const sTop = scroller.scrollTop;
