@@ -9,6 +9,7 @@
     "test": "vitest run",
     "headless": "tsx scripts/headless.ts",
     "lint": "eslint .",
+    "bench": "tsx scripts/bench.ts",
     "typecheck": "tsc --noEmit",
     "typecheck:sim": "tsc -p tsconfig.sim.json --noEmit",
     "screenshot:console": "node scripts/screenshot-console.mjs"
