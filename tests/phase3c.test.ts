@@ -15,7 +15,6 @@ import { associateRfWithTracks, RfLine } from '../src/sim/systems/rf.js';
 import { Track } from '../src/sim/model/tracks.js';
 import { TerrainMap } from '../src/sim/model/terrain.js';
 import { vec3 } from '../src/sim/core/vec.js';
-import { computeHeadingErrorToAsset } from '../src/sim/bots/referenceOperator.js';
 
 function runMissionWithBot(
   seed: string | number,
@@ -318,17 +317,23 @@ describe('Phase 3C Acceptance Tests', { timeout: 180000 }, () => {
   it('C12. referenceOperator never jams an ambiguous track (gun inside 1000m only)', () => {
     const mockView: TraineeView = {
       tick: 200,
+      timeS: 10,
+      radarSweepDeg: 0,
       tracks: [
         {
           trackId: 1,
           state: 'confirmed',
+          estimatedPosition: vec3(848, 848, 50),
           rangeM: 1200, // outside gun range (1000m), inside jammer range (1500m)
           bearingDeg: 45,
           altitudeM: 50,
           speedMps: 25,
-          headingDeg: 225,
+          courseDeg: 225,
+          closingRateMps: -25,
           velocityValid: true,
           rcsBucket: 'small',
+          quality: 0.9,
+          lastPlotTick: 200,
           rfStatus: 'ambiguous',
           acked: true,
           assessedClass: 'fpv_kamikaze',
@@ -340,21 +345,21 @@ describe('Phase 3C Acceptance Tests', { timeout: 180000 }, () => {
         jammer: { busyUntilTick: 0 },
       },
       events: [],
-      rfLines: [],
-      eo: { lockedTrackId: undefined, mode: 'wide' },
+      rf: { lines: [] },
+      eo: { state: 'idle', lockedTrackId: undefined, channel: 'eo', level: 'none', quality: 0 },
       environment: {
         terrainKind: 'rural',
         timeOfDay: 'day',
         weather: 'clear',
-        ewLevel: 'none',
+        visibilityKm: 10,
       },
       missionState: { ended: false },
-    } as any;
+    };
 
     const cmds = referenceOperator(mockView);
     // Track is at 1200m and ambiguous: jammer should NEVER be fired
     const jammerCmd = cmds.find(
-      (c) => c.type === 'ENGAGE_TRACK' && (c.payload as any)?.effector === 'jammer'
+      (c) => c.type === 'ENGAGE_TRACK' && 'effector' in c.payload && c.payload.effector === 'jammer'
     );
     expect(jammerCmd).toBeUndefined();
 
@@ -362,12 +367,12 @@ describe('Phase 3C Acceptance Tests', { timeout: 180000 }, () => {
     mockView.tracks[0]!.rangeM = 800;
     const cmdsClose = referenceOperator(mockView);
     const gunCmd = cmdsClose.find(
-      (c) => c.type === 'ENGAGE_TRACK' && (c.payload as any)?.effector === 'gun'
+      (c) => c.type === 'ENGAGE_TRACK' && 'effector' in c.payload && c.payload.effector === 'gun'
     );
     expect(gunCmd).toBeDefined();
 
     const jammerCmdClose = cmdsClose.find(
-      (c) => c.type === 'ENGAGE_TRACK' && (c.payload as any)?.effector === 'jammer'
+      (c) => c.type === 'ENGAGE_TRACK' && 'effector' in c.payload && c.payload.effector === 'jammer'
     );
     expect(jammerCmdClose).toBeUndefined();
   });
