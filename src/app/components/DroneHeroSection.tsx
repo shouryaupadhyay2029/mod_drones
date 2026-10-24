@@ -11,12 +11,6 @@ export function DroneHeroSection(): React.JSX.Element {
         autoRotate={true}
         rotationSpeed={0.012}
       />
-
-      {/* Scroll cue into the "What is VAJRA?" story */}
-      <div className="vj-scroll-cue" aria-hidden="true">
-        <span>SCROLL</span>
-        <i />
-      </div>
     </div>
   );
 }

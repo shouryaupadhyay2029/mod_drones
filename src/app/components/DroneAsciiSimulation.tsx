@@ -584,33 +584,50 @@ export function DroneAsciiSimulation({
 
       // Hero exit progress: begins immediately as soon as user scrolls even a tiny bit!
       // At sTop = 0: heroExit = 0.
-      // By sP = 0.035 (approx 150px of scrolling), heroExit = 1.0 (completely faded out).
-      const heroExit = Math.min(1.0, Math.max(0, sP / 0.035));
+      // By sP = 0.02 (approx 60-80px of scrolling), heroExit = 1.0 (completely faded out).
+      const heroExit = Math.min(1.0, Math.max(0, sP / 0.02));
       const hudHeroOpacity = Math.max(0, 1.0 - heroExit);
+
+      // Hero HUD entrance during initial assembly
+      const hudAssemblyProgress = Math.min(1.0, Math.max(0, (globalProgress - 0.70) / 0.30));
+      const hudAssemblyEase = cubicEaseOut(hudAssemblyProgress);
+
+      // Combined HUD opacity: only visible in Hero; fades out smoothly on scroll
+      const activeHudOpacity = hudAssemblyEase * hudHeroOpacity;
+      const isHudHidden = activeHudOpacity <= 0.005;
+
       if (svgRef.current) {
-        svgRef.current.style.opacity = String(hudHeroOpacity * (globalProgress >= 0.7 ? 1 : 0));
+        if (isHudHidden) {
+          svgRef.current.style.display = 'none';
+          svgRef.current.style.opacity = '0';
+        } else {
+          svgRef.current.style.display = 'block';
+          svgRef.current.style.opacity = activeHudOpacity.toFixed(3);
+        }
         svgRef.current.style.pointerEvents = 'none';
       }
-      if (card1Ref.current) {
-        card1Ref.current.style.opacity = String(hudHeroOpacity);
-        card1Ref.current.style.transform = `translate3d(0, ${-heroExit * 80}px, 0)`;
-        card1Ref.current.style.pointerEvents = 'none';
-      }
-      if (card2Ref.current) {
-        card2Ref.current.style.opacity = String(hudHeroOpacity);
-        card2Ref.current.style.transform = `translate3d(0, ${-heroExit * 80}px, 0)`;
-        card2Ref.current.style.pointerEvents = 'none';
-      }
-      if (card3Ref.current) {
-        card3Ref.current.style.opacity = String(hudHeroOpacity);
-        card3Ref.current.style.transform = `translate3d(0, ${-heroExit * 80}px, 0)`;
-        card3Ref.current.style.pointerEvents = 'none';
-      }
-      if (card4Ref.current) {
-        card4Ref.current.style.opacity = String(hudHeroOpacity);
-        card4Ref.current.style.transform = `translate3d(0, ${-heroExit * 80}px, 0)`;
-        card4Ref.current.style.pointerEvents = 'none';
-      }
+
+      const updateFeatureCard = (card: HTMLDivElement | null, dirX: number) => {
+        if (!card) return;
+        if (isHudHidden) {
+          card.style.display = 'none';
+          card.style.opacity = '0';
+          card.style.pointerEvents = 'none';
+        } else {
+          card.style.display = 'block';
+          card.style.opacity = activeHudOpacity.toFixed(3);
+          card.style.transform = `translate3d(${dirX * heroExit * 40}px, ${-heroExit * 60}px, 0)`;
+          card.style.pointerEvents = 'none';
+          if (heroExit > 0.001) {
+            card.style.animation = 'none';
+          }
+        }
+      };
+
+      updateFeatureCard(card1Ref.current, -1);
+      updateFeatureCard(card2Ref.current, 1);
+      updateFeatureCard(card3Ref.current, -1);
+      updateFeatureCard(card4Ref.current, 1);
 
       // Dynamic Flight Path: Translate, Scale, and Float
       // Hero (sP = 0): Center, scale 1.0, 0px X, 0px Y
@@ -773,63 +790,59 @@ export function DroneAsciiSimulation({
         y: originY + (brPt.screenY / rows) * preHeight,
       };
 
-      const hudProgress = Math.min(1.0, Math.max(0, (globalProgress - 0.70) / 0.30));
-      const hudOpacity = cubicEaseOut(hudProgress);
-      if (svgRef.current) {
-        svgRef.current.style.opacity = String(hudOpacity);
-      }
+      // Update SVG HUD Leader Lines (only when HUD is active and visible)
+      if (!isHudHidden) {
+        if (lineTlRef.current) {
+          const doglegX = c1.x + 44;
+          lineTlRef.current.setAttribute('d', `M ${c1.x} ${c1.y} L ${doglegX} ${c1.y} L ${rTL.x} ${rTL.y}`);
+        }
+        if (dotTlRef.current) {
+          dotTlRef.current.setAttribute('cx', String(rTL.x));
+          dotTlRef.current.setAttribute('cy', String(rTL.y));
+        }
+        if (ringTlRef.current) {
+          ringTlRef.current.setAttribute('cx', String(rTL.x));
+          ringTlRef.current.setAttribute('cy', String(rTL.y));
+        }
 
-      // Update SVG HUD Leader Lines (Orthogonal Dogleg Geometry spanning the screen)
-      if (lineTlRef.current) {
-        const doglegX = c1.x + 44;
-        lineTlRef.current.setAttribute('d', `M ${c1.x} ${c1.y} L ${doglegX} ${c1.y} L ${rTL.x} ${rTL.y}`);
-      }
-      if (dotTlRef.current) {
-        dotTlRef.current.setAttribute('cx', String(rTL.x));
-        dotTlRef.current.setAttribute('cy', String(rTL.y));
-      }
-      if (ringTlRef.current) {
-        ringTlRef.current.setAttribute('cx', String(rTL.x));
-        ringTlRef.current.setAttribute('cy', String(rTL.y));
-      }
+        if (lineTrRef.current) {
+          const doglegX = c2.x - 44;
+          lineTrRef.current.setAttribute('d', `M ${c2.x} ${c2.y} L ${doglegX} ${c2.y} L ${rTR.x} ${rTR.y}`);
+        }
+        if (dotTrRef.current) {
+          dotTrRef.current.setAttribute('cx', String(rTR.x));
+          dotTrRef.current.setAttribute('cy', String(rTR.y));
+        }
+        if (ringTrRef.current) {
+          ringTrRef.current.setAttribute('cx', String(rTR.x));
+          ringTrRef.current.setAttribute('cy', String(rTR.y));
+        }
 
-      if (lineTrRef.current) {
-        const doglegX = c2.x - 44;
-        lineTrRef.current.setAttribute('d', `M ${c2.x} ${c2.y} L ${doglegX} ${c2.y} L ${rTR.x} ${rTR.y}`);
-      }
-      if (dotTrRef.current) {
-        dotTrRef.current.setAttribute('cx', String(rTR.x));
-        dotTrRef.current.setAttribute('cy', String(rTR.y));
-      }
-      if (ringTrRef.current) {
-        ringTrRef.current.setAttribute('cx', String(rTR.x));
-        ringTrRef.current.setAttribute('cy', String(rTR.y));
-      }
+        if (lineBlRef.current) {
+          const doglegX = c3.x + 44;
+          lineBlRef.current.setAttribute('d', `M ${c3.x} ${c3.y} L ${doglegX} ${c3.y} L ${rBL.x} ${rBL.y}`);
+        }
+        if (dotBlRef.current) {
+          dotBlRef.current.setAttribute('cx', String(rBL.x));
+          dotBlRef.current.setAttribute('cy', String(rBL.y));
+        }
+        if (ringBlRef.current) {
+          ringBlRef.current.setAttribute('cx', String(rBL.x));
+          ringBlRef.current.setAttribute('cy', String(rBL.y));
+        }
 
-      if (lineBlRef.current) {
-        const doglegX = c3.x + 44;
-        lineBlRef.current.setAttribute('d', `M ${c3.x} ${c3.y} L ${doglegX} ${c3.y} L ${rBL.x} ${rBL.y}`);
-      }
-      if (dotBlRef.current) {
-        dotBlRef.current.setAttribute('cx', String(rBL.x));
-        dotBlRef.current.setAttribute('cy', String(rBL.y));
-      }
-      if (ringBlRef.current) {
-        ringBlRef.current.setAttribute('cx', String(rBL.x));
-        ringBlRef.current.setAttribute('cy', String(rBL.y));
-      }
-
-      if (lineBrRef.current) {
-        const doglegX = c4.x - 44;
-        lineBrRef.current.setAttribute('d', `M ${c4.x} ${c4.y} L ${doglegX} ${c4.y} L ${rBR.x} ${rBR.y}`);
-      }
-      if (dotBrRef.current) {
-        dotBrRef.current.setAttribute('cx', String(rBR.x));
-        dotBrRef.current.setAttribute('cy', String(rBR.y));
-      }
-      if (ringBrRef.current) {
-        ringBrRef.current.setAttribute('cx', String(rBR.x));
-        ringBrRef.current.setAttribute('cy', String(rBR.y));
+        if (lineBrRef.current) {
+          const doglegX = c4.x - 44;
+          lineBrRef.current.setAttribute('d', `M ${c4.x} ${c4.y} L ${doglegX} ${c4.y} L ${rBR.x} ${rBR.y}`);
+        }
+        if (dotBrRef.current) {
+          dotBrRef.current.setAttribute('cx', String(rBR.x));
+          dotBrRef.current.setAttribute('cy', String(rBR.y));
+        }
+        if (ringBrRef.current) {
+          ringBrRef.current.setAttribute('cx', String(rBR.x));
+          ringBrRef.current.setAttribute('cy', String(rBR.y));
+        }
       }
 
       // 2. Render ASCII 3D Point Cloud with Volumetric Directional Lighting

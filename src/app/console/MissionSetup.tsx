@@ -175,7 +175,12 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
       </div>
 
       {/* 2. Scroll Spacer for the Hero view so page starts at the top */}
-      <div style={styles.heroScrollSpacer} />
+      <div style={styles.heroScrollSpacer}>
+        <div className="vj-scroll-cue" aria-hidden="true">
+          <span>SCROLL</span>
+          <i />
+        </div>
+      </div>
 
       {/* 3. Scroll story: What is VAJRA? */}
       <VajraAboutSection />
@@ -427,6 +432,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: 'calc(100vh - 68px)',
     minHeight: 'calc(100vh - 68px)',
     pointerEvents: 'auto',
+    position: 'relative',
   },
   modalHeaderRow: {
     display: 'flex',
