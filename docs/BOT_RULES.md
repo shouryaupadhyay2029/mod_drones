@@ -114,8 +114,7 @@ The contact with the lowest TTI is evaluated first for weapon dispatch.
   - The jammer is completely ineffective against non-RF controlled threats and incurs a penalty.
   - $\to$ Jammer is withheld. The bot engages strictly with `gun` once $\text{range} \le 1000\text{ m}$ and `gun.ammo > 0`.
 - **RF-Ambiguous Hostiles** (`track.rfStatus === 'ambiguous'`):
-  - Co-bearing emitters within $6^\circ$ cannot be reliably jammed without risk of wasting jammer cycles or engaging wrong targets.
-  - $\to$ Jammer is strictly withheld. The bot engages with `gun` inside $1000\text{ m}$, otherwise waits or uses EO.
+  - Expected-value policy: jam an ambiguous track classified hostile when TTI < 25 s (within 1500 m), else use gun inside 1000 m, otherwise wait or use EO.
 - **Decoys and Non-Hostiles** (`decoy_drone`, `commercial_quad`, `bird`, `clutter`):
   - Decoy drones are distinguished by presenting `rcsBucket === 'medium'` ($0.05\text{ m}^2$) while remaining RF-silent/non-emitting at altitudes $< 160\text{ m}$ (or optical EO hint).
   - When range $> 1500\text{ m}$ and RF status is `'unknown'`, classification is deferred to observe RF silence or EO confirmation.

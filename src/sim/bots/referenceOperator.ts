@@ -411,8 +411,21 @@ export function referenceOperator(view: TraineeView): Command[] {
     }
 
     if (track.rfStatus === 'ambiguous') {
-      // Ambiguous RF: never jam; use gun inside 1000m, otherwise wait or use EO
-      if (!gunUsed && track.rangeM <= 1000) {
+      // Expected-value policy for ambiguous RF: jam if classified hostile and TTI < 25s,
+      // else use gun inside 1000m, otherwise wait or use EO.
+      const isHostile = track.assessedClass === 'fpv_kamikaze' ||
+        track.assessedClass === 'fpv_fiber' ||
+        track.assessedClass === 'fixed_wing_recon';
+      const closing = track.closingRateMps ?? -20;
+      const tti = closing < -0.5 ? track.rangeM / -closing : track.rangeM / 10;
+      if (isHostile && tti < 25 && !jammerUsed && track.rangeM <= 1500) {
+        commands.push({
+          tick: view.tick,
+          type: 'ENGAGE_TRACK',
+          payload: { trackId: track.trackId, effector: 'jammer' },
+        });
+        jammerUsed = true;
+      } else if (!gunUsed && track.rangeM <= 1000) {
         commands.push({
           tick: view.tick,
           type: 'ENGAGE_TRACK',
