@@ -136,7 +136,7 @@ export function associateRfWithTracks(
       const other = activeTracks[i]!;
       if (other.trackId === t.trackId) continue;
       const otherBearing = trackBearings.get(other.trackId)!;
-      if (angleDiffDeg(otherBearing, tBearing) < 5.9) {
+      if (angleDiffDeg(otherBearing, tBearing) <= 6.0) {
         hasSecondTrackWithin6Deg = true;
         ambiguousTrackIds.add(t.trackId);
         ambiguousTrackIds.add(other.trackId);

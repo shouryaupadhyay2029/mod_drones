@@ -176,26 +176,32 @@ describe('Phase 2B Acceptance Test Suite', () => {
     expect(birdTrack?.rfStatus).toBe('silent');
     expect(ghostTrack?.rfStatus).toBe('silent');
 
-    // 1d. Step 0.3: Smallest angular difference with two emitters 8 deg apart
+    // 1d. Step 0.5: Smallest angular difference with two emitters truly 8 deg apart
+    // Track 4 at bearing exactly 40 deg, Track 5 at bearing exactly 48 deg => 8 deg apart => distinct
     rfState.lines = [
       { tick: 140, bearingDeg: 40, signature: 'wideband_video' },
       { tick: 145, bearingDeg: 48, signature: 'telemetry_link' },
     ];
-    // Track 4 at bearing ~41 deg (closer to 40 deg: 1 deg vs 7 deg)
+    // Track 4 at bearing 40 deg: (sin(40°), cos(40°), 0) * 1000
+    const t4x = Math.round(Math.sin(40 * Math.PI / 180) * 1000); // 643
+    const t4y = Math.round(Math.cos(40 * Math.PI / 180) * 1000); // 766
     const track4: Track = {
       ...fpvTrack!,
       trackId: 4,
-      estimatedPos: vec3(656, 755, 50), // bearing ~41 deg
+      estimatedPos: vec3(t4x, t4y, 50), // bearing exactly 40 deg
       firstSeenTick: 100,
     };
-    // Track 5 at bearing ~47 deg (closer to 48 deg: 1 deg vs 7 deg)
+    // Track 5 at bearing 48 deg: (sin(48°), cos(48°), 0) * 1000
+    const t5x = Math.round(Math.sin(48 * Math.PI / 180) * 1000); // 743
+    const t5y = Math.round(Math.cos(48 * Math.PI / 180) * 1000); // 669
     const track5: Track = {
       ...fpvTrack!,
       trackId: 5,
-      estimatedPos: vec3(731, 682, 50), // bearing ~47 deg
+      estimatedPos: vec3(t5x, t5y, 50), // bearing exactly 48 deg
       firstSeenTick: 100,
     };
     runRfSystem(150, [], [track4, track5], rfState, rfRng, envRuralNone, dummyTerrain);
+    // 8 deg apart > 6 deg threshold => each track gets its distinct signal
     expect(track4.rfSignature).toBe('wideband_video');
     expect(track5.rfSignature).toBe('telemetry_link');
   });

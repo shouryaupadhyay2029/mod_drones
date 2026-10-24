@@ -95,32 +95,35 @@ export function generateScenario(
   const genRng = rootRng.fork('gen');
 
   const limit = TIER_CAPACITY_LIMITS[tier];
+  const warningLimit = tier === 'veteran' ? 14 : tier === 'elite' ? 10 : 0;
   let bestScenario: ProceduralScenario | null = null;
   let minRatio = Infinity;
 
   for (let attempt = 0; attempt < 8; attempt++) {
     const attemptRng = genRng.fork(`attempt:${attempt}`);
     const scenario = buildSingleScenario(seed, tier, attemptRng);
-    const ratio = capacityCheck(scenario.spawns);
+    const check = capacityCheck(scenario.spawns, scenario.terrain, scenario.environment);
 
-    if (ratio < minRatio) {
-      minRatio = ratio;
+    if (check.capacityRatio < minRatio) {
+      minRatio = check.capacityRatio;
       bestScenario = scenario;
     }
 
-    const capacityOk = ratio <= limit;
+    const capacityOk = check.capacityRatio <= limit;
+    const warningOk = check.minWarningSec >= warningLimit;
     const fingerprintOk = !avoid.includes(scenario.fingerprint);
 
-    if (capacityOk && fingerprintOk) {
+    if (capacityOk && warningOk && fingerprintOk) {
       return scenario;
     }
   }
 
-  // If after 8 attempts capacityRatio still exceeds tier limit (elite unconstrained),
-  // drop striker while capacityRatio exceeds the tier limit
-  if (bestScenario && limit < Infinity) {
+  // If after 8 attempts capacityRatio or warning still violates limits,
+  // drop striker while capacityRatio > limit or minWarningSec < warningLimit
+  if (bestScenario) {
     let dropped = false;
-    while (capacityCheck(bestScenario.spawns) > limit) {
+    let check = capacityCheck(bestScenario.spawns, bestScenario.terrain, bestScenario.environment);
+    while (check.capacityRatio > limit || check.minWarningSec < warningLimit) {
       let lastStrikerIdx = -1;
       for (let i = bestScenario.spawns.length - 1; i >= 0; i--) {
         const s = bestScenario.spawns[i]!;
@@ -132,6 +135,7 @@ export function generateScenario(
       if (lastStrikerIdx === -1) break;
       bestScenario.spawns.splice(lastStrikerIdx, 1);
       dropped = true;
+      check = capacityCheck(bestScenario.spawns, bestScenario.terrain, bestScenario.environment);
     }
 
     if (dropped) {
@@ -153,7 +157,7 @@ export function generateScenario(
   return bestScenario!;
 }
 
-function buildSingleScenario(
+export function buildSingleScenario(
   _seed: string | number,
   tier: Tier,
   rng: Rng

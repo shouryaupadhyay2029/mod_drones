@@ -329,6 +329,31 @@ export function referenceOperator(view: TraineeView): Command[] {
     timeToImpact: number;
   }> = [];
 
+  // Also engage close penetrating tentative tracks (< 300 m, unengaged)
+  // to handle terrain-masked threats that never get confirmed in time
+  const gunAvailableNow = view.effectors.gun.busyUntilTick <= view.tick && view.effectors.gun.ammo > 0;
+  for (let i = 0; i < view.tracks.length; i++) {
+    const track = view.tracks[i];
+    if (
+      track &&
+      (track.state === 'tentative' || track.state === 'confirmed') &&
+      track.rangeM <= 300 &&
+      track.engagementStatus === 'none' &&
+      gunAvailableNow &&
+      (track.assessedClass === 'fpv_kamikaze' ||
+        track.assessedClass === 'fpv_fiber' ||
+        track.assessedClass === 'fixed_wing_recon' ||
+        track.assessedClass === undefined)
+    ) {
+      commands.push({
+        tick: view.tick,
+        type: 'ENGAGE_TRACK',
+        payload: { trackId: track.trackId, effector: 'gun' },
+      });
+      break; // only one gun shot per tick
+    }
+  }
+
   for (let i = 0; i < view.tracks.length; i++) {
     const track = view.tracks[i];
     if (!track || track.state !== 'confirmed' || !track.velocityValid) {
