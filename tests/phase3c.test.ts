@@ -208,6 +208,30 @@ describe('Phase 3C Acceptance Tests', { timeout: 180000 }, () => {
     expect(t2.rfSignature).toBe('wideband_video');
   });
 
+  // C10b: Ambiguity boundary: 6.5 deg apart => distinct 'emitting' (just above 6.0 threshold)
+  it('C10b. Ambiguity: two emitters 6.5 deg apart => distinct emitting', () => {
+    const t1 = createMockTrack(1, 45.0);
+    const t2 = createMockTrack(2, 51.5); // 6.5 deg apart > 6.0 deg threshold => distinct
+
+    const line1: RfLine = {
+      tick: 200,
+      bearingDeg: 45.0,
+      signature: 'analog_control',
+    };
+    const line2: RfLine = {
+      tick: 200,
+      bearingDeg: 51.5,
+      signature: 'wideband_video',
+    };
+
+    associateRfWithTracks(200, [t1, t2], [line1, line2], 4500, dummyTerrain);
+
+    expect(t1.rfStatus).toBe('emitting');
+    expect(t2.rfStatus).toBe('emitting');
+    expect(t1.rfSignature).toBe('analog_control');
+    expect(t2.rfSignature).toBe('wideband_video');
+  });
+
   // C11: Ambiguity test: 2 tracks 20° apart => distinct
   it('C11. Ambiguity: two emitters 20 deg apart => distinct', () => {
     const t1 = createMockTrack(1, 45.0);
