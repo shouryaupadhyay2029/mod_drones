@@ -653,11 +653,12 @@ export function DroneAsciiSimulation({
 
       // Flank translation:
       // Hero: 0vw, 0vh
-      // Escort mode: drifts to right flank (+32vw) and settles safely BELOW all content text,
-      // hovering right at the level of the "SCROLL ————" indicator (~29vh to 32vh) to completely avoid text overlap!
-      const targetTransX = escortPhase * 32; // vw
+      // Escort mode: drifts to right flank (34vw), and in Section 4 (sP > 0.45) glides further to the right margin (38.5vw)
+      // to comfortably clear the operational manual cards and avoid any overlap!
+      const section4Shift = Math.min(1.0, Math.max(0, (sP - 0.45) / 0.15));
+      const targetTransX = escortPhase * (34 + section4Shift * 4.5); // vw: 34vw in S2/S3 -> 38.5vw in S4
       const targetTransY = escortPhase * (29 + sP * 4); // vh: positioned at the level of the scroll cue (~29-33vh)
-      const droneScale = 1.0 - escortPhase * 0.63; // 1.0 -> 0.37 scale
+      const droneScale = 1.0 - escortPhase * 0.65; // 1.0 -> 0.35 scale
 
       // Dynamic flying bob & aerodynamic bank wobble while moving
       const flightWobble = Math.sin(currentTime * 0.0035) * (escortPhase > 0.2 ? 5 : 3);
