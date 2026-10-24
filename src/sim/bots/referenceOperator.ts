@@ -70,7 +70,7 @@ export function referenceOperator(view: TraineeView): Command[] {
     if (!track.acked) continue;
 
     // Both classification and engagement require confirmed state and valid velocity estimates
-    if (track.state !== 'confirmed' || !track.velocityValid) {
+    if (track.state !== 'confirmed' || !track.velocityValid || track.speedMps === undefined) {
       continue;
     }
 

@@ -107,21 +107,23 @@ export function buildTraineeView(
     if (!t || t.state === 'dropped') continue;
 
     const plots = t.totalPlots ?? t.consecutiveHits;
-    const velocityValid = plots >= 2;
+    const velocityValid = plots >= 3;
     const r = vDist(t.estimatedPos, origin);
-    const speed = velocityValid ? vLen(t.estimatedVel) : undefined;
+    const rawSpeed = velocityValid ? vLen(t.estimatedVel) : undefined;
+    const isPlausible = rawSpeed !== undefined && rawSpeed <= 60;
+    const speed = isPlausible ? rawSpeed : undefined;
     const courseDeg =
-      velocityValid && speed !== undefined && speed > 1.0
+      velocityValid && isPlausible && speed !== undefined && speed > 1.0
         ? bearingDeg(origin, vec3(t.estimatedVel.x, t.estimatedVel.y, 0))
         : undefined;
     const closingRate =
-      velocityValid && r > 0
+      velocityValid && isPlausible && r > 0
         ? (t.estimatedPos.x * t.estimatedVel.x +
             t.estimatedPos.y * t.estimatedVel.y +
             t.estimatedPos.z * t.estimatedVel.z) /
           r
         : undefined;
-    const headingChangeRate = velocityValid ? t.headingChangeRateSmoothed : undefined;
+    const headingChangeRate = velocityValid && isPlausible ? t.headingChangeRateSmoothed : undefined;
 
     traineeTracks.push({
       trackId: t.trackId,
