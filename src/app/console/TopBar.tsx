@@ -3,6 +3,28 @@ import React, { useState, useRef, useEffect } from 'react';
 import { TraineeEnvironmentView } from '../../sim/index.js';
 import { NavMiniAsciiPreview } from '../components/NavMiniAsciiPreview.js';
 import { TextRoll } from '../components/TextRoll.js';
+import { useDroneAudio } from '../hooks/useDroneAudio.js';
+
+// ── Audio control icons ────────────────────────────────────────────────────
+function IconVolume(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+    </svg>
+  );
+}
+
+function IconMute(): React.JSX.Element {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+      <line x1="23" y1="9" x2="17" y2="15" />
+      <line x1="17" y1="9" x2="23" y2="15" />
+    </svg>
+  );
+}
 
 // Minimalist High-Precision SVG Tactical Icons (replacing generic emojis)
 function IconTarget(): React.JSX.Element {
@@ -173,6 +195,9 @@ export function TopBar({
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPinnedRef = useRef<boolean>(false);
   const navRef = useRef<HTMLElement>(null);
+
+  // Drone ambient audio — synthesised via Web Audio API (no audio files)
+  const { isMuted, toggleMute } = useDroneAudio();
 
   const scTitle =
     scenarioId === 'ridge_runner'
@@ -657,6 +682,32 @@ export function TopBar({
 
         {/* Right: Contextual Telemetry & Controls or Setup Launch Button */}
         <div style={styles.navRight}>
+          {/* Audio toggle — always visible, muted by default (browser autoplay policy) */}
+          <button
+            onClick={toggleMute}
+            title={isMuted ? 'Unmute drone audio' : 'Mute drone audio'}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '5px 10px',
+              background: isMuted ? 'rgba(255,255,255,0.06)' : 'rgba(255,107,26,0.15)',
+              border: `1px solid ${isMuted ? 'rgba(255,255,255,0.12)' : 'rgba(255,107,26,0.5)'}`,
+              borderRadius: '4px',
+              color: isMuted ? 'rgba(255,255,255,0.45)' : '#ff6b1a',
+              cursor: 'pointer',
+              fontSize: '10px',
+              fontFamily: 'monospace',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              transition: 'all 0.2s ease',
+              marginRight: '10px',
+              flexShrink: 0,
+            }}
+          >
+            {isMuted ? <IconMute /> : <IconVolume />}
+            <span>{isMuted ? 'AUDIO OFF' : 'AUDIO ON'}</span>
+          </button>
           {phase === 'setup' ? (
             <div style={styles.setupNavRight} className="anim-curved-slide anim-delay-5">
               <button
