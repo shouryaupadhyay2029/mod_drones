@@ -33,6 +33,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+    pointerEvents: 'none',
   },
 };
 

@@ -121,11 +121,25 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
     };
     window.addEventListener('keydown', handleKeyDown);
 
+    // Fail-safe wheel listener: ensures buttery smooth scrolling regardless of cursor position
+    const handleWheel = (e: WheelEvent) => {
+      // Don't intercept if briefing modal is open
+      const modalOpen = document.querySelector('.briefing-modal-overlay.is-open');
+      if (modalOpen) return;
+
+      const scroller = document.querySelector<HTMLElement>('[data-scroll-root]');
+      if (!scroller) return;
+
+      scroller.scrollTop += e.deltaY;
+    };
+    window.addEventListener('wheel', handleWheel, { passive: true });
+
     return () => {
       window.removeEventListener('mod:select-scenario', handleOpen);
       window.removeEventListener('mod:open-briefing', handleOpen);
       window.removeEventListener('mod:close-briefing', handleClose);
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('wheel', handleWheel);
     };
   }, []);
 
@@ -154,7 +168,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
       : SCENARIO_OPTIONS.find((s) => s.id === selectedScenario) || SCENARIO_OPTIONS[0]!;
 
   return (
-    <div style={styles.container} data-scroll-root="">
+    <div style={styles.container} data-scroll-root="" tabIndex={0}>
       {/* 1. Viewport-Sticky Companion 3D ASCII Drone Layer */}
       <div style={styles.stickyDroneLayer} aria-hidden="true">
         <DroneHeroSection />
@@ -396,12 +410,13 @@ const styles: Record<string, React.CSSProperties> = {
     height: '100%',
     minHeight: 0,
     position: 'relative',
+    outline: 'none',
   },
   stickyDroneLayer: {
     position: 'fixed',
     top: '68px',
     left: 0,
-    width: '100vw',
+    width: 'calc(100vw - 12px)',
     height: 'calc(100vh - 68px)',
     pointerEvents: 'none',
     zIndex: 10,
@@ -411,7 +426,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     height: 'calc(100vh - 68px)',
     minHeight: 'calc(100vh - 68px)',
-    pointerEvents: 'none',
+    pointerEvents: 'auto',
   },
   modalHeaderRow: {
     display: 'flex',

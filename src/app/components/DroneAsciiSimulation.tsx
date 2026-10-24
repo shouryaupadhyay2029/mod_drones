@@ -537,12 +537,6 @@ export function DroneAsciiSimulation({
         updateLayoutBounds();
       }
 
-      if (isRotating && !isDraggingRef.current) {
-        const swirlBoost = (1.0 - globalProgress) * 0.018;
-        anglesRef.current.yaw += rotationSpeed + swirlBoost;
-      }
-      propAngleRef.current += 0.38;
-
       // --- SCROLL-DRIVEN FLIGHT KINEMATICS & COMPANION NAVIGATION ---
       let scrollProgress = 0;
       let scrollDelta = 0;
@@ -570,6 +564,18 @@ export function DroneAsciiSimulation({
       smoothedScrollRef.current += (scrollProgress - smoothedScrollRef.current) * 0.10;
       const sP = smoothedScrollRef.current;
 
+      // Escort phase ramps up immediately when scrolling starts (0 to 1 over first 5% of scroll)
+      const escortPhase = Math.min(1.0, Math.max(0, sP / 0.05));
+
+      if (isRotating && !isDraggingRef.current) {
+        const swirlBoost = (1.0 - globalProgress) * 0.018;
+        anglesRef.current.yaw += rotationSpeed + swirlBoost;
+      }
+
+      // Propeller spin accelerates dynamically when escorting and flying
+      const propSpeed = 0.38 + escortPhase * 0.24 + Math.min(0.4, Math.abs(scrollDelta) * 0.001);
+      propAngleRef.current += propSpeed;
+
       // Aerodynamic bank and pitch response while scrolling
       const bankAngle = Math.max(-0.45, Math.min(0.45, -scrollDelta * 0.00028));
       const climbPitch = Math.max(-0.35, Math.min(0.35, scrollDelta * 0.00018));
@@ -578,52 +584,52 @@ export function DroneAsciiSimulation({
 
       // Hero exit progress: begins immediately as soon as user scrolls even a tiny bit!
       // At sTop = 0: heroExit = 0.
-      // By sP = 0.04 (approx 150-200px of scrolling), heroExit = 1.0 (completely faded out).
+      // By sP = 0.035 (approx 150px of scrolling), heroExit = 1.0 (completely faded out).
       const heroExit = Math.min(1.0, Math.max(0, sP / 0.035));
       const hudHeroOpacity = Math.max(0, 1.0 - heroExit);
       if (svgRef.current) {
         svgRef.current.style.opacity = String(hudHeroOpacity * (globalProgress >= 0.7 ? 1 : 0));
-        svgRef.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
+        svgRef.current.style.pointerEvents = 'none';
       }
       if (card1Ref.current) {
         card1Ref.current.style.opacity = String(hudHeroOpacity);
         card1Ref.current.style.transform = `translate3d(0, ${-heroExit * 80}px, 0)`;
-        card1Ref.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
+        card1Ref.current.style.pointerEvents = 'none';
       }
       if (card2Ref.current) {
         card2Ref.current.style.opacity = String(hudHeroOpacity);
         card2Ref.current.style.transform = `translate3d(0, ${-heroExit * 80}px, 0)`;
-        card2Ref.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
+        card2Ref.current.style.pointerEvents = 'none';
       }
       if (card3Ref.current) {
         card3Ref.current.style.opacity = String(hudHeroOpacity);
         card3Ref.current.style.transform = `translate3d(0, ${-heroExit * 80}px, 0)`;
-        card3Ref.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
+        card3Ref.current.style.pointerEvents = 'none';
       }
       if (card4Ref.current) {
         card4Ref.current.style.opacity = String(hudHeroOpacity);
         card4Ref.current.style.transform = `translate3d(0, ${-heroExit * 80}px, 0)`;
-        card4Ref.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
+        card4Ref.current.style.pointerEvents = 'none';
       }
 
       // Dynamic Flight Path: Translate, Scale, and Float
       // Hero (sP = 0): Center, scale 1.0, 0px X, 0px Y
-      // As user scrolls: drone descends into flight motion, shrinks in size down to ~0.42,
-      // and escorts the user alongside the content on the right flank!
-      // In Manifesto (sP ~ 0.04..0.25): escortPhase ramps 0 -> 1.0.
-      const escortPhase = Math.min(1.0, Math.max(0, sP / 0.06));
-      const footerExit = Math.min(1.0, Math.max(0, (sP - 0.88) / 0.08));
-      const overallDroneOpacity = Math.max(0, 1.0 - footerExit * 0.95);
+      // As user scrolls: drone descends into flight motion, shrinks in size down to ~0.40,
+      // and escorts the user alongside the content on the right flank all the way down to the footer!
+      const footerExit = Math.min(1.0, Math.max(0, (sP - 0.90) / 0.08));
+      const overallDroneOpacity = Math.max(0, 1.0 - footerExit * 0.92);
 
       // Flank translation:
       // Hero: 0vw, 0vh
-      // Escort mode: drifts to right flank (+30vw) and hovers at an accessible viewing height (-4vh)
-      const targetTransX = escortPhase * 30; // vw
-      const targetTransY = escortPhase * -4; // vh
-      const droneScale = 1.0 - escortPhase * 0.58; // 1.0 -> 0.42 scale
+      // Escort mode: drifts to right flank (+31vw) and flies DOWN along with the user!
+      // In Hero (sP = 0): targetTransX = 0, targetTransY = 0
+      // When scrolling down, targetTransY moves downward (from 0 to 10vh to 34vh)
+      const targetTransX = escortPhase * 31; // vw
+      const targetTransY = escortPhase * (10 + sP * 24); // vh: moves down smoothly as user scrolls
+      const droneScale = 1.0 - escortPhase * 0.60; // 1.0 -> 0.40 scale
 
       // Dynamic flying bob & aerodynamic bank wobble while moving
-      const flightWobble = Math.sin(currentTime * 0.003) * (escortPhase > 0.2 ? 8 : 3);
+      const flightWobble = Math.sin(currentTime * 0.0035) * (escortPhase > 0.2 ? 9 : 3);
 
       if (preRef.current) {
         preRef.current.style.transform = `translate3d(calc(${targetTransX}vw + 0px), calc(${targetTransY}vh + ${flightWobble}px), 0) scale(${droneScale.toFixed(3)})`;
@@ -707,7 +713,8 @@ export function DroneAsciiSimulation({
       const buffer: string[] = new Array(cols * rows).fill(' ');
       const zBuffer: number[] = new Array(cols * rows).fill(-Infinity);
 
-      const basePitch = anglesRef.current.pitch + dynamicPitchRef.current;
+      const escortPitchBias = escortPhase * 0.10;
+      const basePitch = anglesRef.current.pitch + dynamicPitchRef.current + escortPitchBias;
       const effectivePitch = Math.max(0.15, Math.min(1.25, basePitch));
       const effectiveYaw = anglesRef.current.yaw + dynamicBankRef.current * 0.45;
       const cosY = Math.cos(effectiveYaw);
@@ -919,6 +926,12 @@ export function DroneAsciiSimulation({
       onDoubleClick={() => {
         assemblyStartTimeRef.current = performance.now();
       }}
+      onWheel={(e) => {
+        const scroller = scrollerRef.current || document.querySelector<HTMLElement>('[data-scroll-root]');
+        if (scroller) {
+          scroller.scrollTop += e.deltaY;
+        }
+      }}
       title="VAJRA // Double-click to re-assemble drone • Click & drag to rotate in 3D"
       style={{
         position: 'relative',
@@ -936,6 +949,7 @@ export function DroneAsciiSimulation({
         userSelect: 'none',
         cursor: isDraggingRef.current ? 'grabbing' : 'grab',
         boxShadow: 'none',
+        pointerEvents: 'none',
         ...style,
       }}
     >
@@ -1026,7 +1040,7 @@ export function DroneAsciiSimulation({
           padding: '4px 0',
           boxShadow: 'none',
           zIndex: 8,
-          pointerEvents: 'auto',
+          pointerEvents: 'none',
           textAlign: 'left',
         }}
       >
@@ -1081,7 +1095,7 @@ export function DroneAsciiSimulation({
           padding: '4px 0',
           boxShadow: 'none',
           zIndex: 8,
-          pointerEvents: 'auto',
+          pointerEvents: 'none',
           textAlign: 'left',
         }}
       >
@@ -1136,7 +1150,7 @@ export function DroneAsciiSimulation({
           padding: '4px 0',
           boxShadow: 'none',
           zIndex: 8,
-          pointerEvents: 'auto',
+          pointerEvents: 'none',
           textAlign: 'left',
         }}
       >
@@ -1191,7 +1205,7 @@ export function DroneAsciiSimulation({
           padding: '4px 0',
           boxShadow: 'none',
           zIndex: 8,
-          pointerEvents: 'auto',
+          pointerEvents: 'none',
           textAlign: 'left',
         }}
       >
