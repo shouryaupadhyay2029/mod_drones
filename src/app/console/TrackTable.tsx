@@ -99,6 +99,8 @@ export function TrackTable({
                     <td style={styles.td}>
                       {t.rfStatus === 'emitting' ? (
                         <span style={{ color: '#38bdf8', fontWeight: 700 }}>EMIT</span>
+                      ) : t.rfStatus === 'ambiguous' ? (
+                        <span style={{ color: '#f59e0b', fontWeight: 700 }}>AMBIG</span>
                       ) : t.rfStatus === 'silent' ? (
                         <span style={{ color: '#64748b' }}>silent</span>
                       ) : (

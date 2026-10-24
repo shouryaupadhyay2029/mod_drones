@@ -69,12 +69,14 @@ export function computeRfBearingNoiseSigma(env: Environment): number {
  * Associates radar tracks with RF bearing lines.
  *
  * Rules:
- * - A radar track gets rfStatus 'emitting' + rfSignature if a line within +/-10 deg
- *   of the track bearing arrived in the last 3 s (60 ticks).
+ * - Each RF line associates with at most one track (smallest angular difference, newest tie-break).
+ * - If a second track lies within 6 deg of the nearest track's bearing, both tracks get
+ *   rfStatus 'ambiguous' (no signature).
+ * - Otherwise, a track gets rfStatus 'emitting' + rfSignature if matched to an unambiguous line
+ *   arriving in the last 3 s (60 ticks).
  * - 'silent' only if the track is older than 6 s (120 ticks), its estimated range <= 0.8 * current R_rf,
- *   LOS is clear, and no line matched.
+ *   LOS is clear, and no line matched / not ambiguous.
  * - Otherwise 'unknown'.
- * Ghosts and birds therefore become 'silent'.
  */
 export function associateRfWithTracks(
   currentTick: number,
@@ -89,53 +91,93 @@ export function associateRfWithTracks(
   // Consider lines from the last 3 s (60 ticks)
   const recentLines = rfLines.filter((l) => currentTick - l.tick <= 60);
 
-  for (let i = 0; i < tracks.length; i++) {
-    const track = tracks[i];
-    if (!track || track.state === 'dropped') continue;
+  const activeTracks = tracks.filter((t) => t && t.state !== 'dropped');
+  const trackBearings = new Map<number, number>();
+  for (let i = 0; i < activeTracks.length; i++) {
+    const t = activeTracks[i]!;
+    trackBearings.set(t.trackId, bearingDeg(origin, t.estimatedPos));
+  }
 
-    const trkBearing = bearingDeg(origin, track.estimatedPos);
-
-    // Look for matching line within +/- 10 deg
-    // Choose the line with smallest angular difference (tie: newest line, i.e. highest tick)
-    let matchedLine: RfLine | undefined;
+  // 1. Each RF line associates with at most one track (smallest angular difference)
+  const lineMatchedTrack = new Map<RfLine, { track: Track; diff: number }>();
+  for (let j = 0; j < recentLines.length; j++) {
+    const line = recentLines[j]!;
+    let bestTrack: Track | undefined;
     let minDiff = 999;
-    for (let j = 0; j < recentLines.length; j++) {
-      const line = recentLines[j]!;
-      const diff = angleDiffDeg(line.bearingDeg, trkBearing);
+    for (let i = 0; i < activeTracks.length; i++) {
+      const t = activeTracks[i]!;
+      const b = trackBearings.get(t.trackId)!;
+      const diff = angleDiffDeg(line.bearingDeg, b);
       if (diff <= 10) {
-        if (matchedLine === undefined || diff < minDiff - 1e-4) {
-          matchedLine = line;
+        if (!bestTrack || diff < minDiff - 1e-4) {
+          bestTrack = t;
           minDiff = diff;
-        } else if (Math.abs(diff - minDiff) <= 1e-4 && line.tick > matchedLine.tick) {
-          // Tie: newest line (largest tick)
-          matchedLine = line;
+        } else if (Math.abs(diff - minDiff) <= 1e-4 && t.trackId < bestTrack.trackId) {
+          bestTrack = t;
           minDiff = diff;
         }
       }
     }
+    if (bestTrack) {
+      lineMatchedTrack.set(line, { track: bestTrack, diff: minDiff });
+    }
+  }
 
-    if (matchedLine) {
-      track.rfStatus = 'emitting';
-      track.rfSignature = matchedLine.signature;
+  // 2. Identify ambiguous tracks (second track within 6 deg of nearest track's bearing)
+  const ambiguousTrackIds = new Set<number>();
+  const trackMatchedLine = new Map<number, { line: RfLine; diff: number }>();
+
+  for (const [line, match] of lineMatchedTrack.entries()) {
+    const t = match.track;
+    const tBearing = trackBearings.get(t.trackId)!;
+
+    let hasSecondTrackWithin6Deg = false;
+    for (let i = 0; i < activeTracks.length; i++) {
+      const other = activeTracks[i]!;
+      if (other.trackId === t.trackId) continue;
+      const otherBearing = trackBearings.get(other.trackId)!;
+      if (angleDiffDeg(otherBearing, tBearing) <= 6.0) {
+        hasSecondTrackWithin6Deg = true;
+        ambiguousTrackIds.add(t.trackId);
+        ambiguousTrackIds.add(other.trackId);
+      }
+    }
+
+    if (!hasSecondTrackWithin6Deg) {
+      const existing = trackMatchedLine.get(t.trackId);
+      if (!existing || match.diff < existing.diff - 1e-4) {
+        trackMatchedLine.set(t.trackId, { line, diff: match.diff });
+      } else if (Math.abs(match.diff - existing.diff) <= 1e-4 && line.tick > existing.line.tick) {
+        trackMatchedLine.set(t.trackId, { line, diff: match.diff });
+      }
+    }
+  }
+
+  // 3. Assign status to each active track
+  for (let i = 0; i < activeTracks.length; i++) {
+    const track = activeTracks[i]!;
+    if (ambiguousTrackIds.has(track.trackId)) {
+      track.rfStatus = 'ambiguous';
+      track.rfSignature = undefined;
     } else {
-      // Check for 'silent' conditions:
-      // 1. Track older than 6 s (120 ticks)
-      const trackAgeTicks = currentTick - track.firstSeenTick;
-      const isOlderThan6s = trackAgeTicks > 120;
-
-      // 2. Estimated range <= 0.8 * current R_rf
-      const estRange = vDist(track.estimatedPos, origin);
-      const isWithinRange = estRange <= 0.8 * rRf;
-
-      // 3. Clear line of sight
-      const hasLos = hasLineOfSight(mastPos, track.estimatedPos, terrain, 50);
-
-      if (isOlderThan6s && isWithinRange && hasLos) {
-        track.rfStatus = 'silent';
-        track.rfSignature = undefined;
+      const match = trackMatchedLine.get(track.trackId);
+      if (match) {
+        track.rfStatus = 'emitting';
+        track.rfSignature = match.line.signature;
       } else {
-        track.rfStatus = 'unknown';
-        track.rfSignature = undefined;
+        const trackAgeTicks = currentTick - track.firstSeenTick;
+        const isOlderThan6s = trackAgeTicks > 120;
+        const estRange = vDist(track.estimatedPos, origin);
+        const isWithinRange = estRange <= 0.8 * rRf;
+        const hasLos = hasLineOfSight(mastPos, track.estimatedPos, terrain, 50);
+
+        if (isOlderThan6s && isWithinRange && hasLos) {
+          track.rfStatus = 'silent';
+          track.rfSignature = undefined;
+        } else {
+          track.rfStatus = 'unknown';
+          track.rfSignature = undefined;
+        }
       }
     }
   }

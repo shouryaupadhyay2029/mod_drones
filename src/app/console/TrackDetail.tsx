@@ -161,6 +161,8 @@ export function TrackDetail({
               color:
                 track.rfStatus === 'emitting'
                   ? '#38bdf8'
+                  : track.rfStatus === 'ambiguous'
+                  ? '#f59e0b'
                   : track.rfStatus === 'silent'
                   ? '#94a3b8'
                   : '#cbd5e1',
@@ -168,6 +170,8 @@ export function TrackDetail({
           >
             {track.rfSignature
               ? track.rfSignature.replace(/_/g, ' ').toUpperCase()
+              : track.rfStatus === 'ambiguous'
+              ? 'AMBIGUOUS'
               : track.rfStatus === 'silent'
               ? 'SILENT'
               : 'UNKNOWN'}

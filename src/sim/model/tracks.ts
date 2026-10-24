@@ -4,7 +4,7 @@ import { RfSignature, ThreatClassId } from './threats.js';
 export type TrackState = 'tentative' | 'confirmed' | 'dropped';
 export type RcsBucket = 'tiny' | 'small' | 'medium';
 export type EngagementStatus = 'none' | 'engaged' | 'holding_fire';
-export type RfStatus = 'emitting' | 'silent' | 'unknown';
+export type RfStatus = 'emitting' | 'silent' | 'unknown' | 'ambiguous';
 
 export interface Track {
   trackId: number;
