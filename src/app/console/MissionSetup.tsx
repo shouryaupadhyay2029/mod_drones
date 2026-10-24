@@ -155,10 +155,15 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
 
   return (
     <div style={styles.container} data-scroll-root="">
-      {/* Skiper14-Inspired 3D ASCII Drone Hero Section */}
-      <DroneHeroSection />
+      {/* 1. Viewport-Sticky Companion 3D ASCII Drone Layer */}
+      <div style={styles.stickyDroneLayer} aria-hidden="true">
+        <DroneHeroSection />
+      </div>
 
-      {/* Scroll story: What is VAJRA? */}
+      {/* 2. Scroll Spacer for the Hero view so page starts at the top */}
+      <div style={styles.heroScrollSpacer} />
+
+      {/* 3. Scroll story: What is VAJRA? */}
       <VajraAboutSection />
 
       {/* Tactical Mission Briefing Modal Overlay (Triggered from Navbar or Hero) */}
@@ -391,6 +396,22 @@ const styles: Record<string, React.CSSProperties> = {
     height: '100%',
     minHeight: 0,
     position: 'relative',
+  },
+  stickyDroneLayer: {
+    position: 'fixed',
+    top: '68px',
+    left: 0,
+    width: '100vw',
+    height: 'calc(100vh - 68px)',
+    pointerEvents: 'none',
+    zIndex: 10,
+    overflow: 'hidden',
+  },
+  heroScrollSpacer: {
+    width: '100%',
+    height: 'calc(100vh - 68px)',
+    minHeight: 'calc(100vh - 68px)',
+    pointerEvents: 'none',
   },
   modalHeaderRow: {
     display: 'flex',

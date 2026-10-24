@@ -576,8 +576,10 @@ export function DroneAsciiSimulation({
       dynamicBankRef.current += (bankAngle - dynamicBankRef.current) * 0.12;
       dynamicPitchRef.current += (climbPitch - dynamicPitchRef.current) * 0.12;
 
-      // Fade out hero leader lines & feature cards as user scrolls away from hero
-      const heroExit = Math.min(1.0, Math.max(0, sP / 0.08));
+      // Hero exit progress: begins immediately as soon as user scrolls even a tiny bit!
+      // At sTop = 0: heroExit = 0.
+      // By sP = 0.04 (approx 150-200px of scrolling), heroExit = 1.0 (completely faded out).
+      const heroExit = Math.min(1.0, Math.max(0, sP / 0.035));
       const hudHeroOpacity = Math.max(0, 1.0 - heroExit);
       if (svgRef.current) {
         svgRef.current.style.opacity = String(hudHeroOpacity * (globalProgress >= 0.7 ? 1 : 0));
@@ -585,46 +587,46 @@ export function DroneAsciiSimulation({
       }
       if (card1Ref.current) {
         card1Ref.current.style.opacity = String(hudHeroOpacity);
-        card1Ref.current.style.transform = `translate3d(0, ${-sP * 120}px, 0)`;
+        card1Ref.current.style.transform = `translate3d(0, ${-heroExit * 80}px, 0)`;
         card1Ref.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
       }
       if (card2Ref.current) {
         card2Ref.current.style.opacity = String(hudHeroOpacity);
-        card2Ref.current.style.transform = `translate3d(0, ${-sP * 120}px, 0)`;
+        card2Ref.current.style.transform = `translate3d(0, ${-heroExit * 80}px, 0)`;
         card2Ref.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
       }
       if (card3Ref.current) {
         card3Ref.current.style.opacity = String(hudHeroOpacity);
-        card3Ref.current.style.transform = `translate3d(0, ${-sP * 120}px, 0)`;
+        card3Ref.current.style.transform = `translate3d(0, ${-heroExit * 80}px, 0)`;
         card3Ref.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
       }
       if (card4Ref.current) {
         card4Ref.current.style.opacity = String(hudHeroOpacity);
-        card4Ref.current.style.transform = `translate3d(0, ${-sP * 120}px, 0)`;
+        card4Ref.current.style.transform = `translate3d(0, ${-heroExit * 80}px, 0)`;
         card4Ref.current.style.pointerEvents = hudHeroOpacity < 0.05 ? 'none' : 'auto';
       }
 
       // Dynamic Flight Path: Translate, Scale, and Float
       // Hero (sP = 0): Center, scale 1.0, 0px X, 0px Y
-      // Section 2 Manifesto (sP ~ 0.12..0.35): Escorts to top-right flank, scales down to 0.42
-      // Section 3 Pillars (sP ~ 0.35..0.65): Glides to right margin, dynamic bank
-      // Section 4 Guide (sP ~ 0.65..0.85): hovers high escort
-      // Approaching Grand Footer (sP > 0.88): soft fade out into launch hangar
-      const escortPhase = Math.min(1.0, Math.max(0, (sP - 0.04) / 0.18));
-      const footerExit = Math.min(1.0, Math.max(0, (sP - 0.86) / 0.08));
+      // As user scrolls: drone descends into flight motion, shrinks in size down to ~0.42,
+      // and escorts the user alongside the content on the right flank!
+      // In Manifesto (sP ~ 0.04..0.25): escortPhase ramps 0 -> 1.0.
+      const escortPhase = Math.min(1.0, Math.max(0, sP / 0.06));
+      const footerExit = Math.min(1.0, Math.max(0, (sP - 0.88) / 0.08));
       const overallDroneOpacity = Math.max(0, 1.0 - footerExit * 0.95);
 
-      // Flank translation in viewport percentage
-      // In Hero: 0px offset. In Section 2+: drifts to flank (+32vw or ~360px on desktop) and -14vh up
-      const targetTransX = escortPhase * 34; // vw
-      const targetTransY = escortPhase * -12; // vh
+      // Flank translation:
+      // Hero: 0vw, 0vh
+      // Escort mode: drifts to right flank (+30vw) and hovers at an accessible viewing height (-4vh)
+      const targetTransX = escortPhase * 30; // vw
+      const targetTransY = escortPhase * -4; // vh
       const droneScale = 1.0 - escortPhase * 0.58; // 1.0 -> 0.42 scale
 
-      // Floating hover bobbing
-      const hoverAltitude = Math.sin(currentTime * 0.0028) * (escortPhase > 0.2 ? 10 : 3);
+      // Dynamic flying bob & aerodynamic bank wobble while moving
+      const flightWobble = Math.sin(currentTime * 0.003) * (escortPhase > 0.2 ? 8 : 3);
 
       if (preRef.current) {
-        preRef.current.style.transform = `translate3d(calc(${targetTransX}vw + 0px), calc(${targetTransY}vh + ${hoverAltitude}px), 0) scale(${droneScale.toFixed(3)})`;
+        preRef.current.style.transform = `translate3d(calc(${targetTransX}vw + 0px), calc(${targetTransY}vh + ${flightWobble}px), 0) scale(${droneScale.toFixed(3)})`;
         preRef.current.style.opacity = overallDroneOpacity.toFixed(3);
       }
 
