@@ -135,5 +135,26 @@ The session score weighted mean distributes total contact weight (1.0) dynamical
   - Elite: Unconstrained
 - Generator re-rolls up to 8 attempts; if still exceeding the tier limit, it systematically drops striker drones until the ratio complies.
 
+## ADR-010: Phase 4A Doctrine Scoring v2, Observability Exclusion, Jammer Waiver, and ROE Cap
+
+### 1. Observability Exclusion Rationale
+- **Context**: In challenging terrain or dense clutter environments, certain actors may never produce a confirmed radar track due to terrain masking, low radar cross section at extreme range, or rapid departure.
+- **Decision**: Actors that never produce at least one confirmed radar track are marked `observable: false` and placed into `unobservable: UnobservableContact[]`. They are strictly excluded from the session weighted mean calculation.
+- **Rationale**: Operators should not be penalized for physical radar line-of-sight constraints or sensor geometry blind spots beyond operator control. Scoring evaluates tactical decision-making on observable tracks rather than penalizing unobservable reality.
+
+### 2. Jammer Waiver Policy on Non-RF Targets
+- **Context**: In multi-target swarm environments with passive RF line-of-bearing strobes, an operator may fire an RF jammer at a target that is ground-truth non-RF (such as `fpv_fiber` or `decoy_drone`) because an RF cue was present.
+- **Decision**: When an operator engages a non-RF target with an RF jammer, the fit penalty is graded according to the track's perceived `rfStatus`:
+  - `rfStatus === 'emitting'`: 0 pts penalty (1.0 fit score). Penalty waived (`cause: 'fit_wrong_jammer_emitting_waived'`, note: "waived (information_limited)").
+  - `rfStatus === 'ambiguous'`: -2 pts penalty (0.6 fit score, `cause: 'fit_wrong_jammer_ambiguous'`).
+  - `rfStatus === 'silent'`: -5 pts penalty (0.0 fit score, `cause: 'fit_wrong_jammer_silent'`).
+- **Rationale**: If the sensor fusion system indicated an active RF strobe on the contact's bearing, the operator made a doctrinally sound decision based on available sensor information. Penalizing operators for sensor false correlations discourages aggressive soft-kill defense. Conversely, firing a jammer against a known RF-silent track represents procedural negligence.
+
+### 3. Strict Rules of Engagement (ROE) Cap
+- **Context**: Engaging civilian infrastructure or non-hostile civilian drones (`commercial_quad`) is a critical breach of air defense rules of engagement.
+- **Decision**: In addition to the standard $-25$ mission penalty for engaging a civilian quadcopter, any engagement on a `commercial_quad` triggers `roeCapApplied = true` and caps the session total score at $\le 60$ (`ROE_CAP_SCORE = 60`).
+- **Rationale**: High procedural efficiency in neutralizing hostile drones cannot compensate for engaging civilian contacts. Capping the score at 60 ensures that a session involving an ROE civilian violation cannot receive a passing/proficient grade regardless of swarm defense performance.
+
+
 
 

@@ -3,7 +3,6 @@ import {
   Engine,
   referenceOperator,
   scoreSession,
-  generateScenario,
   Tier,
   TraineeView,
   Command,

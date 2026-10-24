@@ -272,5 +272,73 @@ Formations are computed deterministically without boids algorithms using leader-
   - Trainee View and Console: Track table displays amber `AMBIG` tag; Detail panel indicates `AMBIGUOUS (CO-BEARING)`.
   - Operator Bot Rule: `referenceOperator` never jams an ambiguous track (preventing false jammer expenditure); it uses gun when threat enters $\le 1000\text{ m}$, otherwise waits or tracks with EO.
 
+## 8. Phase 4A Architecture Additions: Doctrine Scoring v2
+
+### Overview
+Doctrine Scoring v2 (`src/sim/scoring/doctrine.ts`) replaces the baseline scoring engine with an explicit, interpretable decision-tree evaluation pipeline. Every contact produces a fully inspectable decision path (`decisionPath: DecisionNode[]`) tracing each subscore judgment, underlying telemetry cause, and point allocation.
+
+### Decision Tree Structure
+
+```
+                             [ Actor Evaluation ]
+                                       |
+                   +-------------------+-------------------+
+                   |                                       |
+          [ Observable? ]                         [ Unobservable? ]
+        (Has confirmed track)                   (0 confirmed tracks)
+                   |                                       |
+         +---------+---------+                     [ Excluded from Mean ]
+         |                   |                     (Moved to unobservable[])
+   [ Hostile ]           [ Neutral ]
+   (Weight = 4)         (Weight = 1)
+         |                   |
+         |                   +---> Detection Latency (<=3s full, >=20s zero)
+         |                   +---> Classification (Non-hostile = 1.0, Hostile = 0.0)
+         |                   +---> Engagement / ROE (Held Fire = 1.0, Engaged = 0.0)
+         |
+         +---> Detection Latency (<=3s full, >=20s zero)
+         +---> Classification (Exact = 1.0, FPV Family = 0.5, Wrong/Unknown = 0.0)
+         +---> Engagement Sub-Tree (Outcome 0.6 + Fit 0.2 + Latency 0.2):
+                 |
+                 +---> Outcome (Standoff Range):
+                 |       ├── >= 400m : 1.0 (Full credit)
+                 |       ├── 200m - 400m : 0.5 (Half credit)
+                 |       └── < 200m or Unneutralised : 0.0
+                 |
+                 +---> Effector Fit:
+                 |       ├── Gun on any threat : 1.0
+                 |       ├── Jammer on RF target : 1.0
+                 |       └── Jammer on non-RF target (Waiver Matrix):
+                 |             ├── Target 'emitting' (ghost/co-bearing RF) : 1.0 (Waived)
+                 |             ├── Target 'ambiguous' RF : 0.6 (-2 penalty)
+                 |             └── Target 'silent' RF : 0.0 (-5 penalty)
+                 |
+                 +---> Engagement Latency:
+                         ├── <= 4s post-classification : 1.0
+                         └── >= 15s post-classification : 0.0
+
+                      [ Mission-Level Penalties ]
+                                   |
+         ├── Defended Asset Hit : -30 pts (once per session)
+         ├── False Track Engagement : -5 pts per occurrence
+         ├── Bird Engagement : -5 pts per occurrence
+         ├── Decoy Engagement : -3 pts per occurrence
+         ├── Civilian Quad Engagement : -25 pts per occurrence
+         └── Strict ROE Cap : Total score clamped <= 60 if civilian quad engaged
+```
+
+### Subscores & Contact Weighting
+- **Weights**: Hostile contacts receive `HOSTILE_WEIGHT = 4`; Neutral contacts receive `NEUTRAL_WEIGHT = 1`.
+- **Contact Breakdown**:
+  - Detection ($D$): $20\%$ weight.
+  - Classification ($C$): $25\%$ weight.
+  - Engagement ($E$): $55\%$ weight ($0.6 \times \text{Outcome} + 0.2 \times \text{Fit} + 0.2 \times \text{Latency}$).
+- **Aggregated Subscores**:
+  - `subscores.detection`: Weighted mean of $D \times 100$.
+  - `subscores.classification`: Weighted mean of $C \times 100$.
+  - `subscores.engagement`: Weighted mean of $E \times 100$ (over hostile contacts).
+  - `subscores.discipline`: $100$ minus mission penalty deductions (clamped $[0, 100]$).
+
+
 
 

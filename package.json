@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "test": "vitest run --exclude 'tests/targets/**'",
+    "test": "vitest run --exclude \"tests/targets/**\"",
     "test:targets": "vitest run tests/targets",
     "headless": "tsx scripts/headless.ts",
     "lint": "eslint .",

@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - Phase 4A: Doctrine Scoring v2, Capacity Window, Bot Optimization
+
+### Added
+- **Doctrine Scoring v2 (`src/sim/scoring/doctrine.ts`, `doctrineConstants.ts`)**:
+  - Decision-tree scoring engine (`scoreSessionV2`) evaluating observable contacts through discrete tactical nodes.
+  - Per-contact inspectable `decisionPath: DecisionNode[]` documenting exact questions, answers, points, and causes.
+  - Subscore badges: Detection, Classification, Engagement, and Discipline ($0 - 100$).
+  - Observability filtering: Contacts without confirmed radar tracks are categorized as `unobservable` and excluded from the weighted mean.
+  - Jammer waiver matrix: Waives penalty for firing jammer on non-RF targets when sensor fusion indicates `emitting` (0 penalty) vs `ambiguous` (-2 penalty) vs `silent` (-5 penalty).
+  - Mission penalties: ASSET_HIT (-30), FALSE_TRACK (-5), CIVILIAN_QUAD_ENGAGED (-25), BIRD_ENGAGED (-5), DECOY_ENGAGED (-3).
+  - Strict ROE ceiling: Engagements against civilian quadcopters trigger a hard score cap of $\le 60$.
+  - Unit test suite (`tests/doctrine.test.ts`) covering all 9 doctrine decision tree criteria.
+- **Debrief UI v2 (`src/app/console/DebriefScreen.tsx`)**:
+  - Tabbed interface switching seamlessly between Doctrine v2 (default) and Legacy v1 scoring.
+  - 4 subscore badges with color-coded performance grading.
+  - Per-contact table showing role, true class, assessed class, subscores, and interactive collapsible decision path trace.
+  - Unobservable contacts grid highlighting sensor geometry blindspots.
+  - Prominent alert banners for Mission Penalties and ROE Cap activation.
+- **Terrain-Aware Capacity Generator (`src/sim/scenarios/capacity.ts`, `generator.ts`)**:
+  - Integration of procedural terrain elevations and raymarching into the analytical capacity model.
+  - Detectability warning window ensuring threats emerge with sufficient engagement time before asset impact.
+- **Reference Bot Enhancements (`src/sim/bots/referenceOperator.ts`)**:
+  - Expected-value engagement logic for ambiguous RF tracks with $\text{TTI} < 25\text{ s}$.
+  - Improved multi-axis swarm defense and effector coordination.
+
 ## [0.6.1] - Phase 3C: Benchmark Discipline, Capacity-Aware Generator, Decoys, RF Ambiguity
 
 ### Added
