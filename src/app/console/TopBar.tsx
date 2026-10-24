@@ -335,6 +335,17 @@ export function TopBar({
               }}
               onMouseLeave={handleDropdownLeave}
             >
+              <button
+                type="button"
+                className="mega-panel-close-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCloseDropdown();
+                }}
+                aria-label="Close"
+              >
+                ✕
+              </button>
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
                   <div className="mega-menu-card-item" onClick={() => handleSelectScenario('dawn_intrusion')}>
@@ -443,7 +454,7 @@ export function TopBar({
 
             {/* Mega Dropdown Panel: Systems */}
             <div
-              className={`mega-dropdown-panel ${activeDropdown === 'systems' ? 'is-open' : ''}`}
+              className={`mega-dropdown-panel panel-right-align ${activeDropdown === 'systems' ? 'is-open' : ''}`}
               onMouseEnter={() => {
                 if (leaveTimerRef.current) {
                   clearTimeout(leaveTimerRef.current);
@@ -452,6 +463,17 @@ export function TopBar({
               }}
               onMouseLeave={handleDropdownLeave}
             >
+              <button
+                type="button"
+                className="mega-panel-close-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCloseDropdown();
+                }}
+                aria-label="Close"
+              >
+                ✕
+              </button>
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
@@ -572,7 +594,7 @@ export function TopBar({
 
             {/* Mega Dropdown Panel: Intel */}
             <div
-              className={`mega-dropdown-panel ${activeDropdown === 'intel' ? 'is-open' : ''}`}
+              className={`mega-dropdown-panel panel-right-align ${activeDropdown === 'intel' ? 'is-open' : ''}`}
               onMouseEnter={() => {
                 if (leaveTimerRef.current) {
                   clearTimeout(leaveTimerRef.current);
@@ -581,6 +603,17 @@ export function TopBar({
               }}
               onMouseLeave={handleDropdownLeave}
             >
+              <button
+                type="button"
+                className="mega-panel-close-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCloseDropdown();
+                }}
+                aria-label="Close"
+              >
+                ✕
+              </button>
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
@@ -680,7 +713,7 @@ export function TopBar({
           </div>
         </div>
 
-        {/* Right: Contextual Telemetry & Controls or Setup Launch Button */}
+        {/* Right: Audio toggle + Setup Launch Button */}
         <div style={styles.navRight}>
           {/* Audio toggle — always visible, muted by default (browser autoplay policy) */}
           <button
@@ -690,25 +723,24 @@ export function TopBar({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '5px',
-              padding: '5px 10px',
+              padding: '6px 12px',
               background: isMuted ? 'rgba(20,15,10,0.08)' : 'rgba(255,107,26,0.14)',
               border: `1px solid ${isMuted ? 'rgba(20,15,10,0.25)' : 'rgba(255,107,26,0.6)'}`,
-              borderRadius: '4px',
+              borderRadius: '6px',
               color: isMuted ? '#2d1f0e' : '#cc4a00',
               cursor: 'pointer',
-              fontSize: '10px',
+              fontSize: '11px',
               fontFamily: 'monospace',
               fontWeight: 800,
               letterSpacing: '0.08em',
               transition: 'all 0.2s ease',
-              marginRight: '10px',
               flexShrink: 0,
             }}
           >
             {isMuted ? <IconMute /> : <IconVolume />}
             <span>{isMuted ? 'AUDIO OFF' : 'AUDIO ON'}</span>
           </button>
-          {phase === 'setup' ? (
+          {phase === 'setup' && (
             <div style={styles.setupNavRight} className="anim-curved-slide anim-delay-5">
               <button
                 id="btn-nav-launch-mission"
@@ -719,9 +751,16 @@ export function TopBar({
                 <TextRoll center stagger={0.02}>LAUNCH MISSION</TextRoll>
               </button>
             </div>
-          ) : (
-            <div style={styles.runningActionCluster}>
-              {/* Mission Scenario and Environment */}
+          )}
+        </div>
+      </nav>
+
+      {/* Dedicated Tactical Mission HUD Bar (when running or ended) */}
+      {phase !== 'setup' && (
+        <div style={styles.missionBar}>
+          <div style={styles.missionBarInner}>
+            {/* Left: Mission Metadata */}
+            <div style={styles.missionMetaCluster}>
               <div style={styles.missionTitle}>
                 <TextRoll center stagger={0.03}>{scTitle}</TextRoll>
               </div>
@@ -758,7 +797,10 @@ export function TopBar({
                 <span style={styles.seedLabel}>SEED:</span>
                 <span style={styles.seedValue}>{seed}</span>
               </div>
+            </div>
 
+            {/* Right: Operational Controls */}
+            <div style={styles.missionControlsCluster}>
               {/* Speed Buttons */}
               <div style={styles.buttonGroup}>
                 <button
@@ -802,9 +844,9 @@ export function TopBar({
                 <TextRoll center>{autopilot ? '🤖 AUTOPILOT: ON' : '🤖 AUTOPILOT: OFF'}</TextRoll>
               </button>
             </div>
-          )}
+          </div>
         </div>
-      </nav>
+      )}
     </header>
   );
 }
@@ -823,7 +865,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '16px 32px',
+    padding: '12px 32px',
     backgroundColor: 'transparent',
     border: 'none',
     maxWidth: '1440px',
@@ -831,6 +873,40 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     boxSizing: 'border-box',
     gap: '16px',
+  },
+  missionBar: {
+    width: '100%',
+    padding: '0 32px 10px 32px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    justifyContent: 'center',
+    position: 'relative',
+    zIndex: 90,
+  },
+  missionBarInner: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'rgba(28, 25, 23, 0.04)',
+    border: '1px solid rgba(28, 25, 23, 0.12)',
+    borderRadius: '8px',
+    padding: '8px 16px',
+    width: '100%',
+    maxWidth: '1440px',
+    boxSizing: 'border-box',
+    gap: '16px',
+    flexWrap: 'wrap',
+  },
+  missionMetaCluster: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    flexWrap: 'wrap',
+  },
+  missionControlsCluster: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
     flexWrap: 'wrap',
   },
   navDivider: {
