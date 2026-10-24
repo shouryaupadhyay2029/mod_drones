@@ -18,11 +18,19 @@ import {
   SwarmMemberConfig,
   SwarmTactic,
 } from './swarm.js';
+import { capacityCheck } from './capacity.js';
 
 export const GEN_VERSION = 1;
 
 export type Tier = 'recruit' | 'operator' | 'veteran' | 'elite';
 export type Fingerprint = string;
+
+export const TIER_CAPACITY_LIMITS: Record<Tier, number> = {
+  recruit: 0.6,
+  operator: 0.6,
+  veteran: 0.8,
+  elite: Infinity,
+};
 
 export interface ProceduralScenario {
   scenarioId: string;
@@ -86,16 +94,60 @@ export function generateScenario(
   const rootRng = new Rng(seed);
   const genRng = rootRng.fork('gen');
 
+  const limit = TIER_CAPACITY_LIMITS[tier];
   let bestScenario: ProceduralScenario | null = null;
+  let minRatio = Infinity;
 
   for (let attempt = 0; attempt < 8; attempt++) {
     const attemptRng = genRng.fork(`attempt:${attempt}`);
     const scenario = buildSingleScenario(seed, tier, attemptRng);
+    const ratio = capacityCheck(scenario.spawns);
 
-    if (!avoid.includes(scenario.fingerprint)) {
+    if (ratio < minRatio) {
+      minRatio = ratio;
+      bestScenario = scenario;
+    }
+
+    const capacityOk = ratio <= limit;
+    const fingerprintOk = !avoid.includes(scenario.fingerprint);
+
+    if (capacityOk && fingerprintOk) {
       return scenario;
     }
-    bestScenario = scenario;
+  }
+
+  // If after 8 attempts capacityRatio still exceeds tier limit (elite unconstrained),
+  // drop striker while capacityRatio exceeds the tier limit
+  if (bestScenario && limit < Infinity) {
+    let dropped = false;
+    while (capacityCheck(bestScenario.spawns) > limit) {
+      let lastStrikerIdx = -1;
+      for (let i = bestScenario.spawns.length - 1; i >= 0; i--) {
+        const s = bestScenario.spawns[i]!;
+        if (s.role === 'striker' || s.classId === 'fpv_kamikaze' || s.classId === 'fpv_fiber') {
+          lastStrikerIdx = i;
+          break;
+        }
+      }
+      if (lastStrikerIdx === -1) break;
+      bestScenario.spawns.splice(lastStrikerIdx, 1);
+      dropped = true;
+    }
+
+    if (dropped) {
+      const classCounts: Record<string, number> = {};
+      const bearings: number[] = [];
+      for (const s of bestScenario.spawns) {
+        classCounts[s.classId] = (classCounts[s.classId] ?? 0) + 1;
+        bearings.push(bearingDeg(vec3(0, 0, 0), s.pos));
+      }
+      bestScenario.fingerprint = computeFingerprint(
+        bestScenario.tactic ?? 'direct',
+        classCounts,
+        bearings,
+        bestScenario.environment
+      );
+    }
   }
 
   return bestScenario!;
