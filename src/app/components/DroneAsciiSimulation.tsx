@@ -398,6 +398,7 @@ export function DroneAsciiSimulation({
   const smoothedScrollRef = useRef<number>(0);
   const dynamicBankRef = useRef<number>(0);
   const dynamicPitchRef = useRef<number>(0);
+  const wasScrolledRef = useRef<boolean>(false);
 
   // Mouse drag listeners for interactive 3D inspection
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -422,34 +423,38 @@ export function DroneAsciiSimulation({
 
   // Recompute layout bounds when window resizes or component mounts
   const updateLayoutBounds = () => {
-    if (!containerRef.current || !preRef.current) return;
-    const cont = containerRef.current.getBoundingClientRect();
-    const pre = preRef.current.getBoundingClientRect();
-    const c1 = card1Ref.current?.getBoundingClientRect();
-    const c2 = card2Ref.current?.getBoundingClientRect();
-    const c3 = card3Ref.current?.getBoundingClientRect();
-    const c4 = card4Ref.current?.getBoundingClientRect();
+    if (!containerRef.current) return;
+    const contW = containerRef.current.clientWidth || window.innerWidth;
+    const contH = containerRef.current.clientHeight || Math.max(400, window.innerHeight - 68);
+
+    const c1 = card1Ref.current;
+    const c2 = card2Ref.current;
+    const c3 = card3Ref.current;
+    const c4 = card4Ref.current;
+    const pre = preRef.current;
 
     const standoff = 24;
 
-    const c1Pos = c1
-      ? { x: c1.right - cont.left + standoff, y: c1.top - cont.top + c1.height / 2 }
-      : { x: 310, y: 90 };
-    const c2Pos = c2
-      ? { x: c2.left - cont.left - standoff, y: c2.top - cont.top + c2.height / 2 }
-      : { x: cont.width - 310, y: 90 };
-    const c3Pos = c3
-      ? { x: c3.right - cont.left + standoff, y: c3.top - cont.top + c3.height / 2 }
-      : { x: 310, y: cont.height - 90 };
-    const c4Pos = c4
-      ? { x: c4.left - cont.left - standoff, y: c4.top - cont.top + c4.height / 2 }
-      : { x: cont.width - 310, y: cont.height - 90 };
+    const c1Pos = c1 && c1.offsetWidth > 50
+      ? { x: c1.offsetLeft + c1.offsetWidth + standoff, y: c1.offsetTop + c1.offsetHeight / 2 }
+      : { x: 338, y: 86 };
 
-    const isPopulated = pre.width > 200 && pre.height > 150;
-    const preWidth = isPopulated ? pre.width : Math.min(cont.width, 1080);
-    const preHeight = isPopulated ? pre.height : Math.min(cont.height, 640);
-    const preLeft = isPopulated ? pre.left - cont.left : (cont.width - preWidth) / 2;
-    const preTop = isPopulated ? pre.top - cont.top : (cont.height - preHeight) / 2;
+    const c2Pos = c2 && c2.offsetWidth > 50
+      ? { x: c2.offsetLeft - standoff, y: c2.offsetTop + c2.offsetHeight / 2 }
+      : { x: contW - 338, y: 86 };
+
+    const c3Pos = c3 && c3.offsetWidth > 50
+      ? { x: c3.offsetLeft + c3.offsetWidth + standoff, y: c3.offsetTop + c3.offsetHeight / 2 }
+      : { x: 338, y: contH - 86 };
+
+    const c4Pos = c4 && c4.offsetWidth > 50
+      ? { x: c4.offsetLeft - standoff, y: c4.offsetTop + c4.offsetHeight / 2 }
+      : { x: contW - 338, y: contH - 86 };
+
+    const preWidth = pre && pre.offsetWidth > 200 ? pre.offsetWidth : Math.min(contW, 1080);
+    const preHeight = pre && pre.offsetHeight > 150 ? pre.offsetHeight : Math.min(contH, 640);
+    const preLeft = pre && pre.offsetWidth > 200 ? pre.offsetLeft : (contW - preWidth) / 2;
+    const preTop = pre && pre.offsetHeight > 150 ? pre.offsetTop : (contH - preHeight) / 2;
 
     layoutRef.current = {
       c1: c1Pos,
@@ -463,7 +468,7 @@ export function DroneAsciiSimulation({
     };
 
     if (svgRef.current) {
-      svgRef.current.setAttribute('viewBox', `0 0 ${cont.width} ${cont.height}`);
+      svgRef.current.setAttribute('viewBox', `0 0 ${contW} ${contH}`);
     }
 
     if (pinTlRef.current) {
@@ -564,6 +569,16 @@ export function DroneAsciiSimulation({
       smoothedScrollRef.current += (scrollProgress - smoothedScrollRef.current) * 0.10;
       const sP = smoothedScrollRef.current;
 
+      // When returning to hero top, restore layout bounds so leader lines connect with 100% precision
+      if (sP <= 0.005) {
+        if (wasScrolledRef.current) {
+          wasScrolledRef.current = false;
+          updateLayoutBounds();
+        }
+      } else {
+        wasScrolledRef.current = true;
+      }
+
       // Escort phase ramps up immediately when scrolling starts (0 to 1 over first 5% of scroll)
       const escortPhase = Math.min(1.0, Math.max(0, sP / 0.05));
 
@@ -598,10 +613,10 @@ export function DroneAsciiSimulation({
 
       if (svgRef.current) {
         if (isHudHidden) {
-          svgRef.current.style.display = 'none';
+          svgRef.current.style.visibility = 'hidden';
           svgRef.current.style.opacity = '0';
         } else {
-          svgRef.current.style.display = 'block';
+          svgRef.current.style.visibility = 'visible';
           svgRef.current.style.opacity = activeHudOpacity.toFixed(3);
         }
         svgRef.current.style.pointerEvents = 'none';
@@ -610,11 +625,11 @@ export function DroneAsciiSimulation({
       const updateFeatureCard = (card: HTMLDivElement | null, dirX: number) => {
         if (!card) return;
         if (isHudHidden) {
-          card.style.display = 'none';
+          card.style.visibility = 'hidden';
           card.style.opacity = '0';
           card.style.pointerEvents = 'none';
         } else {
-          card.style.display = 'block';
+          card.style.visibility = 'visible';
           card.style.opacity = activeHudOpacity.toFixed(3);
           card.style.transform = `translate3d(${dirX * heroExit * 40}px, ${-heroExit * 60}px, 0)`;
           card.style.pointerEvents = 'none';
