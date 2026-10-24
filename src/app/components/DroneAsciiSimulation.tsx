@@ -648,8 +648,16 @@ export function DroneAsciiSimulation({
       // Hero (sP = 0): Center, scale 1.0, 0px X, 0px Y
       // As user scrolls: drone descends into flight motion, shrinks in size down to ~0.40,
       // and escorts the user alongside the content on the right flank all the way down to the footer!
-      const footerExit = Math.min(1.0, Math.max(0, (sP - 0.90) / 0.08));
-      const overallDroneOpacity = Math.max(0, 1.0 - footerExit * 0.92);
+      // Footer entry: sP 0.85 → 0.95 — drone transitions to bright orange so it stays
+      // visible against the dark footer background instead of vanishing.
+      const footerEnter = Math.min(1.0, Math.max(0, (sP - 0.85) / 0.10));
+      const overallDroneOpacity = 1.0; // never fade out — color change handles visibility
+
+      // Lerp color channels: normal (#050505) → vivid orange (#ff6b1a) in footer
+      const cr = Math.round(5   + footerEnter * (255 - 5));   // 5   → 255
+      const cg = Math.round(5   + footerEnter * (107 - 5));   // 5   → 107
+      const cb = Math.round(5   + footerEnter * (26  - 5));   // 5   → 26
+      const droneColor = `rgb(${cr},${cg},${cb})`;
 
       // Flank translation:
       // Hero: 0vw, 0vh
@@ -666,6 +674,11 @@ export function DroneAsciiSimulation({
       if (preRef.current) {
         preRef.current.style.transform = `translate3d(calc(${targetTransX}vw + 0px), calc(${targetTransY}vh + ${flightWobble}px), 0) scale(${droneScale.toFixed(3)})`;
         preRef.current.style.opacity = overallDroneOpacity.toFixed(3);
+        preRef.current.style.color = droneColor;
+        // In footer: add a warm glow shadow so orange pops against dark background
+        preRef.current.style.textShadow = footerEnter > 0.05
+          ? `0 0 ${Math.round(6 * footerEnter)}px rgba(255,107,26,${(0.6 * footerEnter).toFixed(2)})`
+          : '0 0 1px rgba(0,0,0,0.35)';
       }
 
       // Generate dynamic 3-blade spinning propellers cleanly contained inside ducted guards
