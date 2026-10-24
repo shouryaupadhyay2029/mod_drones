@@ -1,0 +1,167 @@
+{
+  "total": 66,
+  "weightedMean": 66.2,
+  "subscores": {
+    "detection": 100,
+    "classification": 0,
+    "engagement": 84,
+    "discipline": 100
+  },
+  "perContact": [
+    {
+      "actorId": 1,
+      "classId": "bird",
+      "weight": 1,
+      "observable": true,
+      "d": 1,
+      "c": 0,
+      "e": 1,
+      "contactTotal": 0.75,
+      "totalScore": 75,
+      "decisionPath": [
+        {
+          "id": "detection",
+          "question": "Was track detected and acknowledged promptly?",
+          "answer": "Acknowledged in 0.0s",
+          "points": 20,
+          "maxPoints": 20,
+          "cause": null,
+          "note": "Latency: 0.0s"
+        },
+        {
+          "id": "classification",
+          "question": "Was contact identified as neutral/civilian?",
+          "answer": "Unclassified",
+          "points": 0,
+          "maxPoints": 25,
+          "cause": null,
+          "note": "True: bird, Assessed: none"
+        },
+        {
+          "id": "rules_of_engagement",
+          "question": "Was fire held against neutral/civilian contact?",
+          "answer": "Fire held (no engagement)",
+          "points": 55,
+          "maxPoints": 55,
+          "cause": null,
+          "note": "Complied with ROE"
+        }
+      ],
+      "ackLatencySec": 0,
+      "outcome": 0,
+      "fit": 0,
+      "latency": 0
+    },
+    {
+      "actorId": 2,
+      "classId": "commercial_quad",
+      "weight": 1,
+      "observable": true,
+      "d": 1,
+      "c": 0,
+      "e": 1,
+      "contactTotal": 0.75,
+      "totalScore": 75,
+      "decisionPath": [
+        {
+          "id": "detection",
+          "question": "Was track detected and acknowledged promptly?",
+          "answer": "Acknowledged in 0.0s",
+          "points": 20,
+          "maxPoints": 20,
+          "cause": null,
+          "note": "Latency: 0.0s"
+        },
+        {
+          "id": "classification",
+          "question": "Was contact identified as neutral/civilian?",
+          "answer": "Unclassified",
+          "points": 0,
+          "maxPoints": 25,
+          "cause": null,
+          "note": "True: commercial_quad, Assessed: none"
+        },
+        {
+          "id": "rules_of_engagement",
+          "question": "Was fire held against neutral/civilian contact?",
+          "answer": "Fire held (no engagement)",
+          "points": 55,
+          "maxPoints": 55,
+          "cause": null,
+          "note": "Complied with ROE"
+        }
+      ],
+      "ackLatencySec": 0,
+      "outcome": 0,
+      "fit": 0,
+      "latency": 0
+    },
+    {
+      "actorId": 3,
+      "classId": "fpv_kamikaze",
+      "weight": 4,
+      "observable": true,
+      "d": 1,
+      "c": 0,
+      "e": 0.76,
+      "contactTotal": 0.618,
+      "totalScore": 62,
+      "decisionPath": [
+        {
+          "id": "detection",
+          "question": "Was track detected and acknowledged promptly?",
+          "answer": "Acknowledged in 0.0s",
+          "points": 20,
+          "maxPoints": 20,
+          "cause": null,
+          "note": "Latency: 0.0s"
+        },
+        {
+          "id": "classification",
+          "question": "Was threat accurately classified?",
+          "answer": "Unclassified",
+          "points": 0,
+          "maxPoints": 25,
+          "cause": null,
+          "note": "True: fpv_kamikaze, Assessed: none"
+        },
+        {
+          "id": "outcome",
+          "question": "Was threat neutralised before standoff range?",
+          "answer": "Neutralised at 732m",
+          "points": 33,
+          "maxPoints": 33,
+          "cause": null,
+          "note": "Distance: 732m"
+        },
+        {
+          "id": "effector_fit",
+          "question": "Appropriate effector choice for target signature?",
+          "answer": "Engaged with gun",
+          "points": 8.8,
+          "maxPoints": 11,
+          "cause": null,
+          "note": "Effector: gun"
+        },
+        {
+          "id": "engagement_latency",
+          "question": "Engagement dispatched promptly upon classification/confirmation?",
+          "answer": "Engaged within 96.0s",
+          "points": 0,
+          "maxPoints": 11,
+          "cause": null,
+          "note": "Latency: 96.0s"
+        }
+      ],
+      "ackLatencySec": 0,
+      "firstEngagementLatencySec": 96.05,
+      "outcome": 1,
+      "fit": 0.8,
+      "latency": 0
+    }
+  ],
+  "unobservable": [],
+  "penalties": [],
+  "roeCapApplied": false,
+  "reasons": []
+}

@@ -1,0 +1,142 @@
+{
+  "total": 73,
+  "weightedMean": 73.2,
+  "subscores": {
+    "detection": 100,
+    "classification": 0,
+    "engagement": 96.8,
+    "discipline": 100
+  },
+  "perContact": [
+    {
+      "actorId": 2,
+      "classId": "fpv_kamikaze",
+      "weight": 4,
+      "observable": true,
+      "d": 1,
+      "c": 0,
+      "e": 0.96,
+      "contactTotal": 0.728,
+      "totalScore": 73,
+      "decisionPath": [
+        {
+          "id": "detection",
+          "question": "Was track detected and acknowledged promptly?",
+          "answer": "Acknowledged in 0.0s",
+          "points": 20,
+          "maxPoints": 20,
+          "cause": null,
+          "note": "Latency: 0.0s"
+        },
+        {
+          "id": "classification",
+          "question": "Was threat accurately classified?",
+          "answer": "Unclassified",
+          "points": 0,
+          "maxPoints": 25,
+          "cause": null,
+          "note": "True: fpv_kamikaze, Assessed: none"
+        },
+        {
+          "id": "outcome",
+          "question": "Was threat neutralised before standoff range?",
+          "answer": "Neutralised at 548m",
+          "points": 33,
+          "maxPoints": 33,
+          "cause": null,
+          "note": "Distance: 548m"
+        },
+        {
+          "id": "effector_fit",
+          "question": "Appropriate effector choice for target signature?",
+          "answer": "Engaged with gun",
+          "points": 8.8,
+          "maxPoints": 11,
+          "cause": null,
+          "note": "Effector: gun"
+        },
+        {
+          "id": "engagement_latency",
+          "question": "Engagement dispatched promptly upon classification/confirmation?",
+          "answer": "Engaged within 0.0s",
+          "points": 11,
+          "maxPoints": 11,
+          "cause": null,
+          "note": "Latency: 0.0s"
+        }
+      ],
+      "ackLatencySec": 0,
+      "firstEngagementLatencySec": 0,
+      "outcome": 1,
+      "fit": 0.8,
+      "latency": 1
+    },
+    {
+      "actorId": 3,
+      "classId": "commercial_quad",
+      "weight": 1,
+      "observable": true,
+      "d": 1,
+      "c": 0,
+      "e": 1,
+      "contactTotal": 0.75,
+      "totalScore": 75,
+      "decisionPath": [
+        {
+          "id": "detection",
+          "question": "Was track detected and acknowledged promptly?",
+          "answer": "Acknowledged in 0.0s",
+          "points": 20,
+          "maxPoints": 20,
+          "cause": null,
+          "note": "Latency: 0.0s"
+        },
+        {
+          "id": "classification",
+          "question": "Was contact identified as neutral/civilian?",
+          "answer": "Unclassified",
+          "points": 0,
+          "maxPoints": 25,
+          "cause": null,
+          "note": "True: commercial_quad, Assessed: none"
+        },
+        {
+          "id": "rules_of_engagement",
+          "question": "Was fire held against neutral/civilian contact?",
+          "answer": "Fire held (no engagement)",
+          "points": 55,
+          "maxPoints": 55,
+          "cause": null,
+          "note": "Complied with ROE"
+        }
+      ],
+      "ackLatencySec": 0,
+      "outcome": 0,
+      "fit": 0,
+      "latency": 0
+    }
+  ],
+  "unobservable": [
+    {
+      "actorId": 1,
+      "classId": "bird",
+      "reason": "unobservable",
+      "note": "Contact never reached confirmed radar track state"
+    },
+    {
+      "actorId": 4,
+      "classId": "bird",
+      "reason": "unobservable",
+      "note": "Contact never reached confirmed radar track state"
+    },
+    {
+      "actorId": 5,
+      "classId": "fpv_kamikaze",
+      "reason": "unobservable",
+      "note": "Contact never reached confirmed radar track state"
+    }
+  ],
+  "penalties": [],
+  "roeCapApplied": false,
+  "reasons": []
+}

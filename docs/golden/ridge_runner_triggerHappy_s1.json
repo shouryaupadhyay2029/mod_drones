@@ -1,0 +1,237 @@
+{
+  "total": 8,
+  "weightedMean": 38,
+  "subscores": {
+    "detection": 100,
+    "classification": 0,
+    "engagement": 32.8,
+    "discipline": 70
+  },
+  "perContact": [
+    {
+      "actorId": 1,
+      "classId": "bird",
+      "weight": 1,
+      "observable": true,
+      "d": 1,
+      "c": 0,
+      "e": 1,
+      "contactTotal": 0.75,
+      "totalScore": 75,
+      "decisionPath": [
+        {
+          "id": "detection",
+          "question": "Was track detected and acknowledged promptly?",
+          "answer": "Acknowledged in 0.0s",
+          "points": 20,
+          "maxPoints": 20,
+          "cause": null,
+          "note": "Latency: 0.0s"
+        },
+        {
+          "id": "classification",
+          "question": "Was contact identified as neutral/civilian?",
+          "answer": "Unclassified",
+          "points": 0,
+          "maxPoints": 25,
+          "cause": null,
+          "note": "True: bird, Assessed: none"
+        },
+        {
+          "id": "rules_of_engagement",
+          "question": "Was fire held against neutral/civilian contact?",
+          "answer": "Fire held (no engagement)",
+          "points": 55,
+          "maxPoints": 55,
+          "cause": null,
+          "note": "Complied with ROE"
+        }
+      ],
+      "ackLatencySec": 0,
+      "outcome": 0,
+      "fit": 0,
+      "latency": 0
+    },
+    {
+      "actorId": 2,
+      "classId": "fpv_kamikaze",
+      "weight": 4,
+      "observable": true,
+      "d": 1,
+      "c": 0,
+      "e": 0.16,
+      "contactTotal": 0.288,
+      "totalScore": 29,
+      "decisionPath": [
+        {
+          "id": "detection",
+          "question": "Was track detected and acknowledged promptly?",
+          "answer": "Acknowledged in 0.0s",
+          "points": 20,
+          "maxPoints": 20,
+          "cause": null,
+          "note": "Latency: 0.0s"
+        },
+        {
+          "id": "classification",
+          "question": "Was threat accurately classified?",
+          "answer": "Unclassified",
+          "points": 0,
+          "maxPoints": 25,
+          "cause": null,
+          "note": "True: fpv_kamikaze, Assessed: none"
+        },
+        {
+          "id": "outcome",
+          "question": "Was threat neutralised before standoff range?",
+          "answer": "Threat reached asset (asset hit)",
+          "points": 0,
+          "maxPoints": 33,
+          "cause": null,
+          "note": "Missed"
+        },
+        {
+          "id": "effector_fit",
+          "question": "Appropriate effector choice for target signature?",
+          "answer": "Engaged with gun",
+          "points": 8.8,
+          "maxPoints": 11,
+          "cause": null,
+          "note": "Effector: gun"
+        },
+        {
+          "id": "engagement_latency",
+          "question": "Engagement dispatched promptly upon classification/confirmation?",
+          "answer": "Engaged within 63.6s",
+          "points": 0,
+          "maxPoints": 11,
+          "cause": null,
+          "note": "Latency: 63.6s"
+        }
+      ],
+      "ackLatencySec": 0,
+      "firstEngagementLatencySec": 63.65,
+      "outcome": 0,
+      "fit": 0.8,
+      "latency": 0
+    },
+    {
+      "actorId": 3,
+      "classId": "commercial_quad",
+      "weight": 1,
+      "observable": true,
+      "d": 1,
+      "c": 0,
+      "e": 1,
+      "contactTotal": 0.75,
+      "totalScore": 75,
+      "decisionPath": [
+        {
+          "id": "detection",
+          "question": "Was track detected and acknowledged promptly?",
+          "answer": "Acknowledged in 0.0s",
+          "points": 20,
+          "maxPoints": 20,
+          "cause": null,
+          "note": "Latency: 0.0s"
+        },
+        {
+          "id": "classification",
+          "question": "Was contact identified as neutral/civilian?",
+          "answer": "Unclassified",
+          "points": 0,
+          "maxPoints": 25,
+          "cause": null,
+          "note": "True: commercial_quad, Assessed: none"
+        },
+        {
+          "id": "rules_of_engagement",
+          "question": "Was fire held against neutral/civilian contact?",
+          "answer": "Fire held (no engagement)",
+          "points": 55,
+          "maxPoints": 55,
+          "cause": null,
+          "note": "Complied with ROE"
+        }
+      ],
+      "ackLatencySec": 0,
+      "outcome": 0,
+      "fit": 0,
+      "latency": 0
+    },
+    {
+      "actorId": 4,
+      "classId": "fpv_kamikaze",
+      "weight": 4,
+      "observable": true,
+      "d": 1,
+      "c": 0,
+      "e": 0.16,
+      "contactTotal": 0.288,
+      "totalScore": 29,
+      "decisionPath": [
+        {
+          "id": "detection",
+          "question": "Was track detected and acknowledged promptly?",
+          "answer": "Acknowledged in 0.0s",
+          "points": 20,
+          "maxPoints": 20,
+          "cause": null,
+          "note": "Latency: 0.0s"
+        },
+        {
+          "id": "classification",
+          "question": "Was threat accurately classified?",
+          "answer": "Unclassified",
+          "points": 0,
+          "maxPoints": 25,
+          "cause": null,
+          "note": "True: fpv_kamikaze, Assessed: none"
+        },
+        {
+          "id": "outcome",
+          "question": "Was threat neutralised before standoff range?",
+          "answer": "Neutralised at 773m",
+          "points": 0,
+          "maxPoints": 33,
+          "cause": null,
+          "note": "Distance: 773m"
+        },
+        {
+          "id": "effector_fit",
+          "question": "Appropriate effector choice for target signature?",
+          "answer": "Engaged with gun",
+          "points": 8.8,
+          "maxPoints": 11,
+          "cause": null,
+          "note": "Effector: gun"
+        },
+        {
+          "id": "engagement_latency",
+          "question": "Engagement dispatched promptly upon classification/confirmation?",
+          "answer": "Engaged within 104.0s",
+          "points": 0,
+          "maxPoints": 11,
+          "cause": null,
+          "note": "Latency: 104.0s"
+        }
+      ],
+      "ackLatencySec": 0,
+      "firstEngagementLatencySec": 104.05,
+      "outcome": 0,
+      "fit": 0.8,
+      "latency": 0
+    }
+  ],
+  "unobservable": [],
+  "penalties": [
+    {
+      "reason": "Defended asset was hit: -30",
+      "points": 30
+    }
+  ],
+  "roeCapApplied": false,
+  "reasons": [
+    "Defended asset was hit: -30"
+  ]
+}

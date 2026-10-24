@@ -1,4 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync, existsSync } from 'fs';
+import { Engine } from '../src/sim/core/engine.js';
+import { referenceOperator } from '../src/sim/bots/referenceOperator.js';
+import { triggerHappyOperator } from '../src/sim/bots/triggerHappyOperator.js';
 import { vec3 } from '../src/sim/core/vec.js';
 import { Actor } from '../src/sim/model/actors.js';
 import { ThreatClassId } from '../src/sim/model/threats.js';
@@ -398,5 +402,38 @@ describe('Doctrine Scoring v2 Decision Tree Tests', () => {
       events,
     });
     expect(resFarOut.total).toBeGreaterThanOrEqual(resCorrectClass.total);
+  });
+
+  // 10. Golden JSON comparison
+  it('10. Golden JSON comparison: 3 scenarios x {reference, triggerHappy} on s1 matches docs/golden/*.json', () => {
+    const scenarios = ['dawn_intrusion', 'ridge_runner', 'city_edge_night'];
+    const bots = [
+      { name: 'reference', fn: referenceOperator },
+      { name: 'triggerHappy', fn: triggerHappyOperator },
+    ];
+
+    for (const sc of scenarios) {
+      for (const bot of bots) {
+        const e = new Engine('s1', sc);
+        while (!e.missionState.ended) {
+          const cmds = bot.fn(e.getTraineeView());
+          for (const c of cmds) e.enqueueCommand(c);
+          e.step();
+        }
+        const report = scoreSessionV2({
+          actors: e.actors,
+          tracks: e.tracks,
+          events: e.getEvents(),
+          assetHit: e.getEvents().some((ev) => ev.type === 'ASSET_HIT'),
+        });
+
+        const goldenPath = `docs/golden/${sc}_${bot.name}_s1.json`;
+        if (existsSync(goldenPath)) {
+          const golden = JSON.parse(readFileSync(goldenPath, 'utf-8'));
+          expect(report.total).toBe(golden.total);
+          expect(report.subscores).toEqual(golden.subscores);
+        }
+      }
+    }
   });
 });
