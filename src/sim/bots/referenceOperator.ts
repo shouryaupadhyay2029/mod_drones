@@ -154,7 +154,7 @@ export function referenceOperator(view: TraineeView): Command[] {
 
       // Priority 3.5: RF-silent Decoy / Fiber cues
       if (!assessed && track.rfStatus === 'silent') {
-        if (track.rcsBucket === 'medium' && (closingRate <= -12 || headingError <= 40)) {
+        if (track.rcsBucket === 'medium' && track.altitudeM < 160) {
           assessed = 'decoy_drone';
         } else if (
           track.rcsBucket !== 'medium' &&
@@ -163,6 +163,19 @@ export function referenceOperator(view: TraineeView): Command[] {
           headingError <= 35
         ) {
           assessed = 'fpv_fiber';
+        }
+      }
+
+      // Priority 3.6: Medium RCS low-altitude deferral / resolution
+      // Decoys have medium RCS (0.05 m²), civilian quads and FPVs have small RCS (0.01-0.02 m²).
+      // If RF is unknown and standoff is safe (>1500m), defer classification to observe RF silence / EO.
+      // If within 1500m and not emitting, classify medium-RCS low-altitude as decoy_drone.
+      if (!assessed && track.rcsBucket === 'medium' && track.altitudeM < 160 && track.rfStatus !== 'emitting') {
+        if (track.rangeM > 1500 && track.rfStatus === 'unknown') {
+          // Defer classification: wait for RF status to resolve to 'silent' (6s) or EO
+          continue;
+        } else {
+          assessed = 'decoy_drone';
         }
       }
 
@@ -186,7 +199,7 @@ export function referenceOperator(view: TraineeView): Command[] {
         }
         // Cue C2: High-speed direct closing threat (FPV strike drone or decoy)
         else if (speed >= 18 && closingRate <= -14 && headingError <= 35) {
-          if (track.rfStatus === 'silent' && track.rcsBucket === 'medium') {
+          if (track.rcsBucket === 'medium') {
             assessed = 'decoy_drone';
           } else if (track.rfStatus === 'silent') {
             assessed = 'fpv_fiber';
@@ -195,20 +208,22 @@ export function referenceOperator(view: TraineeView): Command[] {
           }
         }
         // Cue D: Standoff transit corridor / non-closing crossing trajectory
-        else if (speed >= 6 && headingError > 35) {
+        else if (speed >= 6 && headingError > 35 && track.rcsBucket !== 'medium') {
           assessed = 'commercial_quad';
         }
         // Cue E: Low speed or ambiguous
         else if (speed < 6) {
           assessed = 'bird';
         } else if (headingError <= 35 && closingRate <= -5) {
-          if (track.rfStatus === 'silent' && track.rcsBucket === 'medium') {
+          if (track.rcsBucket === 'medium') {
             assessed = 'decoy_drone';
           } else if (track.rfStatus === 'silent') {
             assessed = 'fpv_fiber';
           } else {
             assessed = 'fpv_kamikaze';
           }
+        } else if (track.rcsBucket === 'medium') {
+          assessed = 'decoy_drone';
         } else {
           assessed = 'commercial_quad';
         }
@@ -368,6 +383,19 @@ export function referenceOperator(view: TraineeView): Command[] {
       });
       gunUsed = true;
       if (isSilent) continue;
+    }
+
+    if (track.rfStatus === 'ambiguous') {
+      // Ambiguous RF: never jam; use gun inside 1000m, otherwise wait or use EO
+      if (!gunUsed && track.rangeM <= 1000) {
+        commands.push({
+          tick: view.tick,
+          type: 'ENGAGE_TRACK',
+          payload: { trackId: track.trackId, effector: 'gun' },
+        });
+        gunUsed = true;
+      }
+      continue;
     }
 
     if (isSilent) {
