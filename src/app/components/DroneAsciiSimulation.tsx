@@ -653,15 +653,14 @@ export function DroneAsciiSimulation({
 
       // Flank translation:
       // Hero: 0vw, 0vh
-      // Escort mode: drifts to right flank (+31vw) and flies DOWN along with the user!
-      // In Hero (sP = 0): targetTransX = 0, targetTransY = 0
-      // When scrolling down, targetTransY moves downward (from 0 to 10vh to 34vh)
-      const targetTransX = escortPhase * 31; // vw
-      const targetTransY = escortPhase * (10 + sP * 24); // vh: moves down smoothly as user scrolls
-      const droneScale = 1.0 - escortPhase * 0.60; // 1.0 -> 0.40 scale
+      // Escort mode: drifts to right flank (+32vw) and settles safely BELOW all content text,
+      // hovering right at the level of the "SCROLL ————" indicator (~29vh to 32vh) to completely avoid text overlap!
+      const targetTransX = escortPhase * 32; // vw
+      const targetTransY = escortPhase * (29 + sP * 4); // vh: positioned at the level of the scroll cue (~29-33vh)
+      const droneScale = 1.0 - escortPhase * 0.63; // 1.0 -> 0.37 scale
 
       // Dynamic flying bob & aerodynamic bank wobble while moving
-      const flightWobble = Math.sin(currentTime * 0.0035) * (escortPhase > 0.2 ? 9 : 3);
+      const flightWobble = Math.sin(currentTime * 0.0035) * (escortPhase > 0.2 ? 5 : 3);
 
       if (preRef.current) {
         preRef.current.style.transform = `translate3d(calc(${targetTransX}vw + 0px), calc(${targetTransY}vh + ${flightWobble}px), 0) scale(${droneScale.toFixed(3)})`;
