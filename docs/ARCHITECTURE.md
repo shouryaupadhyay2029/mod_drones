@@ -249,4 +249,28 @@ Formations are computed deterministically without boids algorithms using leader-
   - Wasted jammer on non-RF target: -5 points (`WASTED_JAMMER_NON_RF`).
   - Classification credit: 1.0 for exact class match; 0.5 for cross-assessing between hostile FPV variants (`fpv_kamikaze` $\leftrightarrow$ `fpv_fiber`); 0.0 otherwise.
 
+## 7. Phase 3C Architecture Additions: Capacity Model, RF Ambiguity, Decoy Discrimination
+
+### Capacity-Aware Procedural Generator (`src/sim/scenarios/capacity.ts`)
+- **Capacity Model (`capacityCheck`)**:
+  - Analytical greedy service queue evaluating whether a generated swarm is mathematically solvable.
+  - Kinematics: For each hostile striker, computes entrance times into jammer envelope ($R_{\text{jam}} = 1500\text{ m}$), autocannon envelope ($R_{\text{gun}} = 1000\text{ m}$), and asset impact time $t_{\text{impact}} = t_{\text{spawn}} + d_0 / v$.
+  - Jammer Queue: 2.0 s dwell cycle, $p = 0.85$ neutralization probability, RF-controlled threats only.
+  - Gun Queue: 0.5 s burst cycle, $P_k$ computed from range formula at 500m engagement range ($P_k = 0.35$ for fast strikers), 20-burst ammunition limit.
+  - Ratio Calculation: $\text{capacityRatio} = \max\left(\max_i \frac{\text{finish}_i - t_{\text{gun}, i}}{t_{\text{impact}, i} - t_{\text{gun}, i}}, \frac{\text{burstsUsed}}{20}\right)$.
+  - Tier Limits:
+    - `recruit`: $\le 0.60$
+    - `operator`: $\le 0.60$
+    - `veteran`: $\le 0.80$
+    - `elite`: Unconstrained ($\infty$)
+  - Generator integration: re-rolls up to 8 attempts; if still above tier limit, sequentially drops strikers until the ratio complies.
+
+### Direction-Finding RF Ambiguity (`src/sim/systems/rf.ts`)
+- **Co-Bearing Resolution**:
+  - When two or more active radar tracks have bearings within $6.0^\circ$ of a detected RF emitter line bearing, the RF direction-finding system cannot uniquely resolve which airframe is transmitting.
+  - Both tracks receive `rfStatus = 'ambiguous'`, and `rfSignature` is withheld.
+  - Trainee View and Console: Track table displays amber `AMBIG` tag; Detail panel indicates `AMBIGUOUS (CO-BEARING)`.
+  - Operator Bot Rule: `referenceOperator` never jams an ambiguous track (preventing false jammer expenditure); it uses gun when threat enters $\le 1000\text{ m}$, otherwise waits or tracks with EO.
+
+
 

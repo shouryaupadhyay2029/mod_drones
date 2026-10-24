@@ -95,4 +95,45 @@ Under swarm conditions with up to 16 concurrent hostile strikers, raw range is a
 - **Project Rule**: Strictly prohibit the use of real military unit names, national branch designations, or real-world military insignia (including Indian Air Force / IAF roundels, emblems, or heraldry).
 - **Design Philosophy**: As an autonomous training and research simulator, all branding and visual assets must use neutral, generic illustrative symbols. The application mark is a geometric vector crosshair/octagonal shield representing generic air defense intercept concepts. Training project codenames (such as VAJRA) are treated as purely fictional designations with no real-world military attribution.
 
+## ADR-009: Phase 3C Benchmark Discipline, Capacity Generator, Decoys, and RF Ambiguity
+
+### 1. ridge_runner Hostile fixed_wing_recon Rationale
+- **When**: Introduced during Phase 2B multi-threat expansion.
+- **Why**: `ridge_runner` was authored to evaluate terrain masking and low-altitude radar shadowed ingress along ridgelines. Incorporating a high-altitude `fixed_wing_recon` hostile (altitude >= 160m, speed >= 20 m/s, medium RCS) alongside low-altitude terrain huggers tests the operator's ability to maintain dual-threat coverage: jamming low-altitude RF rotary threats while managing long-range standoff reconnaissance. A harmless bird in this slot would remove radar clutter/altitude discrimination pressure.
+
+### 2. Full Scoring Weight Scheme
+The session score weighted mean distributes total contact weight (1.0) dynamically between hostile and neutral contacts:
+- Each hostile contact receives a fixed weight of $w_h = 0.40$.
+- If $N_h$ hostiles are present:
+  - If $N_h \times 0.40 \ge 1.0$ (or if no neutrals exist), each hostile receives weight $1.0 / N_h$, and neutral weight is 0.
+  - If neutrals are present ($N_n > 0$) and $N_h \times 0.40 < 1.0$, the remaining weight pool $1.0 - (N_h \times 0.40)$ is divided equally among neutrals: $w_n = \frac{1.0 - (N_h \times 0.40)}{N_n}$.
+- Total contact weights sum to exactly 1.0 across all actors.
+- Final session score is computed as:
+  $$\text{total} = \text{clamp}\left(0, 100, \text{round}\left(\sum_i (w_i \cdot \text{contactScore}_i) - \sum_k \text{penaltyPoints}_k\right)\right)$$
+- Penalties include:
+  - `ASSET_HIT`: -30
+  - `FALSE_ENGAGEMENT` (ghost/clutter/neutral): -10
+  - `ENGAGE_CIVILIAN_QUAD`: -10
+  - `ENGAGE_DECOY`: -3
+  - `WASTED_JAMMER_NON_RF`: -5
+
+### 3. RF 'ambiguous' Status Rationale
+- When two or more active tracks lie within $6.0^\circ$ of an RF emission line bearing, the passive RF direction-finding array cannot reliably resolve emitter attribution due to antenna beamwidth limits.
+- Assigning `rfStatus = 'ambiguous'` and clearing `rfSignature` prevents erroneous jamming:
+  - `referenceOperator` never fires the RF jammer at an ambiguous track (preventing the -5 wasted jammer penalty).
+  - Inside gun range ($\le 1000\text{ m}$), the operator engages with kinetic autocannon.
+  - Beyond 1000m, the operator waits or slews EO to visually resolve the ambiguous contact.
+
+### 4. Capacity-Aware Scenario Generator Model
+- Evaluates whether a generated swarm is mathematically solvable given effector service constraints:
+  - Jammer: greedy service queue, 2.0 s dwell, $p = 0.85$, RF-controlled threats only.
+  - Gun: greedy burst queue, 0.5 s per burst, $P_k$ from kinetic formula at 500m engagement range, maximum 20 bursts.
+- $\text{capacityRatio} = \frac{\text{required service time}}{\text{available time before impact}}$.
+- Procedural generator enforces tier limits:
+  - Recruit / Operator: $\text{capacityRatio} \le 0.60$
+  - Veteran: $\text{capacityRatio} \le 0.80$
+  - Elite: Unconstrained
+- Generator re-rolls up to 8 attempts; if still exceeding the tier limit, it systematically drops striker drones until the ratio complies.
+
+
 

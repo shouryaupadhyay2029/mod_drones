@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - Phase 3C: Benchmark Discipline, Capacity-Aware Generator, Decoys, RF Ambiguity
+
+### Added
+- **Benchmark Discipline (`scripts/bench.ts`, `npm run bench`)**:
+  - Automated machine benchmark script writing to `docs/benchmarks/<git-short-hash>.txt`.
+  - Scripted table covering 3 scenarios x 3 bots x 5 seeds (45 runs).
+  - Procedural tier table covering 4 tiers x 20 seeds (80 runs for reference and oracle bots).
+  - Determinism double-check validating bit-for-bit hash identity on re-runs.
+  - Phase 3A Table 1 provenance note clarifying hand-crafted documentation values.
+- **Capacity-Aware Generator (`src/sim/scenarios/capacity.ts`, `generator.ts`)**:
+  - `capacityCheck(schedule)` analytical greedy service queue model.
+  - Jammer queue (2.0s dwell, $p=0.85$, RF-controlled only) and gun queue (0.5s burst, range-dependent $P_k$, 20 burst limit).
+  - Procedural tier limits: recruit/operator $\le 0.60$, veteran $\le 0.80$, elite unconstrained.
+  - Procedural generator re-rolls up to 8 attempts then drops strikers until capacity ratio complies.
+- **RF Ambiguous Status (`src/sim/systems/rf.ts`, `tracks.ts`)**:
+  - Added `'ambiguous'` to `RfStatus` type.
+  - Direction-finding co-bearing ambiguity: when a second active radar track lies within $6.0^\circ$ of an RF emission line bearing, both tracks receive `rfStatus = 'ambiguous'` with no signature.
+  - Console UI displays amber `AMBIG` badge in track table and `AMBIGUOUS (CO-BEARING)` in track detail panel.
+  - `referenceOperator` holds jammer fire on ambiguous tracks; engages with gun only inside 1000m.
+- **Decoy Discrimination Improvement (`src/sim/bots/referenceOperator.ts`)**:
+  - Distinguishes `decoy_drone` via `rcsBucket === 'medium'` ($0.05\text{ m}^2$) and RF silence at altitudes $< 160$m.
+  - Defers classification when range $> 1500$m and RF status is unknown to observe RF silence or optical confirmation.
+  - Decoy correct classification rate improved from $1.9\%$ to $>73\%$.
+- **Test Suite (`tests/phase3c.test.ts`)**:
+  - Acceptance tests C1–C12 covering ASSET_HIT penalties, tick spans, oracle solvability, tier performance, fingerprint distinctness, decoy classification, and RF ambiguity angular windows (1°, 8°, 20°).
+
 ## [0.6.0] - Phase 3A: Swarms, Procedural Generator, Difficulty Tiers
 
 ### Added
