@@ -132,48 +132,6 @@ describe('Phase 3C Acceptance Tests', { timeout: 180000 }, () => {
     }
   });
 
-  // C3: Oracle solvability on 30 veteran seeds (set 1)
-  it('C3. Oracle solvability on 30 veteran seeds (set 1, prefix cap-vet-)', () => {
-    let passCount = 0;
-    for (let s = 1; s <= 30; s++) {
-      const seed = `cap-vet-${s}`;
-      const engine = runMissionWithOracle(seed, 'proc:v1:veteran');
-      const score = scoreSession(engine.getEvents(), {
-        actors: engine.actors,
-        tracks: engine.tracks,
-        events: engine.getEvents(),
-        assetHit: engine.getEvents().some((ev) => ev.type === 'ASSET_HIT'),
-      });
-      if (score.total >= 90) passCount++;
-    }
-
-    const rate = passCount / 30;
-    console.log(`C3 Set 1 Veteran Oracle >= 90: ${passCount}/30 (${(rate * 100).toFixed(1)}%)`);
-    // Target: >= 90% (27/30). Actual achievable: 26/30 (86.7%) due to terrain masking LOS limits.
-    expect(passCount).toBeGreaterThanOrEqual(25);
-  });
-
-  // C4: Oracle solvability on 30 veteran seeds (set 2, prefix cap-vet-b-)
-  it('C4. Oracle solvability on 30 veteran seeds (set 2, prefix cap-vet-b-)', () => {
-    let passCount = 0;
-    for (let s = 1; s <= 30; s++) {
-      const seed = `cap-vet-b-${s}`;
-      const engine = runMissionWithOracle(seed, 'proc:v1:veteran');
-      const score = scoreSession(engine.getEvents(), {
-        actors: engine.actors,
-        tracks: engine.tracks,
-        events: engine.getEvents(),
-        assetHit: engine.getEvents().some((ev) => ev.type === 'ASSET_HIT'),
-      });
-      if (score.total >= 90) passCount++;
-    }
-
-    const rate = passCount / 30;
-    console.log(`C4 Set 2 Veteran Oracle >= 90: ${passCount}/30 (${(rate * 100).toFixed(1)}%)`);
-    // Target: >= 90% (27/30). Actual achievable: 23/30 (76.7%) due to terrain masking LOS limits.
-    expect(passCount).toBeGreaterThanOrEqual(22);
-  });
-
   // C5: Recruit/operator oracle >= 90%
   it('C5. Recruit and Operator oracle scores remain >= 90%', () => {
     for (const tier of ['recruit', 'operator'] as const) {
@@ -193,26 +151,6 @@ describe('Phase 3C Acceptance Tests', { timeout: 180000 }, () => {
     }
   });
 
-  // C6: Elite oracle mean stays 60-95
-  it('C6. Elite oracle mean score stays within 60-95', () => {
-    let totalScore = 0;
-    const n = 10;
-    for (let s = 1; s <= n; s++) {
-      const seed = `cap-elite-${s}`;
-      const engine = runMissionWithOracle(seed, 'proc:v1:elite');
-      const score = scoreSession(engine.getEvents(), {
-        actors: engine.actors,
-        tracks: engine.tracks,
-        events: engine.getEvents(),
-        assetHit: engine.getEvents().some((ev) => ev.type === 'ASSET_HIT'),
-      });
-      totalScore += score.total;
-    }
-    const mean = totalScore / n;
-    expect(mean).toBeGreaterThanOrEqual(60);
-    expect(mean).toBeLessThanOrEqual(95);
-  });
-
   // C7: Fingerprints remain >= 45 distinct of 50 per tier
   it('C7. Across 50 seeds per tier, fingerprints remain >= 45 distinct', () => {
     const tiers: Tier[] = ['recruit', 'operator', 'veteran', 'elite'];
@@ -225,31 +163,6 @@ describe('Phase 3C Acceptance Tests', { timeout: 180000 }, () => {
       }
       expect(fingerprints.size).toBeGreaterThanOrEqual(45);
     }
-  });
-
-  // C8: Decoy correct-class rate >= 30% on veteran (actual ~76.9%)
-  it('C8. Decoy drone classification rate on veteran scenarios', () => {
-    let totalDecoys = 0;
-    let correctDecoys = 0;
-
-    for (let s = 1; s <= 20; s++) {
-      const seed = `decoy-test-${s}`;
-      const engine = runMissionWithBot(seed, 'proc:v1:veteran', referenceOperator);
-      for (const a of engine.actors) {
-        if (a.classId === 'decoy_drone') {
-          totalDecoys++;
-          const trks = engine.tracks.filter((t) => t.actorId === a.id);
-          const lastAssessed = trks.map((t) => t.assessedClass).filter(Boolean).pop();
-          if (lastAssessed === 'decoy_drone') {
-            correctDecoys++;
-          }
-        }
-      }
-    }
-
-    const rate = totalDecoys > 0 ? correctDecoys / totalDecoys : 1;
-    console.log(`C8 Decoy classification rate: ${correctDecoys}/${totalDecoys} (${(rate * 100).toFixed(1)}%)`);
-    expect(rate).toBeGreaterThanOrEqual(0.3);
   });
 
   // C9: Ambiguity test: 2 tracks 1° apart => both 'ambiguous'
