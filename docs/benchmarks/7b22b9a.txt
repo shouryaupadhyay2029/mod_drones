@@ -1,0 +1,102 @@
+========================================================================================
+BENCHMARK REPORT — VAJRA C-UAS SIMULATOR
+Git Commit: 7b22b9a
+Generated: 2026-10-24T08:13:32.508Z
+========================================================================================
+
+1. SCRIPTED SCENARIOS BENCHMARK TABLE (3 scenarios x 3 bots x 5 seeds)
+----------------------------------------------------------------------------------------
+Scenario            Bot                   Seed   Score  Outcome     Hits  FalseEng  Ticks  Hash
+----------------------------------------------------------------------------------------
+dawn_intrusion      referenceOperator     s1       100  all_resolved    0         0    4149  0ecc4e5695
+dawn_intrusion      referenceOperator     s2       100  all_resolved    0         0    4100  133e1df083
+dawn_intrusion      referenceOperator     s3       100  all_resolved    0         0    4126  0d4a058ae0
+dawn_intrusion      referenceOperator     s4       100  all_resolved    0         0    4030  153e7f662b
+dawn_intrusion      referenceOperator     s5       100  all_resolved    0         0    4016  0490b9445f
+dawn_intrusion      idleOperator          s1         0  asset_hit      1         0    3629  037c4516d1
+dawn_intrusion      idleOperator          s2         0  asset_hit      1         0    3636  10f9d91f35
+dawn_intrusion      idleOperator          s3         0  asset_hit      1         0    3506  00bc95a7f8
+dawn_intrusion      idleOperator          s4         0  asset_hit      1         0    3457  13e4424e58
+dawn_intrusion      idleOperator          s5         0  asset_hit      1         0    3588  0f67a5fd92
+dawn_intrusion      triggerHappyOperator  s1        55  all_resolved    0         0    4149  079f18d8f2
+dawn_intrusion      triggerHappyOperator  s2        55  all_resolved    0         0    4100  1ec85de51c
+dawn_intrusion      triggerHappyOperator  s3        55  all_resolved    0         0    4126  15188d3c6e
+dawn_intrusion      triggerHappyOperator  s4        55  all_resolved    0         0    4030  0c4643d438
+dawn_intrusion      triggerHappyOperator  s5        55  all_resolved    0         0    4016  00aa145dcf
+ridge_runner        referenceOperator     s1       100  all_resolved    0         0    3490  1ad091cdbf
+ridge_runner        referenceOperator     s2       100  all_resolved    0         0    3485  0a2a1f1288
+ridge_runner        referenceOperator     s3       100  all_resolved    0         0    3466  0b0dd98fd4
+ridge_runner        referenceOperator     s4       100  all_resolved    0         0    3509  1f1d145a88
+ridge_runner        referenceOperator     s5       100  all_resolved    0         0    3437  0eb96c8991
+ridge_runner        idleOperator          s1         0  asset_hit      1         0    4017  14051c334b
+ridge_runner        idleOperator          s2         0  asset_hit      1         0    4053  17c753a529
+ridge_runner        idleOperator          s3         0  asset_hit      1         0    4021  146c75c0d4
+ridge_runner        idleOperator          s4         0  asset_hit      1         0    3948  074a45739a
+ridge_runner        idleOperator          s5         0  asset_hit      1         0    4010  10c7b18838
+ridge_runner        triggerHappyOperator  s1        10  asset_hit      1         0    4085  133b1f412a
+ridge_runner        triggerHappyOperator  s2        10  asset_hit      1         0    4053  1f61273648
+ridge_runner        triggerHappyOperator  s3        10  asset_hit      1         0    4086  0ae60ece8a
+ridge_runner        triggerHappyOperator  s4        10  asset_hit      1         0    4087  06f675e100
+ridge_runner        triggerHappyOperator  s5        10  asset_hit      1         0    4010  0daf5083a0
+city_edge_night     referenceOperator     s1        82  all_resolved    0         0    3398  08a9dbbfdd
+city_edge_night     referenceOperator     s2        91  all_resolved    0         0    3354  0ad6c3f63f
+city_edge_night     referenceOperator     s3        95  all_resolved    0         0    3277  1dc99a17b5
+city_edge_night     referenceOperator     s4        59  all_resolved    0         0    3559  0e756c39db
+city_edge_night     referenceOperator     s5        59  all_resolved    0         0    3516  07ba2b1277
+city_edge_night     idleOperator          s1         0  asset_hit      1         0    3445  1993111309
+city_edge_night     idleOperator          s2         0  asset_hit      1         0    3406  0c9e3d76c8
+city_edge_night     idleOperator          s3         0  asset_hit      1         0    3446  0722da261e
+city_edge_night     idleOperator          s4         0  asset_hit      1         0    3447  16bc5acc44
+city_edge_night     idleOperator          s5         0  asset_hit      1         0    3355  048f43aa68
+city_edge_night     triggerHappyOperator  s1        41  all_resolved    0         0    3388  151c603d5e
+city_edge_night     triggerHappyOperator  s2         9  asset_hit      1         0    3572  1f1ea5cfdb
+city_edge_night     triggerHappyOperator  s3         0  asset_hit      1        15    3446  19bc5bf9f6
+city_edge_night     triggerHappyOperator  s4         0  asset_hit      1        20    3447  1e2bb3f6e5
+city_edge_night     triggerHappyOperator  s5         0  asset_hit      1        20    3355  13cc3edc3a
+----------------------------------------------------------------------------------------
+
+2. PROCEDURAL TIERS BENCHMARK TABLE (4 tiers x 20 seeds)
+----------------------------------------------------------------------------------------
+Tier       Ref Mean  Ref Min  Ref Max  Target   Status  Oracle Mean  Oracle >=90%  Asset Hit %
+----------------------------------------------------------------------------------------
+recruit        99.7       96      100     >=95    PASS        100.0        100.0%         0.0%
+operator       75.5        3      100     >=80    FAIL        100.0        100.0%        40.0%
+veteran        36.3        0       87     >=55    FAIL         98.0         95.0%        75.0%
+elite          28.0        0       95     >=35    FAIL         92.0         80.0%        75.0%
+----------------------------------------------------------------------------------------
+
+3. NUMERIC LOSS BREAKDOWN TABLE (operator, veteran, elite)
+----------------------------------------------------------------------------------------
+Tier       Detection (Score / Loss)   Classification (Score / Loss)   Engagement (Score / Loss)   Asset Hit %
+----------------------------------------------------------------------------------------
+operator                100.0% / 0.0%                    94.5% / 5.5%               89.0% / 11.0%         40.0%
+veteran                 100.0% / 0.0%                    91.1% / 8.9%               74.4% / 25.6%         75.0%
+elite                    99.7% / 0.3%                   88.8% / 11.2%               72.5% / 27.5%         75.0%
+----------------------------------------------------------------------------------------
+
+4. DETERMINISM DOUBLE-CHECKS (3 Scripted Scenarios + 4 Procedural Tiers)
+----------------------------------------------------------------------------------------
+Scenario / Tier Target            Run 1 Hash  Run 2 Hash  Score 1  Score 2  Status
+----------------------------------------------------------------------------------------
+dawn_intrusion (s1)               0ecc4e5695  0ecc4e5695      100      100     PASS
+ridge_runner (s1)                 1ad091cdbf  1ad091cdbf      100      100     PASS
+city_edge_night (s1)              08a9dbbfdd  08a9dbbfdd       82       82     PASS
+recruit (bench-recruit-1)         19cf242f45  19cf242f45      100      100     PASS
+operator (bench-operator-1)       1ee8b98cdb  1ee8b98cdb       95       95     PASS
+veteran (bench-veteran-1)         0bc1141821  0bc1141821       79       79     PASS
+elite (bench-elite-1)             1ea2618188  1ea2618188       91       91     PASS
+----------------------------------------------------------------------------------------
+Overall Determinism: PASS (100% byte-for-byte state hash match across duplicate runs)
+
+5. WASTED JAMMER PENALTIES PER RUN (RF Ambiguity Evaluation)
+----------------------------------------------------------------------------------------
+recruit   : mean wasted jammer (NO_EFFECT) events per run = 0.00
+operator  : mean wasted jammer (NO_EFFECT) events per run = 0.60
+veteran   : mean wasted jammer (NO_EFFECT) events per run = 6.00
+elite     : mean wasted jammer (NO_EFFECT) events per run = 6.55
+
+6. PROVENANCE NOTE
+----------------------------------------------------------------------------------------
+dawn s2's hash changed vs Phase 2B due to the radar hit fix (consecutive hit tracking was added).
+All future benchmark reports must reference committed machine-generated bench files.
+----------------------------------------------------------------------------------------

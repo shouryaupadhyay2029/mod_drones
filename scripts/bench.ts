@@ -23,6 +23,9 @@ interface RunResult {
   wastedJammers: number;
   ticks: number;
   hash: string;
+  detectionScore: number;
+  classificationScore: number;
+  engagementScore: number;
 }
 
 function runMission(
@@ -74,6 +77,20 @@ function runMission(
     assetHit: hits > 0,
   });
 
+  const contacts = scoreReport.perContact;
+  const detectionScore =
+    contacts.length > 0
+      ? contacts.reduce((sum, c) => sum + c.detectionScore, 0) / contacts.length
+      : 1.0;
+  const classificationScore =
+    contacts.length > 0
+      ? contacts.reduce((sum, c) => sum + c.classificationScore, 0) / contacts.length
+      : 1.0;
+  const engagementScore =
+    contacts.length > 0
+      ? contacts.reduce((sum, c) => sum + c.decisionScore, 0) / contacts.length
+      : 1.0;
+
   return {
     scenario: scenarioIdOrProc,
     seed,
@@ -85,6 +102,9 @@ function runMission(
     wastedJammers,
     ticks: engine.world.tick,
     hash: engine.getHash(),
+    detectionScore,
+    classificationScore,
+    engagementScore,
   };
 }
 
@@ -121,6 +141,9 @@ async function main() {
     oraclePctGe90: number;
     assetHitRate: number;
     refWastedJammerMean: number;
+    refDetectionMean: number;
+    refClassificationMean: number;
+    refEngagementMean: number;
   }
 
   const tierSummaries: TierSummary[] = [];
@@ -128,6 +151,9 @@ async function main() {
   for (const tier of tiers) {
     const refScores: number[] = [];
     const oracleScores: number[] = [];
+    const refDets: number[] = [];
+    const refClasses: number[] = [];
+    const refEngs: number[] = [];
     let refHits = 0;
     let refWastedJammers = 0;
 
@@ -137,6 +163,9 @@ async function main() {
 
       const refRes = runMission(procId, seed, 'referenceOperator', 'standard', referenceOperator);
       refScores.push(refRes.score);
+      refDets.push(refRes.detectionScore);
+      refClasses.push(refRes.classificationScore);
+      refEngs.push(refRes.engagementScore);
       if (refRes.hits > 0) refHits++;
       refWastedJammers += refRes.wastedJammers;
 
@@ -152,6 +181,9 @@ async function main() {
     const oraclePctGe90 = (oracleGe90 / oracleScores.length) * 100;
     const assetHitRate = (refHits / 20) * 100;
     const refWastedJammerMean = refWastedJammers / 20;
+    const refDetectionMean = refDets.reduce((a, b) => a + b, 0) / refDets.length;
+    const refClassificationMean = refClasses.reduce((a, b) => a + b, 0) / refClasses.length;
+    const refEngagementMean = refEngs.reduce((a, b) => a + b, 0) / refEngs.length;
 
     tierSummaries.push({
       tier,
@@ -162,18 +194,56 @@ async function main() {
       oraclePctGe90,
       assetHitRate,
       refWastedJammerMean,
+      refDetectionMean,
+      refClassificationMean,
+      refEngagementMean,
     });
   }
 
-  // 3. Determinism Double-Checks
-  const detSeeds = ['s1', 's2', 's3'];
-  let detPassed = true;
-  for (const s of detSeeds) {
-    const r1 = runMission('dawn_intrusion', s, 'referenceOperator', 'standard', referenceOperator);
-    const r2 = runMission('dawn_intrusion', s, 'referenceOperator', 'standard', referenceOperator);
-    if (r1.hash !== r2.hash || r1.score !== r2.score) {
-      detPassed = false;
-    }
+  // 3. Determinism Double-Checks (3 scripted scenarios + 4 tiers)
+  const scriptedToDoubleCheck = ['dawn_intrusion', 'ridge_runner', 'city_edge_night'];
+  const tiersToDoubleCheck: Tier[] = ['recruit', 'operator', 'veteran', 'elite'];
+  let detAllPassed = true;
+  interface DetCheckRow {
+    label: string;
+    hash1: string;
+    hash2: string;
+    score1: number;
+    score2: number;
+    passed: boolean;
+  }
+  const detRows: DetCheckRow[] = [];
+
+  for (const sc of scriptedToDoubleCheck) {
+    const r1 = runMission(sc, 's1', 'referenceOperator', 'standard', referenceOperator);
+    const r2 = runMission(sc, 's1', 'referenceOperator', 'standard', referenceOperator);
+    const passed = r1.hash === r2.hash && r1.score === r2.score;
+    if (!passed) detAllPassed = false;
+    detRows.push({
+      label: `${sc} (s1)`,
+      hash1: r1.hash.slice(0, 10),
+      hash2: r2.hash.slice(0, 10),
+      score1: r1.score,
+      score2: r2.score,
+      passed,
+    });
+  }
+
+  for (const tier of tiersToDoubleCheck) {
+    const procId = `proc:v1:${tier}`;
+    const seed = `bench-${tier}-1`;
+    const r1 = runMission(procId, seed, 'referenceOperator', 'standard', referenceOperator);
+    const r2 = runMission(procId, seed, 'referenceOperator', 'standard', referenceOperator);
+    const passed = r1.hash === r2.hash && r1.score === r2.score;
+    if (!passed) detAllPassed = false;
+    detRows.push({
+      label: `${tier} (${seed})`,
+      hash1: r1.hash.slice(0, 10),
+      hash2: r2.hash.slice(0, 10),
+      score1: r1.score,
+      score2: r2.score,
+      passed,
+    });
   }
 
   // Git short hash
@@ -234,22 +304,56 @@ async function main() {
   }
   output += `----------------------------------------------------------------------------------------\n\n`;
 
-  output += `3. DETERMINISM DOUBLE-CHECKS\n`;
+  output += `3. NUMERIC LOSS BREAKDOWN TABLE (operator, veteran, elite)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
-  output += `Identical re-runs on seeds s1, s2, s3 (dawn_intrusion): ${detPassed ? 'PASS (100% byte-for-byte state hash match)' : 'FAIL'}\n\n`;
+  output += `Tier       Detection (Score / Loss)   Classification (Score / Loss)   Engagement (Score / Loss)   Asset Hit %\n`;
+  output += `----------------------------------------------------------------------------------------\n`;
+  for (const ts of tierSummaries) {
+    if (ts.tier === 'recruit') continue;
+    const t = ts.tier.padEnd(10);
+    const detScore = (ts.refDetectionMean * 100).toFixed(1);
+    const detLoss = ((1 - ts.refDetectionMean) * 100).toFixed(1);
+    const detCol = `${detScore}% / ${detLoss}%`.padStart(26);
 
-  output += `4. WASTED JAMMER PENALTIES PER RUN (RF Ambiguity Evaluation)\n`;
+    const clsScore = (ts.refClassificationMean * 100).toFixed(1);
+    const clsLoss = ((1 - ts.refClassificationMean) * 100).toFixed(1);
+    const clsCol = `${clsScore}% / ${clsLoss}%`.padStart(31);
+
+    const engScore = (ts.refEngagementMean * 100).toFixed(1);
+    const engLoss = ((1 - ts.refEngagementMean) * 100).toFixed(1);
+    const engCol = `${engScore}% / ${engLoss}%`.padStart(27);
+
+    const ah = `${ts.assetHitRate.toFixed(1)}%`.padStart(13);
+    output += `${t} ${detCol} ${clsCol} ${engCol} ${ah}\n`;
+  }
+  output += `----------------------------------------------------------------------------------------\n\n`;
+
+  output += `4. DETERMINISM DOUBLE-CHECKS (3 Scripted Scenarios + 4 Procedural Tiers)\n`;
+  output += `----------------------------------------------------------------------------------------\n`;
+  output += `Scenario / Tier Target            Run 1 Hash  Run 2 Hash  Score 1  Score 2  Status\n`;
+  output += `----------------------------------------------------------------------------------------\n`;
+  for (const dr of detRows) {
+    const lbl = dr.label.padEnd(33);
+    const h1 = dr.hash1.padEnd(11);
+    const h2 = dr.hash2.padEnd(11);
+    const s1 = String(dr.score1).padStart(7);
+    const s2 = String(dr.score2).padStart(8);
+    const st = (dr.passed ? 'PASS' : 'FAIL').padStart(8);
+    output += `${lbl} ${h1} ${h2} ${s1} ${s2} ${st}\n`;
+  }
+  output += `----------------------------------------------------------------------------------------\n`;
+  output += `Overall Determinism: ${detAllPassed ? 'PASS (100% byte-for-byte state hash match across duplicate runs)' : 'FAIL'}\n\n`;
+
+  output += `5. WASTED JAMMER PENALTIES PER RUN (RF Ambiguity Evaluation)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
   for (const ts of tierSummaries) {
     output += `${ts.tier.padEnd(10)}: mean wasted jammer (NO_EFFECT) events per run = ${ts.refWastedJammerMean.toFixed(2)}\n`;
   }
   output += `\n`;
 
-  output += `5. PROVENANCE NOTE: PHASE 3A TABLE 1\n`;
+  output += `6. PROVENANCE NOTE\n`;
   output += `----------------------------------------------------------------------------------------\n`;
-  output += `Phase 3A Table 1 dawn_intrusion rows were hand-made in documentation and did not match\n`;
-  output += `the real simulation engine output for seeds s1-s5. Specifically, seeds s1, s2, s3, and s4\n`;
-  output += `match the real Phase 2B engine baseline, while seed s5 diverged due to hand editing.\n`;
+  output += `dawn s2's hash changed vs Phase 2B due to the radar hit fix (consecutive hit tracking was added).\n`;
   output += `All future benchmark reports must reference committed machine-generated bench files.\n`;
   output += `----------------------------------------------------------------------------------------\n`;
 
