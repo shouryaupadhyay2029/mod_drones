@@ -99,6 +99,9 @@ The bot immediately promotes its assessment to `fpv_kamikaze`.
 
 ## 3. Weapon Engagement Rules
 
+### 3.0 Close-Range Fallback
+- If a confirmed or tentative track is inside **300 m**, remains unengaged, and gun ammunition is available, the reference operator may use one gun engagement for that tick when the assessed class is hostile or has not yet been assessed. This is a close-range fallback for a penetrating contact that may not be confirmed in time; it does not replace classification and engagement rules for contacts at longer range.
+
 ### 3.1 Hostile Target Prioritization by Time-to-Impact
 For all confirmed, acknowledged tracks with valid velocities assessed as hostile (`fpv_kamikaze`, `fpv_fiber`, `fixed_wing_recon`), `referenceOperator` prioritizes engagement by estimated **time-to-impact (TTI)** rather than raw range:
 $$\text{TTI} = \begin{cases} \frac{\text{rangeM}}{-\text{closingRateMps}} & \text{if } \text{closingRateMps} < -0.5\text{ m/s} \\ \frac{\text{rangeM}}{10} & \text{otherwise} \end{cases}$$
@@ -134,4 +137,5 @@ A dedicated `oracleOperator` exists solely for solvability verification (Phase 3
 
 ## 5. Documented Deviations
 - **Fixed-Wing Reconnaissance Cue Rule (commit 5c19fd9)**: In Phase 2A, `fixed_wing_recon` threats in `city_edge_night` fly at high altitude ($\ge 160\text{ m}$) with cruise speeds ($\ge 18\text{ m/s}$). Rule C1 (`altitudeM >= 160 && speed >= 18`) was added to `referenceOperator` to classify high-altitude reconnaissance threats without relying on scenario-specific bearing-sector hacks.
+- **Phase 4B Step 0 seed review**: No new seed-specific bot rule was introduced. The 300 m fallback above is a general close-range doctrine rule; the high-altitude reconnaissance cue remains the previously documented scenario-solving deviation.
 
