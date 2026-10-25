@@ -287,7 +287,7 @@ async function main() {
 
   output += `1. SCRIPTED SCENARIOS SCORES (v1 and v${SCORE_VERSION}; 3 scenarios x 3 bots x 5 seeds)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
-  output += `Scenario            Bot                   Seed   V1    V2.1  Outcome     Hits  FalseEng  Ticks  Hash\n`;
+  output += `Scenario            Bot                   Seed   V1    V${SCORE_VERSION}  Outcome     Hits  FalseEng  Ticks  Hash\n`;
   output += `----------------------------------------------------------------------------------------\n`;
   for (const r of scriptedResults) {
     const sc = r.scenario.padEnd(19);
@@ -306,7 +306,7 @@ async function main() {
 
   output += `2. PROCEDURAL TIER SCORES (v1 targets/metrics and v${SCORE_VERSION} scores; oracle scored v1; 4 tiers x 20 seeds)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
-  output += `Tier       V1 Mean  V2.1 Mean  Ref Min  Ref Max  V1 Target  Status  Oracle Mean  Oracle >=90%  Asset Hit %\n`;
+  output += `Tier       V1 Mean  V${SCORE_VERSION} Mean  Ref Min  Ref Max  V1 Target  Status  Oracle Mean  Oracle >=90%  Asset Hit %\n`;
   output += `----------------------------------------------------------------------------------------\n`;
   const targets: Record<Tier, number> = {
     recruit: 95,
@@ -355,7 +355,7 @@ async function main() {
 
   output += `4. DETERMINISM DOUBLE-CHECKS (v1 and v${SCORE_VERSION}; 3 Scripted Scenarios + 4 Procedural Tiers)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
-  output += `Scenario / Tier Target            Run 1 Hash  Run 2 Hash  V1-1  V1-2  V2.1-1  V2.1-2  Status\n`;
+  output += `Scenario / Tier Target            Run 1 Hash  Run 2 Hash  V1-1  V1-2  V${SCORE_VERSION}-1  V${SCORE_VERSION}-2  Status\n`;
   output += `----------------------------------------------------------------------------------------\n`;
   for (const dr of detRows) {
     const lbl = dr.label.padEnd(33);
