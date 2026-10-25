@@ -1,11 +1,12 @@
 {
-  "total": 8,
-  "weightedMean": 38,
+  "total": 0,
+  "grade": "Unsatisfactory",
+  "weightedMean": 34.5,
   "subscores": {
     "detection": 100,
     "classification": 0,
-    "engagement": 32.8,
-    "discipline": 70
+    "engagement": 26.4,
+    "discipline": 0
   },
   "perContact": [
     {
@@ -59,9 +60,9 @@
       "observable": true,
       "d": 1,
       "c": 0,
-      "e": 0.16,
-      "contactTotal": 0.288,
-      "totalScore": 29,
+      "e": 0.08,
+      "contactTotal": 0.244,
+      "totalScore": 24,
       "decisionPath": [
         {
           "id": "detection",
@@ -94,10 +95,10 @@
           "id": "effector_fit",
           "question": "Appropriate effector choice for target signature?",
           "answer": "Engaged with gun",
-          "points": 8.8,
+          "points": 4.4,
           "maxPoints": 11,
-          "cause": null,
-          "note": "Effector: gun"
+          "cause": "engaged_unclassified",
+          "note": "Effector: gun (fit x0.5: engaged before classification)"
         },
         {
           "id": "engagement_latency",
@@ -112,7 +113,7 @@
       "ackLatencySec": 0,
       "firstEngagementLatencySec": 63.65,
       "outcome": 0,
-      "fit": 0.8,
+      "fit": 0.4,
       "latency": 0
     },
     {
@@ -166,9 +167,9 @@
       "observable": true,
       "d": 1,
       "c": 0,
-      "e": 0.16,
-      "contactTotal": 0.288,
-      "totalScore": 29,
+      "e": 0.08,
+      "contactTotal": 0.244,
+      "totalScore": 24,
       "decisionPath": [
         {
           "id": "detection",
@@ -201,10 +202,10 @@
           "id": "effector_fit",
           "question": "Appropriate effector choice for target signature?",
           "answer": "Engaged with gun",
-          "points": 8.8,
+          "points": 4.4,
           "maxPoints": 11,
-          "cause": null,
-          "note": "Effector: gun"
+          "cause": "engaged_unclassified",
+          "note": "Effector: gun (fit x0.5: engaged before classification)"
         },
         {
           "id": "engagement_latency",
@@ -219,12 +220,92 @@
       "ackLatencySec": 0,
       "firstEngagementLatencySec": 104.05,
       "outcome": 0,
-      "fit": 0.8,
+      "fit": 0.4,
       "latency": 0
     }
   ],
   "unobservable": [],
   "penalties": [
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
     {
       "reason": "Defended asset was hit: -30",
       "points": 30
@@ -232,6 +313,26 @@
   ],
   "roeCapApplied": false,
   "reasons": [
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
     "Defended asset was hit: -30"
   ]
 }

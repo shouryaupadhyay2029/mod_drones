@@ -12,6 +12,12 @@ import {
   CONTACT_ENGAGEMENT_W,
   DETECTION_FULL_SEC,
   DETECTION_ZERO_SEC,
+  ENGAGED_UNCLASSIFIED_FIT_MULT,
+  GRADE_COMPETENT_MIN,
+  GRADE_MARGINAL_MIN,
+  GRADE_PROFICIENT_MIN,
+  PENALTY_ENGAGED_UNCLASSIFIED,
+  ASSET_HIT_CAP_SCORE,
   ENG_FIT_W,
   ENG_LATENCY_W,
   ENG_OUTCOME_W,
@@ -77,6 +83,7 @@ export interface Subscores {
 
 export interface ScoreReportV2 {
   total: number; // 0 - 100
+  grade: 'Unsatisfactory' | 'Marginal' | 'Competent' | 'Proficient';
   weightedMean: number; // 0 - 100
   subscores: Subscores;
   perContact: ContactScoreV2[];
@@ -84,6 +91,33 @@ export interface ScoreReportV2 {
   penalties: ScorePenalty[];
   roeCapApplied: boolean;
   reasons: string[];
+}
+
+function wasClassifiedBeforeEngagement(
+  events: readonly SimEvent[],
+  engagement: SimEvent,
+  track: Track | undefined
+): boolean {
+  const trackId = engagement.payload?.trackId;
+  const trackClassifications = events.filter(
+    (event) => event.type === 'TRACK_CLASSIFIED' && event.payload?.trackId === trackId
+  );
+
+  if (trackClassifications.length === 0) {
+    return track?.classifyTick !== undefined && track.classifyTick <= engagement.tick;
+  }
+
+  const engagementIndex = events.indexOf(engagement);
+  return engagementIndex >= 0 && events.slice(0, engagementIndex).some(
+    (event) => event.type === 'TRACK_CLASSIFIED' && event.payload?.trackId === trackId
+  );
+}
+
+export function gradeForScore(total: number): ScoreReportV2['grade'] {
+  if (total < GRADE_MARGINAL_MIN) return 'Unsatisfactory';
+  if (total < GRADE_COMPETENT_MIN) return 'Marginal';
+  if (total < GRADE_PROFICIENT_MIN) return 'Competent';
+  return 'Proficient';
 }
 
 export function computeDetectionScore(ackLatencySec?: number): number {
@@ -230,6 +264,22 @@ export function scoreSessionV2(
     );
     const firstEngagement = actorEngagements[0];
     const isEngaged = actorEngagements.length > 0;
+    const trackForEngagement = (engagement: SimEvent): Track | undefined =>
+      actorTracks.find((track) => track.trackId === engagement.payload?.trackId);
+    const unclassifiedEngagements = isHostile
+      ? actorEngagements.filter(
+          (engagement) =>
+            !wasClassifiedBeforeEngagement(events, engagement, trackForEngagement(engagement))
+        )
+      : [];
+
+    for (let i = 0; i < unclassifiedEngagements.length; i++) {
+      const penaltyPoints = Math.abs(PENALTY_ENGAGED_UNCLASSIFIED);
+      const reason = `Engaged hostile (${actor.classId}) before it was classified: -${penaltyPoints}`;
+      penalties.push({ reason, points: penaltyPoints });
+    }
+    const firstEngagementUnclassified =
+      firstEngagement !== undefined && unclassifiedEngagements.includes(firstEngagement);
 
     // Detection Node
     decisionPath.push({
@@ -279,7 +329,7 @@ export function scoreSessionV2(
       // Fit
       if (isEngaged && firstEngagement) {
         const effector = firstEngagement.payload?.effector as string;
-        const engagedTrack = actorTracks.find((t) => t.trackId === firstEngagement.payload?.trackId) ?? actorTracks[0];
+        const engagedTrack = trackForEngagement(firstEngagement) ?? actorTracks[0];
         const isRfControlled = THREAT_LIBRARY[actor.classId]?.rfControlled ?? false;
 
         if (effector === 'jammer') {
@@ -325,6 +375,10 @@ export function scoreSessionV2(
         } else {
           fitVal = 0.5;
         }
+
+        if (firstEngagementUnclassified) {
+          fitVal *= ENGAGED_UNCLASSIFIED_FIT_MULT;
+        }
       } else {
         fitVal = 0.0;
       }
@@ -337,8 +391,12 @@ export function scoreSessionV2(
           : 'Not engaged',
         points: Math.round(fitVal * 11 * 10) / 10,
         maxPoints: 11,
-        cause: null,
-        note: isEngaged ? `Effector: ${firstEngagement?.payload?.effector}` : 'None',
+        cause: firstEngagementUnclassified ? 'engaged_unclassified' : null,
+        note: isEngaged
+          ? firstEngagementUnclassified
+            ? `Effector: ${firstEngagement?.payload?.effector} (fit x${ENGAGED_UNCLASSIFIED_FIT_MULT}: engaged before classification)`
+            : `Effector: ${firstEngagement?.payload?.effector}`
+          : 'None',
       });
 
       // Latency
@@ -509,9 +567,14 @@ export function scoreSessionV2(
     total = ROE_CAP_SCORE;
     reasons.push(`ROE Cap applied: score capped at ${ROE_CAP_SCORE} due to civilian contact engagement`);
   }
+  if (assetHit && total > ASSET_HIT_CAP_SCORE) {
+    total = ASSET_HIT_CAP_SCORE;
+    reasons.push(`Mission failure cap applied: score capped at ${ASSET_HIT_CAP_SCORE} after asset hit`);
+  }
 
   return {
     total,
+    grade: gradeForScore(total),
     weightedMean: Math.round(rawWeightedMean * 10) / 10,
     subscores: {
       detection: Math.round(detectionSubscore * 10) / 10,

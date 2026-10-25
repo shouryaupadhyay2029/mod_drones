@@ -13,6 +13,7 @@ import {
   computeDetectionScore,
   computeOutcomeScore,
   getJammerFitPenalty,
+  gradeForScore,
   scoreSessionV2,
 } from '../src/sim/scoring/doctrine.js';
 import { GroundTruthSummary } from '../src/sim/scoring/basic.js';
@@ -59,6 +60,58 @@ function createMockTrack(
 }
 
 describe('Doctrine Scoring v2 Decision Tree Tests', () => {
+  it('11. v2.1 positive-ID gate halves first fit and penalizes each pre-classification engagement', () => {
+    const actor = createMockActor(1, 'fpv_kamikaze', 'neutralized', 500);
+    const track = createMockTrack(1, 1, 'confirmed', {
+      assessedClass: 'fpv_kamikaze',
+      classifyTick: 120,
+    });
+    const events: SimEvent[] = [
+      { tick: 100, type: 'ENGAGEMENT_STARTED', payload: { trackId: 1, effector: 'gun', rangeM: 500 } },
+      { tick: 110, type: 'ENGAGEMENT_STARTED', payload: { trackId: 1, effector: 'gun', rangeM: 500 } },
+      { tick: 120, type: 'TRACK_CLASSIFIED', payload: { trackId: 1, assessedClass: 'fpv_kamikaze' } },
+      { tick: 121, type: 'ENGAGEMENT_STARTED', payload: { trackId: 1, effector: 'gun', rangeM: 500 } },
+    ];
+
+    const report = scoreSessionV2({ actors: [actor], tracks: [track], events });
+    const fitNode = report.perContact[0]?.decisionPath.find((node) => node.id === 'effector_fit');
+
+    expect(report.perContact[0]?.fit).toBeCloseTo(0.4, 5);
+    expect(fitNode?.cause).toBe('engaged_unclassified');
+    expect(fitNode?.note).toContain('fit x0.5');
+    expect(report.penalties.filter((penalty) => penalty.reason.includes('before it was classified')))
+      .toEqual([
+        { reason: 'Engaged hostile (fpv_kamikaze) before it was classified: -5', points: 5 },
+        { reason: 'Engaged hostile (fpv_kamikaze) before it was classified: -5', points: 5 },
+      ]);
+  });
+
+  it('12. v2.1 mission failure cap and score grade bands', () => {
+    const actor = createMockActor(1, 'bird');
+    const track = createMockTrack(1, 1, 'confirmed', {
+      confirmedTick: 0,
+      acked: true,
+      ackTick: 0,
+      assessedClass: 'bird',
+      classifyTick: 0,
+    });
+    const report = scoreSessionV2({
+      actors: [actor],
+      tracks: [track],
+      events: [{ tick: 20, type: 'ASSET_HIT', payload: { actorId: 1 } }],
+      assetHit: true,
+    });
+
+    expect(report.total).toBe(50);
+    expect(report.grade).toBe('Marginal');
+    expect(gradeForScore(49)).toBe('Unsatisfactory');
+    expect(gradeForScore(50)).toBe('Marginal');
+    expect(gradeForScore(69)).toBe('Marginal');
+    expect(gradeForScore(70)).toBe('Competent');
+    expect(gradeForScore(84)).toBe('Competent');
+    expect(gradeForScore(85)).toBe('Proficient');
+  });
+
   // 1. Unit: detection linear interpolation
   it('1. Unit: detection linear interpolation (<=3s => 1.0, 11.5s => 0.5, 20s => 0.0, never acked => 0.0)', () => {
     expect(computeDetectionScore(3.0)).toBe(1.0);
@@ -430,8 +483,7 @@ describe('Doctrine Scoring v2 Decision Tree Tests', () => {
         const goldenPath = `docs/golden/${sc}_${bot.name}_s1.json`;
         if (existsSync(goldenPath)) {
           const golden = JSON.parse(readFileSync(goldenPath, 'utf-8'));
-          expect(report.total).toBe(golden.total);
-          expect(report.subscores).toEqual(golden.subscores);
+          expect(report, `${sc}/${bot.name} report`).toEqual(golden);
         }
       }
     }

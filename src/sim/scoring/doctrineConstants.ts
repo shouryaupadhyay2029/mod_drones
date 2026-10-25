@@ -55,3 +55,20 @@ export const PENALTY_DECOY_ENGAGED = -3;
 
 // ROE cap: if civilian quad was engaged, total cannot exceed this
 export const ROE_CAP_SCORE = 60;
+
+// --- Scoring v2.1 additions ---
+/** Scoring version stamped on stored sessions and bench tables. */
+export const SCORE_VERSION = '2.1';
+
+/** Positive-ID gate: hostile engaged before it was classified multiplies effector fit by this. */
+export const ENGAGED_UNCLASSIFIED_FIT_MULT = 0.5;
+/** Positive-ID gate: discipline penalty per hostile engaged before classification. */
+export const PENALTY_ENGAGED_UNCLASSIFIED = -5;
+
+/** Mission failure cap: if the defended asset was hit, total cannot exceed this. */
+export const ASSET_HIT_CAP_SCORE = 50;
+
+// Grade bands (lower bounds, inclusive). Below GRADE_MARGINAL_MIN => Unsatisfactory.
+export const GRADE_MARGINAL_MIN = 50;
+export const GRADE_COMPETENT_MIN = 70;
+export const GRADE_PROFICIENT_MIN = 85;

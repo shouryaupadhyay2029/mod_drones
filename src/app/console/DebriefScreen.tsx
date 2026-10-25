@@ -139,6 +139,14 @@ export function DebriefScreen({
 
   const effectiveScoreV2: ScoreReportV2 = computedScoreV2 ?? {
     total: score.total,
+    grade:
+      score.total < 50
+        ? 'Unsatisfactory'
+        : score.total < 70
+          ? 'Marginal'
+          : score.total < 85
+            ? 'Competent'
+            : 'Proficient',
     weightedMean: score.weightedMean,
     subscores: {
       detection: Math.round(
@@ -255,13 +263,7 @@ export function DebriefScreen({
                   {effectiveScoreV2.total}
                   <span style={styles.scoreMax}> / 100</span>
                 </span>
-                <span style={styles.scoreGrade}>
-                  {effectiveScoreV2.total >= 85
-                    ? 'EXCELLENT'
-                    : effectiveScoreV2.total >= 60
-                      ? 'SATISFACTORY'
-                      : 'FAILED'}
-                </span>
+                <span style={styles.scoreGrade}>{effectiveScoreV2.grade.toUpperCase()}</span>
                 {effectiveScoreV2.roeCapApplied && (
                   <span style={styles.roeCapBadge}>ROE CAP (MAX 60)</span>
                 )}

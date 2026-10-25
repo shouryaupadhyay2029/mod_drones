@@ -1,11 +1,12 @@
 {
-  "total": 66,
-  "weightedMean": 66.2,
+  "total": 0,
+  "grade": "Unsatisfactory",
+  "weightedMean": 63.3,
   "subscores": {
     "detection": 100,
     "classification": 0,
-    "engagement": 84,
-    "discipline": 100
+    "engagement": 78.7,
+    "discipline": 25
   },
   "perContact": [
     {
@@ -103,9 +104,9 @@
       "observable": true,
       "d": 1,
       "c": 0,
-      "e": 0.76,
-      "contactTotal": 0.618,
-      "totalScore": 62,
+      "e": 0.68,
+      "contactTotal": 0.574,
+      "totalScore": 57,
       "decisionPath": [
         {
           "id": "detection",
@@ -138,10 +139,10 @@
           "id": "effector_fit",
           "question": "Appropriate effector choice for target signature?",
           "answer": "Engaged with gun",
-          "points": 8.8,
+          "points": 4.4,
           "maxPoints": 11,
-          "cause": null,
-          "note": "Effector: gun"
+          "cause": "engaged_unclassified",
+          "note": "Effector: gun (fit x0.5: engaged before classification)"
         },
         {
           "id": "engagement_latency",
@@ -156,12 +157,89 @@
       "ackLatencySec": 0,
       "firstEngagementLatencySec": 96.05,
       "outcome": 1,
-      "fit": 0.8,
+      "fit": 0.4,
       "latency": 0
     }
   ],
   "unobservable": [],
-  "penalties": [],
+  "penalties": [
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    },
+    {
+      "reason": "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+      "points": 5
+    }
+  ],
   "roeCapApplied": false,
-  "reasons": []
+  "reasons": [
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5",
+    "Engaged hostile (fpv_kamikaze) before it was classified: -5"
+  ]
 }
