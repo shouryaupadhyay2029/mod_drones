@@ -43,6 +43,7 @@ export interface SessionRecord {
   summary: SessionSummary;
   hash: string;
   hashMismatch?: boolean;
+  fingerprint?: string;
 }
 
 export interface SettingRecord {

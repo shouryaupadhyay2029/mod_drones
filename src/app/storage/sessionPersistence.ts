@@ -7,13 +7,22 @@ export interface CompletedMissionReport {
   hash: string;
   scoreVersion: string;
   summary: MissionSummary;
+  fingerprint?: string;
+}
+
+export interface SessionOwner {
+  traineeId?: string;
+  unitId?: string;
 }
 
 export async function persistMissionReport(
   report: CompletedMissionReport,
-  startedAt: number
+  startedAt: number,
+  owner?: SessionOwner
 ): Promise<void> {
-  const { traineeId, unitId } = await ensureGuestProfile();
+  const guest = owner?.traineeId && owner.unitId ? undefined : await ensureGuestProfile();
+  const traineeId = owner?.traineeId ?? guest!.traineeId;
+  const unitId = owner?.unitId ?? guest!.unitId;
   const scenarioKey = report.sessionLog.scenarioId ?? 'dawn_intrusion';
   await saveSession({
     id: createLocalId(),
@@ -29,6 +38,7 @@ export async function persistMissionReport(
     report: report.scoreV2,
     summary: report.summary,
     hash: report.hash,
+    fingerprint: report.fingerprint,
   });
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('vajra:data-changed'));
 }

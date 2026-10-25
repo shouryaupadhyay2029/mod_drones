@@ -111,8 +111,8 @@ export class SimClient {
     this.worker?.postMessage(cmd);
   }
 
-  public init(seed: string | number, scenarioId = 'dawn_intrusion'): void {
-    this.send({ type: 'INIT', payload: { seed, scenarioId } });
+  public init(seed: string | number, scenarioId = 'dawn_intrusion', avoidFingerprints: string[] = []): void {
+    this.send({ type: 'INIT', payload: { seed, scenarioId, avoidFingerprints } });
   }
 
   public start(): void {
