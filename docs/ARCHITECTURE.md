@@ -339,6 +339,11 @@ Doctrine Scoring v2 (`src/sim/scoring/doctrine.ts`) replaces the baseline scorin
   - `subscores.engagement`: Weighted mean of $E \times 100$ (over hostile contacts).
   - `subscores.discipline`: $100$ minus mission penalty deductions (clamped $[0, 100]$).
 
+### Phase 4B persistence and adaptive training
+- Session logs remain event-sourced and are stored locally in IndexedDB with trainee/unit ownership and a procedural scenario fingerprint. Re-scoring uses deterministic replay logs and scoring version; imported records are merged by stable ID.
+- Adaptive estimates use an EWMA over completed-session observations. Recommendations use prior score/asset-hit history plus confidence-qualified skill estimates; procedural focus modifiers remain inside existing tier bounds and use the seeded generator.
+- The browser app accesses simulation APIs only through `src/sim/index.ts`; no trainee-facing view receives ground truth from the adaptive layer.
+
 
 
 

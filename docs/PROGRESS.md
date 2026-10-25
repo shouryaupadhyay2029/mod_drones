@@ -23,9 +23,9 @@ Historical summary from `docs/CHANGELOG.md`, `docs/ARCHITECTURE.md`, `docs/DECIS
 
 ## Open issues
 
-- Phase 4B remains incomplete: local session persistence/rescoring, AAR analytics/dashboard, and deterministic adaptive selection have not been implemented.
+- Phase 4B persistence and AAR analytics are implemented and committed; adaptive logic and scenario focus generation are committed, while their Mission Setup UI integration remains uncommitted in a file that also contains user UI work.
 - The legacy v1 procedural operator mean targets remain unmet for operator, veteran, and elite in the committed benchmark. The targets remain marked FAIL; no scenario or threshold was tuned.
-- Phase 4B has no changelog release entry yet.
+- Phase 4B changelog and architecture notes are being added; final UI integration and screenshot verification remain open.
 
 ## Future task entries
 
@@ -39,3 +39,12 @@ Append a dated section after each future item. Include its commit hash(es), what
 - **0.6 — Bot rules** (`45a7999`): Documented the general 300 m fallback and noted that no new seed-specific rule was introduced; the prior high-altitude reconnaissance cue remains documented.
 - **Verification**: `npm test` (126 passed), lint, both typechecks, build, and `npm run test:targets` pass after the scoring fix.
 - **Open issues**: Phase 4B persistence, AAR, and adaptive selection remain; legacy v1 procedural targets remain unmet. User UI/Lenis changes are still uncommitted and untouched by these commits.
+
+## 2026-10-25 — Phase 4B Parts A–C progress
+
+- **Part A — Local persistence** (`5b437cb`): IndexedDB profiles, units, replayable session storage, deterministic v2 rescoring, import/export/delete controls, and worker autosave integration.
+- **Part B — AAR analytics** (`f15d32e`): roster, trainee, unit, and session views; trends, skill matrix, confusion matrix, readiness, sorting, and CSV export. Synthetic analytics tests pass.
+- **Part C — Adaptive engine** (`bef673d`, `bd42dff`): EWMA skill estimates, tier recommendations, deterministic focus selection, focus-aware procedural generation, and persisted scenario fingerprints. Adaptive unit tests pass.
+- **Current status**: The Mission Setup profile/recommendation controls and session-owner wiring are in the working tree but not committed because `MissionSetup.tsx` and `useMission.ts` contain user UI/Lenis edits. No user UI changes were staged in these commits.
+- **Verification**: `npm test` (133 passed), lint, typecheck, simulator typecheck, and build pass. Tracker age-8 p90 passes (6.07 m/s overall). `npm run test:targets` remains FAIL on two pre-existing calibration targets: elite oracle mean 94.15 exceeds 90; veteran reference mean 34.95 is below 55. Neither assertion was changed.
+- **Open issues**: Commit the adaptive Mission Setup integration with the user-owned hunks preserved, complete screenshots if Chrome is available, and finish any release documentation. Legacy calibration target failures remain open.

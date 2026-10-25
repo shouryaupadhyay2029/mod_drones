@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - Phase 4B: Scoring, Persistence, AAR, and Adaptive Training (in progress)
+
+### Added
+- Scoring v2.1 positive-ID engagement discipline gate, asset-hit score cap, proficiency grades, and updated golden fixtures.
+- Local IndexedDB trainee/unit/session persistence, deterministic session rescoring, worker autosave, and local data controls.
+- AAR roster, trainee, unit, and session views with trend charts, skill/confusion matrices, readiness sorting, and CSV export.
+- Adaptive EWMA skill estimates, tier/focus recommendations, fingerprint avoidance, and focus-aware scenario generation.
+- Versioned v1/v2.1 benchmark reporting and restored age-8 tracker calibration target.
+
+### Status
+- The final adaptive Mission Setup UI integration remains uncommitted alongside user-owned UI edits. Calibration targets for elite ceiling and veteran floor still fail; assertions and scenario constants were not changed.
+
 ## [0.7.0] - Phase 4A: Doctrine Scoring v2, Capacity Window, Bot Optimization
 
 ### Added

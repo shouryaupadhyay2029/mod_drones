@@ -155,6 +155,11 @@ The session score weighted mean distributes total contact weight (1.0) dynamical
 - **Decision**: In addition to the standard $-25$ mission penalty for engaging a civilian quadcopter, any engagement on a `commercial_quad` triggers `roeCapApplied = true` and caps the session total score at $\le 60$ (`ROE_CAP_SCORE = 60`).
 - **Rationale**: High procedural efficiency in neutralizing hostile drones cannot compensate for engaging civilian contacts. Capping the score at 60 ensures that a session involving an ROE civilian violation cannot receive a passing/proficient grade regardless of swarm defense performance.
 
+## ADR-011: Local Session Persistence and Adaptive Training
+- **Decision**: Keep trainee, unit, session, and preferences data in browser IndexedDB. Store replayable event logs and scoring version so a saved session can be deterministically re-scored. Export/import uses JSON and merges records by stable IDs.
+- **Decision**: Derive skill estimates from completed sessions with an EWMA and recommend only adjacent tiers. Focus modifiers are deterministic and constrained by existing tier ranges; prior scenario fingerprints are avoided where possible.
+- **Rationale**: Training records remain on the device, reproducible across sessions, and explainable to the trainee. The adaptive system changes practice emphasis without modifying simulator ground truth or tier definitions.
+
 
 
 
