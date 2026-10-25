@@ -86,6 +86,37 @@ describe('Doctrine Scoring v2 Decision Tree Tests', () => {
       ]);
   });
 
+  it('uses the later of classification and effector range entry as the latency origin', () => {
+    const actor = createMockActor(1, 'fpv_kamikaze', 'neutralized', 800);
+    const track = createMockTrack(1, 1, 'confirmed', {
+      confirmedTick: 0,
+      acked: true,
+      ackTick: 0,
+      assessedClass: 'fpv_kamikaze',
+      classifyTick: 10,
+    });
+    const report = scoreSessionV2({
+      actors: [actor],
+      tracks: [track],
+      events: [
+        { tick: 100, type: 'TRACK_IN_RANGE', payload: { trackId: 1, effector: 'jammer' } },
+        { tick: 160, type: 'ENGAGEMENT_STARTED', payload: { trackId: 1, effector: 'jammer' } },
+      ],
+    });
+    expect(report.perContact[0]?.firstEngagementLatencySec).toBe(3);
+    expect(report.perContact[0]?.decisionPath.find((node) => node.id === 'engagement_latency')?.points).toBe(11);
+  });
+
+  it('records each trainee-visible effector range crossing once per track', () => {
+    const engine = new Engine('range-events-s1', 'dawn_intrusion');
+    while (!engine.missionState.ended && engine.world.tick < 4800) engine.step();
+    const rangeEvents = engine.getEvents().filter((event) => event.type === 'TRACK_IN_RANGE');
+    const eventKeys = rangeEvents.map((event) => `${String(event.payload?.trackId)}:${String(event.payload?.effector)}`);
+    expect(new Set(eventKeys).size).toBe(eventKeys.length);
+    expect(engine.getTraineeView().events.some((event) => event.type === 'TRACK_IN_RANGE')).toBe(true);
+    expect(rangeEvents.every((event) => ['jammer', 'gun'].includes(String(event.payload?.effector)))).toBe(true);
+  });
+
   it('12. v2.1 mission failure cap and score grade bands', () => {
     const actor = createMockActor(1, 'bird');
     const track = createMockTrack(1, 1, 'confirmed', {

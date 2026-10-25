@@ -152,6 +152,7 @@ export function buildTraineeView(
   const traineeEvents = allEvents.filter((e) => {
     return (
       e.type === 'TRACK_CONFIRMED' ||
+      e.type === 'TRACK_IN_RANGE' ||
       e.type === 'TRACK_LOST' ||
       e.type === 'ENGAGEMENT_STARTED' ||
       e.type === 'ENGAGEMENT_RESOLVED' ||

@@ -2,10 +2,12 @@ import { LOG_FORMAT_VERSION } from '../../shared/version.js';
 import { Actor, createActor, updateActorBehaviour } from '../model/actors.js';
 import {
   createInitialEffectorState,
+  EFFECTOR_RANGES,
   EffectorState,
 } from '../model/effectors.js';
 import { generateTerrain, TerrainMap } from '../model/terrain.js';
 import { Track } from '../model/tracks.js';
+import { vDist, vec3 } from './vec.js';
 import {
   SCENARIOS,
   ScenarioSpawnSchedule,
@@ -184,6 +186,26 @@ export class Engine {
       this.terrain
     );
     this.nextTrackId = trackRef.current;
+
+    // Record the first trainee-estimated entry into each effector's engagement range.
+    for (const track of this.tracks) {
+      if (track.state === 'dropped') continue;
+      const estimatedRange = vDist(track.estimatedPos, vec3(0, 0, 0));
+      for (const effector of ['jammer', 'gun'] as const) {
+        if (estimatedRange > EFFECTOR_RANGES[effector]) continue;
+        const alreadyRecorded = this.events.some(
+          (event) => event.type === 'TRACK_IN_RANGE' &&
+            event.payload?.trackId === track.trackId && event.payload?.effector === effector
+        );
+        if (!alreadyRecorded) {
+          this.events.push({
+            tick: currentTick,
+            type: 'TRACK_IN_RANGE',
+            payload: { trackId: track.trackId, effector },
+          });
+        }
+      }
+    }
 
     // 4. rf detector (passive)
     runRfSystem(

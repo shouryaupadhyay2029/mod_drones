@@ -401,11 +401,14 @@ export function scoreSessionV2(
 
       // Latency
       if (isEngaged && firstEngagement) {
-        const refTick =
-          latestClassifiedTrack?.classifyTick ??
-          confirmedTracks[0]?.confirmedTick ??
-          firstEngagement.tick;
-        engLatencySec = Math.max(0, (firstEngagement.tick - refTick) / 20);
+        const rangeTick = events.find(
+          (event) => event.type === 'TRACK_IN_RANGE' &&
+            event.payload?.trackId === firstEngagement.payload?.trackId &&
+            event.payload?.effector === firstEngagement.payload?.effector
+        )?.tick;
+        const classifiedTick = latestClassifiedTrack?.classifyTick ?? confirmedTracks[0]?.confirmedTick;
+        const referenceTick = Math.max(classifiedTick ?? firstEngagement.tick, rangeTick ?? classifiedTick ?? firstEngagement.tick);
+        engLatencySec = Math.max(0, (firstEngagement.tick - referenceTick) / 20);
         latencyVal = computeEngagementLatencyScore(engLatencySec);
       } else {
         latencyVal = 0.0;
