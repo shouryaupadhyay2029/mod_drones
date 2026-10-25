@@ -11,7 +11,7 @@ import {
   ScenarioSpawnSchedule,
   spawnScheduledActor,
 } from '../scenarios/index.js';
-import { buildSingleScenario, generateScenario, Tier } from '../scenarios/generator.js';
+import { buildSingleScenario, Fingerprint, generateScenario, ScenarioFocus, Tier } from '../scenarios/generator.js';
 import { runEngagementSystem, tryEngageTrack } from '../systems/engagement.js';
 import { runRadarSystem } from '../systems/radar.js';
 import {
@@ -57,6 +57,8 @@ export class Engine {
   public rng: Rng;
   public readonly seed: string | number;
   public readonly scenarioId: string;
+  public readonly scenarioFingerprint?: Fingerprint;
+  private readonly generatorAvoid: Fingerprint[];
 
   public actors: Actor[] = [];
   public tracks: Track[] = [];
@@ -74,9 +76,10 @@ export class Engine {
   private executedCommands: Command[] = [];
   private events: SimEvent[] = [];
 
-  constructor(seed: string | number, scenarioId = 'sandbox') {
+  constructor(seed: string | number, scenarioId = 'sandbox', generatorAvoid: Fingerprint[] = []) {
     this.seed = seed;
     this.scenarioId = scenarioId;
+    this.generatorAvoid = [...generatorAvoid];
     this.rng = new Rng(seed);
     this.effectorState = createInitialEffectorState();
 
@@ -84,17 +87,23 @@ export class Engine {
       this.world = createInitialWorld();
       this.scheduledSpawns = [];
     } else if (scenarioId.startsWith('proc:unconstrained:')) {
-      const tier = scenarioId.slice('proc:unconstrained:'.length) as Tier;
+      const [tierName, focusName = 'none'] = scenarioId.slice('proc:unconstrained:'.length).split(':');
+      const tier = tierName as Tier;
+      const focus = focusName as ScenarioFocus;
       const rootRng = new Rng(seed);
-      const proc = buildSingleScenario(seed, tier, rootRng.fork('gen').fork('attempt:0'));
+      const proc = buildSingleScenario(seed, tier, rootRng.fork('gen').fork('attempt:0'), focus);
+      this.scenarioFingerprint = proc.fingerprint;
       this.world = createInitialWorld(proc.environment);
       this.scheduledSpawns = proc.spawns;
       this.terrain =
         proc.terrain ??
         generateTerrain(proc.environment.terrainKind, this.rng.fork('terrain'));
     } else if (scenarioId.startsWith('proc:v1:')) {
-      const tier = scenarioId.slice('proc:v1:'.length) as Tier;
-      const proc = generateScenario(seed, tier);
+      const [tierName, focusName = 'none'] = scenarioId.slice('proc:v1:'.length).split(':');
+      const tier = tierName as Tier;
+      const focus = focusName as ScenarioFocus;
+      const proc = generateScenario(seed, tier, this.generatorAvoid, focus);
+      this.scenarioFingerprint = proc.fingerprint;
       this.world = createInitialWorld(proc.environment);
       this.scheduledSpawns = proc.spawns;
       this.terrain =
@@ -554,6 +563,7 @@ export class Engine {
         payload: { ...c.payload },
       })),
       totalTicks: this.world.tick,
+      generatorAvoid: [...this.generatorAvoid],
     };
   }
 
@@ -562,6 +572,7 @@ export class Engine {
       formatVersion: LOG_FORMAT_VERSION,
       seed: this.seed,
       scenarioId: this.scenarioId,
+      generatorAvoid: [...this.generatorAvoid],
       tick: this.world.tick,
       world: cloneWorld(this.world),
       rngStates: {
@@ -629,7 +640,7 @@ export class Engine {
   }
 
   public static restore(snapshot: EngineSnapshot): Engine {
-    const engine = new Engine(snapshot.seed, snapshot.scenarioId ?? 'sandbox');
+    const engine = new Engine(snapshot.seed, snapshot.scenarioId ?? 'sandbox', snapshot.generatorAvoid ?? []);
     engine.world = cloneWorld(snapshot.world);
     engine.rng.setState(snapshot.rngStates.main);
     engine.rng.restoreForkStates(snapshot.rngStates.forks);

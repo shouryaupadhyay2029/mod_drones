@@ -24,6 +24,7 @@ export const GEN_VERSION = 1;
 
 export type Tier = 'recruit' | 'operator' | 'veteran' | 'elite';
 export type Fingerprint = string;
+export type ScenarioFocus = 'decoys' | 'fiber' | 'traffic' | 'saturation' | 'none';
 
 export const TIER_CAPACITY_LIMITS: Record<Tier, number> = {
   recruit: 0.6,
@@ -89,7 +90,8 @@ export function computeFingerprint(
 export function generateScenario(
   seed: string | number,
   tier: Tier,
-  avoid: Fingerprint[] = []
+  avoid: Fingerprint[] = [],
+  focus: ScenarioFocus = 'none'
 ): ProceduralScenario {
   const rootRng = new Rng(seed);
   const genRng = rootRng.fork('gen');
@@ -101,7 +103,7 @@ export function generateScenario(
 
   for (let attempt = 0; attempt < 8; attempt++) {
     const attemptRng = genRng.fork(`attempt:${attempt}`);
-    const scenario = buildSingleScenario(seed, tier, attemptRng);
+    const scenario = buildSingleScenario(seed, tier, attemptRng, focus);
     const check = capacityCheck(scenario.spawns, scenario.terrain, scenario.environment);
 
     if (check.capacityRatio < minRatio) {
@@ -160,7 +162,8 @@ export function generateScenario(
 export function buildSingleScenario(
   _seed: string | number,
   tier: Tier,
-  rng: Rng
+  rng: Rng,
+  focus: ScenarioFocus = 'none'
 ): ProceduralScenario {
   let env: Environment;
   let tactic: SwarmTactic | undefined;
@@ -262,11 +265,34 @@ export function buildSingleScenario(
     }
   }
 
+  if (focus === 'decoys') {
+    numDecoys = tier === 'recruit' ? 0 : tier === 'operator' ? 1 : tier === 'veteran' ? 3 : 4;
+  } else if (focus === 'traffic') {
+    numCivilians = tier === 'veteran' ? 3 : tier === 'elite' ? 2 : 2;
+    numBirds = tier === 'veteran' || tier === 'elite' ? 2 : 1;
+  } else if (focus === 'saturation') {
+    const strikerBounds: Record<Tier, [number, number]> = {
+      recruit: [1, 2],
+      operator: [3, 5],
+      veteran: [6, 10],
+      elite: [9, 15],
+    };
+    const [minimum, maximum] = strikerBounds[tier];
+    numStrikers = minimum + Math.ceil((maximum - minimum) * (2 / 3));
+    if (tier !== 'recruit') {
+      tactic = rng.next() < 0.5 ? 'saturation' : 'split';
+    }
+  }
+
   const terrain = generateTerrain(env.terrainKind, rng.fork('proc-terrain'));
 
   // Calculate fiber striker count
   const maxFiberCount = Math.floor(numStrikers * maxFiberShare);
-  const fiberCount = maxFiberCount > 0 ? 1 + Math.floor(rng.next() * maxFiberCount) : 0;
+  const fiberCount = focus === 'fiber'
+    ? maxFiberCount
+    : maxFiberCount > 0
+      ? 1 + Math.floor(rng.next() * maxFiberCount)
+      : 0;
   const standardStrikerCount = numStrikers - fiberCount;
 
   // Build striker configs
@@ -434,7 +460,7 @@ export function buildSingleScenario(
   );
 
   return {
-    scenarioId: `proc:v1:${tier}`,
+    scenarioId: `proc:v1:${tier}:${focus}`,
     tier,
     environment: env,
     spawns,

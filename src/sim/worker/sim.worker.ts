@@ -91,6 +91,7 @@ export function attachWorkerHandler(workerScope: WorkerRuntimeContext): void {
         hash,
         scoreVersion: SCORE_VERSION,
         summary,
+        fingerprint: engine.scenarioFingerprint,
       },
     });
   }
@@ -142,7 +143,7 @@ export function attachWorkerHandler(workerScope: WorkerRuntimeContext): void {
         case 'INIT': {
           pauseLoop();
           const scenario = msg.payload.scenarioId ?? 'dawn_intrusion';
-          engine = new Engine(msg.payload.seed, scenario);
+          engine = new Engine(msg.payload.seed, scenario, msg.payload.avoidFingerprints ?? []);
           lastSentViewTick = -999;
           lastSentEventCount = 0;
           postCurrentState();

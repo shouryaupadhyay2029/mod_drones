@@ -20,6 +20,7 @@ export * from './scoring/constants.js';
 export * from './scoring/doctrine.js';
 export * from './scoring/doctrineConstants.js';
 export * from './scoring/rescore.js';
+export * from './training/adaptive.js';
 
 export * from './systems/engagement.js';
 export * from './systems/eo.js';

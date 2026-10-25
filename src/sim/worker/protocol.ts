@@ -20,7 +20,7 @@ export interface EnqueueCommandInput {
 }
 
 export type WorkerCommand =
-  | { type: 'INIT'; payload: { seed: string | number; scenarioId?: string } }
+  | { type: 'INIT'; payload: { seed: string | number; scenarioId?: string; avoidFingerprints?: string[] } }
   | { type: 'START' }
   | { type: 'PAUSE' }
   | { type: 'STEP_N'; payload: { n: number } }
@@ -56,6 +56,7 @@ export type WorkerEvent =
         hash: string;
         scoreVersion: string;
         summary: MissionSummary;
+        fingerprint?: string;
       };
     }
   | {

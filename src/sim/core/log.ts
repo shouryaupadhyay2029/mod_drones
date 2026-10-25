@@ -2,7 +2,7 @@ import { Engine } from './engine.js';
 import { SessionLog } from './types.js';
 
 export function replay(log: SessionLog): string {
-  const engine = new Engine(log.seed, log.scenarioId);
+  const engine = new Engine(log.seed, log.scenarioId, log.generatorAvoid ?? []);
 
   for (let i = 0; i < log.commands.length; i++) {
     const cmd = log.commands[i];

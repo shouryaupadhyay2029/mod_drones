@@ -83,6 +83,7 @@ export interface SessionLog {
   scenarioId?: string;
   commands: Command[];
   totalTicks: number;
+  generatorAvoid?: string[];
 }
 
 export interface RngTreeState {
@@ -111,6 +112,7 @@ export interface EngineSnapshot {
   missionState: MissionState;
   nextActorId: number;
   nextTrackId: number;
+  generatorAvoid?: string[];
   rfState?: {
     lines: Array<{ tick: number; bearingDeg: number; signature: RfSignature }>;
   };
