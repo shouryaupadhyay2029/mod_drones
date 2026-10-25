@@ -113,7 +113,7 @@ describe('Worker Protocol & Headless Pipeline Verification (no wall-clock sleeps
     await persistMissionReport(finalReport!, 1000);
     const [saved] = await listSessions();
     expect(saved?.hash).toBe(finalReport?.hash);
-    expect(saved?.scoreVersion).toBe('2.1');
+    expect(saved?.scoreVersion).toBe('2.2');
     expect(rescoreSession(saved!.sessionLog).hash).toBe(saved?.hash);
   });
 });

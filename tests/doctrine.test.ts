@@ -255,6 +255,7 @@ describe('Doctrine Scoring v2 Decision Tree Tests', () => {
     });
 
     expect(result.perContact.find((contact) => contact.actorId === 1)?.outcome).toBe(1.0);
+    expect(result.perContact.find((contact) => contact.actorId === 1)?.decisionPath.find((node) => node.id === 'outcome')?.points).toBe(33);
     expect(result.perContact.find((contact) => contact.actorId === 2)?.outcome).toBe(0.0);
   });
 
