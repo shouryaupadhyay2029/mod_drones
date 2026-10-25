@@ -70,3 +70,14 @@ Append a dated section after each future item. Include its commit hash(es), what
 - **Verification**: `npm test` passes (22 files, 147 tests); lint, typecheck, simulator typecheck, and build pass. `npm run test:targets` keeps its two existing calibration failures (elite oracle mean 94.15 > 90; veteran reference mean 34.95 < 55); the restored tracker target passes at 6.07 m/s overall. Browser screenshot: `docs/screenshots/phase4c-session-review.png`; seek timing sample: six seeks averaging 13.13 ms on the local ridge-runner fixture.
 - **Open issues**: calibration targets remain unmet and unchanged. Existing UI/Lenis files and `bg.png`/`bg1.png` remain as separate uncommitted user work.
 - **Adaptive synthetic cases**: new trainee → recruit/none; 80,85,90 with no recent asset hits → veteran/none; 30,35 → operator/none; weak decoy classification at 35, n=3, confidence=.60 → operator/decoys. Returned rationales are pasted in the verification record.
+
+## 2026-10-25 — Phase 5 branching practice and comparison
+
+- **Deterministic fork logs** (`d9ef542`): bumped the log format to v3, migrated old logs, and added `forkSession` with pre-command-at-tick semantics and parent log truncation.
+- **Fork worker initialization** (`42b7f93`): added `INIT_FROM_FORK`; fork sessions restore at the requested tick, start paused, and continue through the normal worker protocol.
+- **Pure AAR analysis** (`ce04035`): added `compareSessions` and up-to-five `keyMoments` with five-second rewind ticks.
+- **Storage and scoring isolation** (`ee52a0e`): migrated IndexedDB v1 records to v2 fork metadata; fork sessions are excluded from analytics and adaptive recommendations.
+- **Review and practice UI** (`4720941`): added key-moment and command fork actions, current-tick fork action, paused fork banner with return link, comparison view, original/fork path overlay, and nested fork rows with a separate what-if count. Fork reports save parent/tick metadata and open comparison.
+- **Verification**: `npm test` — 24 files / 160 tests passed; lint, typecheck, simulator typecheck, and production build passed. Fork identity matrix covers 10 seeded ticks x 3 scenarios x 2 tier fixtures; worker test confirms changed commands diverge and fresh fork-log replay matches the live fork. Screenshots: `docs/screenshots/phase5-key-moments.png`, `docs/screenshots/phase5-fork-banner.png`, and `docs/screenshots/phase5-compare.png`.
+- **Scoring/bench**: scoring was unchanged; no benchmark file was generated.
+- **Open issues**: existing calibration target failures documented under Phase 4C remain unchanged. No Phase 5-specific issue is known.
