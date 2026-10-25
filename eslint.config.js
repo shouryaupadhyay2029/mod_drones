@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
+import { noLiveReplayImport } from './scripts/eslint-rules/no-live-replay-import.js';
 
 export default tseslint.config(
   js.configs.recommended,
@@ -20,6 +21,7 @@ export default tseslint.config(
   },
   {
     files: ['src/app/**/*.{ts,tsx}'],
+    plugins: { vajra: { rules: { 'no-live-replay-import': noLiveReplayImport } } },
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -43,6 +45,7 @@ export default tseslint.config(
           ],
         },
       ],
+      'vajra/no-live-replay-import': 'error',
     },
   },
   {

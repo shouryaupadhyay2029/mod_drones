@@ -145,10 +145,49 @@
 .aar-report-node small { grid-column: 1 / -1; color: #6b665d; }
 .aar-mismatch { margin: 12px 0; padding: 10px; color: #842d22; background: rgba(184,51,39,.1); border: 1px solid rgba(184,51,39,.3); border-radius: 5px; }
 
+.aar-replay { margin: 18px 0; padding: 16px; color: #25221d; background: rgba(239,235,226,.9); border: 1px solid rgba(45,40,35,.22); border-radius: 8px; }
+.aar-replay-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px; }
+.aar-replay-heading h2 { margin: 5px 0 0; font-size: 17px; letter-spacing: .06em; }
+.aar-replay-heading > strong { color: #657b31; font-size: 14px; }
+.aar-replay-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(250px, .8fr); gap: 14px; }
+.aar-map-column { min-width: 0; }
+.aar-map-stack { position: relative; width: 100%; aspect-ratio: 1; overflow: hidden; background: #d5d0c4; border: 1px solid rgba(40,38,32,.25); border-radius: 4px; }
+.aar-replay-map { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.aar-replay-terrain { background: #d5d0c4; }
+.aar-replay-overlay { pointer-events: none; }
+.aar-map-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 9px 14px; margin: 8px 0 14px; color: #6b665d; font-size: 8px; font-weight: 800; letter-spacing: .06em; }
+.aar-map-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.aar-dot { width: 8px; height: 8px; display: inline-block; border-radius: 50%; }
+.aar-truth { background: #a54c2d; }.aar-track { border: 1.5px solid #29261f; }.aar-ghost { border: 1.5px dashed #a54c2d; }
+.aar-slider-label { display: grid; grid-template-columns: 1fr auto; gap: 7px; color: #716b60; font-size: 9px; font-weight: 800; letter-spacing: .09em; }
+.aar-slider-label strong { color: #28251f; }.aar-slider-label input { grid-column: 1 / -1; width: 100%; accent-color: #a54c2d; }
+.aar-replay-controls { display: flex; align-items: center; gap: 6px; margin: 10px 0; }
+.aar-replay-controls button { padding: 6px 9px; color: #29251f; background: transparent; border: 1px solid rgba(45,40,35,.25); border-radius: 4px; font-size: 9px; font-weight: 800; cursor: pointer; }
+.aar-replay-controls button.active,.aar-replay-controls button:first-child { color: #f4eee3; background: #29251f; }
+.aar-replay-controls span { margin-left: auto; font: 11px ui-monospace, monospace; }
+.aar-timeline-wrap { position: relative; height: 20px; }
+.aar-timeline-wrap input { width: 100%; accent-color: #a54c2d; }
+.aar-timeline-markers { position: absolute; top: 5px; left: 0; right: 0; height: 12px; pointer-events: none; }
+.aar-timeline-markers button { position: absolute; width: 6px; height: 12px; padding: 0; transform: translateX(-50%); background: #a54c2d; border: 0; cursor: pointer; pointer-events: auto; }
+.aar-replay-side { display: grid; align-content: start; gap: 10px; max-height: 690px; overflow: auto; }
+.aar-replay-card { padding: 12px; background: rgba(255,255,255,.34); border: 1px solid rgba(45,40,35,.14); border-radius: 5px; }
+.aar-replay-card h3 { margin: 0 0 8px; color: #716b60; font-size: 9px; letter-spacing: .12em; }
+.aar-replay-card > button { display: flex; justify-content: space-between; width: 100%; padding: 7px 6px; color: #29251f; background: transparent; border: 0; border-top: 1px solid rgba(45,40,35,.1); text-align: left; font: inherit; font-size: 10px; text-transform: capitalize; cursor: pointer; }
+.aar-replay-card > button.selected { color: #9b442a; background: rgba(165,76,45,.08); }
+.aar-replay-card > button small { color: #716b60; text-transform: uppercase; }
+.aar-event-list { max-height: 250px; overflow: auto; }
+.aar-event-list > button { justify-content: flex-start; gap: 9px; text-transform: uppercase; }
+.aar-event-list time { color: #a54c2d; font: 9px ui-monospace, monospace; }
+.aar-replay-grade { margin: 0 0 5px; font-size: 20px; font-weight: 800; }
+.aar-cause-row { display: grid; gap: 5px; padding: 8px 0; border-top: 1px solid rgba(45,40,35,.12); text-transform: capitalize; }
+.aar-cause-row strong { font-size: 10px; }.aar-cause-row small { color: #6b665d; font-size: 9px; line-height: 1.4; }.aar-cause-row b { color: #a54c2d; font: 800 8px ui-monospace, monospace; text-transform: uppercase; }
+
 @media (max-width: 860px) {
   .aar-grid-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .aar-grid-two,.aar-grid-three { grid-template-columns: 1fr; }
   .aar-roster-row { grid-template-columns: 1fr 1fr; }
+  .aar-replay-layout { grid-template-columns: 1fr; }
+  .aar-replay-side { max-height: 380px; }
 }
 
 @media (max-width: 520px) {

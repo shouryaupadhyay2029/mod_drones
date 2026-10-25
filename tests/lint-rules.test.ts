@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ESLint } from 'eslint';
+import { ESLint, RuleTester } from 'eslint';
+import { noLiveReplayImport } from '../scripts/eslint-rules/no-live-replay-import.js';
 
 describe('ESLint Negative Rules Verification (src/sim & src/sim/core)', { timeout: 20000 }, () => {
   const eslint = new ESLint();
@@ -145,5 +146,29 @@ describe('ESLint Negative Rules Verification (src/sim & src/sim/core)', { timeou
       const messages = await lintSnippet('export const r = Math.random();', appPath);
       expect(messages.some((m) => m.message.includes('Math.random is forbidden'))).toBe(false);
     });
+  });
+});
+
+describe('AAR replay import boundary', () => {
+  it('rejects replay API imports outside the AAR tree', () => {
+    const tester = new RuleTester({ languageOptions: { ecmaVersion: 2022, sourceType: 'module' } });
+    expect(() => tester.run('no-live-replay-import', noLiveReplayImport, {
+      valid: [
+        { code: "import { createReplay } from '../../sim/index.js';", filename: 'src/app/aar/SessionReplay.tsx' },
+        { code: "import { Engine } from '../../sim/index.js';", filename: 'src/app/console/LiveConsole.tsx' },
+      ],
+      invalid: [
+        {
+          code: "import { createReplay } from '../../sim/index.js';",
+          filename: 'src/app/console/LiveConsole.tsx',
+          errors: [{ messageId: 'aarOnly' }],
+        },
+        {
+          code: "import { createReplay } from '../../sim/debrief/replay.js';",
+          filename: 'src/app/console/LiveConsole.tsx',
+          errors: [{ messageId: 'aarOnly' }],
+        },
+      ],
+    })).not.toThrow();
   });
 });

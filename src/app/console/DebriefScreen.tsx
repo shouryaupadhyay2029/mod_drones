@@ -11,6 +11,7 @@ import {
   TraineeEnvironmentView,
 } from '../../sim/index.js';
 import { TextRoll } from '../components/TextRoll.js';
+import { SessionReplay } from '../aar/SessionReplay.js';
 
 export interface DebriefScreenProps {
   score: ScoreReport;
@@ -53,6 +54,7 @@ export function DebriefScreen({
   onNewRandomSeed,
 }: DebriefScreenProps): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<'v2' | 'v1'>('v2');
+  const [showSessionReplay, setShowSessionReplay] = useState(false);
   const [expandedActorId, setExpandedActorId] = useState<number | null>(null);
 
   const handleDownloadLog = () => {
@@ -212,6 +214,7 @@ export function DebriefScreen({
     penalties: score.penalties,
     roeCapApplied: false,
     reasons: score.reasons,
+    missionDecisionPath: [],
   };
 
   const v2ScoreColor = getScoreColor(effectiveScoreV2.total);
@@ -254,6 +257,13 @@ export function DebriefScreen({
             v1 (legacy)
           </button>
         </div>
+
+        {sessionLog && <div style={{ margin: '12px 0' }}>
+          <button type="button" onClick={() => setShowSessionReplay((open) => !open)} style={styles.tabInactive}>
+            {showSessionReplay ? 'Close flight review' : 'Open synchronized flight review'}
+          </button>
+          {showSessionReplay && <SessionReplay sessionLog={sessionLog} report={effectiveScoreV2} title="LIVE DEBRIEF FLIGHT REVIEW" />}
+        </div>}
 
         {/* Doctrine Scoring v2 Panel */}
         <div style={{ display: activeTab === 'v2' ? 'block' : 'none' }}>

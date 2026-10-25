@@ -11,6 +11,7 @@ import {
 import { LocalDataControls } from '../storage/LocalDataControls.js';
 import { SessionRecord, TraineeRecord, UnitRecord, listSessions, listTrainees, listUnits } from '../storage/db.js';
 import './aar.css';
+import { SessionReplay } from './SessionReplay.js';
 
 type AarRoute =
   | { page: 'roster'; unitFilter: string }
@@ -222,6 +223,7 @@ export function AarPage(): React.JSX.Element {
     return <>
       {shellHeader('Stored session report', `${formatDate(session.startedAt)} · ${session.scenarioKey} · ${session.tier.toUpperCase()} / ${session.focus.toUpperCase()}`)}
       {session.hashMismatch && <p className="aar-mismatch">Replay hash differs from the originally stored final hash. Integrity needs review.</p>}
+      <SessionReplay sessionLog={session.sessionLog} report={session.report} />
       <div className="aar-grid aar-grid-kpis"><Kpi label="Doctrine score" value={`${session.summary.total}%`} note={`${session.summary.grade} · scoring v${session.scoreVersion}`} /><Kpi label="Duration" value={`${(session.summary.durationTicks / 20).toFixed(0)}s`} note="Simulation time" /><Kpi label="Hostiles resolved" value={`${session.summary.hostilesNeutralised}/${session.summary.hostilesTotal}`} note="Across this session" /><Kpi label="Asset hit" value={session.summary.assetHit ? 'YES' : 'NO'} note={`Hash ${session.hash}`} /></div>
       <div className="aar-grid aar-grid-two"><section className="aar-card"><h2>Subscores</h2>{Object.entries(session.report.subscores).map(([label, value]) => <div className="aar-report-node" key={label}><strong>{formatClass(label)}</strong><span>{value}%</span></div>)}</section><section className="aar-card"><h2>Scoring reasons</h2>{session.report.reasons.length ? session.report.reasons.map((reason, index) => <p key={`${reason}-${index}`} className="aar-alert">{reason}</p>) : <p className="aar-muted">No additional score penalties.</p>}</section></div>
       <section className="aar-card" style={{ marginTop: 14 }}><h2>Contact decision paths</h2>{session.report.perContact.map((contact) => <div key={contact.actorId} className="aar-report-node"><strong>{formatClass(contact.classId)} · actor {contact.actorId}</strong><span>{contact.totalScore}</span><small>{contact.decisionPath.map((node) => `${node.question}: ${node.answer} (${node.points}/${node.maxPoints})`).join(' · ')}</small></div>)}</section>

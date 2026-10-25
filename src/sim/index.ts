@@ -8,6 +8,8 @@ export * from './core/types.js';
 export * from './core/vec.js';
 export * from './core/world.js';
 
+export * from './debrief/replay.js';
+
 export * from './model/actors.js';
 export * from './model/effectors.js';
 export * from './model/environment.js';
