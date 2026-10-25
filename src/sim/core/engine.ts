@@ -60,6 +60,7 @@ export class Engine {
   public readonly seed: string | number;
   public readonly scenarioId: string;
   public readonly scenarioFingerprint?: Fingerprint;
+  public forkOf?: { parentId: string; tick: number };
   private readonly generatorAvoid: Fingerprint[];
 
   public actors: Actor[] = [];
@@ -586,6 +587,7 @@ export class Engine {
       })),
       totalTicks: this.world.tick,
       generatorAvoid: [...this.generatorAvoid],
+      forkOf: this.forkOf ? { ...this.forkOf } : undefined,
     };
   }
 
@@ -595,6 +597,7 @@ export class Engine {
       seed: this.seed,
       scenarioId: this.scenarioId,
       generatorAvoid: [...this.generatorAvoid],
+      forkOf: this.forkOf ? { ...this.forkOf } : undefined,
       tick: this.world.tick,
       world: cloneWorld(this.world),
       rngStates: {
@@ -731,6 +734,7 @@ export class Engine {
     engine.missionState = { ...snapshot.missionState };
     engine.nextActorId = snapshot.nextActorId;
     engine.nextTrackId = snapshot.nextTrackId;
+    engine.forkOf = snapshot.forkOf ? { ...snapshot.forkOf } : undefined;
 
     return engine;
   }

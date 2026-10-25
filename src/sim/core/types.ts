@@ -84,6 +84,7 @@ export interface SessionLog {
   commands: Command[];
   totalTicks: number;
   generatorAvoid?: string[];
+  forkOf?: { parentId: string; tick: number };
 }
 
 export interface RngTreeState {
@@ -113,6 +114,7 @@ export interface EngineSnapshot {
   nextActorId: number;
   nextTrackId: number;
   generatorAvoid?: string[];
+  forkOf?: { parentId: string; tick: number };
   rfState?: {
     lines: Array<{ tick: number; bearingDeg: number; signature: RfSignature }>;
   };
