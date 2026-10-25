@@ -16,6 +16,7 @@
     "screenshot:console": "node scripts/screenshot-console.mjs"
   },
   "dependencies": {
+    "lenis": "^1.3.27",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
