@@ -634,6 +634,12 @@ export function TopBar({
               <span style={{ fontSize: '10px', color: '#d4ff3f' }}>↗</span>
             </a>
           </div>
+          <div className="nav-mega-item anim-curved-slide anim-delay-5">
+            <a href="#/aar" style={styles.navDirectLink} aria-label="Open after action review dashboard">
+              <span>AAR</span>
+              <span style={{ fontSize: '10px', color: '#d4ff3f' }}>↗</span>
+            </a>
+          </div>
         </div>
 
         {/* Right: Audio toggle + Setup Launch Button */}

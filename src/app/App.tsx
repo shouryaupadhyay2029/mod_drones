@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ConsolePage } from './routes/ConsolePage.js';
 import { SystemCheckPage } from './routes/SystemCheckPage.js';
 import { CONTACT_REFERENCES, ContactReferencePage } from './console/ContactLibrary.js';
+import { AarPage } from './aar/AarPage.js';
 
 export function App(): React.JSX.Element {
   const [currentHash, setCurrentHash] = useState<string>(
@@ -20,6 +21,10 @@ export function App(): React.JSX.Element {
 
   if (currentHash.startsWith('#/check')) {
     return <SystemCheckPage />;
+  }
+
+  if (currentHash.startsWith('#/aar')) {
+    return <AarPage />;
   }
 
   const contactId = currentHash.match(/^#\/contacts\/([^/?#]+)/)?.[1];
