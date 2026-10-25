@@ -74,6 +74,15 @@ describe('AAR pure analytics', () => {
     expect(matrix.counts[bird]?.[unknown]).toBe(1);
   });
 
+  it('excludes what-if forks from training analytics and exports', () => {
+    const parent = session('parent', 't1', 1, 70);
+    const fork = { ...session('fork', 't1', 2, 100), isFork: true };
+    expect(trendSeries([parent, fork], 'total', 10).map((point) => point.value)).toEqual([70]);
+    expect(confusionMatrix([parent, fork]).total).toBe(1);
+    expect(unitReadiness([{ id: 't1', callsign: 'Trainee', unitId: 'unit-1', createdAt: 0 }], [parent, fork], 'unit-1', 10).mean).toBe(70);
+    expect(unitSessionsCsv([parent, fork], []).split('\r\n')).toHaveLength(2);
+  });
+
   it('calculates unit readiness, 7-day participation, and >1.5 SD outliers', () => {
     const now = 10 * 24 * 60 * 60 * 1000;
     const trainees: TraineeRecord[] = Array.from({ length: 5 }, (_, i) => ({

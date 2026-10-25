@@ -1,9 +1,9 @@
-import { ScoreReportV2, SessionLog } from '../../sim/index.js';
+import { migrateSessionLog, ScoreReportV2, SessionLog } from '../../sim/index.js';
 
 export const VAJRA_DB_NAME = 'vajra';
-export const VAJRA_DB_VERSION = 1;
+export const VAJRA_DB_VERSION = 2;
 export const VAJRA_DATA_FORMAT = 'vajra-local-data';
-export const VAJRA_DATA_FORMAT_VERSION = 1;
+export const VAJRA_DATA_FORMAT_VERSION = 2;
 
 export interface TraineeRecord {
   id: string;
@@ -44,6 +44,9 @@ export interface SessionRecord {
   hash: string;
   hashMismatch?: boolean;
   fingerprint?: string;
+  parentId?: string;
+  forkTick?: number;
+  isFork?: boolean;
 }
 
 export interface SettingRecord {
@@ -93,6 +96,23 @@ function openDatabase(): Promise<IDBDatabase> {
         sessions.createIndex('unitId', 'unitId', { unique: false });
         sessions.createIndex('startedAt', 'startedAt', { unique: false });
         db.createObjectStore('settings', { keyPath: 'key' });
+      }
+      if (oldVersion < 2) {
+        const sessions = request.transaction?.objectStore('sessions');
+        const cursorRequest = sessions?.openCursor();
+        if (cursorRequest) cursorRequest.onsuccess = () => {
+          const cursor = cursorRequest.result;
+          if (!cursor) return;
+          const record = cursor.value as SessionRecord;
+          const forkOf = record.sessionLog?.forkOf;
+          cursor.update({
+            ...record,
+            isFork: record.isFork ?? Boolean(forkOf),
+            parentId: record.parentId ?? forkOf?.parentId,
+            forkTick: record.forkTick ?? forkOf?.tick,
+          });
+          cursor.continue();
+        };
       }
     };
 
@@ -150,7 +170,18 @@ async function putRecord<T extends StoreName>(storeName: T, value: StoreRecords[
 export const listTrainees = (): Promise<TraineeRecord[]> => getAll('trainees');
 export const listUnits = (): Promise<UnitRecord[]> => getAll('units');
 export const listSessions = async (): Promise<SessionRecord[]> =>
-  (await getAll('sessions')).sort((a, b) => b.startedAt - a.startedAt);
+  (await getAll('sessions')).map(migrateSessionRecord).sort((a, b) => b.startedAt - a.startedAt);
+
+export function migrateSessionRecord(record: SessionRecord): SessionRecord {
+  const sessionLog = migrateSessionLog(record.sessionLog);
+  return {
+    ...record,
+    sessionLog,
+    parentId: record.parentId ?? sessionLog.forkOf?.parentId,
+    forkTick: record.forkTick ?? sessionLog.forkOf?.tick,
+    isFork: record.isFork ?? Boolean(sessionLog.forkOf),
+  };
+}
 export const listSettings = (): Promise<SettingRecord[]> => getAll('settings');
 
 export const saveTrainee = (record: TraineeRecord): Promise<void> => putRecord('trainees', record);
@@ -188,15 +219,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function recordsFromExport<T extends StoreName>(payload: VajraExport, storeName: T): StoreRecords[T][] {
-  return payload[storeName] as StoreRecords[T][];
+function recordsFromExport<T extends StoreName>(payload: Record<string, unknown>, storeName: T): StoreRecords[T][] {
+  const records = payload[storeName] as StoreRecords[T][];
+  return storeName === 'sessions'
+    ? (records as SessionRecord[]).map(migrateSessionRecord) as StoreRecords[T][]
+    : records;
 }
 
 export async function importData(value: unknown): Promise<{ merged: number }> {
   if (
     !isRecord(value) ||
     value.format !== VAJRA_DATA_FORMAT ||
-    value.formatVersion !== VAJRA_DATA_FORMAT_VERSION ||
+    (value.formatVersion !== 1 && value.formatVersion !== VAJRA_DATA_FORMAT_VERSION) ||
     !Array.isArray(value.trainees) ||
     !Array.isArray(value.units) ||
     !Array.isArray(value.sessions) ||
@@ -205,7 +239,7 @@ export async function importData(value: unknown): Promise<{ merged: number }> {
     throw new Error('This file is not a supported VAJRA data export.');
   }
 
-  const payload = value as unknown as VajraExport;
+  const payload = value as Record<string, unknown>;
   const storeNames: StoreName[] = ['trainees', 'units', 'sessions', 'settings'];
   const db = await openDatabase();
   const transaction = db.transaction(storeNames, 'readwrite');

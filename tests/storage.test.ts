@@ -19,7 +19,7 @@ describe('VAJRA local session storage', () => {
     await deleteAllData();
   });
 
-  it('creates the version 1 stores and supports typed record CRUD', async () => {
+  it('creates the version 2 stores and supports typed record CRUD', async () => {
     const unit = { id: 'unit-1', name: 'North Cell', createdAt: 10 };
     const trainee = { id: 'trainee-1', callsign: 'Echo', unitId: unit.id, createdAt: 11 };
     await saveUnit(unit);
@@ -87,5 +87,37 @@ describe('VAJRA local session storage', () => {
     const [stored] = await listSessions();
     expect(stored?.hash).toBe(rescored.hash);
     expect(rescoreSession(stored!.sessionLog).hash).toBe(stored?.hash);
+  });
+
+  it('imports v1 session exports and migrates old sessions and logs without fork fields', async () => {
+    const engine = new Engine('legacy-session-seed', 'sandbox');
+    engine.stepN(8);
+    const log = engine.getSessionLog();
+    const rescored = rescoreSession(log);
+    await saveSession({
+      id: 'legacy-session', traineeId: 'trainee-1', unitId: 'unit-1', startedAt: 10,
+      scenarioKey: 'sandbox', tier: 'scripted', focus: 'none', seed: log.seed,
+      sessionLog: { ...log, formatVersion: 1, forkOf: undefined }, scoreVersion: SCORE_VERSION,
+      report: rescored.report,
+      summary: { total: 0, grade: 'Unsatisfactory', subscores: rescored.report.subscores, hostilesTotal: 0, hostilesNeutralised: 0, assetHit: false, durationTicks: 8 },
+      hash: rescored.hash,
+    });
+    const currentExport = await exportData();
+    const legacySession = currentExport.sessions[0]!;
+    const oldSession = { ...legacySession };
+    delete oldSession.isFork;
+    delete oldSession.parentId;
+    delete oldSession.forkTick;
+    const legacyLog = { ...oldSession.sessionLog, formatVersion: 1 };
+    delete (legacyLog as { forkOf?: unknown }).forkOf;
+
+    await deleteAllData();
+    await importData({ ...currentExport, formatVersion: 1, sessions: [{ ...oldSession, sessionLog: legacyLog }] });
+    const [migrated] = await listSessions();
+    expect(migrated?.isFork).toBe(false);
+    expect(migrated?.parentId).toBeUndefined();
+    expect(migrated?.forkTick).toBeUndefined();
+    expect(migrated?.sessionLog.formatVersion).toBe(3);
+    expect(migrated?.sessionLog.forkOf).toBeUndefined();
   });
 });

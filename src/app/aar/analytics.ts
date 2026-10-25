@@ -75,7 +75,7 @@ const CONFUSION_LABELS: Array<ThreatClassId | 'unknown'> = [
 ];
 
 function ordered(sessions: readonly SessionRecord[]): SessionRecord[] {
-  return [...sessions].sort((a, b) => a.startedAt - b.startedAt || a.id.localeCompare(b.id));
+  return sessions.filter((session) => !session.isFork).sort((a, b) => a.startedAt - b.startedAt || a.id.localeCompare(b.id));
 }
 
 function metricValue(session: SessionRecord, metric: AarMetric): number {
@@ -178,7 +178,7 @@ export function confusionMatrix(sessions: readonly SessionRecord[]): ConfusionMa
   const index = new Map(CONFUSION_LABELS.map((label, i) => [label, i]));
   const counts = CONFUSION_LABELS.map(() => CONFUSION_LABELS.map(() => 0));
   let total = 0;
-  for (const session of sessions) {
+  for (const session of sessions.filter((item) => !item.isFork)) {
     for (const contact of session.report.perContact) {
       const trueIndex = index.get(contact.classId);
       const assessedIndex = index.get(contact.assessedClass ?? 'unknown');
@@ -206,7 +206,7 @@ export function unitReadiness(
   now: number
 ): UnitReadiness {
   const memberIds = new Set(trainees.filter((trainee) => trainee.unitId === unitId).map((t) => t.id));
-  const unitSessions = sessions.filter((session) => session.unitId === unitId && memberIds.has(session.traineeId));
+  const unitSessions = sessions.filter((session) => !session.isFork && session.unitId === unitId && memberIds.has(session.traineeId));
   const perTrainee = trainees
     .filter((trainee) => trainee.unitId === unitId)
     .map((trainee) => {
@@ -270,7 +270,7 @@ export function unitSessionsCsv(
   const callsigns = new Map(trainees.map((trainee) => [trainee.id, trainee.callsign]));
   const rows = [
     ['callsign', 'date', 'scenario', 'tier', 'focus', 'grade', 'total', 'asset_hit'],
-    ...sessions.map((session) => [
+    ...sessions.filter((session) => !session.isFork).map((session) => [
       callsigns.get(session.traineeId) ?? session.traineeId,
       new Date(session.startedAt).toISOString(),
       session.scenarioKey,
