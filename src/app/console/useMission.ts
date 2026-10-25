@@ -9,10 +9,14 @@ import {
   referenceOperator,
 } from '../../sim/index.js';
 import { SimClient } from '../simClient.js';
-import { persistMissionReport } from '../storage/sessionPersistence.js';
+import { persistMissionReport, SessionOwner } from '../storage/sessionPersistence.js';
 import { TrailPoint, updateTrailHistory } from './radar/trails.js';
 
 export type MissionPhase = 'setup' | 'running' | 'ended';
+
+export interface MissionStartOptions extends SessionOwner {
+  avoidFingerprints?: string[];
+}
 
 export interface UseMissionReturn {
   phase: MissionPhase;
@@ -28,7 +32,7 @@ export interface UseMissionReturn {
   scoreReportV2: ScoreReportV2 | null;
   sessionLog: SessionLog | null;
   storageStatus: string;
-  startMission: (seed: string, scenarioId?: string) => void;
+  startMission: (seed: string, scenarioId?: string, options?: MissionStartOptions) => void;
   togglePause: () => void;
   setSpeedMultiplier: (speed: 1 | 2 | 4) => void;
   toggleAutopilot: () => void;
@@ -61,6 +65,7 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   const missionStartedAtRef = useRef<number>(0);
   const scenarioIdRef = useRef<string>('dawn_intrusion');
   const savedReportHashRef = useRef<string>('');
+  const activeOwnerRef = useRef<SessionOwner | undefined>(undefined);
 
   const clientRef = useRef<SimClient | null>(null);
   const trailHistoryRef = useRef<Map<number, TrailPoint[]>>(new Map());
@@ -102,7 +107,8 @@ export function useMission(initialSeed?: string): UseMissionReturn {
       setStorageStatus('Saving session locally…');
       void persistMissionReport(
         { ...report, sessionLog: { ...report.sessionLog, scenarioId: report.sessionLog.scenarioId ?? scenarioIdRef.current } },
-        missionStartedAtRef.current
+        missionStartedAtRef.current,
+        activeOwnerRef.current
       )
         .then(() => setStorageStatus('Session saved on this device.'))
         .catch((error: unknown) => {
@@ -117,7 +123,7 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   }, []);
 
   const startMission = useCallback(
-    (newSeed: string, newScenarioId?: string) => {
+    (newSeed: string, newScenarioId?: string, options?: MissionStartOptions) => {
       const client = clientRef.current;
       if (!client) return;
 
@@ -126,6 +132,11 @@ export function useMission(initialSeed?: string): UseMissionReturn {
       scenarioIdRef.current = chosenScenario;
       missionStartedAtRef.current = Date.now();
       savedReportHashRef.current = '';
+      if (options) {
+        activeOwnerRef.current = options.traineeId && options.unitId
+          ? { traineeId: options.traineeId, unitId: options.unitId }
+          : undefined;
+      }
 
       trailHistoryRef.current.clear();
       setScoreReport(null);
@@ -137,7 +148,7 @@ export function useMission(initialSeed?: string): UseMissionReturn {
       setIsPaused(false);
       setPhase('running');
 
-      client.init(newSeed, chosenScenario);
+      client.init(newSeed, chosenScenario, options?.avoidFingerprints ?? []);
       client.setSpeed(1);
       client.start();
     },
