@@ -1,11 +1,11 @@
 {
-  "total": 93,
+  "total": 100,
   "grade": "Proficient",
-  "weightedMean": 92.7,
+  "weightedMean": 100,
   "subscores": {
     "detection": 100,
     "classification": 100,
-    "engagement": 86.7,
+    "engagement": 100,
     "discipline": 100
   },
   "perContact": [
@@ -106,9 +106,9 @@
       "observable": true,
       "d": 1,
       "c": 1,
-      "e": 0.8,
-      "contactTotal": 0.89,
-      "totalScore": 89,
+      "e": 1,
+      "contactTotal": 1,
+      "totalScore": 100,
       "decisionPath": [
         {
           "id": "detection",
@@ -149,23 +149,24 @@
         {
           "id": "engagement_latency",
           "question": "Engagement dispatched promptly upon classification/confirmation?",
-          "answer": "Engaged within 78.0s",
-          "points": 0,
+          "answer": "Engaged within 0.1s",
+          "points": 11,
           "maxPoints": 11,
           "cause": null,
-          "note": "Latency: 78.0s"
+          "note": "Latency: 0.1s"
         }
       ],
       "assessedClass": "fpv_kamikaze",
       "ackLatencySec": 0.05,
-      "firstEngagementLatencySec": 78,
+      "firstEngagementLatencySec": 0.05,
       "outcome": 1,
       "fit": 1,
-      "latency": 0
+      "latency": 1
     }
   ],
   "unobservable": [],
   "penalties": [],
   "roeCapApplied": false,
-  "reasons": []
+  "reasons": [],
+  "missionDecisionPath": []
 }

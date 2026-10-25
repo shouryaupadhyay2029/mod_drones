@@ -1,11 +1,11 @@
 {
   "total": 0,
   "grade": "Unsatisfactory",
-  "weightedMean": 63.3,
+  "weightedMean": 70.6,
   "subscores": {
     "detection": 100,
     "classification": 0,
-    "engagement": 78.7,
+    "engagement": 92,
     "discipline": 25
   },
   "perContact": [
@@ -35,7 +35,7 @@
           "answer": "Unclassified",
           "points": 0,
           "maxPoints": 25,
-          "cause": null,
+          "cause": "misclassification",
           "note": "True: bird, Assessed: none"
         },
         {
@@ -79,7 +79,7 @@
           "answer": "Unclassified",
           "points": 0,
           "maxPoints": 25,
-          "cause": null,
+          "cause": "misclassification",
           "note": "True: commercial_quad, Assessed: none"
         },
         {
@@ -104,9 +104,9 @@
       "observable": true,
       "d": 1,
       "c": 0,
-      "e": 0.68,
-      "contactTotal": 0.574,
-      "totalScore": 57,
+      "e": 0.88,
+      "contactTotal": 0.684,
+      "totalScore": 68,
       "decisionPath": [
         {
           "id": "detection",
@@ -123,7 +123,7 @@
           "answer": "Unclassified",
           "points": 0,
           "maxPoints": 25,
-          "cause": null,
+          "cause": "misclassification",
           "note": "True: fpv_kamikaze, Assessed: none"
         },
         {
@@ -147,18 +147,18 @@
         {
           "id": "engagement_latency",
           "question": "Engagement dispatched promptly upon classification/confirmation?",
-          "answer": "Engaged within 96.0s",
-          "points": 0,
+          "answer": "Engaged within 0.1s",
+          "points": 11,
           "maxPoints": 11,
           "cause": null,
-          "note": "Latency: 96.0s"
+          "note": "Latency: 0.1s"
         }
       ],
       "ackLatencySec": 0,
-      "firstEngagementLatencySec": 96.05,
+      "firstEngagementLatencySec": 0.05,
       "outcome": 1,
       "fit": 0.4,
-      "latency": 0
+      "latency": 1
     }
   ],
   "unobservable": [],
@@ -241,5 +241,6 @@
     "Engaged hostile (fpv_kamikaze) before it was classified: -5",
     "Engaged hostile (fpv_kamikaze) before it was classified: -5",
     "Engaged hostile (fpv_kamikaze) before it was classified: -5"
-  ]
+  ],
+  "missionDecisionPath": []
 }

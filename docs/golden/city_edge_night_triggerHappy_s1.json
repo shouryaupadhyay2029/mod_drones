@@ -35,7 +35,7 @@
           "answer": "Unclassified",
           "points": 0,
           "maxPoints": 25,
-          "cause": null,
+          "cause": "misclassification",
           "note": "True: fpv_kamikaze, Assessed: none"
         },
         {
@@ -98,7 +98,7 @@
           "answer": "Unclassified",
           "points": 0,
           "maxPoints": 25,
-          "cause": null,
+          "cause": "misclassification",
           "note": "True: commercial_quad, Assessed: none"
         },
         {
@@ -122,19 +122,49 @@
       "actorId": 1,
       "classId": "bird",
       "reason": "unobservable",
-      "note": "Contact never reached confirmed radar track state"
+      "note": "Contact never reached confirmed radar track state",
+      "decisionPath": [
+        {
+          "id": "observability",
+          "question": "Did the contact produce a confirmed track?",
+          "answer": "No confirmed track was produced",
+          "points": 0,
+          "maxPoints": 0,
+          "cause": "unobservable"
+        }
+      ]
     },
     {
       "actorId": 4,
       "classId": "bird",
       "reason": "unobservable",
-      "note": "Contact never reached confirmed radar track state"
+      "note": "Contact never reached confirmed radar track state",
+      "decisionPath": [
+        {
+          "id": "observability",
+          "question": "Did the contact produce a confirmed track?",
+          "answer": "No confirmed track was produced",
+          "points": 0,
+          "maxPoints": 0,
+          "cause": "unobservable"
+        }
+      ]
     },
     {
       "actorId": 5,
       "classId": "fpv_kamikaze",
       "reason": "unobservable",
-      "note": "Contact never reached confirmed radar track state"
+      "note": "Contact never reached confirmed radar track state",
+      "decisionPath": [
+        {
+          "id": "observability",
+          "question": "Did the contact produce a confirmed track?",
+          "answer": "No confirmed track was produced",
+          "points": 0,
+          "maxPoints": 0,
+          "cause": "unobservable"
+        }
+      ]
     }
   ],
   "penalties": [
@@ -216,5 +246,6 @@
     "Engaged hostile (fpv_kamikaze) before it was classified: -5",
     "Engaged hostile (fpv_kamikaze) before it was classified: -5",
     "Engaged hostile (fpv_kamikaze) before it was classified: -5"
-  ]
+  ],
+  "missionDecisionPath": []
 }

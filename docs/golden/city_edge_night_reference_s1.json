@@ -188,16 +188,37 @@
       "actorId": 1,
       "classId": "bird",
       "reason": "unobservable",
-      "note": "Contact never reached confirmed radar track state"
+      "note": "Contact never reached confirmed radar track state",
+      "decisionPath": [
+        {
+          "id": "observability",
+          "question": "Did the contact produce a confirmed track?",
+          "answer": "No confirmed track was produced",
+          "points": 0,
+          "maxPoints": 0,
+          "cause": "unobservable"
+        }
+      ]
     },
     {
       "actorId": 4,
       "classId": "bird",
       "reason": "unobservable",
-      "note": "Contact never reached confirmed radar track state"
+      "note": "Contact never reached confirmed radar track state",
+      "decisionPath": [
+        {
+          "id": "observability",
+          "question": "Did the contact produce a confirmed track?",
+          "answer": "No confirmed track was produced",
+          "points": 0,
+          "maxPoints": 0,
+          "cause": "unobservable"
+        }
+      ]
     }
   ],
   "penalties": [],
   "roeCapApplied": false,
-  "reasons": []
+  "reasons": [],
+  "missionDecisionPath": []
 }

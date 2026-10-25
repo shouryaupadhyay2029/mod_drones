@@ -1,11 +1,11 @@
 {
   "total": 0,
   "grade": "Unsatisfactory",
-  "weightedMean": 34.5,
+  "weightedMean": 56.5,
   "subscores": {
     "detection": 100,
     "classification": 0,
-    "engagement": 26.4,
+    "engagement": 66.4,
     "discipline": 0
   },
   "perContact": [
@@ -35,7 +35,7 @@
           "answer": "Unclassified",
           "points": 0,
           "maxPoints": 25,
-          "cause": null,
+          "cause": "misclassification",
           "note": "True: bird, Assessed: none"
         },
         {
@@ -60,9 +60,9 @@
       "observable": true,
       "d": 1,
       "c": 0,
-      "e": 0.08,
-      "contactTotal": 0.244,
-      "totalScore": 24,
+      "e": 0.28,
+      "contactTotal": 0.354,
+      "totalScore": 35,
       "decisionPath": [
         {
           "id": "detection",
@@ -79,16 +79,16 @@
           "answer": "Unclassified",
           "points": 0,
           "maxPoints": 25,
-          "cause": null,
+          "cause": "misclassification",
           "note": "True: fpv_kamikaze, Assessed: none"
         },
         {
           "id": "outcome",
           "question": "Was threat neutralised before standoff range?",
-          "answer": "Threat reached asset (asset hit)",
+          "answer": "Threat was not neutralised",
           "points": 0,
           "maxPoints": 33,
-          "cause": null,
+          "cause": "missed_threat",
           "note": "Missed"
         },
         {
@@ -103,18 +103,18 @@
         {
           "id": "engagement_latency",
           "question": "Engagement dispatched promptly upon classification/confirmation?",
-          "answer": "Engaged within 63.6s",
-          "points": 0,
+          "answer": "Engaged within 1.6s",
+          "points": 11,
           "maxPoints": 11,
           "cause": null,
-          "note": "Latency: 63.6s"
+          "note": "Latency: 1.6s"
         }
       ],
       "ackLatencySec": 0,
-      "firstEngagementLatencySec": 63.65,
+      "firstEngagementLatencySec": 1.65,
       "outcome": 0,
       "fit": 0.4,
-      "latency": 0
+      "latency": 1
     },
     {
       "actorId": 3,
@@ -142,7 +142,7 @@
           "answer": "Unclassified",
           "points": 0,
           "maxPoints": 25,
-          "cause": null,
+          "cause": "misclassification",
           "note": "True: commercial_quad, Assessed: none"
         },
         {
@@ -167,9 +167,9 @@
       "observable": true,
       "d": 1,
       "c": 0,
-      "e": 0.08,
-      "contactTotal": 0.244,
-      "totalScore": 24,
+      "e": 0.88,
+      "contactTotal": 0.684,
+      "totalScore": 68,
       "decisionPath": [
         {
           "id": "detection",
@@ -186,14 +186,14 @@
           "answer": "Unclassified",
           "points": 0,
           "maxPoints": 25,
-          "cause": null,
+          "cause": "misclassification",
           "note": "True: fpv_kamikaze, Assessed: none"
         },
         {
           "id": "outcome",
           "question": "Was threat neutralised before standoff range?",
           "answer": "Neutralised at 773m",
-          "points": 0,
+          "points": 33,
           "maxPoints": 33,
           "cause": null,
           "note": "Distance: 773m"
@@ -210,18 +210,18 @@
         {
           "id": "engagement_latency",
           "question": "Engagement dispatched promptly upon classification/confirmation?",
-          "answer": "Engaged within 104.0s",
-          "points": 0,
+          "answer": "Engaged within 0.1s",
+          "points": 11,
           "maxPoints": 11,
           "cause": null,
-          "note": "Latency: 104.0s"
+          "note": "Latency: 0.1s"
         }
       ],
       "ackLatencySec": 0,
-      "firstEngagementLatencySec": 104.05,
-      "outcome": 0,
+      "firstEngagementLatencySec": 0.05,
+      "outcome": 1,
       "fit": 0.4,
-      "latency": 0
+      "latency": 1
     }
   ],
   "unobservable": [],
@@ -334,5 +334,6 @@
     "Engaged hostile (fpv_kamikaze) before it was classified: -5",
     "Engaged hostile (fpv_kamikaze) before it was classified: -5",
     "Defended asset was hit: -30"
-  ]
+  ],
+  "missionDecisionPath": []
 }
