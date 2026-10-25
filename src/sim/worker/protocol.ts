@@ -21,6 +21,7 @@ export interface EnqueueCommandInput {
 
 export type WorkerCommand =
   | { type: 'INIT'; payload: { seed: string | number; scenarioId?: string; avoidFingerprints?: string[] } }
+  | { type: 'INIT_FROM_FORK'; payload: { log: SessionLog; tick: number; parentId?: string } }
   | { type: 'START' }
   | { type: 'PAUSE' }
   | { type: 'STEP_N'; payload: { n: number } }

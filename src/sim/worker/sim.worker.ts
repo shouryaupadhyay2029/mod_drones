@@ -1,5 +1,6 @@
 import { TICK_RATE } from '../core/clock.js';
 import { Engine } from '../core/engine.js';
+import { forkSession } from '../core/log.js';
 import { Command } from '../core/types.js';
 import { scoreSession } from '../scoring/basic.js';
 import { scoreSessionV2 } from '../scoring/doctrine.js';
@@ -144,6 +145,18 @@ export function attachWorkerHandler(workerScope: WorkerRuntimeContext): void {
           pauseLoop();
           const scenario = msg.payload.scenarioId ?? 'dawn_intrusion';
           engine = new Engine(msg.payload.seed, scenario, msg.payload.avoidFingerprints ?? []);
+          lastSentViewTick = -999;
+          lastSentEventCount = 0;
+          postCurrentState();
+          postViewIfAppropriate(true);
+          break;
+        }
+
+        case 'INIT_FROM_FORK': {
+          pauseLoop();
+          const fork = forkSession(msg.payload.log, msg.payload.tick, msg.payload.parentId);
+          engine = Engine.restore(fork.snapshot);
+          speedMultiplier = 1;
           lastSentViewTick = -999;
           lastSentEventCount = 0;
           postCurrentState();

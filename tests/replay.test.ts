@@ -139,6 +139,33 @@ describe('Replay Verification & Worker Pipeline', () => {
 });
 
 describe('session review replay', () => {
+  it('initializes a fork in the worker paused, accepts replacement commands, and replays its hash', async () => {
+    const original = new Engine('worker-fork-fixture', 'sandbox');
+    original.enqueueCommand({ tick: 4, type: 'SPAWN_ENTITY', payload: { x: 10, y: 20, vx: 1, vy: 1 } });
+    original.enqueueCommand({ tick: 12, type: 'SET_VELOCITY', payload: { id: 1, vx: 1, vy: -2 } });
+    original.stepN(40);
+    const log = original.getSessionLog();
+    const workerHarness = createTestWorkerHarness();
+    const client = new SimClient(workerHarness);
+    client.initFromFork(log, 10, 'parent-worker');
+
+    const waitForTick = (targetTick: number): Promise<void> => new Promise((resolve) => {
+      const unsubscribe = client.onState((state) => {
+        if (state.tick >= targetTick) { unsubscribe(); resolve(); }
+      });
+    });
+    await waitForTick(10);
+    expect(client.getLastState().isRunning).toBe(false);
+    client.enqueue({ tick: 10, type: 'SET_VELOCITY', payload: { id: 1, vx: -3, vy: 2 } });
+    client.stepN(20);
+    await waitForTick(30);
+    const changedLog = await client.getSessionLog();
+    expect(changedLog.forkOf).toEqual({ parentId: 'parent-worker', tick: 10 });
+    expect(changedLog.commands.some((command) => command.tick >= 10 && command.type === 'SET_VELOCITY')).toBe(true);
+    expect(replay(changedLog)).toBe(client.getLastState().hash);
+    client.terminate();
+  });
+
   it('seek matches fresh-run hashes for seeded forward and backward target ticks', () => {
     const source = new Engine('aar-seek-fixture', 'dawn_intrusion');
     while (source.world.tick < 240) source.step();

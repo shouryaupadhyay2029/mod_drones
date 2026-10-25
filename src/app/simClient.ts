@@ -115,6 +115,10 @@ export class SimClient {
     this.send({ type: 'INIT', payload: { seed, scenarioId, avoidFingerprints } });
   }
 
+  public initFromFork(log: SessionLog, tick: number, parentId: string): void {
+    this.send({ type: 'INIT_FROM_FORK', payload: { log, tick, parentId } });
+  }
+
   public start(): void {
     this.send({ type: 'START' });
   }
