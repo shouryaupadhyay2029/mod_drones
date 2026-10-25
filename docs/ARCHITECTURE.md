@@ -344,6 +344,22 @@ Doctrine Scoring v2 (`src/sim/scoring/doctrine.ts`) replaces the baseline scorin
 - Adaptive estimates use an EWMA over completed-session observations. Recommendations use prior score/asset-hit history plus confidence-qualified skill estimates; procedural focus modifiers remain inside existing tier bounds and use the seeded generator.
 - The browser app accesses simulation APIs only through `src/sim/index.ts`; no trainee-facing view receives ground truth from the adaptive layer.
 
+### Decision cause tags
+Decision nodes use stable cause tags so session review can explain a weak score with the underlying event or state. A `null` cause means the node does not identify a scoring issue.
+
+| Cause | Meaning |
+| --- | --- |
+| `detection_delay` | No acknowledgement was recorded, or acknowledgement exceeded the full-credit detection window. |
+| `misclassification` | The assessed class did not receive full classification credit. |
+| `wrong_effector` | An engagement used an effector with zero fit for the target and observed range. |
+| `information_limited` | A jammer was used on a non-RF target whose track carried an emitting or ambiguous RF cue. |
+| `late_engagement` | Engagement occurred later than the full-credit latency window after both classification and effector-range entry. |
+| `missed_threat` | A hostile actor remained unneutralised. |
+| `engaged_neutral` | An engagement was directed at a non-hostile contact. |
+| `false_track_engaged` | An engagement targeted a radar ghost track. |
+| `unobservable` | The actor never produced a confirmed track. |
+| `engaged_unclassified` | A hostile engagement began before its track was classified. |
+
 
 
 

@@ -72,6 +72,7 @@ export interface UnobservableContact {
   classId: ThreatClassId;
   reason: 'unobservable';
   note?: string;
+  decisionPath: DecisionNode[];
 }
 
 export interface Subscores {
@@ -91,6 +92,7 @@ export interface ScoreReportV2 {
   penalties: ScorePenalty[];
   roeCapApplied: boolean;
   reasons: string[];
+  missionDecisionPath: DecisionNode[];
 }
 
 function wasClassifiedBeforeEngagement(
@@ -189,6 +191,7 @@ export function scoreSessionV2(
 
   const penalties: ScorePenalty[] = [];
   const reasons: string[] = [];
+  const missionDecisionPath: DecisionNode[] = [];
   const perContact: ContactScoreV2[] = [];
   const unobservable: UnobservableContact[] = [];
 
@@ -211,6 +214,14 @@ export function scoreSessionV2(
         classId: actor.classId,
         reason: 'unobservable',
         note: 'Contact never reached confirmed radar track state',
+        decisionPath: [{
+          id: 'observability',
+          question: 'Did the contact produce a confirmed track?',
+          answer: 'No confirmed track was produced',
+          points: 0,
+          maxPoints: 0,
+          cause: 'unobservable',
+        }],
       });
       continue;
     }
@@ -265,6 +276,12 @@ export function scoreSessionV2(
     const isEngaged = actorEngagements.length > 0;
     const trackForEngagement = (engagement: SimEvent): Track | undefined =>
       actorTracks.find((track) => track.trackId === engagement.payload?.trackId);
+    const engagementEffector = firstEngagement?.payload?.effector;
+    const engagementTrack = firstEngagement ? trackForEngagement(firstEngagement) ?? actorTracks[0] : undefined;
+    const isRfControlled = THREAT_LIBRARY[actor.classId]?.rfControlled ?? false;
+    const informationLimited =
+      engagementEffector === 'jammer' && !isRfControlled &&
+      (engagementTrack?.rfStatus === 'emitting' || engagementTrack?.rfStatus === 'ambiguous');
     const unclassifiedEngagements = isHostile
       ? actorEngagements.filter(
           (engagement) =>
@@ -290,7 +307,7 @@ export function scoreSessionV2(
           : 'Never acknowledged',
       points: Math.round(bestD * 20 * 10) / 10,
       maxPoints: 20,
-      cause: null,
+      cause: minAckLatencySec === undefined || minAckLatencySec > DETECTION_FULL_SEC ? 'detection_delay' : null,
       note: minAckLatencySec !== undefined ? `Latency: ${minAckLatencySec.toFixed(1)}s` : 'Unacknowledged',
     });
 
@@ -302,7 +319,7 @@ export function scoreSessionV2(
         answer: assessedClass ? `Classified as ${assessedClass}` : 'Unclassified',
         points: Math.round(cScore * 25 * 10) / 10,
         maxPoints: 25,
-        cause: null,
+        cause: cScore < 1 ? 'misclassification' : null,
         note: `True: ${actor.classId}, Assessed: ${assessedClass ?? 'none'}`,
       });
 
@@ -319,15 +336,14 @@ export function scoreSessionV2(
           : 'Threat was not neutralised',
         points: Math.round(outcomeVal * 33 * 10) / 10,
         maxPoints: 33,
-        cause: null,
+        cause: isNeutralized ? null : 'missed_threat',
         note: isNeutralized ? `Distance: ${Math.round(neutralizedDist ?? 0)}m` : 'Missed',
       });
 
       // Fit
       if (isEngaged && firstEngagement) {
-        const effector = firstEngagement.payload?.effector as string;
-        const engagedTrack = trackForEngagement(firstEngagement) ?? actorTracks[0];
-        const isRfControlled = THREAT_LIBRARY[actor.classId]?.rfControlled ?? false;
+        const effector = engagementEffector as string;
+        const engagedTrack = engagementTrack;
 
         if (effector === 'jammer') {
           if (isRfControlled) {
@@ -388,7 +404,13 @@ export function scoreSessionV2(
           : 'Not engaged',
         points: Math.round(fitVal * 11 * 10) / 10,
         maxPoints: 11,
-        cause: firstEngagementUnclassified ? 'engaged_unclassified' : null,
+        cause: firstEngagementUnclassified
+          ? 'engaged_unclassified'
+          : informationLimited
+            ? 'information_limited'
+            : isEngaged && fitVal === 0
+              ? 'wrong_effector'
+              : null,
         note: isEngaged
           ? firstEngagementUnclassified
             ? `Effector: ${firstEngagement?.payload?.effector} (fit x${ENGAGED_UNCLASSIFIED_FIT_MULT}: engaged before classification)`
@@ -420,7 +442,7 @@ export function scoreSessionV2(
             : 'Never engaged',
         points: Math.round(latencyVal * 11 * 10) / 10,
         maxPoints: 11,
-        cause: null,
+        cause: engLatencySec !== undefined && engLatencySec > LATENCY_FULL_SEC ? 'late_engagement' : null,
         note: engLatencySec !== undefined ? `Latency: ${engLatencySec.toFixed(1)}s` : 'None',
       });
 
@@ -433,7 +455,7 @@ export function scoreSessionV2(
         answer: assessedClass ? `Classified as ${assessedClass}` : 'Unclassified',
         points: Math.round(cScore * 25 * 10) / 10,
         maxPoints: 25,
-        cause: null,
+        cause: cScore < 1 ? 'misclassification' : null,
         note: `True: ${actor.classId}, Assessed: ${assessedClass ?? 'none'}`,
       });
 
@@ -521,14 +543,22 @@ export function scoreSessionV2(
   // False track engagements (-5 per ghost track engaged)
   for (const trk of tracks) {
     if (trk.isGhost) {
-      const ghostEngaged = events.some(
+      const ghostEngagement = events.find(
         (e) => e.type === 'ENGAGEMENT_STARTED' && e.payload?.trackId === trk.trackId
       );
-      if (ghostEngaged) {
+      if (ghostEngagement) {
         const penPts = Math.abs(PENALTY_FALSE_TRACK);
         penalties.push({
           reason: `Engaged radar ghost track ${trk.trackId}: -${penPts}`,
           points: penPts,
+        });
+        missionDecisionPath.push({
+          id: 'false_track_engagement',
+          question: 'Was fire directed at a false radar track?',
+          answer: `Ghost track ${trk.trackId} engaged with ${String(ghostEngagement.payload?.effector ?? 'effector')}`,
+          points: 0,
+          maxPoints: 0,
+          cause: 'false_track_engaged',
         });
       }
     }
@@ -587,5 +617,6 @@ export function scoreSessionV2(
     penalties,
     roeCapApplied,
     reasons,
+    missionDecisionPath,
   };
 }

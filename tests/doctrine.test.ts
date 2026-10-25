@@ -257,6 +257,76 @@ describe('Doctrine Scoring v2 Decision Tree Tests', () => {
     expect(result.perContact.find((contact) => contact.actorId === 2)?.outcome).toBe(0.0);
   });
 
+  it('emits every documented decision cause in an applicable report', () => {
+    const makeEngagement = (trackId: number, effector: string, tick: number, rangeM: number): SimEvent[] => [
+      { tick: 5, type: 'CLASSIFICATION', payload: { trackId, classId: 'fpv_kamikaze' } },
+      { tick: 10, type: 'TRACK_IN_RANGE', payload: { trackId, effector } },
+      { tick, type: 'ENGAGEMENT_STARTED', payload: { trackId, effector, rangeM } },
+    ];
+    const hostile = createMockActor(10, 'fpv_kamikaze');
+    const hostileTrack = createMockTrack(10, 10, 'confirmed', {
+      classifyTick: 5,
+      assessedClass: 'commercial_quad',
+    });
+    const rangedWrongGun = scoreSessionV2({
+      actors: [hostile],
+      tracks: [hostileTrack],
+      events: makeEngagement(10, 'gun', 150, 1500),
+    });
+    const informationLimited = scoreSessionV2({
+      actors: [createMockActor(11, 'fpv_fiber')],
+      tracks: [createMockTrack(11, 11, 'confirmed', {
+        classifyTick: 5,
+        assessedClass: 'fpv_fiber',
+        rfStatus: 'emitting',
+      })],
+      events: [
+        { tick: 5, type: 'CLASSIFICATION', payload: { trackId: 11, classId: 'fpv_fiber' } },
+        { tick: 10, type: 'TRACK_IN_RANGE', payload: { trackId: 11, effector: 'jammer' } },
+        { tick: 20, type: 'ENGAGEMENT_STARTED', payload: { trackId: 11, effector: 'jammer', rangeM: 1200 } },
+      ],
+    });
+    const neutralEngaged = scoreSessionV2({
+      actors: [createMockActor(12, 'bird')],
+      tracks: [createMockTrack(12, 12)],
+      events: [{ tick: 20, type: 'ENGAGEMENT_STARTED', payload: { trackId: 12, effector: 'gun' } }],
+    });
+    const ghost = createMockTrack(13, 999, 'confirmed', { isGhost: true });
+    const falseTrackEngaged = scoreSessionV2({
+      actors: [],
+      tracks: [ghost],
+      events: [{ tick: 20, type: 'ENGAGEMENT_STARTED', payload: { trackId: 13, effector: 'gun' } }],
+    });
+    const unobservable = scoreSessionV2({ actors: [createMockActor(14, 'fpv_kamikaze')], tracks: [], events: [] });
+    const unclassifiedEngaged = scoreSessionV2({
+      actors: [createMockActor(15, 'fpv_kamikaze')],
+      tracks: [createMockTrack(15, 15)],
+      events: [{ tick: 20, type: 'ENGAGEMENT_STARTED', payload: { trackId: 15, effector: 'gun', rangeM: 500 } }],
+    });
+
+    const allNodes = [
+      ...rangedWrongGun.perContact.flatMap((contact) => contact.decisionPath),
+      ...informationLimited.perContact.flatMap((contact) => contact.decisionPath),
+      ...neutralEngaged.perContact.flatMap((contact) => contact.decisionPath),
+      ...falseTrackEngaged.missionDecisionPath,
+      ...unobservable.unobservable.flatMap((contact) => contact.decisionPath),
+      ...unclassifiedEngaged.perContact.flatMap((contact) => contact.decisionPath),
+    ];
+    const causes = new Set(allNodes.map((node) => node.cause).filter((cause): cause is string => cause !== null));
+    expect([...causes].sort()).toEqual([
+      'detection_delay',
+      'engaged_neutral',
+      'engaged_unclassified',
+      'false_track_engaged',
+      'information_limited',
+      'late_engagement',
+      'misclassification',
+      'missed_threat',
+      'unobservable',
+      'wrong_effector',
+    ]);
+  });
+
   // 3. Unit: FPV family classification
   it('3. Unit: FPV family classification (fpv_kamikaze vs fpv_fiber = 0.5, vs commercial_quad = 0.0)', () => {
     expect(computeClassificationScore('fpv_kamikaze', 'fpv_kamikaze')).toBe(1.0);
