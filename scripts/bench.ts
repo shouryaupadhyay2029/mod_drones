@@ -226,6 +226,8 @@ async function main() {
     hash2: string;
     score1: number;
     score2: number;
+    scoreV2_1: number;
+    scoreV2_2: number;
     passed: boolean;
   }
   const detRows: DetCheckRow[] = [];
@@ -233,7 +235,7 @@ async function main() {
   for (const sc of scriptedToDoubleCheck) {
     const r1 = runMission(sc, 's1', 'referenceOperator', 'standard', referenceOperator);
     const r2 = runMission(sc, 's1', 'referenceOperator', 'standard', referenceOperator);
-    const passed = r1.hash === r2.hash && r1.score === r2.score;
+    const passed = r1.hash === r2.hash && r1.score === r2.score && r1.scoreV2 === r2.scoreV2;
     if (!passed) detAllPassed = false;
     detRows.push({
       label: `${sc} (s1)`,
@@ -241,6 +243,8 @@ async function main() {
       hash2: r2.hash.slice(0, 10),
       score1: r1.score,
       score2: r2.score,
+      scoreV2_1: r1.scoreV2,
+      scoreV2_2: r2.scoreV2,
       passed,
     });
   }
@@ -250,7 +254,7 @@ async function main() {
     const seed = `bench-${tier}-1`;
     const r1 = runMission(procId, seed, 'referenceOperator', 'standard', referenceOperator);
     const r2 = runMission(procId, seed, 'referenceOperator', 'standard', referenceOperator);
-    const passed = r1.hash === r2.hash && r1.score === r2.score;
+    const passed = r1.hash === r2.hash && r1.score === r2.score && r1.scoreV2 === r2.scoreV2;
     if (!passed) detAllPassed = false;
     detRows.push({
       label: `${tier} (${seed})`,
@@ -258,6 +262,8 @@ async function main() {
       hash2: r2.hash.slice(0, 10),
       score1: r1.score,
       score2: r2.score,
+      scoreV2_1: r1.scoreV2,
+      scoreV2_2: r2.scoreV2,
       passed,
     });
   }
@@ -279,7 +285,7 @@ async function main() {
   output += `Generated: ${new Date().toISOString()}\n`;
   output += `========================================================================================\n\n`;
 
-  output += `1. SCRIPTED SCENARIOS BENCHMARK TABLE (3 scenarios x 3 bots x 5 seeds)\n`;
+  output += `1. SCRIPTED SCENARIOS SCORES (v1 and v${SCORE_VERSION}; 3 scenarios x 3 bots x 5 seeds)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
   output += `Scenario            Bot                   Seed   V1    V2.1  Outcome     Hits  FalseEng  Ticks  Hash\n`;
   output += `----------------------------------------------------------------------------------------\n`;
@@ -298,7 +304,7 @@ async function main() {
   }
   output += `----------------------------------------------------------------------------------------\n\n`;
 
-  output += `2. PROCEDURAL TIERS BENCHMARK TABLE (4 tiers x 20 seeds)\n`;
+  output += `2. PROCEDURAL TIER SCORES (v1 targets/metrics and v${SCORE_VERSION} scores; oracle scored v1; 4 tiers x 20 seeds)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
   output += `Tier       V1 Mean  V2.1 Mean  Ref Min  Ref Max  V1 Target  Status  Oracle Mean  Oracle >=90%  Asset Hit %\n`;
   output += `----------------------------------------------------------------------------------------\n`;
@@ -323,7 +329,7 @@ async function main() {
   }
   output += `----------------------------------------------------------------------------------------\n\n`;
 
-  output += `3. NUMERIC LOSS BREAKDOWN TABLE (operator, veteran, elite)\n`;
+  output += `3. NUMERIC LOSS BREAKDOWN TABLE (scoring v1, operator, veteran, elite)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
   output += `Tier       Detection (Score / Loss)   Classification (Score / Loss)   Engagement (Score / Loss)   Asset Hit %\n`;
   output += `----------------------------------------------------------------------------------------\n`;
@@ -347,9 +353,9 @@ async function main() {
   }
   output += `----------------------------------------------------------------------------------------\n\n`;
 
-  output += `4. DETERMINISM DOUBLE-CHECKS (3 Scripted Scenarios + 4 Procedural Tiers)\n`;
+  output += `4. DETERMINISM DOUBLE-CHECKS (v1 and v${SCORE_VERSION}; 3 Scripted Scenarios + 4 Procedural Tiers)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
-  output += `Scenario / Tier Target            Run 1 Hash  Run 2 Hash  Score 1  Score 2  Status\n`;
+  output += `Scenario / Tier Target            Run 1 Hash  Run 2 Hash  V1-1  V1-2  V2.1-1  V2.1-2  Status\n`;
   output += `----------------------------------------------------------------------------------------\n`;
   for (const dr of detRows) {
     const lbl = dr.label.padEnd(33);
@@ -357,13 +363,15 @@ async function main() {
     const h2 = dr.hash2.padEnd(11);
     const s1 = String(dr.score1).padStart(7);
     const s2 = String(dr.score2).padStart(8);
+    const sv21 = String(dr.scoreV2_1).padStart(7);
+    const sv22 = String(dr.scoreV2_2).padStart(7);
     const st = (dr.passed ? 'PASS' : 'FAIL').padStart(8);
-    output += `${lbl} ${h1} ${h2} ${s1} ${s2} ${st}\n`;
+    output += `${lbl} ${h1} ${h2} ${s1} ${s2} ${sv21} ${sv22} ${st}\n`;
   }
   output += `----------------------------------------------------------------------------------------\n`;
   output += `Overall Determinism: ${detAllPassed ? 'PASS (100% byte-for-byte state hash match across duplicate runs)' : 'FAIL'}\n\n`;
 
-  output += `5. WASTED JAMMER PENALTIES PER RUN (RF Ambiguity Evaluation)\n`;
+  output += `5. WASTED JAMMER EVENT COUNTS (not a scored table; RF Ambiguity Evaluation)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
   for (const ts of tierSummaries) {
     output += `${ts.tier.padEnd(10)}: mean wasted jammer (NO_EFFECT) events per run = ${ts.refWastedJammerMean.toFixed(2)}\n`;
