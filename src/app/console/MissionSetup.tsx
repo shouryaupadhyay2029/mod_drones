@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { generateScenario, Tier } from '../../sim/index.js';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { AdaptiveSession, deriveSkillStates, generateScenario, recommendNext, Tier } from '../../sim/index.js';
+import { createLocalId, ensureGuestProfile, listSessions, listTrainees, listUnits, saveTrainee, saveUnit, TraineeRecord, UnitRecord } from '../storage/db.js';
 import { DroneHeroSection } from '../components/DroneHeroSection.js';
 import { VajraAboutSection } from '../components/VajraAboutSection.js';
 import '../styles/about.css';
 import { TextRoll } from '../components/TextRoll.js';
+import { useLenisScrollRoot } from '../hooks/useLenisScrollRoot.js';
+import './training-setup.css';
 
 export interface MissionSetupProps {
-  onStart: (seed: string, scenarioId?: string) => void;
+  onStart: (seed: string, scenarioId?: string, options?: { traineeId?: string; unitId?: string; avoidFingerprints?: string[] }) => void;
 }
 
 interface ScenarioOption {
@@ -54,10 +57,109 @@ function generateRandomSeed(): string {
 }
 
 export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element {
+  const scrollRootRef = useRef<HTMLDivElement | null>(null);
+  useLenisScrollRoot(scrollRootRef);
   const [selectedScenario, setSelectedScenario] = useState<string>('dawn_intrusion');
   const [proceduralTier, setProceduralTier] = useState<Tier>('operator');
   const [seedInput, setSeedInput] = useState<string>(() => generateRandomSeed());
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [trainees, setTrainees] = useState<TraineeRecord[]>([]);
+  const [units, setUnits] = useState<UnitRecord[]>([]);
+  const [sessions, setSessions] = useState<Awaited<ReturnType<typeof listSessions>>>([]);
+  const [selectedTraineeId, setSelectedTraineeId] = useState('');
+  const [selectedUnitId, setSelectedUnitId] = useState('');
+  const [newCallsign, setNewCallsign] = useState('');
+  const [newUnitName, setNewUnitName] = useState('');
+  const [profileMessage, setProfileMessage] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    const loadProfiles = async () => {
+      try {
+        const guest = await ensureGuestProfile();
+        const [nextTrainees, nextUnits, nextSessions] = await Promise.all([listTrainees(), listUnits(), listSessions()]);
+        if (!active) return;
+        setTrainees(nextTrainees);
+        setUnits(nextUnits);
+        setSessions(nextSessions);
+        setSelectedTraineeId((current) => current || guest.traineeId);
+        setSelectedUnitId((current) => current || guest.unitId);
+      } catch (error) {
+        setProfileMessage(error instanceof Error ? error.message : 'Local profile storage is unavailable.');
+      }
+    };
+    void loadProfiles();
+    const refresh = () => void loadProfiles();
+    window.addEventListener('vajra:data-changed', refresh);
+    return () => {
+      active = false;
+      window.removeEventListener('vajra:data-changed', refresh);
+    };
+  }, []);
+
+  const traineeSessions = useMemo(
+    () => sessions.filter((session) => session.traineeId === selectedTraineeId),
+    [sessions, selectedTraineeId]
+  );
+  const recommendation = useMemo(() => {
+    const adaptiveSessions = [...traineeSessions].reverse() as AdaptiveSession[];
+    const skillStates = deriveSkillStates(adaptiveSessions);
+    const history = adaptiveSessions.map((session) => ({
+      total: session.summary.total,
+      assetHit: session.summary.assetHit,
+      tier: session.tier,
+      fingerprint: session.fingerprint,
+    }));
+    return recommendNext(skillStates, history);
+  }, [traineeSessions]);
+
+  const avoidedFingerprints = useMemo(
+    () => traineeSessions.filter((session) => session.fingerprint).slice(0, 20).map((session) => session.fingerprint!),
+    [traineeSessions]
+  );
+
+  const createTrainee = async () => {
+    const callsign = newCallsign.trim();
+    if (!callsign || !selectedUnitId) return;
+    const record: TraineeRecord = { id: createLocalId(), callsign, unitId: selectedUnitId, createdAt: Date.now() };
+    await saveTrainee(record);
+    setTrainees((current) => [...current, record]);
+    setSelectedTraineeId(record.id);
+    setNewCallsign('');
+    setProfileMessage(`Trainee ${callsign} added.`);
+    window.dispatchEvent(new Event('vajra:data-changed'));
+  };
+
+  const createUnit = async () => {
+    const name = newUnitName.trim();
+    if (!name) return;
+    const record: UnitRecord = { id: createLocalId(), name, createdAt: Date.now() };
+    await saveUnit(record);
+    setUnits((current) => [...current, record]);
+    setSelectedUnitId(record.id);
+    setNewUnitName('');
+    setProfileMessage(`Unit ${name} added.`);
+    window.dispatchEvent(new Event('vajra:data-changed'));
+  };
+
+  const handleUnitSelect = (unitId: string) => {
+    setSelectedUnitId(unitId);
+    const trainee = trainees.find((item) => item.id === selectedTraineeId);
+    if (trainee && unitId !== trainee.unitId) {
+      const updated = { ...trainee, unitId };
+      setTrainees((current) => current.map((item) => item.id === updated.id ? updated : item));
+      void saveTrainee(updated).then(() => window.dispatchEvent(new Event('vajra:data-changed')));
+    }
+  };
+
+  const startRecommended = () => {
+    const clean = seedInput.trim() || 's1';
+    onStart(clean, `proc:v1:${recommendation.tier}:${recommendation.focus}`, {
+      traineeId: selectedTraineeId,
+      unitId: selectedUnitId,
+      avoidFingerprints: avoidedFingerprints,
+    });
+  };
 
   const procPreview = useMemo(() => {
     if (selectedScenario !== 'procedural') return null;
@@ -121,25 +223,11 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    // Fail-safe wheel listener: ensures buttery smooth scrolling regardless of cursor position
-    const handleWheel = (e: WheelEvent) => {
-      // Don't intercept if briefing modal is open
-      const modalOpen = document.querySelector('.briefing-modal-overlay.is-open');
-      if (modalOpen) return;
-
-      const scroller = document.querySelector<HTMLElement>('[data-scroll-root]');
-      if (!scroller) return;
-
-      scroller.scrollTop += e.deltaY;
-    };
-    window.addEventListener('wheel', handleWheel, { passive: true });
-
     return () => {
       window.removeEventListener('mod:select-scenario', handleOpen);
       window.removeEventListener('mod:open-briefing', handleOpen);
       window.removeEventListener('mod:close-briefing', handleClose);
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('wheel', handleWheel);
     };
   }, []);
 
@@ -151,9 +239,12 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
     e.preventDefault();
     setIsModalOpen(false);
     const clean = seedInput.trim() || 's1';
-    const targetScenarioId =
-      selectedScenario === 'procedural' ? `proc:v1:${proceduralTier}` : selectedScenario;
-    onStart(clean, targetScenarioId);
+    const targetScenarioId = selectedScenario === 'procedural' ? `proc:v1:${proceduralTier}:none` : selectedScenario;
+    onStart(clean, targetScenarioId, {
+      traineeId: selectedTraineeId,
+      unitId: selectedUnitId,
+      avoidFingerprints: avoidedFingerprints,
+    });
   };
 
   const activeScenario =
@@ -168,14 +259,15 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
       : SCENARIO_OPTIONS.find((s) => s.id === selectedScenario) || SCENARIO_OPTIONS[0]!;
 
   return (
-    <div style={styles.container} data-scroll-root="" tabIndex={0}>
+    <div ref={scrollRootRef} style={styles.container} data-scroll-root="" tabIndex={0}>
+      <div data-lenis-content="">
       {/* 1. Viewport-Sticky Companion 3D ASCII Drone Layer */}
       <div className="hero-drone-layer" style={styles.stickyDroneLayer} aria-hidden="true">
         <DroneHeroSection />
       </div>
 
       {/* 2. Scroll Spacer for the Hero view so page starts at the top */}
-      <div style={styles.heroScrollSpacer}>
+      <div className="mission-hero-backdrop" style={styles.heroScrollSpacer}>
         <div className="vj-scroll-cue" aria-hidden="true">
           <span>SCROLL</span>
           <i />
@@ -195,7 +287,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
           if (e.target === e.currentTarget) setIsModalOpen(false);
         }}
       >
-        <div id="scenario-selection-card" style={styles.cardModal} className="briefing-modal-card">
+        <div id="scenario-selection-card" style={styles.cardModal} className="briefing-modal-card" data-lenis-prevent="">
           <div style={styles.modalHeaderRow}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               <img src="/vajra-emblem.png" alt="VAJRA" style={{ width: '18px', height: '20px', opacity: 0.85 }} />
@@ -367,6 +459,40 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
             </ul>
           </div>
 
+          <section className="training-profile-panel" aria-label="Trainee and unit selection">
+            <div className="training-panel-heading"><div><span>TRAINING RECORD</span><h3>Who is taking this session?</h3></div><small>Stored locally</small></div>
+            <div className="training-profile-grid">
+              <label>TRAINEE
+                <select value={selectedTraineeId} onChange={(event) => {
+                  const traineeId = event.target.value;
+                  setSelectedTraineeId(traineeId);
+                  const trainee = trainees.find((item) => item.id === traineeId);
+                  if (trainee) setSelectedUnitId(trainee.unitId);
+                }}>
+                  {trainees.map((trainee) => <option key={trainee.id} value={trainee.id}>{trainee.callsign}{trainee.callsign === 'Guest' ? ' · Guest' : ''}</option>)}
+                </select>
+              </label>
+              <label>UNIT
+                <select value={selectedUnitId} onChange={(event) => handleUnitSelect(event.target.value)}>
+                  {units.map((unit) => <option key={unit.id} value={unit.id}>{unit.name}</option>)}
+                </select>
+              </label>
+            </div>
+            <div className="training-create-row">
+              <input aria-label="New trainee callsign" value={newCallsign} onChange={(event) => setNewCallsign(event.target.value)} placeholder="New callsign" maxLength={40} />
+              <button type="button" onClick={() => void createTrainee()} disabled={!newCallsign.trim() || !selectedUnitId}>ADD TRAINEE</button>
+              <input aria-label="New unit name" value={newUnitName} onChange={(event) => setNewUnitName(event.target.value)} placeholder="New unit name" maxLength={60} />
+              <button type="button" onClick={() => void createUnit()} disabled={!newUnitName.trim()}>ADD UNIT</button>
+            </div>
+            {profileMessage && <p className="training-inline-status" aria-live="polite">{profileMessage}</p>}
+          </section>
+
+          <section className="recommended-next-card" aria-label="Recommended next training mission">
+            <div className="training-panel-heading"><div><span>ADAPTIVE SELECTION</span><h3>Recommended next</h3></div><strong>{recommendation.tier.toUpperCase()} / {recommendation.focus.toUpperCase()}</strong></div>
+            <ul>{recommendation.rationale.map((line, index) => <li key={index}>{line}</li>)}</ul>
+            <button type="button" onClick={startRecommended}>START RECOMMENDED SESSION ↗</button>
+          </section>
+
           <form onSubmit={handleStart} style={styles.form}>
             <div style={styles.inputGroup}>
               <label htmlFor="missionSeed" style={styles.label}>
@@ -399,6 +525,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
             </button>
           </form>
         </div>
+      </div>
       </div>
     </div>
   );
