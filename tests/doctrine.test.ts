@@ -214,7 +214,7 @@ describe('Doctrine Scoring v2 Decision Tree Tests', () => {
     expect(computeOutcomeScore(true, 200)).toBe(0.5);
     expect(computeOutcomeScore(true, 199)).toBe(0.0);
     expect(computeOutcomeScore(false, 500)).toBe(0.0);
-    expect(computeOutcomeScore(true, 500, true)).toBe(0.0); // assetHit cancels outcome credit
+    expect(computeOutcomeScore(true, 500)).toBe(1.0);
 
     const actor400 = createMockActor(1, 'fpv_kamikaze', 'neutralized', 450);
     const track = createMockTrack(1, 1, 'confirmed');
@@ -242,6 +242,19 @@ describe('Doctrine Scoring v2 Decision Tree Tests', () => {
       events: [],
     });
     expect(res199.perContact[0]?.outcome).toBe(0.0);
+  });
+
+  it('keeps a neutralised contact outcome when another hostile hits the asset', () => {
+    const neutralized = createMockActor(1, 'fpv_kamikaze', 'neutralized', 500);
+    const impacted = createMockActor(2, 'fpv_kamikaze', 'active');
+    const result = scoreSessionV2({
+      actors: [neutralized, impacted],
+      tracks: [createMockTrack(1, 1), createMockTrack(2, 2)],
+      events: [{ tick: 200, type: 'ASSET_HIT', payload: { actorId: 2 } }],
+    });
+
+    expect(result.perContact.find((contact) => contact.actorId === 1)?.outcome).toBe(1.0);
+    expect(result.perContact.find((contact) => contact.actorId === 2)?.outcome).toBe(0.0);
   });
 
   // 3. Unit: FPV family classification

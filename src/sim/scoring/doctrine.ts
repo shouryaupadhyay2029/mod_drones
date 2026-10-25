@@ -144,10 +144,9 @@ export function computeClassificationScore(
 
 export function computeOutcomeScore(
   neutralized: boolean,
-  distanceM?: number,
-  assetHit = false
+  distanceM?: number
 ): number {
-  if (!neutralized || assetHit || distanceM === undefined) return 0.0;
+  if (!neutralized || distanceM === undefined) return 0.0;
   if (distanceM >= OUTCOME_FULL_RANGE_M) return 1.0;
   if (distanceM >= OUTCOME_HALF_RANGE_M) return 0.5;
   return 0.0;
@@ -310,15 +309,13 @@ export function scoreSessionV2(
       // Outcome
       const isNeutralized = actor.state === 'neutralized';
       const neutralizedDist = actor.neutralizedDistanceToAsset;
-      outcomeVal = computeOutcomeScore(isNeutralized, neutralizedDist, assetHit);
+      outcomeVal = computeOutcomeScore(isNeutralized, neutralizedDist);
 
       decisionPath.push({
         id: 'outcome',
         question: 'Was threat neutralised before standoff range?',
         answer: isNeutralized
           ? `Neutralised at ${Math.round(neutralizedDist ?? 0)}m`
-          : assetHit
-          ? 'Threat reached asset (asset hit)'
           : 'Threat was not neutralised',
         points: Math.round(outcomeVal * 33 * 10) / 10,
         maxPoints: 33,
