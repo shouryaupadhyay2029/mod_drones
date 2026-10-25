@@ -7,6 +7,7 @@ import {
   TraineeView,
   WorkerCommand,
   WorkerEvent,
+  MissionSummary,
 } from '../sim/index.js';
 
 export interface SimStateUpdate {
@@ -21,7 +22,14 @@ export class SimClient {
   private stateListeners: Set<(state: SimStateUpdate) => void> = new Set();
   private viewListeners: Set<(view: TraineeView) => void> = new Set();
   private reportListeners: Set<
-    (report: { score: ScoreReport; sessionLog: SessionLog }) => void
+    (report: {
+      score: ScoreReport;
+      scoreV2: import('../sim/index.js').ScoreReportV2;
+      sessionLog: SessionLog;
+      hash: string;
+      scoreVersion: string;
+      summary: MissionSummary;
+    }) => void
   > = new Set();
   private pendingLogResolvers: Array<(log: SessionLog) => void> = [];
   private pendingSnapshotResolvers: Array<(snapshot: EngineSnapshot) => void> = [];
@@ -168,7 +176,14 @@ export class SimClient {
   }
 
   public onReport(
-    listener: (report: { score: ScoreReport; sessionLog: SessionLog }) => void
+    listener: (report: {
+      score: ScoreReport;
+      scoreV2: import('../sim/index.js').ScoreReportV2;
+      sessionLog: SessionLog;
+      hash: string;
+      scoreVersion: string;
+      summary: MissionSummary;
+    }) => void
   ): () => void {
     this.reportListeners.add(listener);
     return () => {

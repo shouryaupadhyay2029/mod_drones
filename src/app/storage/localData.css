@@ -1,0 +1,46 @@
+.local-data-controls {
+  margin-top: 22px;
+  padding: 14px 16px;
+  color: #282722;
+  background: rgba(231, 226, 214, 0.78);
+  border: 1px solid rgba(45, 40, 35, 0.2);
+  border-radius: 8px;
+  font-family: inherit;
+}
+
+.local-data-controls summary {
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.local-data-controls p,
+.local-data-controls output {
+  display: block;
+  margin: 10px 0;
+  color: #625d53;
+  font-size: 12px;
+}
+
+.local-data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.local-data-actions button {
+  padding: 8px 11px;
+  color: #282722;
+  background: transparent;
+  border: 1px solid rgba(45, 40, 35, 0.3);
+  border-radius: 5px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.local-data-actions button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}

@@ -19,6 +19,7 @@ export * from './scoring/basic.js';
 export * from './scoring/constants.js';
 export * from './scoring/doctrine.js';
 export * from './scoring/doctrineConstants.js';
+export * from './scoring/rescore.js';
 
 export * from './systems/engagement.js';
 export * from './systems/eo.js';

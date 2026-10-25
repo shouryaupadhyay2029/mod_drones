@@ -24,7 +24,9 @@ export function ConsolePage(): React.JSX.Element {
     selectedTrackId,
     trailHistory,
     scoreReport,
+    scoreReportV2,
     sessionLog,
+    storageStatus,
     startMission,
     togglePause,
     setSpeedMultiplier,
@@ -198,7 +200,9 @@ export function ConsolePage(): React.JSX.Element {
       {phase === 'ended' && scoreReport && (
         <DebriefScreen
           score={scoreReport}
+          scoreV2={scoreReportV2 ?? undefined}
           sessionLog={sessionLog}
+          storageStatus={storageStatus}
           seed={seed}
           scenarioId={scenarioId}
           environment={view?.environment}

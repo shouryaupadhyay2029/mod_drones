@@ -2,6 +2,9 @@ import { TICK_RATE } from '../core/clock.js';
 import { Engine } from '../core/engine.js';
 import { Command } from '../core/types.js';
 import { scoreSession } from '../scoring/basic.js';
+import { scoreSessionV2 } from '../scoring/doctrine.js';
+import { SCORE_VERSION } from '../scoring/doctrineConstants.js';
+import { THREAT_LIBRARY } from '../model/threats.js';
 import { WorkerCommand, WorkerEvent } from './protocol.js';
 
 export interface WorkerRuntimeContext {
@@ -57,18 +60,37 @@ export function attachWorkerHandler(workerScope: WorkerRuntimeContext): void {
     postViewIfAppropriate(true);
 
     // Compute ground-truth score inside the worker
+    const events = engine.getEvents();
+    const assetHit = events.some((event) => event.type === 'ASSET_HIT');
     const score = scoreSession({
       actors: engine.actors,
       tracks: engine.tracks,
-      events: engine.getEvents(),
+      events,
+      assetHit,
     });
+    const scoreV2 = scoreSessionV2({ actors: engine.actors, tracks: engine.tracks, events, assetHit });
     const sessionLog = engine.getSessionLog();
+    const hash = engine.getHash();
+    const hostiles = engine.actors.filter((actor) => THREAT_LIBRARY[actor.classId]?.hostile);
+    const summary = {
+      total: scoreV2.total,
+      grade: scoreV2.grade,
+      subscores: scoreV2.subscores,
+      hostilesTotal: hostiles.length,
+      hostilesNeutralised: hostiles.filter((actor) => actor.state === 'neutralized').length,
+      assetHit,
+      durationTicks: engine.world.tick,
+    };
 
     workerScope.postMessage({
       type: 'REPORT',
       payload: {
         score,
+        scoreV2,
         sessionLog,
+        hash,
+        scoreVersion: SCORE_VERSION,
+        summary,
       },
     });
   }

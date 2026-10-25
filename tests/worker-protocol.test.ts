@@ -1,16 +1,18 @@
+import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
 import {
   referenceOperator,
-  ScoreReport,
-  SessionLog,
   TraineeView,
   WorkerCommand,
   WorkerEvent,
+  rescoreSession,
 } from '../src/sim/index.js';
 import { attachWorkerHandler, WorkerRuntimeContext } from '../src/sim/worker/sim.worker.js';
+import { deleteAllData, listSessions } from '../src/app/storage/db.js';
+import { persistMissionReport } from '../src/app/storage/sessionPersistence.js';
 
 describe('Worker Protocol & Headless Pipeline Verification (no wall-clock sleeps)', { timeout: 30000 }, () => {
-  it('drives Dawn Intrusion mission through worker protocol without ground truth leakage and yields matching score', () => {
+  it('drives Dawn Intrusion through the worker, then auto-saves a replayable session', async () => {
     let workerOnMessage: ((event: { data: WorkerCommand }) => void) | null = null;
     const postedEvents: WorkerEvent[] = [];
 
@@ -43,7 +45,7 @@ describe('Worker Protocol & Headless Pipeline Verification (no wall-clock sleeps
     });
 
     let latestView: TraineeView | null = null;
-    let finalReport: { score: ScoreReport; sessionLog: SessionLog } | null = null;
+    let finalReport: Extract<WorkerEvent, { type: 'REPORT' }>['payload'] | null = null;
 
     // Run synchronous step loop (no real timers)
     let maxSteps = 4800;
@@ -106,5 +108,12 @@ describe('Worker Protocol & Headless Pipeline Verification (no wall-clock sleeps
     expect(finalReport?.score.total).toBe(100);
     expect(finalReport?.score.perContact.length).toBe(3);
     expect(finalReport?.score.penalties.length).toBe(0);
+
+    await deleteAllData();
+    await persistMissionReport(finalReport!, 1000);
+    const [saved] = await listSessions();
+    expect(saved?.hash).toBe(finalReport?.hash);
+    expect(saved?.scoreVersion).toBe('2.1');
+    expect(rescoreSession(saved!.sessionLog).hash).toBe(saved?.hash);
   });
 });

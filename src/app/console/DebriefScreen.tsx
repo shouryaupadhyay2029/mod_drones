@@ -16,6 +16,7 @@ export interface DebriefScreenProps {
   score: ScoreReport;
   scoreV2?: ScoreReportV2;
   sessionLog: SessionLog | null;
+  storageStatus?: string;
   seed: string;
   scenarioId?: string;
   environment?: TraineeEnvironmentView;
@@ -42,6 +43,7 @@ export function DebriefScreen({
   score,
   scoreV2: propScoreV2,
   sessionLog,
+  storageStatus,
   seed,
   scenarioId,
   environment,
@@ -721,6 +723,7 @@ export function DebriefScreen({
         </div>
 
         {/* Buttons Row */}
+        {storageStatus && <p style={styles.storageStatus}>{storageStatus}</p>}
         <div style={styles.btnRow}>
           <button
             id="btn-replay-same-seed"
@@ -1168,6 +1171,12 @@ const styles: Record<string, React.CSSProperties> = {
     flexWrap: 'wrap',
     borderTop: '1px solid #262626',
     paddingTop: '16px',
+  },
+  storageStatus: {
+    margin: 0,
+    color: '#74766c',
+    fontSize: '12px',
+    letterSpacing: '0.02em',
   },
   btnPrimary: {
     backgroundColor: '#d4ff3f',

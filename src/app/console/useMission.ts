@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   CommandInput,
   ScoreReport,
+  ScoreReportV2,
   SessionLog,
   ThreatClassId,
   TraineeView,
   referenceOperator,
 } from '../../sim/index.js';
 import { SimClient } from '../simClient.js';
+import { persistMissionReport } from '../storage/sessionPersistence.js';
 import { TrailPoint, updateTrailHistory } from './radar/trails.js';
 
 export type MissionPhase = 'setup' | 'running' | 'ended';
@@ -23,7 +25,9 @@ export interface UseMissionReturn {
   selectedTrackId: number | null;
   trailHistory: Map<number, Array<{ x: number; y: number; z: number }>>;
   scoreReport: ScoreReport | null;
+  scoreReportV2: ScoreReportV2 | null;
   sessionLog: SessionLog | null;
+  storageStatus: string;
   startMission: (seed: string, scenarioId?: string) => void;
   togglePause: () => void;
   setSpeedMultiplier: (speed: 1 | 2 | 4) => void;
@@ -51,7 +55,12 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   viewRef.current = view;
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
   const [scoreReport, setScoreReport] = useState<ScoreReport | null>(null);
+  const [scoreReportV2, setScoreReportV2] = useState<ScoreReportV2 | null>(null);
   const [sessionLog, setSessionLog] = useState<SessionLog | null>(null);
+  const [storageStatus, setStorageStatus] = useState<string>('');
+  const missionStartedAtRef = useRef<number>(0);
+  const scenarioIdRef = useRef<string>('dawn_intrusion');
+  const savedReportHashRef = useRef<string>('');
 
   const clientRef = useRef<SimClient | null>(null);
   const trailHistoryRef = useRef<Map<number, TrailPoint[]>>(new Map());
@@ -84,9 +93,22 @@ export function useMission(initialSeed?: string): UseMissionReturn {
     });
 
     client.onReport((report) => {
+      if (savedReportHashRef.current === report.hash) return;
+      savedReportHashRef.current = report.hash;
       setScoreReport(report.score);
+      setScoreReportV2(report.scoreV2);
       setSessionLog(report.sessionLog);
       setPhase('ended');
+      setStorageStatus('Saving session locally…');
+      void persistMissionReport(
+        { ...report, sessionLog: { ...report.sessionLog, scenarioId: report.sessionLog.scenarioId ?? scenarioIdRef.current } },
+        missionStartedAtRef.current
+      )
+        .then(() => setStorageStatus('Session saved on this device.'))
+        .catch((error: unknown) => {
+          console.error('[SessionStorage] Failed to save session:', error);
+          setStorageStatus('Session could not be saved locally.');
+        });
     });
 
     return () => {
@@ -101,9 +123,13 @@ export function useMission(initialSeed?: string): UseMissionReturn {
 
       const chosenScenario = newScenarioId ?? scenarioId;
       setScenarioId(chosenScenario);
+      scenarioIdRef.current = chosenScenario;
+      missionStartedAtRef.current = Date.now();
+      savedReportHashRef.current = '';
 
       trailHistoryRef.current.clear();
       setScoreReport(null);
+      setScoreReportV2(null);
       setSessionLog(null);
       setSelectedTrackId(null);
       setSeed(newSeed);
@@ -243,6 +269,7 @@ export function useMission(initialSeed?: string): UseMissionReturn {
     setView(null);
     setSelectedTrackId(null);
     setScoreReport(null);
+    setScoreReportV2(null);
     setSessionLog(null);
     setPhase('setup');
   }, []);
@@ -258,7 +285,9 @@ export function useMission(initialSeed?: string): UseMissionReturn {
     selectedTrackId,
     trailHistory: trailHistoryRef.current,
     scoreReport,
+    scoreReportV2,
     sessionLog,
+    storageStatus,
     startMission,
     togglePause,
     setSpeedMultiplier,

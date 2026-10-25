@@ -1,6 +1,17 @@
 import { Command, EngineSnapshot, SessionLog } from '../core/types.js';
 import { ScoreReport } from '../scoring/basic.js';
+import { ScoreReportV2 } from '../scoring/doctrine.js';
 import { TraineeView } from '../view/traineeView.js';
+
+export interface MissionSummary {
+  total: number;
+  grade: ScoreReportV2['grade'];
+  subscores: ScoreReportV2['subscores'];
+  hostilesTotal: number;
+  hostilesNeutralised: number;
+  assetHit: boolean;
+  durationTicks: number;
+}
 
 export interface EnqueueCommandInput {
   tick?: number;
@@ -40,7 +51,11 @@ export type WorkerEvent =
       type: 'REPORT';
       payload: {
         score: ScoreReport;
+        scoreV2: ScoreReportV2;
         sessionLog: SessionLog;
+        hash: string;
+        scoreVersion: string;
+        summary: MissionSummary;
       };
     }
   | {
