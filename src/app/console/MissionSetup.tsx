@@ -170,7 +170,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
   return (
     <div style={styles.container} data-scroll-root="" tabIndex={0}>
       {/* 1. Viewport-Sticky Companion 3D ASCII Drone Layer */}
-      <div style={styles.stickyDroneLayer} aria-hidden="true">
+      <div className="hero-drone-layer" style={styles.stickyDroneLayer} aria-hidden="true">
         <DroneHeroSection />
       </div>
 
@@ -228,6 +228,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
               return (
                 <div
                   key={sc.id}
+                  className={`briefing-scenario-card${isSelected ? ' is-selected' : ''}`}
                   onClick={() => setSelectedScenario(sc.id)}
                   style={{
                     ...styles.scenarioCard,
@@ -264,6 +265,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
             <div
               key="procedural"
               id="card-procedural"
+              className={`briefing-scenario-card${selectedScenario === 'procedural' ? ' is-selected' : ''}`}
               onClick={() => setSelectedScenario('procedural')}
               style={{
                 ...styles.scenarioCard,
@@ -333,7 +335,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
             </div>
           </div>
 
-          <div style={styles.briefingBox}>
+          <div className="briefing-box" style={styles.briefingBox}>
             <h3 style={styles.briefingHeading}>SITUATION REPORT</h3>
             <p style={styles.briefingText}>{activeScenario.description}</p>
             {selectedScenario === 'procedural' && procPreview?.swarmSizeLine && (

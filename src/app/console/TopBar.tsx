@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { TraineeEnvironmentView } from '../../sim/index.js';
 import { NavMiniAsciiPreview } from '../components/NavMiniAsciiPreview.js';
+import { CONTACT_REFERENCES, ContactReference } from './ContactLibrary.js';
 import { TextRoll } from '../components/TextRoll.js';
 import { useDroneAudio } from '../hooks/useDroneAudio.js';
 
@@ -22,44 +23,6 @@ function IconMute(): React.JSX.Element {
       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
       <line x1="23" y1="9" x2="17" y2="15" />
       <line x1="17" y1="9" x2="23" y2="15" />
-    </svg>
-  );
-}
-
-// Minimalist High-Precision SVG Tactical Icons (replacing generic emojis)
-function IconTarget(): React.JSX.Element {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="12" r="4" />
-      <line x1="12" y1="2" x2="12" y2="6" />
-      <line x1="12" y1="18" x2="12" y2="22" />
-      <line x1="2" y1="12" x2="6" y2="12" />
-      <line x1="18" y1="12" x2="22" y2="12" />
-    </svg>
-  );
-}
-
-function IconMountain(): React.JSX.Element {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 20L10 6L16 16L18 13L21 20H3Z" />
-      <path d="M8 12L10 14L13 9" />
-    </svg>
-  );
-}
-
-function IconCity(): React.JSX.Element {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 21H21" />
-      <path d="M5 21V7L11 3V21" />
-      <path d="M11 11L19 7V21" />
-      <line x1="8" y1="8" x2="8" y2="8.01" />
-      <line x1="8" y1="12" x2="8" y2="12.01" />
-      <line x1="8" y1="16" x2="8" y2="16.01" />
-      <line x1="15" y1="12" x2="15" y2="12.01" />
-      <line x1="15" y1="16" x2="15" y2="16.01" />
     </svg>
   );
 }
@@ -191,7 +154,8 @@ export function TopBar({
   onSetSpeed,
   onToggleAutopilot,
 }: TopBarProps): React.JSX.Element {
-  const [activeDropdown, setActiveDropdown] = useState<'scenarios' | 'systems' | 'intel' | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<'contacts' | 'systems' | 'intel' | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPinnedRef = useRef<boolean>(false);
   const navRef = useRef<HTMLElement>(null);
@@ -210,7 +174,22 @@ export function TopBar({
     ? `${environment.timeOfDay} · ${environment.weather} · Vis ${environment.visibilityKm}km · ${environment.terrainKind}`
     : null;
 
-  const handleDropdownEnter = (menu: 'scenarios' | 'systems' | 'intel') => {
+  useEffect(() => {
+    if (phase !== 'setup') {
+      setIsScrolled(false);
+      return;
+    }
+
+    const scrollRoot = document.querySelector<HTMLElement>('[data-scroll-root]');
+    if (!scrollRoot) return;
+
+    const updateScrollState = () => setIsScrolled(scrollRoot.scrollTop > 24);
+    updateScrollState();
+    scrollRoot.addEventListener('scroll', updateScrollState, { passive: true });
+    return () => scrollRoot.removeEventListener('scroll', updateScrollState);
+  }, [phase]);
+
+  const handleDropdownEnter = (menu: 'contacts' | 'systems' | 'intel') => {
     if (leaveTimerRef.current) {
       clearTimeout(leaveTimerRef.current);
       leaveTimerRef.current = null;
@@ -230,7 +209,7 @@ export function TopBar({
     }, 280);
   };
 
-  const handleDropdownToggleClick = (menu: 'scenarios' | 'systems' | 'intel') => {
+  const handleDropdownToggleClick = (menu: 'contacts' | 'systems' | 'intel') => {
     if (leaveTimerRef.current) {
       clearTimeout(leaveTimerRef.current);
       leaveTimerRef.current = null;
@@ -255,8 +234,10 @@ export function TopBar({
     window.dispatchEvent(new CustomEvent('mod:open-briefing', { detail: scId }));
   };
 
-  const handleSelectScenario = (scId: string) => {
-    openBriefingModal(scId);
+  const handleSelectContact = (contact: ContactReference) => {
+    isPinnedRef.current = false;
+    setActiveDropdown(null);
+    window.location.hash = `#/contacts/${encodeURIComponent(contact.id)}`;
   };
 
   useEffect(() => {
@@ -284,16 +265,16 @@ export function TopBar({
   }, []);
 
   return (
-    <header style={styles.headerRoot}>
+    <header style={styles.headerRoot} className={`console-header${isScrolled ? ' is-scrolled' : ''}`}>
       {/* Luxury Integrated Navigation Bar — Part of the page background */}
-      <nav ref={navRef} style={styles.mainNav}>
+      <nav ref={navRef} style={styles.mainNav} className="console-main-nav">
         {/* Left: Brand Identity */}
         <div style={styles.brandGroup} className="anim-curved-slide anim-delay-1">
-          <a href="#/" style={styles.brandLink}>
+          <a href="#/" style={styles.brandLink} aria-label="VAJRA home">
             <div style={styles.brandIconBox}>
               <img
                 src="/vajra-emblem.png"
-                alt="VAJRA"
+                alt="VAJRA emblem"
                 style={{
                   width: '26px',
                   height: '28px',
@@ -302,31 +283,30 @@ export function TopBar({
                 }}
               />
             </div>
-            <div style={styles.brandTextCol}>
-              <span style={styles.brandName}>VAJRA</span>
-            </div>
           </a>
         </div>
 
         {/* Center: Luxury Mega-Menu Nav Items */}
         <div style={styles.navCenter}>
-          {/* Tab 1: Scenarios */}
+          {/* Tab 1: Contact deck */}
           <div
             className="nav-mega-item anim-curved-slide anim-delay-2"
-            onMouseEnter={() => handleDropdownEnter('scenarios')}
+            onMouseEnter={() => handleDropdownEnter('contacts')}
             onMouseLeave={handleDropdownLeave}
           >
             <button
-              className={`nav-mega-btn ${activeDropdown === 'scenarios' ? 'is-active' : ''}`}
-              onClick={() => handleDropdownToggleClick('scenarios')}
+              className={`nav-mega-btn ${activeDropdown === 'contacts' ? 'is-active' : ''}`}
+              onClick={() => handleDropdownToggleClick('contacts')}
+              aria-expanded={activeDropdown === 'contacts'}
+              aria-haspopup="true"
             >
-              <span>SCENARIOS</span>
+              <span>Contact deck</span>
               <span className="nav-mega-chevron">▾</span>
             </button>
 
-            {/* Mega Dropdown Panel: Scenarios */}
+            {/* Mega Dropdown Panel: Contact references */}
             <div
-              className={`mega-dropdown-panel ${activeDropdown === 'scenarios' ? 'is-open' : ''}`}
+              className={`mega-dropdown-panel ${activeDropdown === 'contacts' ? 'is-open' : ''}`}
               onMouseEnter={() => {
                 if (leaveTimerRef.current) {
                   clearTimeout(leaveTimerRef.current);
@@ -335,63 +315,23 @@ export function TopBar({
               }}
               onMouseLeave={handleDropdownLeave}
             >
-              <button
-                type="button"
-                className="mega-panel-close-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCloseDropdown();
-                }}
-                aria-label="Close"
-              >
-                ✕
-              </button>
-              <div className="mega-menu-grid">
+              <div className="mega-menu-grid contact-menu-grid">
                 <div className="mega-menu-list">
-                  <div className="mega-menu-card-item" onClick={() => handleSelectScenario('dawn_intrusion')}>
-                    <div className="mega-menu-item-icon">
-                      <IconTarget />
-                    </div>
-                    <div className="mega-menu-item-body">
-                      <span className="mega-menu-item-title">
-                        <span>Dawn Intrusion</span>
-                        <span style={styles.menuBadgeActive}>BASELINE</span>
+                  {CONTACT_REFERENCES.map((contact, index) => (
+                    <button
+                      className="mega-menu-card-item contact-menu-item"
+                      key={contact.id}
+                      onClick={() => handleSelectContact(contact)}
+                      type="button"
+                    >
+                      <span className="contact-menu-index">0{index + 1}</span>
+                      <span className="mega-menu-item-body">
+                        <span className="mega-menu-item-title">{contact.label}</span>
+                        <span className="mega-menu-item-desc">{contact.category}</span>
                       </span>
-                      <span className="mega-menu-item-desc">
-                        1 hostile FPV + civilian quad transit + avian clutter in rural dusk.
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mega-menu-card-item" onClick={() => handleSelectScenario('ridge_runner')}>
-                    <div className="mega-menu-item-icon">
-                      <IconMountain />
-                    </div>
-                    <div className="mega-menu-item-body">
-                      <span className="mega-menu-item-title">
-                        <span>Ridge Runner</span>
-                        <span style={styles.menuBadgeTag}>MASKING</span>
-                      </span>
-                      <span className="mega-menu-item-desc">
-                        Terrain masking in hilly fog valleys with light electronic warfare.
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mega-menu-card-item" onClick={() => handleSelectScenario('city_edge_night')}>
-                    <div className="mega-menu-item-icon">
-                      <IconCity />
-                    </div>
-                    <div className="mega-menu-item-body">
-                      <span className="mega-menu-item-title">
-                        <span>City Edge Night</span>
-                        <span style={styles.menuBadgeTag}>HEAVY EW</span>
-                      </span>
-                      <span className="mega-menu-item-desc">
-                        High-altitude recon UAV + low strike drone in dense urban clutter.
-                      </span>
-                    </div>
-                  </div>
+                      <span className="contact-menu-arrow" aria-hidden="true">↗</span>
+                    </button>
+                  ))}
                 </div>
 
                 {/* Right Preview Card */}
@@ -399,30 +339,30 @@ export function TopBar({
                   <div className="mega-preview-header">
                     <span className="mega-preview-tag">
                       <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ffd480', boxShadow: '0 0 6px #ffd480' }} />
-                      SCENARIO INTEL
+                      IDENTIFICATION NOTES
                     </span>
-                    <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.75)', fontFamily: 'monospace', fontWeight: 600 }}>v2.4 [LIVE]</span>
+                    <span style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.75)', fontFamily: 'monospace', fontWeight: 600 }}>REFERENCE</span>
                   </div>
-                  <NavMiniAsciiPreview modelType="terrain" />
+                  <NavMiniAsciiPreview modelType="radar" />
                   <div>
-                    <h4 className="mega-preview-title">Autonomous Mission Suite</h4>
+                    <h4 className="mega-preview-title">Read the whole track</h4>
                     <p className="mega-preview-text">
-                      Three operational environments testing radar horizon line-of-sight, terrain
-                      masking, and electronic counter-measures.
+                      Compare motion, return quality, and independent sensor cues. No single plot
+                      or signature confirms an object’s identity or intent.
                     </p>
                   </div>
                   <button
-                    onClick={() => openBriefingModal()}
+                    onClick={() => handleSelectContact(CONTACT_REFERENCES[0]!)}
                     style={styles.previewCardBtn}
                   >
-                    CONFIGURE & LAUNCH ⚡
+                    OPEN CONTACT GUIDE
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <span style={styles.navDivider}>|</span>
+          <span className="nav-top-divider" style={styles.navDivider}>|</span>
 
           {/* Tab 2: Defense Systems */}
           <div
@@ -433,10 +373,12 @@ export function TopBar({
             <button
               className={`nav-mega-btn is-disabled ${activeDropdown === 'systems' ? 'is-active' : ''}`}
               onClick={() => handleDropdownToggleClick('systems')}
-              style={{ opacity: 0.55 }}
+              style={{ opacity: 0.74 }}
               title="Defense Systems (Telemetry Offline - Informational Only)"
+              aria-expanded={activeDropdown === 'systems'}
+              aria-haspopup="true"
             >
-              <span>DEFENSE SYSTEMS</span>
+              <span>Defense systems</span>
               <span
                 style={{
                   fontSize: '9px',
@@ -463,17 +405,6 @@ export function TopBar({
               }}
               onMouseLeave={handleDropdownLeave}
             >
-              <button
-                type="button"
-                className="mega-panel-close-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCloseDropdown();
-                }}
-                aria-label="Close"
-              >
-                ✕
-              </button>
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
@@ -562,7 +493,8 @@ export function TopBar({
             </div>
           </div>
 
-          <span style={styles.navDivider}>|</span>
+          <span className="nav-top-divider" style={styles.navDivider}>|</span>
+          <span style={styles.brandName} className="anim-curved-slide anim-delay-3">VAJRA</span>
 
           {/* Tab 3: Threat Intel */}
           <div
@@ -573,10 +505,12 @@ export function TopBar({
             <button
               className={`nav-mega-btn is-disabled ${activeDropdown === 'intel' ? 'is-active' : ''}`}
               onClick={() => handleDropdownToggleClick('intel')}
-              style={{ opacity: 0.55 }}
+              style={{ opacity: 0.74 }}
               title="Threat Intel (Database Offline - Informational Only)"
+              aria-expanded={activeDropdown === 'intel'}
+              aria-haspopup="true"
             >
-              <span>THREAT INTEL</span>
+              <span>Threat intel</span>
               <span
                 style={{
                   fontSize: '9px',
@@ -603,17 +537,6 @@ export function TopBar({
               }}
               onMouseLeave={handleDropdownLeave}
             >
-              <button
-                type="button"
-                className="mega-panel-close-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCloseDropdown();
-                }}
-                aria-label="Close"
-              >
-                ✕
-              </button>
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
@@ -702,12 +625,12 @@ export function TopBar({
             </div>
           </div>
 
-          <span style={styles.navDivider}>|</span>
+          <span className="nav-top-divider" style={styles.navDivider}>|</span>
 
           {/* Tab 4: Diagnostics Direct Link */}
           <div className="nav-mega-item anim-curved-slide anim-delay-5">
             <a href="#/check" style={styles.navDirectLink}>
-              <span>DIAGNOSTICS</span>
+              <span>Diagnostics</span>
               <span style={{ fontSize: '10px', color: '#d4ff3f' }}>↗</span>
             </a>
           </div>
@@ -719,14 +642,17 @@ export function TopBar({
           <button
             onClick={toggleMute}
             title={isMuted ? 'Unmute drone audio' : 'Mute drone audio'}
+            aria-label={isMuted ? 'Unmute drone audio' : 'Mute drone audio'}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '5px',
-              padding: '6px 12px',
+              justifyContent: 'center',
+              width: '34px',
+              height: '34px',
+              padding: '0',
               background: isMuted ? 'rgba(20,15,10,0.08)' : 'rgba(255,107,26,0.14)',
               border: `1px solid ${isMuted ? 'rgba(20,15,10,0.25)' : 'rgba(255,107,26,0.6)'}`,
-              borderRadius: '6px',
+              borderRadius: '50%',
               color: isMuted ? '#2d1f0e' : '#cc4a00',
               cursor: 'pointer',
               fontSize: '11px',
@@ -738,7 +664,6 @@ export function TopBar({
             }}
           >
             {isMuted ? <IconMute /> : <IconVolume />}
-            <span>{isMuted ? 'AUDIO OFF' : 'AUDIO ON'}</span>
           </button>
           {phase === 'setup' && (
             <div style={styles.setupNavRight} className="anim-curved-slide anim-delay-5">
@@ -754,7 +679,6 @@ export function TopBar({
           )}
         </div>
       </nav>
-
       {/* Dedicated Tactical Mission HUD Bar (when running or ended) */}
       {phase !== 'setup' && (
         <div style={styles.missionBar}>
@@ -855,8 +779,6 @@ const styles: Record<string, React.CSSProperties> = {
   headerRoot: {
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: 'transparent',
-    border: 'none',
     position: 'relative',
     zIndex: 100,
     width: '100%',
@@ -865,14 +787,11 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '12px 32px',
-    backgroundColor: 'transparent',
-    border: 'none',
-    maxWidth: '1440px',
+    minHeight: '68px',
+    padding: '9px 28px',
     margin: '0 auto',
-    width: '100%',
     boxSizing: 'border-box',
-    gap: '16px',
+    gap: '20px',
   },
   missionBar: {
     width: '100%',
@@ -972,10 +891,12 @@ const styles: Record<string, React.CSSProperties> = {
   },
   brandName: {
     color: '#181716',
-    fontSize: '15px',
+    fontSize: '19px',
     fontWeight: 900,
-    letterSpacing: '0.14em',
-    fontFamily: 'monospace',
+    letterSpacing: '0.07em',
+    lineHeight: 1,
+    fontFamily: "Impact, Haettenschweiler, 'Arial Narrow Bold', 'Arial Black', sans-serif",
+    margin: '0 12px',
   },
   brandTagline: {
     color: '#6b518c',
@@ -987,7 +908,7 @@ const styles: Record<string, React.CSSProperties> = {
   navCenter: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '4px',
   },
   navDirectLink: {
     color: '#58544e',
@@ -1006,9 +927,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '9px',
     padding: '2px 7px',
     borderRadius: '4px',
-    backgroundColor: 'rgba(255, 255, 255, 0.22)',
-    border: '1px solid rgba(255, 255, 255, 0.45)',
-    color: '#ffffff',
+    backgroundColor: 'rgba(107, 81, 140, 0.09)',
+    border: '1px solid rgba(107, 81, 140, 0.22)',
+    color: '#604a7c',
     fontWeight: 700,
     fontFamily: 'monospace',
     letterSpacing: '0.08em',
@@ -1017,9 +938,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '9px',
     padding: '2px 7px',
     borderRadius: '4px',
-    backgroundColor: 'rgba(0, 0, 0, 0.28)',
-    border: '1px solid rgba(255, 255, 255, 0.18)',
-    color: 'rgba(255, 240, 230, 0.88)',
+    backgroundColor: '#efede7',
+    border: '1px solid rgba(45, 40, 35, 0.12)',
+    color: '#655d52',
     fontWeight: 600,
     fontFamily: 'monospace',
     letterSpacing: '0.08em',
@@ -1076,6 +997,7 @@ const styles: Record<string, React.CSSProperties> = {
   navRight: {
     display: 'flex',
     alignItems: 'center',
+    gap: '12px',
   },
   setupActionCluster: {
     display: 'flex',

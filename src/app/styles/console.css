@@ -33,20 +33,18 @@
   --accent-red: #b83327;
 }
 
-/* Tactile film grain noise overlay across the whole viewport (matching high-texture paper reference) */
-body::before {
+/* Repeating grain tile from the supplied texture swatch, over the full console surface. */
+.console-layout::after {
   content: '';
-  position: fixed;
+  position: absolute;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
   pointer-events: none;
-  z-index: 9999;
-  opacity: 0.22;
+  z-index: 2147483647;
+  opacity: 1;
   mix-blend-mode: multiply;
   background-repeat: repeat;
-  background-size: 180px 180px;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.15  0 0 0 0 0.13  0 0 0 0 0.10  0 0 0 0.85 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-size: 212px 128px;
+  background-image: url('/textures/fine-grain.png');
 }
 
 html, body, #root {
@@ -89,6 +87,7 @@ body {
 }
 
 .console-layout {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -176,27 +175,75 @@ body {
   align-items: center;
 }
 
+.nav-top-divider {
+  display: none !important;
+}
+
+.console-header {
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid rgba(45, 40, 35, 0.13);
+}
+
+.console-main-nav {
+  width: 100%;
+  max-width: 1440px;
+  background-color: transparent;
+  border: 1px solid transparent;
+  transition:
+    width 0.28s ease,
+    max-width 0.28s ease,
+    transform 0.28s ease,
+    background-color 0.28s ease,
+    border-color 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+.console-header.is-scrolled {
+  background: transparent;
+  border-bottom-color: transparent;
+}
+
+.console-header.is-scrolled .console-main-nav {
+  width: calc(100% - clamp(32px, 4.5vw, 84px));
+  max-width: none;
+  transform: translateY(18px);
+  background: rgba(222, 215, 202, 0.94);
+  border-color: rgba(45, 40, 35, 0.38);
+  box-shadow: 0 8px 28px rgba(32, 28, 23, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@media (max-width: 700px) {
+  .console-header.is-scrolled .console-main-nav {
+    width: calc(100% - 24px);
+    padding-right: 12px;
+    padding-left: 12px;
+    transform: translateY(8px);
+  }
+}
+
 .nav-mega-btn {
   background: transparent;
   border: none;
   color: var(--text-secondary);
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 8px 12px;
-  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 10px 12px;
+  border-radius: 7px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: color 0.16s ease, background-color 0.16s ease;
 }
 
 .nav-mega-btn:hover,
 .nav-mega-btn.is-active {
-  color: var(--text-primary);
-  background-color: rgba(45, 40, 35, 0.08);
+  color: #181716;
+  background-color: rgba(45, 40, 35, 0.065);
 }
 
 .nav-mega-chevron {
@@ -216,62 +263,37 @@ body {
 
 .mega-dropdown-panel {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 8px);
   left: 50%;
-  transform: translateX(-50%) translateY(-6px) scale(0.98);
+  transform: translateX(-50%) translateY(-8px);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  background-color: #943209;
-  background: linear-gradient(160deg, #b84514 0%, #9e360c 60%, #872b08 100%);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 14px;
+  background: #f8f6f1;
+  border: 1px solid rgba(45, 40, 35, 0.14);
+  border-radius: 10px;
   box-shadow:
-    0 28px 64px -10px rgba(60, 18, 4, 0.6),
-    0 0 0 1px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.32);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+    0 22px 55px -20px rgba(32, 28, 23, 0.28),
+    0 3px 12px rgba(32, 28, 23, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
   z-index: 9999;
-  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 88px);
+  overflow: auto;
+  transition: opacity 0.18s ease,
+              transform 0.22s cubic-bezier(0.2, 0.75, 0.25, 1),
               visibility 0.22s;
 }
 
 .mega-dropdown-panel.panel-right-align {
-  left: auto;
-  right: -10px;
-  transform: translateY(-6px) scale(0.98);
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%) translateY(-8px) scale(0.98);
 }
 
 .nav-mega-item:hover .mega-dropdown-panel.panel-right-align,
 .mega-dropdown-panel.panel-right-align.is-open {
-  transform: translateY(0) scale(1);
-}
-
-.mega-panel-close-btn {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 11px;
-  font-family: inherit;
-  transition: all 0.15s ease;
-  z-index: 10;
-}
-
-.mega-panel-close-btn:hover {
-  background: rgba(0, 0, 0, 0.45);
-  transform: scale(1.1);
+  transform: translateX(-50%) translateY(0) scale(1);
 }
 
 /* Invisible hover bridge to eliminate the gap between trigger button and dropdown */
@@ -297,34 +319,34 @@ body {
 .mega-menu-grid {
   display: grid;
   grid-template-columns: 360px 290px;
-  gap: 20px;
-  padding: 16px 18px;
+  gap: 18px;
+  padding: 14px;
   font-family: inherit;
 }
 
 .mega-menu-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .mega-menu-card-item {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 8px 10px;
-  border-radius: 8px;
+  padding: 9px 10px;
+  border-radius: 7px;
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
 }
 
 .mega-menu-card-item:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.22);
-  transform: translateX(3px);
+  background: rgba(45, 40, 35, 0.045);
+  border-color: rgba(45, 40, 35, 0.08);
+  transform: translateX(2px);
   box-shadow: none;
 }
 
@@ -332,19 +354,19 @@ body {
   width: 30px;
   height: 30px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: #efede7;
+  border: 1px solid rgba(45, 40, 35, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: #4b463f;
   flex-shrink: 0;
   transition: all 0.16s ease;
 }
 
 .mega-menu-card-item:hover .mega-menu-item-icon {
-  background: rgba(255, 255, 255, 0.24);
-  border-color: rgba(255, 255, 255, 0.40);
+  background: #e8e3d9;
+  border-color: rgba(45, 40, 35, 0.16);
   transform: scale(1.05);
 }
 
@@ -357,7 +379,7 @@ body {
 }
 
 .mega-menu-item-title {
-  color: #ffffff;
+  color: #211f1b;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -367,7 +389,7 @@ body {
 }
 
 .mega-menu-item-desc {
-  color: rgba(255, 242, 235, 0.85);
+  color: #746e65;
   font-size: 11.5px;
   line-height: 1.4;
   letter-spacing: -0.005em;
@@ -376,16 +398,21 @@ body {
 
 /* Right-Hand Cockpit Preview Section (Seamless Unified Whole) */
 .mega-preview-card {
-  background: transparent;
+  background: #24221e;
   border: none;
-  border-left: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 0;
-  padding: 0 0 0 18px;
+  border-radius: 8px;
+  padding: 13px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 10px;
   box-shadow: none;
+}
+
+.mega-preview-card .nav-mini-ascii-preview {
+  flex: 0 0 136px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.045), transparent 72%);
 }
 
 .mega-preview-header {
@@ -398,7 +425,7 @@ body {
   font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: #ffd580;
+  color: #d3c3a3;
   text-transform: uppercase;
   font-family: monospace;
   display: flex;
@@ -407,7 +434,7 @@ body {
 }
 
 .mega-preview-title {
-  color: #ffffff;
+  color: #f6f3ed;
   font-size: 13.5px;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -415,10 +442,26 @@ body {
 }
 
 .mega-preview-text {
-  color: rgba(255, 242, 235, 0.88);
+  color: rgba(246, 243, 237, 0.74);
   font-size: 11.5px;
   line-height: 1.45;
   margin: 0;
+}
+
+@media (max-width: 860px) {
+  .mega-menu-grid {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(640px, calc(100vw - 52px));
+  }
+
+  .mega-preview-card {
+    min-height: 260px;
+  }
+
+  .mega-dropdown-panel.panel-right-align {
+    left: 50%;
+    right: auto;
+  }
 }
 
 /* ==========================================================================
