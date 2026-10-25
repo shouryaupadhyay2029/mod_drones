@@ -19,6 +19,8 @@ export interface Track {
   consecutiveHits: number;
   consecutiveMisses: number;
   totalPlots: number;
+  /** Last <= 5 raw radar plots (tick + measured position) used by the velocity fit. */
+  plotHistory?: Array<{ tick: number; pos: Vec3 }>;
   isGhost?: boolean;
   remainingSweeps?: number;
   ghostRemainingRotations?: number;

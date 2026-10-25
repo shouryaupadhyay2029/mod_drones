@@ -18,6 +18,50 @@ export const RADAR_SWEEP_PERIOD_TICKS = 40;
 
 const DT = 0.05; // 20 Hz fixed timestep
 
+/** Number of most recent plots used by the least-squares velocity fit. */
+export const PLOT_FIT_WINDOW = 5;
+/** Minimum plots needed before the least-squares fit replaces the finite difference. */
+export const PLOT_FIT_MIN_PLOTS = 3;
+
+/**
+ * Least-squares straight-line velocity fit over the given plots:
+ * v = sum((t - tMean) * (p - pMean)) / sum((t - tMean)^2), per axis. Plain arithmetic only.
+ */
+export function fitVelocityLeastSquares(
+  plots: ReadonlyArray<{ tick: number; pos: Vec3 }>
+): Vec3 {
+  const n = plots.length;
+  let tMean = 0;
+  let xMean = 0;
+  let yMean = 0;
+  let zMean = 0;
+  for (let i = 0; i < n; i++) {
+    const p = plots[i]!;
+    tMean += p.tick * DT;
+    xMean += p.pos.x;
+    yMean += p.pos.y;
+    zMean += p.pos.z;
+  }
+  tMean /= n;
+  xMean /= n;
+  yMean /= n;
+  zMean /= n;
+  let sTT = 0;
+  let sTX = 0;
+  let sTY = 0;
+  let sTZ = 0;
+  for (let i = 0; i < n; i++) {
+    const p = plots[i]!;
+    const dt = p.tick * DT - tMean;
+    sTT += dt * dt;
+    sTX += dt * (p.pos.x - xMean);
+    sTY += dt * (p.pos.y - yMean);
+    sTZ += dt * (p.pos.z - zMean);
+  }
+  if (sTT <= 0) return vec3(0, 0, 0);
+  return { x: sTX / sTT, y: sTY / sTT, z: sTZ / sTT };
+}
+
 /**
  * Standard 3-sample Irwin-Hall approximation for zero-mean unit-variance Gaussian noise.
  */
@@ -164,6 +208,7 @@ export function runRadarSystem(
           rcsBucket,
           measuredRcs,
           quality: 0.3,
+          plotHistory: [{ tick: currentTick, pos: measPos }],
           acked: false,
           engagementStatus: 'none',
           headingChangeRateSmoothed: 0,
@@ -184,16 +229,19 @@ export function runRadarSystem(
           const rawVy = (measPos.y - existingTrack.estimatedPos.y) / dtSec;
           const rawVz = (measPos.z - existingTrack.estimatedPos.z) / dtSec;
 
-          // On first velocity calculation (second hit), initialize directly from finite difference
-          if (existingTrack.totalPlots === 2) {
-            existingTrack.estimatedVel = { x: rawVx, y: rawVy, z: rawVz };
+          // Keep the last <= PLOT_FIT_WINDOW raw plots (immutable update: snapshots share arrays).
+          const history = [
+            ...(existingTrack.plotHistory ?? []).slice(-(PLOT_FIT_WINDOW - 1)),
+            { tick: currentTick, pos: measPos },
+          ];
+          existingTrack.plotHistory = history;
+
+          if (history.length >= PLOT_FIT_MIN_PLOTS) {
+            // Least-squares velocity fit over the last <= 5 plots (>= 3 plots available)
+            existingTrack.estimatedVel = fitVelocityLeastSquares(history);
           } else {
-            // Exponential smoothing (alpha = 0.4)
-            existingTrack.estimatedVel = {
-              x: 0.4 * rawVx + 0.6 * existingTrack.estimatedVel.x,
-              y: 0.4 * rawVy + 0.6 * existingTrack.estimatedVel.y,
-              z: 0.4 * rawVz + 0.6 * existingTrack.estimatedVel.z,
-            };
+            // Second hit: initialize directly from finite difference
+            existingTrack.estimatedVel = { x: rawVx, y: rawVy, z: rawVz };
           }
 
           // Heading turn rate smoothing
