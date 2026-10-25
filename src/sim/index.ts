@@ -9,6 +9,7 @@ export * from './core/vec.js';
 export * from './core/world.js';
 
 export * from './debrief/replay.js';
+export * from './debrief/forkReview.js';
 
 export * from './model/actors.js';
 export * from './model/effectors.js';
