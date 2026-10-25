@@ -56,9 +56,9 @@ export const PENALTY_DECOY_ENGAGED = -3;
 // ROE cap: if civilian quad was engaged, total cannot exceed this
 export const ROE_CAP_SCORE = 60;
 
-// --- Scoring v2.1 additions ---
+// --- Scoring v2.2 additions ---
 /** Scoring version stamped on stored sessions and bench tables. */
-export const SCORE_VERSION = '2.1';
+export const SCORE_VERSION = '2.2';
 
 /** Positive-ID gate: hostile engaged before it was classified multiplies effector fit by this. */
 export const ENGAGED_UNCLASSIFIED_FIT_MULT = 0.5;

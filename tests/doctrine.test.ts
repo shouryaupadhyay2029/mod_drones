@@ -60,7 +60,7 @@ function createMockTrack(
 }
 
 describe('Doctrine Scoring v2 Decision Tree Tests', () => {
-  it('11. v2.1 positive-ID gate halves first fit and penalizes each pre-classification engagement', () => {
+  it('11. v2.2 positive-ID gate halves first fit and penalizes each pre-classification engagement', () => {
     const actor = createMockActor(1, 'fpv_kamikaze', 'neutralized', 500);
     const track = createMockTrack(1, 1, 'confirmed', {
       assessedClass: 'fpv_kamikaze',
@@ -117,7 +117,7 @@ describe('Doctrine Scoring v2 Decision Tree Tests', () => {
     expect(rangeEvents.every((event) => ['jammer', 'gun'].includes(String(event.payload?.effector)))).toBe(true);
   });
 
-  it('12. v2.1 mission failure cap and score grade bands', () => {
+  it('12. v2.2 otherwise-perfect run with one asset hit scores exactly 50 (Marginal)', () => {
     const actor = createMockActor(1, 'bird');
     const track = createMockTrack(1, 1, 'confirmed', {
       confirmedTick: 0,
@@ -133,6 +133,7 @@ describe('Doctrine Scoring v2 Decision Tree Tests', () => {
       assetHit: true,
     });
 
+    expect(report.weightedMean).toBe(100);
     expect(report.total).toBe(50);
     expect(report.grade).toBe('Marginal');
     expect(gradeForScore(49)).toBe('Unsatisfactory');
