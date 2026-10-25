@@ -15,17 +15,24 @@ export interface SessionOwner {
   unitId?: string;
 }
 
+export interface ForkSessionMetadata {
+  parentId: string;
+  forkTick: number;
+}
+
 export async function persistMissionReport(
   report: CompletedMissionReport,
   startedAt: number,
-  owner?: SessionOwner
-): Promise<void> {
+  owner?: SessionOwner,
+  fork?: ForkSessionMetadata
+): Promise<string> {
   const guest = owner?.traineeId && owner.unitId ? undefined : await ensureGuestProfile();
   const traineeId = owner?.traineeId ?? guest!.traineeId;
   const unitId = owner?.unitId ?? guest!.unitId;
   const scenarioKey = report.sessionLog.scenarioId ?? 'dawn_intrusion';
+  const id = createLocalId();
   await saveSession({
-    id: createLocalId(),
+    id,
     traineeId,
     unitId,
     startedAt: startedAt || Date.now(),
@@ -39,6 +46,10 @@ export async function persistMissionReport(
     summary: report.summary,
     hash: report.hash,
     fingerprint: report.fingerprint,
+    parentId: fork?.parentId,
+    forkTick: fork?.forkTick,
+    isFork: Boolean(fork),
   });
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('vajra:data-changed'));
+  return id;
 }

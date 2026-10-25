@@ -11,6 +11,7 @@ import { TrackDetail } from '../console/TrackDetail.js';
 import { TrackTable } from '../console/TrackTable.js';
 import { useMission } from '../console/useMission.js';
 import '../styles/console.css';
+import '../console/forkPractice.css';
 
 export function ConsolePage(): React.JSX.Element {
   const {
@@ -27,6 +28,7 @@ export function ConsolePage(): React.JSX.Element {
     scoreReportV2,
     sessionLog,
     storageStatus,
+    forkContext,
     startMission,
     togglePause,
     setSpeedMultiplier,
@@ -92,6 +94,8 @@ export function ConsolePage(): React.JSX.Element {
         onSetSpeed={setSpeedMultiplier}
         onToggleAutopilot={toggleAutopilot}
       />
+
+      {forkContext && <ForkPracticeBanner forkContext={forkContext} />}
 
       {/* Setup Phase */}
       {phase === 'setup' && <MissionSetup onStart={startMission} />}
@@ -217,4 +221,17 @@ export function ConsolePage(): React.JSX.Element {
       )}
     </div>
   );
+}
+
+function formatForkTime(tick: number): string {
+  const seconds = Math.floor(tick / 20);
+  return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
+export function ForkPracticeBanner({ forkContext }: { forkContext: { parentId: string; parentLabel: string; tick: number } }): React.JSX.Element {
+  return <div className="fork-practice-banner" role="status">
+    <strong>FORK of {forkContext.parentLabel} at {formatForkTime(forkContext.tick)}</strong>
+    <span>Hindsight practice, not scored toward your record.</span>
+    <button type="button" onClick={() => { window.location.hash = `#/aar/session/${encodeURIComponent(forkContext.parentId)}`; }}>BACK TO REVIEW</button>
+  </div>;
 }

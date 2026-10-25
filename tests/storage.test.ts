@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Engine, rescoreSession, SCORE_VERSION } from '../src/sim/index.js';
+import { persistMissionReport } from '../src/app/storage/sessionPersistence.js';
 import {
   deleteAllData,
   exportData,
@@ -119,5 +120,25 @@ describe('VAJRA local session storage', () => {
     expect(migrated?.forkTick).toBeUndefined();
     expect(migrated?.sessionLog.formatVersion).toBe(3);
     expect(migrated?.sessionLog.forkOf).toBeUndefined();
+  });
+
+  it('persists fork parent metadata for comparison records', async () => {
+    const engine = new Engine('fork-storage-seed', 'sandbox');
+    engine.stepN(10);
+    const sessionLog = { ...engine.getSessionLog(), forkOf: { parentId: 'original-session', tick: 4 } };
+    const rescored = rescoreSession(sessionLog);
+    const id = await persistMissionReport({
+      scoreV2: rescored.report,
+      sessionLog,
+      hash: rescored.hash,
+      scoreVersion: SCORE_VERSION,
+      summary: {
+        total: rescored.report.total, grade: rescored.report.grade, subscores: rescored.report.subscores,
+        hostilesTotal: 0, hostilesNeutralised: 0, assetHit: false, durationTicks: 10,
+      },
+    }, 20, { traineeId: 'trainee-fork', unitId: 'unit-fork' }, { parentId: 'original-session', forkTick: 4 });
+    const stored = (await listSessions()).find((session) => session.id === id);
+    expect(stored).toMatchObject({ parentId: 'original-session', forkTick: 4, isFork: true });
+    expect(stored?.sessionLog.forkOf).toEqual({ parentId: 'original-session', tick: 4 });
   });
 });

@@ -1,0 +1,4 @@
+.fork-practice-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 12px 18px; padding: 11px 14px; color: #27241f; background: #efe8d9; border: 1px solid rgba(165,76,45,.4); border-left: 4px solid #a54c2d; border-radius: 5px; font-size: 11px; }
+.fork-practice-banner strong { font: 800 10px ui-monospace, monospace; letter-spacing: .06em; }
+.fork-practice-banner span { color: #655f55; }
+.fork-practice-banner button { margin-left: auto; padding: 7px 10px; color: #f4eee3; background: #29251f; border: 0; border-radius: 3px; font: 800 9px ui-monospace, monospace; cursor: pointer; }

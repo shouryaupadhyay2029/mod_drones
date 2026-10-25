@@ -98,7 +98,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
   }, []);
 
   const traineeSessions = useMemo(
-    () => sessions.filter((session) => session.traineeId === selectedTraineeId),
+    () => sessions.filter((session) => !session.isFork && session.traineeId === selectedTraineeId),
     [sessions, selectedTraineeId]
   );
   const recommendation = useMemo(() => {

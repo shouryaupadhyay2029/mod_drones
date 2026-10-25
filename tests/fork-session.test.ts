@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Engine, forkSession, migrateSessionLog, replay, SessionLog } from '../src/sim/index.js';
+import { Engine, forkSession, migrateSessionLog, replay, Rng, SessionLog } from '../src/sim/index.js';
 
 function recordedSession(): SessionLog {
   const engine = new Engine('fork-fixture', 'sandbox');
@@ -11,6 +11,35 @@ function recordedSession(): SessionLog {
 }
 
 describe('Fork sessions', () => {
+  it('preserves the unchanged decision path at 10 seeded ticks across 3 scenarios and 2 tier fixtures', () => {
+    const scenarioFixtures = ['fork-scenario-a', 'fork-scenario-b', 'fork-scenario-c'];
+    const tiers = ['recruit', 'veteran'];
+    for (const scenarioFixture of scenarioFixtures) {
+      for (const tier of tiers) {
+        const scenarioId = `proc:v1:${tier}:none`;
+        const source = new Engine(`fork-matrix:${scenarioFixture}:${tier}`, scenarioId);
+        for (let tick = 10; tick < 500; tick += 60) {
+          source.enqueueCommand({ tick, type: 'ACK_TRACK', payload: { trackId: 1 } });
+        }
+        source.stepN(500);
+        const originalLog = source.getSessionLog();
+        const originalHash = source.getHash();
+        const tickRng = new Rng(`fork-ticks:${scenarioFixture}:${tier}`);
+
+        for (let sample = 0; sample < 10; sample++) {
+          const tick = tickRng.int(0, originalLog.totalTicks);
+          const fork = forkSession(originalLog, tick, `parent-${scenarioId}-${tier}`);
+          const unchangedBranch = Engine.restore(fork.snapshot);
+          const suffix = originalLog.commands.filter((command) => command.tick >= tick);
+          for (const command of suffix) unchangedBranch.enqueueCommand(command);
+          unchangedBranch.stepN(originalLog.totalTicks - tick);
+          expect(unchangedBranch.getHash(), `${scenarioFixture}/${tier} at tick ${tick}`).toBe(originalHash);
+          expect(fork.parentLog.commands.every((command) => command.tick < tick)).toBe(true);
+        }
+      }
+    }
+  }, 60000);
+
   it('captures state before the fork-tick command and drops commands at or after the fork tick', () => {
     const original = recordedSession();
     const fork = forkSession(original, 8, 'parent-1');

@@ -163,6 +163,7 @@ describe('session review replay', () => {
     expect(changedLog.forkOf).toEqual({ parentId: 'parent-worker', tick: 10 });
     expect(changedLog.commands.some((command) => command.tick >= 10 && command.type === 'SET_VELOCITY')).toBe(true);
     expect(replay(changedLog)).toBe(client.getLastState().hash);
+    expect(client.getLastState().hash).not.toBe(replay(log));
     client.terminate();
   });
 

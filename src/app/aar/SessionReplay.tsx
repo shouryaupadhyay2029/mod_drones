@@ -8,6 +8,7 @@ import {
   RADAR_MAX_RANGE_M,
   RADAR_RCS_REF,
   THREAT_LIBRARY,
+  keyMoments,
 } from '../../sim/index.js';
 import { worldToCanvas } from './mapGeometry.js';
 
@@ -25,12 +26,16 @@ function eventLabel(event: { type: string; payload: Record<string, unknown> }): 
   return `${event.type.replaceAll('_', ' ')} ${String(id)}`.trim();
 }
 
-export function SessionReplay({ sessionLog, report, title = 'SESSION FLIGHT REVIEW' }: {
+export function SessionReplay({ sessionLog, report, title = 'SESSION FLIGHT REVIEW', onFork, comparisonLog }: {
   sessionLog: SessionLog;
   report: ScoreReportV2;
   title?: string;
+  onFork?: (tick: number) => void;
+  comparisonLog?: SessionLog;
 }): React.JSX.Element {
   const replay = useMemo(() => createReplay(sessionLog), [sessionLog]);
+  const comparisonReplay = useMemo(() => comparisonLog ? createReplay(comparisonLog) : null, [comparisonLog]);
+  const moments = useMemo(() => keyMoments(report, sessionLog), [report, sessionLog]);
   const terrainGrid = useMemo(() => replay.terrainGrid(250), [replay]);
   const [frame, setFrame] = useState<ReplayFrame>(() => replay.frame());
   const [playing, setPlaying] = useState(false);
@@ -156,6 +161,23 @@ export function SessionReplay({ sessionLog, report, title = 'SESSION FLIGHT REVI
     context.fillStyle = '#a54c2d';
     context.fillRect(center.x - 4, center.y - 4, 8, 8);
 
+    if (comparisonReplay) {
+      const originalFrame = comparisonReplay.seek(Math.min(frame.tick, comparisonReplay.totalTicks));
+      context.setLineDash([6, 5]);
+      for (const trail of originalFrame.trails) {
+        for (let index = 1; index < trail.points.length; index++) {
+          const previous = trail.points[index - 1];
+          const current = trail.points[index];
+          if (!previous || !current) continue;
+          const from = point(previous);
+          const to = point(current);
+          context.beginPath(); context.moveTo(from.x, from.y); context.lineTo(to.x, to.y);
+          context.strokeStyle = 'rgba(38,47,46,.45)'; context.lineWidth = 2; context.stroke();
+        }
+      }
+      context.setLineDash([]);
+    }
+
     for (const trail of frame.trails) {
       for (let index = 1; index < trail.points.length; index++) {
         const previous = trail.points[index - 1];
@@ -222,8 +244,21 @@ export function SessionReplay({ sessionLog, report, title = 'SESSION FLIGHT REVI
           <input aria-label="Replay timeline" type="range" min="0" max={replay.totalTicks} value={frame.tick} onChange={(event) => seek(Number(event.target.value))} />
           <div className="aar-timeline-markers">{eventTicks.map((event, index) => <button key={`${event.type}-${event.tick}-${index}`} title={eventLabel(event)} style={{ left: `${(event.tick / Math.max(1, replay.totalTicks)) * 100}%` }} onClick={() => seek(event.tick)} />)}</div>
         </div>
+        {comparisonReplay && <p className="aar-branch-legend"><i /> Original true path · dashed; fork true path · solid</p>}
+        {onFork && <>
+          <button className="aar-fork-current" type="button" onClick={() => onFork(frame.tick)}>FORK HERE · {formatTime(frame.tick)}</button>
+          <div className="aar-command-forks" aria-label="Fork before trainee commands">
+            <h3>TRAINEE COMMANDS</h3>
+            {sessionLog.commands.length === 0 ? <p className="aar-muted">No recorded trainee commands.</p> : sessionLog.commands.map((command, index) => <button type="button" key={`${command.tick}-${command.type}-${index}`} onClick={() => onFork(command.tick)}>
+              <time>{formatTime(command.tick)}</time><span>Fork before this command · {command.type.replaceAll('_', ' ')}</span>
+            </button>)}
+          </div>
+        </>}
       </div>
       <aside className="aar-replay-side">
+        <div className="aar-replay-card aar-key-moments"><h3>KEY MOMENTS</h3>{moments.length === 0 ? <p className="aar-muted">No flagged decision moments in this report.</p> : moments.map((moment) => <article key={`${moment.actorId}-${moment.cause}`}>
+          <time>{formatTime(moment.tick)}</time><p>{moment.text}</p>{onFork && <button type="button" onClick={() => onFork(moment.forkTick)}>Replay from 5 s before · {formatTime(moment.forkTick)}</button>}
+        </article>)}</div>
         <div className="aar-replay-card"><h3>CONTACTS · {frame.actors.length}</h3>{frame.actors.map((actor) => <button type="button" key={actor.id} className={selectedActorId === actor.id ? 'selected' : ''} onClick={() => setSelectedActorId(actor.id)}><span>{actor.classId.replaceAll('_', ' ')}</span><small>{actor.state.replaceAll('_', ' ')}</small></button>)}</div>
         <div className="aar-replay-card aar-event-list"><h3>EVENTS THROUGH {formatTime(frame.tick)}</h3>{indexedEvents.slice(-30).reverse().map((event, index) => <button key={`${event.type}-${event.tick}-${index}`} onClick={() => seek(event.tick)}><time>{formatTime(event.tick)}</time><span>{event.label}</span></button>)}</div>
         <div className="aar-replay-card"><h3>SCORING · {report.total} / 100</h3><p className="aar-replay-grade">{report.grade}</p>

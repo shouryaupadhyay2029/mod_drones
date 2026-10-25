@@ -10,6 +10,7 @@ import {
 } from '../../sim/index.js';
 import { SimClient } from '../simClient.js';
 import { persistMissionReport, SessionOwner } from '../storage/sessionPersistence.js';
+import { PendingForkLaunch, takePendingFork } from '../aar/forkLaunch.js';
 import { TrailPoint, updateTrailHistory } from './radar/trails.js';
 
 export type MissionPhase = 'setup' | 'running' | 'ended';
@@ -32,6 +33,7 @@ export interface UseMissionReturn {
   scoreReportV2: ScoreReportV2 | null;
   sessionLog: SessionLog | null;
   storageStatus: string;
+  forkContext: PendingForkLaunch | null;
   startMission: (seed: string, scenarioId?: string, options?: MissionStartOptions) => void;
   togglePause: () => void;
   setSpeedMultiplier: (speed: 1 | 2 | 4) => void;
@@ -62,10 +64,13 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   const [scoreReportV2, setScoreReportV2] = useState<ScoreReportV2 | null>(null);
   const [sessionLog, setSessionLog] = useState<SessionLog | null>(null);
   const [storageStatus, setStorageStatus] = useState<string>('');
+  const [forkContext, setForkContext] = useState<PendingForkLaunch | null>(null);
   const missionStartedAtRef = useRef<number>(0);
   const scenarioIdRef = useRef<string>('dawn_intrusion');
   const savedReportHashRef = useRef<string>('');
   const activeOwnerRef = useRef<SessionOwner | undefined>(undefined);
+  const activeForkRef = useRef<PendingForkLaunch | null>(null);
+  const pendingForkRef = useRef<PendingForkLaunch | null>(null);
 
   const clientRef = useRef<SimClient | null>(null);
   const trailHistoryRef = useRef<Map<number, TrailPoint[]>>(new Map());
@@ -108,14 +113,41 @@ export function useMission(initialSeed?: string): UseMissionReturn {
       void persistMissionReport(
         { ...report, sessionLog: { ...report.sessionLog, scenarioId: report.sessionLog.scenarioId ?? scenarioIdRef.current } },
         missionStartedAtRef.current,
-        activeOwnerRef.current
+        activeOwnerRef.current,
+        activeForkRef.current ? { parentId: activeForkRef.current.parentId, forkTick: activeForkRef.current.tick } : undefined
       )
-        .then(() => setStorageStatus('Session saved on this device.'))
+        .then((savedId) => {
+          setStorageStatus(activeForkRef.current ? 'Fork saved for comparison.' : 'Session saved on this device.');
+          if (activeForkRef.current) {
+            window.location.hash = `#/aar/compare/${encodeURIComponent(activeForkRef.current.parentId)}/${encodeURIComponent(savedId)}`;
+          }
+        })
         .catch((error: unknown) => {
           console.error('[SessionStorage] Failed to save session:', error);
           setStorageStatus('Session could not be saved locally.');
         });
     });
+
+    if (typeof window !== 'undefined' && window.location?.hash === '#/fork') {
+      const pending = pendingForkRef.current ?? takePendingFork();
+      if (pending) {
+        pendingForkRef.current = pending;
+        activeForkRef.current = pending;
+        activeOwnerRef.current = pending.traineeId && pending.unitId
+          ? { traineeId: pending.traineeId, unitId: pending.unitId }
+          : undefined;
+        setForkContext(pending);
+        setSeed(String(pending.sessionLog.seed));
+        setScenarioId(pending.sessionLog.scenarioId ?? 'dawn_intrusion');
+        scenarioIdRef.current = pending.sessionLog.scenarioId ?? 'dawn_intrusion';
+        missionStartedAtRef.current = Date.now();
+        setSpeed(1);
+        setIsPaused(true);
+        setAutopilot(false);
+        setPhase('running');
+        client.initFromFork(pending.sessionLog, pending.tick, pending.parentId);
+      }
+    }
 
     return () => {
       client.terminate();
@@ -132,6 +164,9 @@ export function useMission(initialSeed?: string): UseMissionReturn {
       scenarioIdRef.current = chosenScenario;
       missionStartedAtRef.current = Date.now();
       savedReportHashRef.current = '';
+      activeForkRef.current = null;
+      pendingForkRef.current = null;
+      setForkContext(null);
       if (options) {
         activeOwnerRef.current = options.traineeId && options.unitId
           ? { traineeId: options.traineeId, unitId: options.unitId }
@@ -283,6 +318,8 @@ export function useMission(initialSeed?: string): UseMissionReturn {
     setScoreReportV2(null);
     setSessionLog(null);
     setPhase('setup');
+    activeForkRef.current = null;
+    setForkContext(null);
   }, []);
 
   return {
@@ -299,6 +336,7 @@ export function useMission(initialSeed?: string): UseMissionReturn {
     scoreReportV2,
     sessionLog,
     storageStatus,
+    forkContext,
     startMission,
     togglePause,
     setSpeedMultiplier,
