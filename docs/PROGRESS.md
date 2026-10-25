@@ -48,3 +48,14 @@ Append a dated section after each future item. Include its commit hash(es), what
 - **Current status**: The Mission Setup profile/recommendation controls and session-owner wiring are in the working tree but not committed because `MissionSetup.tsx` and `useMission.ts` contain user UI/Lenis edits. No user UI changes were staged in these commits.
 - **Verification**: `npm test` (133 passed), lint, typecheck, simulator typecheck, and build pass. Tracker age-8 p90 passes (6.07 m/s overall). `npm run test:targets` remains FAIL on two pre-existing calibration targets: elite oracle mean 94.15 exceeds 90; veteran reference mean 34.95 is below 55. Neither assertion was changed.
 - **Open issues**: Commit the adaptive Mission Setup integration with the user-owned hunks preserved, complete screenshots if Chrome is available, and finish any release documentation. Legacy calibration target failures remain open.
+
+## 2026-10-25 — Phase 4B verification follow-up
+
+- **Mission Setup commit**: `52e34a7` (`MissionSetup: adaptive controls + UI`); the complete file was committed as authorized.
+- **Golden evidence**: regenerated goldens are committed in `8b67b54`; `docs/golden/ridge_runner_reference_s1.json` is tracked. Current tree is not clean: remaining files are user UI/Lenis assets and edits, plus a modified `src/sim/systems/radar.ts` (not a UI file).
+- **Trigger-happy v2.1 totals**, seed order s1–s5: dawn_intrusion `0, 28, 28, 53, 0`; ridge_runner `0, 0, 0, 0, 0`; city_edge_night `0, 0, 0, 0, 0`. All are below 55.
+- **Asset-hit example**: `dawn_intrusion`, seed `s1`, idle operator; `assetHit=true`, total `0`, grade `Unsatisfactory`, reason `Defended asset was hit: -30`.
+- **Tracker p90 speed error (m/s)**, age order 3/5/8; before → after: bird `15.73/7.31/8.26` → `11.05/3.66/4.53`; fpv_kamikaze `18.39/13.08/11.51` → `14.01/6.12/6.30`; commercial_quad `12.39/8.17/9.32` → `10.88/4.15/4.44`; decoy_drone `24.06/16.22/14.59` → `19.23/8.83/8.10`; fpv_fiber `17.41/15.25/13.89` → `13.55/5.93/5.54`; ALL `17.64/12.72/11.51` → `13.90/6.02/6.07`. After sample counts by age: `1305/1248/1195` overall.
+- **Benchmark source**: `docs/benchmarks/875007c.txt`; scripted score table has explicit `V1` and `V2.1` columns. Machine file remains committed and unchanged.
+- **Verification outputs**: `npm test` 21 files / 137 tests pass; lint, typecheck, typecheck:sim, build pass. `npm run test:targets` has 2 failures: elite oracle mean 94.15 > 90 and veteran reference mean 34.95 < 55; tracker target passes at 6.07 m/s overall.
+- **Adaptive synthetic cases**: new trainee → recruit/none; 80,85,90 with no recent asset hits → veteran/none; 30,35 → operator/none; weak decoy classification at 35, n=3, confidence=.60 → operator/decoys. Returned rationales are pasted in the verification record.
