@@ -6,6 +6,8 @@ import { Engine } from '../src/sim/core/engine.js';
 import { Command } from '../src/sim/core/types.js';
 import { THREAT_LIBRARY } from '../src/sim/model/threats.js';
 import { scoreSession } from '../src/sim/scoring/basic.js';
+import { scoreSessionV2 } from '../src/sim/scoring/doctrine.js';
+import { SCORE_VERSION } from '../src/sim/scoring/doctrineConstants.js';
 import { TraineeView } from '../src/sim/view/traineeView.js';
 import { Tier } from '../src/sim/scenarios/generator.js';
 import * as fs from 'fs';
@@ -16,7 +18,8 @@ interface RunResult {
   scenario: string;
   seed: string;
   bot: string;
-  score: number;
+  score: number; // scoring v1 (basic.ts)
+  scoreV2: number; // scoring v2.x (doctrine.ts)
   outcome: string;
   hits: number;
   falseEngages: number;
@@ -77,6 +80,13 @@ function runMission(
     assetHit: hits > 0,
   });
 
+  const v2 = scoreSessionV2({
+    actors: engine.actors,
+    tracks: engine.tracks,
+    events,
+    assetHit: hits > 0,
+  });
+
   const contacts = scoreReport.perContact;
   const detectionScore =
     contacts.length > 0
@@ -96,6 +106,7 @@ function runMission(
     seed,
     bot: botName,
     score: scoreReport.total,
+    scoreV2: v2.total,
     outcome: engine.missionState.reason ?? 'running',
     hits,
     falseEngages,
@@ -135,6 +146,7 @@ async function main() {
   interface TierSummary {
     tier: Tier;
     refMean: number;
+    refMeanV2: number;
     refMin: number;
     refMax: number;
     oracleMean: number;
@@ -150,6 +162,7 @@ async function main() {
 
   for (const tier of tiers) {
     const refScores: number[] = [];
+    const refScoresV2: number[] = [];
     const oracleScores: number[] = [];
     const refDets: number[] = [];
     const refClasses: number[] = [];
@@ -163,6 +176,7 @@ async function main() {
 
       const refRes = runMission(procId, seed, 'referenceOperator', 'standard', referenceOperator);
       refScores.push(refRes.score);
+      refScoresV2.push(refRes.scoreV2);
       refDets.push(refRes.detectionScore);
       refClasses.push(refRes.classificationScore);
       refEngs.push(refRes.engagementScore);
@@ -174,6 +188,7 @@ async function main() {
     }
 
     const refMean = refScores.reduce((a, b) => a + b, 0) / refScores.length;
+    const refMeanV2 = refScoresV2.reduce((a, b) => a + b, 0) / refScoresV2.length;
     const refMin = Math.min(...refScores);
     const refMax = Math.max(...refScores);
     const oracleMean = oracleScores.reduce((a, b) => a + b, 0) / oracleScores.length;
@@ -188,6 +203,7 @@ async function main() {
     tierSummaries.push({
       tier,
       refMean,
+      refMeanV2,
       refMin,
       refMax,
       oracleMean,
@@ -257,14 +273,15 @@ async function main() {
   // Build report string
   let output = '';
   output += `========================================================================================\n`;
-  output += `BENCHMARK REPORT — VAJRA C-UAS SIMULATOR\n`;
+  output += `BENCHMARK REPORT - VAJRA C-UAS SIMULATOR\n`;
   output += `Git Commit: ${gitHash}\n`;
+  output += `Scoring Versions: v1 (basic) and v${SCORE_VERSION} (doctrine)\n`;
   output += `Generated: ${new Date().toISOString()}\n`;
   output += `========================================================================================\n\n`;
 
   output += `1. SCRIPTED SCENARIOS BENCHMARK TABLE (3 scenarios x 3 bots x 5 seeds)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
-  output += `Scenario            Bot                   Seed   Score  Outcome     Hits  FalseEng  Ticks  Hash\n`;
+  output += `Scenario            Bot                   Seed   V1    V2.1  Outcome     Hits  FalseEng  Ticks  Hash\n`;
   output += `----------------------------------------------------------------------------------------\n`;
   for (const r of scriptedResults) {
     const sc = r.scenario.padEnd(19);
@@ -276,13 +293,14 @@ async function main() {
     const fe = String(r.falseEngages).padStart(8);
     const tk = String(r.ticks).padStart(6);
     const hs = r.hash.slice(0, 10);
-    output += `${sc} ${b} ${sd} ${scStr}  ${oc} ${h}  ${fe}  ${tk}  ${hs}\n`;
+    const v2Str = String(r.scoreV2).padStart(5);
+    output += `${sc} ${b} ${sd} ${scStr} ${v2Str}  ${oc} ${h}  ${fe}  ${tk}  ${hs}\n`;
   }
   output += `----------------------------------------------------------------------------------------\n\n`;
 
   output += `2. PROCEDURAL TIERS BENCHMARK TABLE (4 tiers x 20 seeds)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
-  output += `Tier       Ref Mean  Ref Min  Ref Max  Target   Status  Oracle Mean  Oracle >=90%  Asset Hit %\n`;
+  output += `Tier       V1 Mean  V2.1 Mean  Ref Min  Ref Max  V1 Target  Status  Oracle Mean  Oracle >=90%  Asset Hit %\n`;
   output += `----------------------------------------------------------------------------------------\n`;
   const targets: Record<Tier, number> = {
     recruit: 95,
@@ -293,14 +311,15 @@ async function main() {
   for (const ts of tierSummaries) {
     const t = ts.tier.padEnd(10);
     const rMean = ts.refMean.toFixed(1).padStart(8);
+    const rMeanV2 = ts.refMeanV2.toFixed(1).padStart(10);
     const rMin = String(ts.refMin).padStart(8);
     const rMax = String(ts.refMax).padStart(8);
-    const tgt = `>=${targets[ts.tier]}`.padStart(8);
+    const tgt = `>=${targets[ts.tier]}`.padStart(10);
     const status = (ts.refMean >= targets[ts.tier] ? 'PASS' : 'FAIL').padStart(7);
     const oMean = ts.oracleMean.toFixed(1).padStart(12);
     const oPct = `${ts.oraclePctGe90.toFixed(1)}%`.padStart(13);
     const ah = `${ts.assetHitRate.toFixed(1)}%`.padStart(12);
-    output += `${t} ${rMean} ${rMin} ${rMax} ${tgt} ${status} ${oMean} ${oPct} ${ah}\n`;
+    output += `${t} ${rMean} ${rMeanV2} ${rMin} ${rMax} ${tgt} ${status} ${oMean} ${oPct} ${ah}\n`;
   }
   output += `----------------------------------------------------------------------------------------\n\n`;
 
