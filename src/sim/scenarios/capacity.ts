@@ -8,7 +8,12 @@ import { vec3, Vec3 } from '../core/vec.js';
 import { RADAR_MAX_RANGE_M, RADAR_RCS_REF } from '../systems/radar.js';
 
 export class CapacityCheckResult {
-  constructor(public capacityRatio: number, public minWarningSec: number) {}
+  constructor(
+    public capacityRatio: number,
+    public minWarningSec: number,
+    public requiredGunBursts = 0,
+    public requiredMissiles = 0,
+  ) {}
   valueOf(): number {
     return this.capacityRatio;
   }
@@ -149,7 +154,7 @@ export function capacityCheck(
   }
 
   if (hostiles.length === 0) {
-    return new CapacityCheckResult(0, Infinity);
+    return new CapacityCheckResult(0, Infinity, 0, 0);
   }
 
   // 1. Greedy Jammer Service Queue (RF-controlled only, 2.0s dwell, p = 0.85)
@@ -200,6 +205,10 @@ export function capacityCheck(
   const ammoRatio = totalBurstsUsed / 20;
   const capacityRatio = Math.max(maxRatio, ammoRatio);
   const minWarningSec = hostiles.reduce((min, h) => Math.min(min, h.warning), Infinity);
+  // Planning need: ceil the capacity model's expected gun bursts. A target
+  // that cannot receive a jammer service gets one abstract missile contingency.
+  const requiredGunBursts = Math.ceil(totalBurstsUsed);
+  const requiredMissiles = hostiles.filter((hostile) => !jammedHostiles.has(hostile)).length;
 
-  return new CapacityCheckResult(capacityRatio, minWarningSec);
+  return new CapacityCheckResult(capacityRatio, minWarningSec, requiredGunBursts, requiredMissiles);
 }

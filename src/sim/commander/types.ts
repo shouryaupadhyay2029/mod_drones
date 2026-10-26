@@ -21,6 +21,8 @@ export interface RaidPlan {
   tier: CommanderTier;
   sites: CommanderSite[];
   schedules: Record<string, ScenarioSpawnSchedule[]>;
+  siteNeeds: Record<string, { gunAmmo: number; missiles: number }>;
+  scarcity: number;
   totalPool: { gunAmmo: number; missiles: number; reserve: { gunAmmo: number; missiles: number } };
   mainEffortSiteId: string;
   feintSiteIds: string[];

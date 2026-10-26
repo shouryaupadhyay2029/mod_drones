@@ -23,6 +23,10 @@ describe('Phase 6A multi-site simulator', () => {
         expect(raid.id).toBe(`raid:v1:${tier}`);
         expect(raid.sites.length).toBeGreaterThanOrEqual(2);
         expect(raid.sites.length).toBeLessThanOrEqual(4);
+        const totalGunNeed = Object.values(raid.siteNeeds).reduce((sum, need) => sum + need.gunAmmo, 0);
+        const totalMissileNeed = Object.values(raid.siteNeeds).reduce((sum, need) => sum + need.missiles, 0);
+        expect(raid.totalPool.gunAmmo).toBe(Math.ceil(totalGunNeed * raid.scarcity));
+        expect(raid.totalPool.missiles).toBe(Math.ceil(totalMissileNeed * raid.scarcity));
         fingerprints.add(raid.fingerprint);
         for (const [index, site] of raid.sites.entries()) {
           expect(capacityCheck(raid.schedules[site.id] ?? []).capacityRatio).toBeLessThanOrEqual(1);
@@ -74,7 +78,7 @@ describe('Phase 6A multi-site simulator', () => {
     const raid = {
       id: 'raid:v1:recruit', seed: 'one-site', tier: 'recruit' as const,
       sites: [{ id: 'S1', name: 'Training Site', valueUnits: 100, mapPosKm: { x: 0, y: 0 }, inventory: { gunAmmo: 0, missiles: 0 }, roe: 'standard' as const, missileAuth: 'hold' as const }],
-      schedules: { S1: [] }, totalPool: { gunAmmo: 20, missiles: 2, reserve: { gunAmmo: 20, missiles: 2 } },
+      schedules: { S1: [] }, siteNeeds: { S1: { gunAmmo: 0, missiles: 0 } }, scarcity: 1, totalPool: { gunAmmo: 20, missiles: 2, reserve: { gunAmmo: 20, missiles: 2 } },
       mainEffortSiteId: 'S1', feintSiteIds: [], ewLevel: 'none' as const, fingerprint: 'one-site',
     };
     const session = new CommanderSession(raid);
@@ -91,7 +95,7 @@ describe('Phase 6A multi-site simulator', () => {
         { id: 'S1', name: 'Site 1', valueUnits: 100, mapPosKm: { x: 0, y: 0 }, inventory: { gunAmmo: 0, missiles: 0 }, roe: 'standard' as const, missileAuth: 'hold' as const },
         { id: 'S2', name: 'Site 2', valueUnits: 100, mapPosKm: { x: 8, y: 0 }, inventory: { gunAmmo: 0, missiles: 0 }, roe: 'standard' as const, missileAuth: 'hold' as const },
       ],
-      schedules: { S1: [], S2: [] }, totalPool: { gunAmmo: 40, missiles: 4, reserve: { gunAmmo: 40, missiles: 4 } },
+      schedules: { S1: [], S2: [] }, siteNeeds: { S1: { gunAmmo: 0, missiles: 0 }, S2: { gunAmmo: 0, missiles: 0 } }, scarcity: 1, totalPool: { gunAmmo: 40, missiles: 4, reserve: { gunAmmo: 40, missiles: 4 } },
       mainEffortSiteId: 'S1', feintSiteIds: ['S2'], ewLevel: 'none' as const, fingerprint: 'retask',
     };
     const session = new CommanderSession(raid);
@@ -110,6 +114,7 @@ describe('Phase 6A multi-site simulator', () => {
       id: 'raid:v1:recruit', seed: 'asset-hit-ledger', tier: 'recruit' as const,
       sites: [{ id: 'S1', name: 'Training Site', valueUnits: 100, mapPosKm: { x: 0, y: 0 }, inventory: { gunAmmo: 0, missiles: 0 }, roe: 'standard' as const, missileAuth: 'hold' as const }],
       schedules: { S1: [0, 1].map((actorIndex) => ({ tick: 0, classId: 'fpv_kamikaze' as const, pos: vec3(actorIndex, 10, 50), behaviourType: 'ingress_direct' as const, speed: 25, role: 'striker' as const })) },
+      siteNeeds: { S1: { gunAmmo: 2, missiles: 2 } }, scarcity: 1,
       totalPool: { gunAmmo: 20, missiles: 2, reserve: { gunAmmo: 20, missiles: 2 } },
       mainEffortSiteId: 'S1', feintSiteIds: [], ewLevel: 'none' as const, fingerprint: 'asset-hit-ledger',
     };

@@ -13,6 +13,7 @@ const TIER_SETTINGS: Record<CommanderTier, { siteCounts: [number, number]; strik
   elite: { siteCounts: [3, 4], strikers: [3, 4], decoys: [2, 3], ew: 'heavy' },
 };
 const CORRECT_INTEL_PROBABILITY: Record<CommanderTier, number> = { recruit: 0.8, operator: 0.7, veteran: 0.6, elite: 0.6 };
+export const RAID_SCARCITY: Record<CommanderTier, number> = { recruit: 1, operator: 0.85, veteran: 0.7, elite: 0.7 };
 const BANDS = ['low', 'med', 'high'] as const;
 
 export function generateRaid(seed: string | number, tier: CommanderTier): RaidPlan {
@@ -21,6 +22,7 @@ export function generateRaid(seed: string | number, tier: CommanderTier): RaidPl
   const siteCount = rng.int(settings.siteCounts[0], settings.siteCounts[1]);
   const sites: CommanderSite[] = [];
   const schedules: RaidPlan['schedules'] = {};
+  const siteNeeds: RaidPlan['siteNeeds'] = {};
   const fingerprintBits: string[] = [tier, String(siteCount)];
   for (let index = 0; index < siteCount; index++) {
     const id = `S${index + 1}`;
@@ -59,20 +61,29 @@ export function generateRaid(seed: string | number, tier: CommanderTier): RaidPl
       });
     }
     schedules[id] = schedule;
-    fingerprintBits.push(`${id}:${site.valueUnits}:${strikerCount}:${decoyCount}:${schedule.map((spawn) => `${spawn.classId}@${spawn.tick}`).join(',')}`);
+    const capacity = capacityCheck(schedule);
+    siteNeeds[id] = { gunAmmo: capacity.requiredGunBursts, missiles: capacity.requiredMissiles };
+    fingerprintBits.push(`${id}:${site.valueUnits}:${strikerCount}:${decoyCount}:${siteNeeds[id].gunAmmo}/${siteNeeds[id].missiles}:${schedule.map((spawn) => `${spawn.classId}@${spawn.tick}`).join(',')}`);
   }
   const mainIndex = rng.int(0, sites.length - 1);
   const mainEffortSiteId = sites[mainIndex]?.id ?? 'S1';
   const feintSiteIds = sites.filter((site) => site.id !== mainEffortSiteId).slice(0, Math.max(1, Math.floor(siteCount / 2))).map((site) => site.id);
   fingerprintBits.push(`main:${mainEffortSiteId}`, `ew:${settings.ew}`);
   const fingerprint = cyrb53(fingerprintBits.join('|'));
+  const scarcity = RAID_SCARCITY[tier];
+  const totalGunNeed = Object.values(siteNeeds).reduce((sum, need) => sum + need.gunAmmo, 0);
+  const totalMissileNeed = Object.values(siteNeeds).reduce((sum, need) => sum + need.missiles, 0);
+  const gunAmmo = Math.ceil(totalGunNeed * scarcity);
+  const missiles = Math.ceil(totalMissileNeed * scarcity);
   return {
     id: `raid:v1:${tier}`,
     seed,
     tier,
     sites,
     schedules,
-    totalPool: { gunAmmo: sites.length * 20, missiles: sites.length * 2, reserve: { gunAmmo: sites.length * 20, missiles: sites.length * 2 } },
+    siteNeeds,
+    scarcity,
+    totalPool: { gunAmmo, missiles, reserve: { gunAmmo, missiles } },
     mainEffortSiteId,
     feintSiteIds,
     ewLevel: settings.ew,
