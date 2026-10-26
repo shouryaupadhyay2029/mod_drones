@@ -1,6 +1,5 @@
 /* global requestAnimationFrame, cancelAnimationFrame */
 import React, { useEffect, useRef, useState } from 'react';
-import '../styles/drone-ascii.css';
 
 export interface DroneAsciiSimulationProps {
   className?: string;
@@ -946,17 +945,9 @@ export function DroneAsciiSimulation({
       // Convert buffer into multi-line ASCII string
       let out = '';
       for (let r = 0; r < rows; r++) {
-        const rowData = buffer.slice(r * cols, (r + 1) * cols);
-        for (let c = 0; c < rowData.length; c++) {
-          const char = rowData[c]!;
-          if (char === '+' || char === '*' || char === '=') {
-            out += `<span class="ascii-node-accent">${char}</span>`;
-          } else {
-            out += char;
-          }
-        }
-        out += '\n';
+        out += buffer.slice(r * cols, (r + 1) * cols).join('') + '\n';
       }
+
       setAsciiText(out);
       animId = requestAnimationFrame(render);
     };
@@ -976,6 +967,12 @@ export function DroneAsciiSimulation({
       onDoubleClick={() => {
         assemblyStartTimeRef.current = performance.now();
       }}
+      onWheel={(e) => {
+        const scroller = scrollerRef.current || document.querySelector<HTMLElement>('[data-scroll-root]');
+        if (scroller) {
+          scroller.scrollTop += e.deltaY;
+        }
+      }}
       title="VAJRA // Double-click to re-assemble drone • Click & drag to rotate in 3D"
       style={{
         position: 'relative',
@@ -993,7 +990,7 @@ export function DroneAsciiSimulation({
         userSelect: 'none',
         cursor: isDraggingRef.current ? 'grabbing' : 'grab',
         boxShadow: 'none',
-        pointerEvents: 'auto',
+        pointerEvents: 'none',
         ...style,
       }}
     >
@@ -1292,7 +1289,6 @@ export function DroneAsciiSimulation({
       {/* ASCII Output Display — Pixel-aligned Monospace Canvas */}
       <pre
         ref={preRef}
-        dangerouslySetInnerHTML={{ __html: asciiText }}
         style={{
           display: 'inline-block',
           width: 'fit-content',
@@ -1308,9 +1304,10 @@ export function DroneAsciiSimulation({
           whiteSpace: 'pre',
           pointerEvents: 'none',
           textAlign: 'center',
-          userSelect: 'none',
         }}
-      />
+      >
+        {asciiText}
+      </pre>
     </div>
   );
 }
