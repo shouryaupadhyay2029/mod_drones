@@ -3,6 +3,7 @@ import { ConsolePage } from './routes/ConsolePage.js';
 import { SystemCheckPage } from './routes/SystemCheckPage.js';
 import { CONTACT_REFERENCES, ContactReferencePage } from './console/ContactLibrary.js';
 import { AarPage } from './aar/AarPage.js';
+import { CommanderPage } from './commander/CommanderPage.js';
 
 export function App(): React.JSX.Element {
   const [currentHash, setCurrentHash] = useState<string>(
@@ -25,6 +26,10 @@ export function App(): React.JSX.Element {
 
   if (currentHash.startsWith('#/aar')) {
     return <AarPage />;
+  }
+
+  if (currentHash.startsWith('#/commander')) {
+    return <CommanderPage />;
   }
 
   const contactId = currentHash.match(/^#\/contacts\/([^/?#]+)/)?.[1];

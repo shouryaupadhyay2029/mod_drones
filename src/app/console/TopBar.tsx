@@ -290,6 +290,7 @@ export function TopBar({
 
         {/* Center: Luxury Mega-Menu Nav Items */}
         <div style={styles.navCenter}>
+          <a href="#/commander" className="nav-mega-btn" style={{ ...styles.navDirectLink, color: '#b14d28' }}>COMMANDER</a>
           {/* Tab 1: Contact deck */}
           <div
             className="nav-mega-item anim-curved-slide anim-delay-2"

@@ -169,7 +169,7 @@ export class CommanderSession {
   private siteView(site: CommanderSite): CommanderSiteView {
     const engine = this.engines.get(site.id)!;
     const operatorView = engine.getTraineeView();
-    const inbound = operatorView.tracks.filter((track) => track.state === 'confirmed').length;
+    const inbound = operatorView.tracks.filter((track) => track.state === 'confirmed' && (track.closingRateMps ?? 0) < 0).length;
     const hitCount = engine.getEvents().filter((event) => event.type === 'ASSET_HIT').length;
     const damagePercent = Math.min(100, hitCount * 20);
     const lastEvent = [...engine.getEvents()].reverse().find((event) => event.type === 'ENGAGEMENT_RESOLVED');
