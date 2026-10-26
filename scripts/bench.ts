@@ -11,6 +11,7 @@ import { SCORE_VERSION } from '../src/sim/scoring/doctrineConstants.js';
 import { TraineeView } from '../src/sim/view/traineeView.js';
 import { Tier } from '../src/sim/scenarios/generator.js';
 import { runCommanderBenchmark } from '../src/sim/commander/bench.js';
+import { RAID_SCORE_VERSION } from '../src/sim/commander/scoreRaid.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
@@ -283,6 +284,7 @@ async function main() {
   output += `BENCHMARK REPORT - VAJRA C-UAS SIMULATOR\n`;
   output += `Git Commit: ${gitHash}\n`;
   output += `Scoring Versions: v1 (basic) and v${SCORE_VERSION} (doctrine)\n`;
+  output += `Commander Raid Scoring Version: ${RAID_SCORE_VERSION}\n`;
   output += `Generated: ${new Date().toISOString()}\n`;
   output += `========================================================================================\n\n`;
 

@@ -5,6 +5,8 @@ import { attackerCostUnits, defenderCostUnits } from './costs.js';
 import { CommanderSession } from './session.js';
 import { RaidScoreReport, SiteRunReport } from './types.js';
 
+export const RAID_SCORE_VERSION = 'raid-1.1' as const;
+
 function clamp(value: number, low = 0, high = 100): number { return Math.max(low, Math.min(high, value)); }
 function gradeFor(score: number): RaidScoreReport['grade'] {
   if (score >= 85) return 'Proficient';
@@ -26,6 +28,10 @@ export function preventedDamageForMissileKill(siteValueUnits: number, timeToImpa
   return hostileStriker && neutralized && timeToImpactSeconds < 12 && !jammerCouldCover && !gunCouldCover
     ? 0.20 * siteValueUnits
     : 0;
+}
+
+export function commanderTotalScore(assetPreservation: number, costExchange: number, resourceManagement: number, commandDiscipline: number): number {
+  return Math.round(assetPreservation * 0.5 + costExchange * 0.3 + resourceManagement * 0.1 + commandDiscipline * 0.1);
 }
 
 export function scoreRaid(session: CommanderSession): RaidScoreReport {
@@ -121,12 +127,12 @@ export function scoreRaid(session: CommanderSession): RaidScoreReport {
   }
   resourceManagement = clamp(resourceManagement);
   const commandDiscipline = clamp(100 - totalFalse * 5);
-  const total = Math.round(assetPreservation * 0.5 + costExchange * 0.3 + resourceManagement * 0.1 + commandDiscipline * 0.1);
+  const total = commanderTotalScore(assetPreservation, costExchange, resourceManagement, commandDiscipline);
   const pendingTransferLate = session.events.some((event) => event.type === 'RESERVE_TRANSFER_ORDERED' && session.events.some((hit) => hit.type === 'SITE_ASSET_HIT' && hit.payload?.siteId === event.payload?.siteId && hit.tick < Number(event.payload?.dueTick ?? 0)));
   if (pendingTransferLate) causes.add('late_retask');
   if (session.view().totalPool.reserve.gunAmmo + session.view().totalPool.reserve.missiles > 0 && totalHits > 0) causes.add('reserve_unused');
   return {
-    scoreVersion: 'raid-1.1', total, grade: gradeFor(total),
+    scoreVersion: RAID_SCORE_VERSION, total, grade: gradeFor(total),
     subscores: { assetPreservation: Math.round(assetPreservation * 10) / 10, costExchange: Math.round(costExchange * 10) / 10, resourceManagement: Math.round(resourceManagement * 10) / 10, commandDiscipline: Math.round(commandDiscipline * 10) / 10 },
     sites: siteReports, costLedger: { attackerDestroyed: Math.round(totalDestroyed * 100) / 100, preventedDamageUnits: Math.round(totalPreventedDamage * 100) / 100, defenderSpent: Math.round(totalSpent * 100) / 100, defenderSpendByEffector: { gun: Math.round(totalSpendByEffector.gun * 100) / 100, jammer: Math.round(totalSpendByEffector.jammer * 100) / 100, missile: Math.round(totalSpendByEffector.missile * 100) / 100 }, cer: Math.round(cer * 100) / 100 },
     decisionCauses: [...causes], commandTimeline: session.getSessionLog().commands, missionAssetValue: totalValue,
