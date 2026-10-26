@@ -1,0 +1,851 @@
+{
+  "raid": {
+    "id": "raid:v1:operator",
+    "seed": "commander-demo-s1",
+    "tier": "operator",
+    "sites": [
+      {
+        "id": "S1",
+        "name": "Training Site 1",
+        "valueUnits": 90,
+        "mapPosKm": {
+          "x": 0,
+          "y": 1.8
+        },
+        "inventory": {
+          "gunAmmo": 0,
+          "missiles": 0
+        },
+        "roe": "standard",
+        "missileAuth": "hold"
+      },
+      {
+        "id": "S2",
+        "name": "Training Site 2",
+        "valueUnits": 132,
+        "mapPosKm": {
+          "x": 8,
+          "y": -0.4
+        },
+        "inventory": {
+          "gunAmmo": 0,
+          "missiles": 0
+        },
+        "roe": "standard",
+        "missileAuth": "hold"
+      }
+    ],
+    "schedules": {
+      "S1": [
+        {
+          "tick": 914,
+          "classId": "decoy_drone",
+          "pos": {
+            "x": 1852.1270887027313,
+            "y": -3795.7982316743946,
+            "z": 101.2430932186544
+          },
+          "behaviourType": "ingress_direct",
+          "speed": 24,
+          "groupId": "decoy-screen",
+          "role": "decoy"
+        },
+        {
+          "tick": 1293,
+          "classId": "fpv_kamikaze",
+          "pos": {
+            "x": 2699.4067234056365,
+            "y": -4734.11965547187,
+            "z": 97.14600572362542
+          },
+          "behaviourType": "ingress_direct",
+          "speed": 31,
+          "groupId": "striker-trailing",
+          "role": "striker"
+        },
+        {
+          "tick": 1345,
+          "classId": "fpv_fiber",
+          "pos": {
+            "x": 1769.2370803863048,
+            "y": -4499.43177202481,
+            "z": 71.70753149315715
+          },
+          "behaviourType": "ingress_direct",
+          "speed": 27,
+          "groupId": "striker-trailing",
+          "role": "striker"
+        }
+      ],
+      "S2": [
+        {
+          "tick": 1048,
+          "classId": "decoy_drone",
+          "pos": {
+            "x": 4229.995145499199,
+            "y": 703.0596675135564,
+            "z": 75.94338721595705
+          },
+          "behaviourType": "ingress_direct",
+          "speed": 23,
+          "groupId": "decoy-screen",
+          "role": "decoy"
+        },
+        {
+          "tick": 1326,
+          "classId": "fpv_kamikaze",
+          "pos": {
+            "x": 5045.329146272007,
+            "y": 1227.8613661191796,
+            "z": 47.497893664985895
+          },
+          "behaviourType": "ingress_direct",
+          "speed": 25,
+          "groupId": "striker-trailing",
+          "role": "striker"
+        }
+      ]
+    },
+    "totalPool": {
+      "gunAmmo": 40,
+      "missiles": 4,
+      "reserve": {
+        "gunAmmo": 40,
+        "missiles": 4
+      }
+    },
+    "mainEffortSiteId": "S1",
+    "feintSiteIds": [
+      "S2"
+    ],
+    "ewLevel": "light",
+    "fingerprint": "047b3a368db838"
+  },
+  "commanderLog": {
+    "formatVersion": 1,
+    "raidId": "raid:v1:operator",
+    "seed": "commander-demo-s1",
+    "tier": "operator",
+    "commands": [
+      {
+        "tick": 0,
+        "type": "ALLOCATE",
+        "payload": {
+          "siteId": "S1",
+          "gunAmmo": 12,
+          "missiles": 1
+        }
+      },
+      {
+        "tick": 0,
+        "type": "ALLOCATE",
+        "payload": {
+          "siteId": "S2",
+          "gunAmmo": 20,
+          "missiles": 2
+        }
+      },
+      {
+        "tick": 0,
+        "type": "SET_MISSILE_AUTH",
+        "payload": {
+          "siteId": "S1",
+          "auth": "asset_threat"
+        }
+      },
+      {
+        "tick": 0,
+        "type": "SET_MISSILE_AUTH",
+        "payload": {
+          "siteId": "S2",
+          "auth": "asset_threat"
+        }
+      }
+    ],
+    "totalTicks": 4800
+  },
+  "score": {
+    "scoreVersion": "raid-1.0",
+    "total": 60,
+    "grade": "Marginal",
+    "subscores": {
+      "assetPreservation": 100,
+      "costExchange": 0,
+      "resourceManagement": 100,
+      "commandDiscipline": 0
+    },
+    "sites": [
+      {
+        "siteId": "S1",
+        "damagePercent": 0,
+        "attackerCostDestroyed": 1,
+        "defenderSpend": 41.18,
+        "hits": 0,
+        "falseEngagements": 21,
+        "causes": [
+          "missile_overuse"
+        ],
+        "scoreSessionV2": {
+          "total": 59,
+          "grade": "Marginal",
+          "weightedMean": 66.7,
+          "subscores": {
+            "detection": 100,
+            "classification": 88.9,
+            "engagement": 44.4,
+            "discipline": 92
+          },
+          "perContact": [
+            {
+              "actorId": 1,
+              "classId": "decoy_drone",
+              "weight": 1,
+              "observable": true,
+              "d": 1,
+              "c": 0,
+              "e": 0,
+              "contactTotal": 0.2,
+              "totalScore": 20,
+              "decisionPath": [
+                {
+                  "id": "detection",
+                  "question": "Was track detected and acknowledged promptly?",
+                  "answer": "Acknowledged in 0.1s",
+                  "points": 20,
+                  "maxPoints": 20,
+                  "cause": null,
+                  "note": "Latency: 0.1s"
+                },
+                {
+                  "id": "classification",
+                  "question": "Was contact identified as neutral/civilian?",
+                  "answer": "Classified as fpv_fiber",
+                  "points": 0,
+                  "maxPoints": 25,
+                  "cause": "misclassification",
+                  "note": "True: decoy_drone, Assessed: fpv_fiber"
+                },
+                {
+                  "id": "rules_of_engagement",
+                  "question": "Was fire held against neutral/civilian contact?",
+                  "answer": "Engaged decoy_drone",
+                  "points": 0,
+                  "maxPoints": 55,
+                  "cause": "engaged_neutral",
+                  "note": "Violated ROE (-3 pts)"
+                }
+              ],
+              "assessedClass": "fpv_fiber",
+              "ackLatencySec": 0.05,
+              "outcome": 0,
+              "fit": 0,
+              "latency": 0
+            },
+            {
+              "actorId": 2,
+              "classId": "fpv_kamikaze",
+              "weight": 4,
+              "observable": true,
+              "d": 1,
+              "c": 1,
+              "e": 0.8,
+              "contactTotal": 0.89,
+              "totalScore": 89,
+              "decisionPath": [
+                {
+                  "id": "detection",
+                  "question": "Was track detected and acknowledged promptly?",
+                  "answer": "Acknowledged in 0.1s",
+                  "points": 20,
+                  "maxPoints": 20,
+                  "cause": null,
+                  "note": "Latency: 0.1s"
+                },
+                {
+                  "id": "classification",
+                  "question": "Was threat accurately classified?",
+                  "answer": "Classified as fpv_kamikaze",
+                  "points": 25,
+                  "maxPoints": 25,
+                  "cause": null,
+                  "note": "True: fpv_kamikaze, Assessed: fpv_kamikaze"
+                },
+                {
+                  "id": "outcome",
+                  "question": "Was threat neutralised before standoff range?",
+                  "answer": "Neutralised at 675m",
+                  "points": 33,
+                  "maxPoints": 33,
+                  "cause": null,
+                  "note": "Distance: 675m"
+                },
+                {
+                  "id": "effector_fit",
+                  "question": "Appropriate effector choice for target signature?",
+                  "answer": "Engaged with jammer",
+                  "points": 11,
+                  "maxPoints": 11,
+                  "cause": null,
+                  "note": "Effector: jammer"
+                },
+                {
+                  "id": "engagement_latency",
+                  "question": "Engagement dispatched promptly upon classification/confirmation?",
+                  "answer": "Engaged within 24.1s",
+                  "points": 0,
+                  "maxPoints": 11,
+                  "cause": "late_engagement",
+                  "note": "Latency: 24.1s"
+                }
+              ],
+              "assessedClass": "fpv_kamikaze",
+              "ackLatencySec": 0.05,
+              "firstEngagementLatencySec": 24.05,
+              "outcome": 1,
+              "fit": 1,
+              "latency": 0
+            },
+            {
+              "actorId": 3,
+              "classId": "fpv_fiber",
+              "weight": 4,
+              "observable": true,
+              "d": 1,
+              "c": 1,
+              "e": 0.2,
+              "contactTotal": 0.56,
+              "totalScore": 56,
+              "decisionPath": [
+                {
+                  "id": "detection",
+                  "question": "Was track detected and acknowledged promptly?",
+                  "answer": "Acknowledged in 0.1s",
+                  "points": 20,
+                  "maxPoints": 20,
+                  "cause": null,
+                  "note": "Latency: 0.1s"
+                },
+                {
+                  "id": "classification",
+                  "question": "Was threat accurately classified?",
+                  "answer": "Classified as fpv_fiber",
+                  "points": 25,
+                  "maxPoints": 25,
+                  "cause": null,
+                  "note": "True: fpv_fiber, Assessed: fpv_fiber"
+                },
+                {
+                  "id": "outcome",
+                  "question": "Was threat neutralised before standoff range?",
+                  "answer": "Threat was not neutralised",
+                  "points": 0,
+                  "maxPoints": 33,
+                  "cause": "missed_threat",
+                  "note": "Missed"
+                },
+                {
+                  "id": "effector_fit",
+                  "question": "Appropriate effector choice for target signature?",
+                  "answer": "Engaged with jammer",
+                  "points": 0,
+                  "maxPoints": 11,
+                  "cause": "wrong_effector",
+                  "note": "Effector: jammer"
+                },
+                {
+                  "id": "engagement_latency",
+                  "question": "Engagement dispatched promptly upon classification/confirmation?",
+                  "answer": "Engaged within 0.0s",
+                  "points": 11,
+                  "maxPoints": 11,
+                  "cause": null,
+                  "note": "Latency: 0.0s"
+                }
+              ],
+              "assessedClass": "fpv_fiber",
+              "ackLatencySec": 0.05,
+              "firstEngagementLatencySec": 0,
+              "outcome": 0,
+              "fit": 0,
+              "latency": 1
+            }
+          ],
+          "unobservable": [],
+          "penalties": [
+            {
+              "reason": "Engaged decoy drone: -3",
+              "points": 3
+            },
+            {
+              "reason": "Jammer deployed against non-RF threat (fpv_fiber) with rfStatus 'silent': -5",
+              "points": 5
+            }
+          ],
+          "roeCapApplied": false,
+          "reasons": [
+            "Engaged decoy drone: -3",
+            "Jammer deployed against non-RF threat (fpv_fiber) with rfStatus 'silent': -5"
+          ],
+          "missionDecisionPath": []
+        }
+      },
+      {
+        "siteId": "S2",
+        "damagePercent": 0,
+        "attackerCostDestroyed": 1,
+        "defenderSpend": 0.02,
+        "hits": 0,
+        "falseEngagements": 0,
+        "causes": [],
+        "scoreSessionV2": {
+          "total": 100,
+          "grade": "Proficient",
+          "weightedMean": 100,
+          "subscores": {
+            "detection": 100,
+            "classification": 100,
+            "engagement": 100,
+            "discipline": 100
+          },
+          "perContact": [
+            {
+              "actorId": 1,
+              "classId": "decoy_drone",
+              "weight": 1,
+              "observable": true,
+              "d": 1,
+              "c": 1,
+              "e": 1,
+              "contactTotal": 1,
+              "totalScore": 100,
+              "decisionPath": [
+                {
+                  "id": "detection",
+                  "question": "Was track detected and acknowledged promptly?",
+                  "answer": "Acknowledged in 0.1s",
+                  "points": 20,
+                  "maxPoints": 20,
+                  "cause": null,
+                  "note": "Latency: 0.1s"
+                },
+                {
+                  "id": "classification",
+                  "question": "Was contact identified as neutral/civilian?",
+                  "answer": "Classified as decoy_drone",
+                  "points": 25,
+                  "maxPoints": 25,
+                  "cause": null,
+                  "note": "True: decoy_drone, Assessed: decoy_drone"
+                },
+                {
+                  "id": "rules_of_engagement",
+                  "question": "Was fire held against neutral/civilian contact?",
+                  "answer": "Fire held (no engagement)",
+                  "points": 55,
+                  "maxPoints": 55,
+                  "cause": null,
+                  "note": "Complied with ROE"
+                }
+              ],
+              "assessedClass": "decoy_drone",
+              "ackLatencySec": 0.05,
+              "outcome": 0,
+              "fit": 0,
+              "latency": 0
+            },
+            {
+              "actorId": 2,
+              "classId": "fpv_kamikaze",
+              "weight": 4,
+              "observable": true,
+              "d": 1,
+              "c": 1,
+              "e": 1,
+              "contactTotal": 1,
+              "totalScore": 100,
+              "decisionPath": [
+                {
+                  "id": "detection",
+                  "question": "Was track detected and acknowledged promptly?",
+                  "answer": "Acknowledged in 0.1s",
+                  "points": 20,
+                  "maxPoints": 20,
+                  "cause": null,
+                  "note": "Latency: 0.1s"
+                },
+                {
+                  "id": "classification",
+                  "question": "Was threat accurately classified?",
+                  "answer": "Classified as fpv_kamikaze",
+                  "points": 25,
+                  "maxPoints": 25,
+                  "cause": null,
+                  "note": "True: fpv_kamikaze, Assessed: fpv_kamikaze"
+                },
+                {
+                  "id": "outcome",
+                  "question": "Was threat neutralised before standoff range?",
+                  "answer": "Neutralised at 1338m",
+                  "points": 33,
+                  "maxPoints": 33,
+                  "cause": null,
+                  "note": "Distance: 1338m"
+                },
+                {
+                  "id": "effector_fit",
+                  "question": "Appropriate effector choice for target signature?",
+                  "answer": "Engaged with jammer",
+                  "points": 11,
+                  "maxPoints": 11,
+                  "cause": null,
+                  "note": "Effector: jammer"
+                },
+                {
+                  "id": "engagement_latency",
+                  "question": "Engagement dispatched promptly upon classification/confirmation?",
+                  "answer": "Engaged within 0.1s",
+                  "points": 11,
+                  "maxPoints": 11,
+                  "cause": null,
+                  "note": "Latency: 0.1s"
+                }
+              ],
+              "assessedClass": "fpv_kamikaze",
+              "ackLatencySec": 0.05,
+              "firstEngagementLatencySec": 0.05,
+              "outcome": 1,
+              "fit": 1,
+              "latency": 1
+            }
+          ],
+          "unobservable": [],
+          "penalties": [],
+          "roeCapApplied": false,
+          "reasons": [],
+          "missionDecisionPath": []
+        }
+      }
+    ],
+    "costLedger": {
+      "attackerDestroyed": 2,
+      "defenderSpent": 41.2,
+      "cer": 20.6
+    },
+    "decisionCauses": [
+      "missile_overuse"
+    ],
+    "commandTimeline": [
+      {
+        "tick": 0,
+        "type": "ALLOCATE",
+        "payload": {
+          "siteId": "S1",
+          "gunAmmo": 12,
+          "missiles": 1
+        }
+      },
+      {
+        "tick": 0,
+        "type": "ALLOCATE",
+        "payload": {
+          "siteId": "S2",
+          "gunAmmo": 20,
+          "missiles": 2
+        }
+      },
+      {
+        "tick": 0,
+        "type": "SET_MISSILE_AUTH",
+        "payload": {
+          "siteId": "S1",
+          "auth": "asset_threat"
+        }
+      },
+      {
+        "tick": 0,
+        "type": "SET_MISSILE_AUTH",
+        "payload": {
+          "siteId": "S2",
+          "auth": "asset_threat"
+        }
+      }
+    ],
+    "missionAssetValue": 222
+  },
+  "siteRuns": [
+    {
+      "siteId": "S1",
+      "actorStates": [
+        {
+          "classId": "decoy_drone",
+          "state": "impacted"
+        },
+        {
+          "classId": "fpv_kamikaze",
+          "state": "neutralized"
+        },
+        {
+          "classId": "fpv_fiber",
+          "state": "active"
+        }
+      ],
+      "engagementEvents": [
+        {
+          "tick": 3618,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "gun",
+            "ammoRemaining": 11,
+            "resolveTick": 3628
+          }
+        },
+        {
+          "tick": 3629,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "gun",
+            "ammoRemaining": 10,
+            "resolveTick": 3639
+          }
+        },
+        {
+          "tick": 3640,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "gun",
+            "ammoRemaining": 9,
+            "resolveTick": 3650
+          }
+        },
+        {
+          "tick": 3651,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "gun",
+            "ammoRemaining": 8,
+            "resolveTick": 3661
+          }
+        },
+        {
+          "tick": 3662,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "gun",
+            "ammoRemaining": 7,
+            "resolveTick": 3672
+          }
+        },
+        {
+          "tick": 3673,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "gun",
+            "ammoRemaining": 6,
+            "resolveTick": 3683
+          }
+        },
+        {
+          "tick": 3684,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "gun",
+            "ammoRemaining": 5,
+            "resolveTick": 3694
+          }
+        },
+        {
+          "tick": 3695,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "gun",
+            "ammoRemaining": 4,
+            "resolveTick": 3705
+          }
+        },
+        {
+          "tick": 3706,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "gun",
+            "ammoRemaining": 3,
+            "resolveTick": 3716
+          }
+        },
+        {
+          "tick": 3717,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "gun",
+            "ammoRemaining": 2,
+            "resolveTick": 3727
+          }
+        },
+        {
+          "tick": 3728,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "gun",
+            "ammoRemaining": 1,
+            "resolveTick": 3738
+          }
+        },
+        {
+          "tick": 3739,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "gun",
+            "ammoRemaining": 0,
+            "resolveTick": 3749
+          }
+        },
+        {
+          "tick": 3938,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "jammer",
+            "resolveTick": 3978
+          }
+        },
+        {
+          "tick": 3979,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "jammer",
+            "resolveTick": 4019
+          }
+        },
+        {
+          "tick": 4020,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "jammer",
+            "resolveTick": 4060
+          }
+        },
+        {
+          "tick": 4061,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "jammer",
+            "resolveTick": 4101
+          }
+        },
+        {
+          "tick": 4102,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "jammer",
+            "resolveTick": 4142
+          }
+        },
+        {
+          "tick": 4143,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "jammer",
+            "resolveTick": 4183
+          }
+        },
+        {
+          "tick": 4184,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "jammer",
+            "resolveTick": 4224
+          }
+        },
+        {
+          "tick": 4225,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "jammer",
+            "resolveTick": 4265
+          }
+        },
+        {
+          "tick": 4337,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 4,
+            "effector": "jammer",
+            "resolveTick": 4377
+          }
+        },
+        {
+          "tick": 4378,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 1,
+            "effector": "jammer",
+            "resolveTick": 4418
+          }
+        },
+        {
+          "tick": 4422,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 5,
+            "effector": "jammer",
+            "resolveTick": 4462
+          }
+        },
+        {
+          "tick": 4778,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 5,
+            "effector": "missile",
+            "resolveTick": 4838,
+            "ammoRemaining": 0
+          }
+        }
+      ],
+      "assetHits": 0
+    },
+    {
+      "siteId": "S2",
+      "actorStates": [
+        {
+          "classId": "decoy_drone",
+          "state": "impacted"
+        },
+        {
+          "classId": "fpv_kamikaze",
+          "state": "neutralized"
+        }
+      ],
+      "engagementEvents": [
+        {
+          "tick": 4369,
+          "type": "ENGAGEMENT_STARTED",
+          "payload": {
+            "trackId": 4,
+            "effector": "jammer",
+            "resolveTick": 4409
+          }
+        }
+      ],
+      "assetHits": 0
+    }
+  ]
+}
