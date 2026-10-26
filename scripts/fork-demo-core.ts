@@ -113,18 +113,9 @@ function neutralEngagement(engine: Engine, event: SimEvent): ForkDemoResult['fir
   };
 }
 
-function forkWithoutCommands(parentLog: SessionLog, forkTick: number, id: string): Engine {
-  const { snapshot } = forkSession(parentLog, forkTick, PARENT_ID);
-  const branch = Engine.restore(snapshot);
-  finish(branch);
-  if (branch.getSessionLog().totalTicks <= forkTick) throw new Error(`${id} did not advance beyond fork tick`);
-  return branch;
-}
-
 export function runForkDemo(): ForkDemoResult {
   const original = new Engine(SEED, SCENARIO_ID);
   let scriptedNeutralEngagementCommand: Command | undefined;
-  let firstNeutralEngagement: ForkDemoResult['firstNeutralEngagement'] | undefined;
 
   while (!original.missionState.ended && original.world.tick < 4800) {
     const view = original.getTraineeView();
@@ -154,7 +145,7 @@ export function runForkDemo(): ForkDemoResult {
   }
 
   if (!scriptedNeutralEngagementCommand) throw new Error('The scripted Dawn Intrusion run did not find an in-range neutral track.');
-  firstNeutralEngagement = original.getEvents().map((event) => neutralEngagement(original, event)).find((result) => result !== null) ?? undefined;
+  const firstNeutralEngagement = original.getEvents().map((event) => neutralEngagement(original, event)).find((result) => result !== null) ?? undefined;
   if (!firstNeutralEngagement) throw new Error('The scripted run did not produce an engagement against a neutral contact.');
 
   const originalLog = original.getSessionLog();
