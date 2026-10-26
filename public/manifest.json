@@ -1,0 +1,28 @@
+{
+  "name": "VAJRA // Counter-Drone Training Simulator",
+  "short_name": "VAJRA",
+  "description": "Offline browser-based counter-drone training simulator",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ded7ca",
+  "theme_color": "#ded7ca",
+  "icons": [
+    {
+      "src": "/vajra-emblem.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/vajra-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/vajra-emblem.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
