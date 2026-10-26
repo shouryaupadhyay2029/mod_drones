@@ -9,6 +9,7 @@
     "test": "vitest run --exclude \"tests/targets/**\"",
     "test:targets": "vitest run tests/targets",
     "headless": "tsx scripts/headless.ts",
+    "fork-demo": "tsx scripts/fork-demo.ts",
     "lint": "eslint .",
     "bench": "tsx scripts/bench.ts",
     "typecheck": "tsc --noEmit",
