@@ -13,6 +13,17 @@ import {
 import { TextRoll } from '../components/TextRoll.js';
 import { SessionReplay } from '../aar/SessionReplay.js';
 
+function groupPenalties(penalties: Array<{ reason: string; points: number }>): Array<{ reason: string; count: number; total: number }> {
+  const grouped = new Map<string, { count: number; total: number }>();
+  for (const penalty of penalties) {
+    const value = grouped.get(penalty.reason) ?? { count: 0, total: 0 };
+    value.count += 1;
+    value.total += penalty.points;
+    grouped.set(penalty.reason, value);
+  }
+  return [...grouped].map(([reason, value]) => ({ reason, ...value }));
+}
+
 export interface DebriefScreenProps {
   score: ScoreReport;
   scoreV2?: ScoreReportV2;
@@ -519,10 +530,10 @@ export function DebriefScreen({
                 <div style={styles.emptyNotice}>No mission penalties incurred. Clean tactical engagement.</div>
               ) : (
                 <div style={styles.penaltyList}>
-                  {effectiveScoreV2.penalties.map((pen, idx) => (
-                    <div key={idx} style={styles.penaltyItem}>
-                      <span style={styles.penaltyBadge}>-{pen.points} PTS</span>
-                      <span style={styles.penaltyReason}>{pen.reason}</span>
+                  {groupPenalties(effectiveScoreV2.penalties).map((pen) => (
+                    <div key={pen.reason} style={styles.penaltyItem}>
+                      <span style={styles.penaltyBadge}>-{pen.total} PTS</span>
+                      <span style={styles.penaltyReason}>{pen.reason}{pen.count > 1 ? ` x ${pen.count}` : ''}</span>
                     </div>
                   ))}
                 </div>
@@ -669,10 +680,10 @@ export function DebriefScreen({
               <div style={styles.section}>
                 <h3 style={styles.sectionTitle}>PENALTIES INCURRED (v1)</h3>
                 <div style={styles.penaltyList}>
-                  {score.penalties.map((pen, idx) => (
-                    <div key={idx} style={styles.penaltyItem}>
-                      <span style={styles.penaltyBadge}>-{pen.points} PTS</span>
-                      <span style={styles.penaltyReason}>{pen.reason}</span>
+                  {groupPenalties(score.penalties).map((pen) => (
+                    <div key={pen.reason} style={styles.penaltyItem}>
+                      <span style={styles.penaltyBadge}>-{pen.total} PTS</span>
+                      <span style={styles.penaltyReason}>{pen.reason}{pen.count > 1 ? ` x ${pen.count}` : ''}</span>
                     </div>
                   ))}
                 </div>
