@@ -10,6 +10,7 @@ import { scoreSessionV2 } from '../src/sim/scoring/doctrine.js';
 import { SCORE_VERSION } from '../src/sim/scoring/doctrineConstants.js';
 import { TraineeView } from '../src/sim/view/traineeView.js';
 import { Tier } from '../src/sim/scenarios/generator.js';
+import { runCommanderBenchmark } from '../src/sim/commander/bench.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
@@ -382,6 +383,16 @@ async function main() {
   output += `----------------------------------------------------------------------------------------\n`;
   output += `dawn s2's hash changed vs Phase 2B due to the radar hit fix (consecutive hit tracking was added).\n`;
   output += `All future benchmark reports must reference committed machine-generated bench files.\n`;
+  output += `----------------------------------------------------------------------------------------\n`;
+
+  const raidRows = runCommanderBenchmark(20, ['recruit', 'operator', 'veteran']);
+  output += `\n7. COMMANDER RAID SCORES (raid-1.0; 3 tiers x 4 commanders x 20 seeds)\n`;
+  output += `----------------------------------------------------------------------------------------\n`;
+  output += `Tier      Commander               Seed                     Total  Preservation  CER     Hits  Hash\n`;
+  output += `----------------------------------------------------------------------------------------\n`;
+  for (const row of raidRows) {
+    output += `${row.tier.padEnd(9)} ${row.commander.padEnd(23)} ${row.seed.padEnd(24)} ${String(row.total).padStart(5)} ${`${row.assetPreservation.toFixed(1)}%`.padStart(12)} ${row.cer.toFixed(2).padStart(6)} ${String(row.hits).padStart(5)} ${row.hash.slice(0, 10)}\n`;
+  }
   output += `----------------------------------------------------------------------------------------\n`;
 
   // Write to docs/benchmarks/<git-short-hash>.txt
