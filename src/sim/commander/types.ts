@@ -4,6 +4,20 @@ import { ScenarioSpawnSchedule } from '../scenarios/dawnIntrusion.js';
 export type CommanderTier = 'recruit' | 'operator' | 'veteran' | 'elite';
 export type RoePosture = 'tight' | 'standard' | 'free';
 export type MissileAuth = 'hold' | 'asset_threat' | 'free';
+export type CommsStatus = 'nominal' | 'degraded' | 'offline';
+
+export interface SiteLinkState {
+  status: CommsStatus;
+  latencyTicks: number;
+}
+
+export interface PendingCommanderCommand {
+  type: CommanderCommand['type'];
+  siteId: string;
+  dispatchTick: number;
+  deliveryTick: number;
+  payload: Record<string, unknown>;
+}
 
 export interface CommanderSite {
   id: string;
@@ -40,15 +54,24 @@ export interface CommanderLog {
   raidId: string;
   seed: string | number;
   tier: CommanderTier;
-  commands: Array<{ tick: number; siteId?: string; type: string; payload: Record<string, unknown> }>;
+  commands: Array<{
+    tick: number;
+    dispatchTick?: number;
+    deliveryTick?: number | null;
+    siteId?: string;
+    type: string;
+    payload: Record<string, unknown>;
+    rejected?: boolean;
+    reason?: string;
+  }>;
   totalTicks: number;
 }
 
 export type CommanderCommand =
-  | { type: 'ALLOCATE'; tick: number; payload: { siteId: string; gunAmmo: number; missiles: number } }
-  | { type: 'SET_ROE'; tick: number; payload: { siteId: string; roe: RoePosture } }
-  | { type: 'SET_MISSILE_AUTH'; tick: number; payload: { siteId: string; auth: MissileAuth } }
-  | { type: 'RETASK_RESERVE'; tick: number; payload: { toSiteId: string; item: 'gunAmmo' | 'missiles'; amount: number } };
+  | { type: 'ALLOCATE'; tick: number; dispatchTick?: number; deliveryTick?: number; payload: { siteId: string; gunAmmo: number; missiles: number } }
+  | { type: 'SET_ROE'; tick: number; dispatchTick?: number; deliveryTick?: number; payload: { siteId: string; roe: RoePosture } }
+  | { type: 'SET_MISSILE_AUTH'; tick: number; dispatchTick?: number; deliveryTick?: number; payload: { siteId: string; auth: MissileAuth } }
+  | { type: 'RETASK_RESERVE'; tick: number; dispatchTick?: number; deliveryTick?: number; payload: { toSiteId: string; item: 'gunAmmo' | 'missiles'; amount: number } };
 
 export interface CommanderSiteView {
   siteId: string;
@@ -61,6 +84,10 @@ export interface CommanderSiteView {
   lastEngagementResult?: string;
   damagePercent: number;
   reportLatencyTicks: number;
+  linkStatus: CommsStatus;
+  linkState: SiteLinkState;
+  latencyTicks: number;
+  dataAgeTicks: number;
   operatorView: import('../view/traineeView.js').TraineeView;
 }
 
@@ -71,6 +98,7 @@ export interface CommanderView {
   totalPool: RaidPlan['totalPool'];
   intel: SiteIntel[];
   pendingTransfers: Array<{ toSiteId: string; item: 'gunAmmo' | 'missiles'; amount: number; dueTick: number }>;
+  pendingCommands: PendingCommanderCommand[];
 }
 
 export interface SiteRunReport {
