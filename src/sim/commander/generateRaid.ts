@@ -50,14 +50,17 @@ export function generateRaid(seed: string | number, tier: CommanderTier): RaidPl
       strikers,
       decoys,
       baseBearingDeg: rng.int(0, 359),
-      startTick: 900 + index * 120,
+      startTick: 0,
     }, rng.fork(`site:${id}`));
+    // Keep deterministic courses inside the 210 s exercise window. The
+    // capacity model below validates the shortened geometry and schedule.
+    schedule = schedule.map((spawn) => ({ ...spawn, pos: { x: spawn.pos.x * 0.7, y: spawn.pos.y * 0.7, z: spawn.pos.z } }));
     for (let attempt = 0; capacityCheck(schedule).capacityRatio > 1 && attempt < 4; attempt++) {
       const strikersFirst = schedule.filter((spawn) => spawn.role === 'striker');
       schedule = schedule.map((spawn) => {
         if (spawn.role !== 'striker') return spawn;
         const strikerIndex = strikersFirst.indexOf(spawn);
-        return { ...spawn, tick: 700 + attempt * 40 + strikerIndex * 420 };
+        return { ...spawn, tick: 100 + attempt * 40 + strikerIndex * 120 };
       });
     }
     schedules[id] = schedule;

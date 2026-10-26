@@ -44,6 +44,20 @@ describe('Phase 6A multi-site simulator', () => {
     }
   });
 
+  it('resolves every site as all_resolved by tick 4200 when no commander commands are issued', () => {
+    for (const tier of ['recruit', 'operator', 'veteran'] as const) {
+      for (let seed = 1; seed <= 20; seed++) {
+        const raid = generateRaid(`left-alone-${tier}-${seed}`, tier);
+        const session = new CommanderSession(raid);
+        session.runToEnd(4200);
+        expect(session.isComplete(), `${tier} seed ${seed} completes by ${session.tick}`).toBe(true);
+        for (const site of raid.sites) {
+          expect(session.engineForReport(site.id)?.missionState.reason, `${tier} seed ${seed} ${site.id} end reason`).toBe('all_resolved');
+        }
+      }
+    }
+  });
+
   it('supports deterministic commander snapshot, restore, and event-log replay without leaking truth', () => {
     const raid = generateRaid('commander-replay-s1', 'operator');
     const session = new CommanderSession(raid);
@@ -82,7 +96,7 @@ describe('Phase 6A multi-site simulator', () => {
       mainEffortSiteId: 'S1', feintSiteIds: [], ewLevel: 'none' as const, fingerprint: 'one-site',
     };
     const session = new CommanderSession(raid);
-    const standalone = new Engine(raid.seed, 'sandbox', [], { assetHitEndsMission: false, missionEndWhenAllResolved: false, inventory: { gunAmmo: 0, missiles: 0 }, ewLevel: 'none' });
+    const standalone = new Engine(raid.seed, 'sandbox', [], { assetHitEndsMission: false, missionEndWhenAllResolved: true, inventory: { gunAmmo: 0, missiles: 0 }, ewLevel: 'none' });
     session.step();
     standalone.step();
     expect(session.engineForReport('S1')?.getHash()).toBe(standalone.getHash());

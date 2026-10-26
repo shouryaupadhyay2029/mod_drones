@@ -54,7 +54,7 @@ export class CommanderSession {
     for (const site of this.raid.sites) {
       this.engines.set(site.id, new Engine(this.raid.seed, 'sandbox', [], {
         assetHitEndsMission: false,
-        missionEndWhenAllResolved: false,
+        missionEndWhenAllResolved: true,
         inventory: { gunAmmo: 0, missiles: 0 },
         ewLevel: raid.ewLevel,
       }));
