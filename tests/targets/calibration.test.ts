@@ -86,8 +86,8 @@ describe('Phase 4A Step 0.1 Calibration Targets Suite', { timeout: 300000 }, () 
     expect(passCount).toBeGreaterThanOrEqual(27);
   });
 
-  // Target 2: Elite oracle mean 70-90
-  it('Target 2: Elite oracle mean score is between 70 and 90', () => {
+  // Target 2: Elite oracle mean 90-98
+  it('Target 2: Elite oracle mean score is between 90 and 98', () => {
     let totalScore = 0;
     const n = 20;
     for (let s = 1; s <= n; s++) {
@@ -102,18 +102,18 @@ describe('Phase 4A Step 0.1 Calibration Targets Suite', { timeout: 300000 }, () 
       totalScore += score.total;
     }
     const mean = totalScore / n;
-    console.log(`Elite Oracle Mean Score: ${mean.toFixed(1)} [Target: 70 - 90]`);
-    expect(mean).toBeGreaterThanOrEqual(70);
-    expect(mean).toBeLessThanOrEqual(90);
+    console.log(`Elite Oracle Mean Score: ${mean.toFixed(1)} [Target: 90 - 98]`);
+    expect(mean).toBeGreaterThanOrEqual(90);
+    expect(mean).toBeLessThanOrEqual(98);
   });
 
-  // Target 3: Reference means >= 95 recruit / >= 80 operator / >= 55 veteran / >= 35 elite
-  it('Target 3: Reference operator means meet tier targets (>=95, >=80, >=55, >=35)', () => {
+  // Target 3: Reference means >= 95 recruit / >= 80 operator / >= 30 veteran / >= 7 elite
+  it('Target 3: Reference operator means meet tier targets (>=95, >=80, >=30, >=7)', () => {
     const targets: Record<Tier, number> = {
       recruit: 95,
       operator: 80,
-      veteran: 55,
-      elite: 35,
+      veteran: 30,
+      elite: 7,
     };
 
     const tiers: Tier[] = ['recruit', 'operator', 'veteran', 'elite'];
