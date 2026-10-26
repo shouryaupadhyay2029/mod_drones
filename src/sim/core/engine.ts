@@ -61,7 +61,7 @@ export class Engine {
   public readonly scenarioId: string;
   public readonly scenarioFingerprint?: Fingerprint;
   public forkOf?: { parentId: string; tick: number };
-  public readonly options: { assetHitEndsMission: boolean; inventory: { gunAmmo: number; missiles: number } };
+  public readonly options: { assetHitEndsMission: boolean; missionEndWhenAllResolved: boolean; inventory: { gunAmmo: number; missiles: number }; ewLevel?: 'none' | 'light' | 'heavy' };
   private readonly generatorAvoid: Fingerprint[];
 
   public actors: Actor[] = [];
@@ -80,14 +80,16 @@ export class Engine {
   private executedCommands: Command[] = [];
   private events: SimEvent[] = [];
 
-  constructor(seed: string | number, scenarioId = 'sandbox', generatorAvoid: Fingerprint[] = [], options: { assetHitEndsMission?: boolean; inventory?: { gunAmmo?: number; missiles?: number } } = {}) {
+  constructor(seed: string | number, scenarioId = 'sandbox', generatorAvoid: Fingerprint[] = [], options: { assetHitEndsMission?: boolean; missionEndWhenAllResolved?: boolean; inventory?: { gunAmmo?: number; missiles?: number }; ewLevel?: 'none' | 'light' | 'heavy' } = {}) {
     this.seed = seed;
     this.scenarioId = scenarioId;
     this.generatorAvoid = [...generatorAvoid];
     this.rng = new Rng(seed);
     this.options = {
       assetHitEndsMission: options.assetHitEndsMission ?? true,
+      missionEndWhenAllResolved: options.missionEndWhenAllResolved ?? true,
       inventory: { gunAmmo: options.inventory?.gunAmmo ?? 20, missiles: options.inventory?.missiles ?? 0 },
+      ewLevel: options.ewLevel,
     };
     this.effectorState = createInitialEffectorState(this.options.inventory);
 
@@ -127,6 +129,7 @@ export class Engine {
     }
 
     this.eoTurretState = createInitialEoState(this.world.environment);
+    if (this.options.ewLevel && this.world.environment) this.world.environment.ewLevel = this.options.ewLevel;
   }
 
   public enqueueCommand(command: Command | CommandInput): void {
@@ -323,7 +326,7 @@ export class Engine {
     }
 
     // Rule B: All actors resolved
-    if (this.actors.length > 0) {
+    if (this.options.missionEndWhenAllResolved && this.actors.length > 0) {
       const allSpawned =
         this.scheduledSpawns.length === 0 ||
         this.scheduledSpawns.every((s) => s.tick <= currentTick);
@@ -594,7 +597,7 @@ export class Engine {
       totalTicks: this.world.tick,
       generatorAvoid: [...this.generatorAvoid],
       forkOf: this.forkOf ? { ...this.forkOf } : undefined,
-      options: { assetHitEndsMission: this.options.assetHitEndsMission, inventory: { ...this.options.inventory } },
+      options: { assetHitEndsMission: this.options.assetHitEndsMission, missionEndWhenAllResolved: this.options.missionEndWhenAllResolved, inventory: { ...this.options.inventory }, ewLevel: this.options.ewLevel },
     };
   }
 
@@ -605,7 +608,7 @@ export class Engine {
       scenarioId: this.scenarioId,
       generatorAvoid: [...this.generatorAvoid],
       forkOf: this.forkOf ? { ...this.forkOf } : undefined,
-      options: { assetHitEndsMission: this.options.assetHitEndsMission, inventory: { ...this.options.inventory } },
+      options: { assetHitEndsMission: this.options.assetHitEndsMission, missionEndWhenAllResolved: this.options.missionEndWhenAllResolved, inventory: { ...this.options.inventory }, ewLevel: this.options.ewLevel },
       tick: this.world.tick,
       world: cloneWorld(this.world),
       rngStates: {

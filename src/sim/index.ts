@@ -8,6 +8,13 @@ export * from './core/types.js';
 export * from './core/vec.js';
 export * from './core/world.js';
 
+export * from './commander/costs.js';
+export * from './commander/generateRaid.js';
+export * from './commander/bots.js';
+export * from './commander/session.js';
+export * from './commander/scoreRaid.js';
+export * from './commander/types.js';
+
 export * from './debrief/replay.js';
 export * from './debrief/forkReview.js';
 

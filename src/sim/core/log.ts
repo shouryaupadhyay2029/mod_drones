@@ -15,7 +15,12 @@ export function migrateSessionLog(value: SessionLog | Record<string, unknown>): 
     totalTicks: Math.max(0, Math.floor(raw.totalTicks ?? 0)),
     generatorAvoid: raw.generatorAvoid ? [...raw.generatorAvoid] : undefined,
     forkOf: raw.forkOf ? { ...raw.forkOf } : undefined,
-    options: raw.options ? { assetHitEndsMission: raw.options.assetHitEndsMission, inventory: { ...raw.options.inventory } } : undefined,
+    options: raw.options ? {
+      assetHitEndsMission: raw.options.assetHitEndsMission ?? true,
+      missionEndWhenAllResolved: raw.options.missionEndWhenAllResolved ?? true,
+      inventory: { gunAmmo: raw.options.inventory?.gunAmmo ?? 20, missiles: raw.options.inventory?.missiles ?? 0 },
+      ewLevel: raw.options.ewLevel,
+    } : undefined,
   };
 }
 
