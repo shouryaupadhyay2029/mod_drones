@@ -9,7 +9,7 @@ export interface RescoredSession {
 
 /** Rebuild a mission from its recorded commands and score the final deterministic state. */
 export function rescoreSession(sessionLog: SessionLog): RescoredSession {
-  const engine = new Engine(sessionLog.seed, sessionLog.scenarioId, sessionLog.generatorAvoid ?? []);
+  const engine = new Engine(sessionLog.seed, sessionLog.scenarioId, sessionLog.generatorAvoid ?? [], sessionLog.options);
 
   for (const command of sessionLog.commands) {
     engine.enqueueCommand({

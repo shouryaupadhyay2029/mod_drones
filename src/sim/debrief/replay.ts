@@ -107,7 +107,7 @@ export function createReplay(log: SessionLog): {
   hash(): string;
 } {
   const totalTicks = Math.max(0, Math.floor(log.totalTicks));
-  let engine = new Engine(log.seed, log.scenarioId, log.generatorAvoid ?? []);
+  let engine = new Engine(log.seed, log.scenarioId, log.generatorAvoid ?? [], log.options);
   for (const command of log.commands) {
     engine.enqueueCommand({ tick: command.tick, type: command.type, payload: { ...command.payload } });
   }

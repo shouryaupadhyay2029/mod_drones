@@ -120,7 +120,7 @@ export function compareSessions(reportA: ScoreReportV2, reportB: ScoreReportV2):
 }
 
 function replayEvents(log: SessionLog): { events: readonly SimEvent[]; trackActors: Map<number, number> } {
-  const engine = new Engine(log.seed, log.scenarioId, log.generatorAvoid ?? []);
+  const engine = new Engine(log.seed, log.scenarioId, log.generatorAvoid ?? [], log.options);
   for (const command of log.commands) engine.enqueueCommand(command);
   engine.stepN(log.totalTicks);
   return {

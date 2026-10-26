@@ -85,6 +85,7 @@ export interface SessionLog {
   totalTicks: number;
   generatorAvoid?: string[];
   forkOf?: { parentId: string; tick: number };
+  options?: { assetHitEndsMission: boolean; inventory: { gunAmmo: number; missiles: number } };
 }
 
 export interface RngTreeState {
@@ -94,6 +95,7 @@ export interface RngTreeState {
 
 export interface MissionState {
   ended: boolean;
+  assetHitCount?: number;
   reason?: 'asset_hit' | 'all_resolved' | 'time_limit';
 }
 
@@ -115,6 +117,7 @@ export interface EngineSnapshot {
   nextTrackId: number;
   generatorAvoid?: string[];
   forkOf?: { parentId: string; tick: number };
+  options?: { assetHitEndsMission: boolean; inventory: { gunAmmo: number; missiles: number } };
   rfState?: {
     lines: Array<{ tick: number; bearingDeg: number; signature: RfSignature }>;
   };

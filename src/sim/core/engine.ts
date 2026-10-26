@@ -61,6 +61,7 @@ export class Engine {
   public readonly scenarioId: string;
   public readonly scenarioFingerprint?: Fingerprint;
   public forkOf?: { parentId: string; tick: number };
+  public readonly options: { assetHitEndsMission: boolean; inventory: { gunAmmo: number; missiles: number } };
   private readonly generatorAvoid: Fingerprint[];
 
   public actors: Actor[] = [];
@@ -79,12 +80,16 @@ export class Engine {
   private executedCommands: Command[] = [];
   private events: SimEvent[] = [];
 
-  constructor(seed: string | number, scenarioId = 'sandbox', generatorAvoid: Fingerprint[] = []) {
+  constructor(seed: string | number, scenarioId = 'sandbox', generatorAvoid: Fingerprint[] = [], options: { assetHitEndsMission?: boolean; inventory?: { gunAmmo?: number; missiles?: number } } = {}) {
     this.seed = seed;
     this.scenarioId = scenarioId;
     this.generatorAvoid = [...generatorAvoid];
     this.rng = new Rng(seed);
-    this.effectorState = createInitialEffectorState();
+    this.options = {
+      assetHitEndsMission: options.assetHitEndsMission ?? true,
+      inventory: { gunAmmo: options.inventory?.gunAmmo ?? 20, missiles: options.inventory?.missiles ?? 0 },
+    };
+    this.effectorState = createInitialEffectorState(this.options.inventory);
 
     if (scenarioId === 'sandbox' || scenarioId === 'scenario-replay-check') {
       this.world = createInitialWorld();
@@ -304,8 +309,9 @@ export class Engine {
     if (this.missionState.ended) return;
 
     // Rule A: Asset was hit
-    const assetHit = this.events.some((e) => e.type === 'ASSET_HIT');
-    if (assetHit) {
+    const hitsThisTick = this.events.filter((e) => e.type === 'ASSET_HIT' && e.tick === currentTick).length;
+    if (hitsThisTick > 0) this.missionState.assetHitCount = (this.missionState.assetHitCount ?? 0) + hitsThisTick;
+    if (hitsThisTick > 0 && this.options.assetHitEndsMission) {
       this.missionState.ended = true;
       this.missionState.reason = 'asset_hit';
       this.events.push({
@@ -588,6 +594,7 @@ export class Engine {
       totalTicks: this.world.tick,
       generatorAvoid: [...this.generatorAvoid],
       forkOf: this.forkOf ? { ...this.forkOf } : undefined,
+      options: { assetHitEndsMission: this.options.assetHitEndsMission, inventory: { ...this.options.inventory } },
     };
   }
 
@@ -598,6 +605,7 @@ export class Engine {
       scenarioId: this.scenarioId,
       generatorAvoid: [...this.generatorAvoid],
       forkOf: this.forkOf ? { ...this.forkOf } : undefined,
+      options: { assetHitEndsMission: this.options.assetHitEndsMission, inventory: { ...this.options.inventory } },
       tick: this.world.tick,
       world: cloneWorld(this.world),
       rngStates: {
@@ -644,6 +652,11 @@ export class Engine {
             ? { ...this.effectorState.gun.currentEngagement }
             : undefined,
         },
+        missile: this.effectorState.missile ? {
+          ammo: this.effectorState.missile.ammo,
+          busyUntilTick: this.effectorState.missile.busyUntilTick,
+          currentEngagement: this.effectorState.missile.currentEngagement ? { ...this.effectorState.missile.currentEngagement } : undefined,
+        } : undefined,
       },
       missionState: { ...this.missionState },
       nextActorId: this.nextActorId,
@@ -665,7 +678,7 @@ export class Engine {
   }
 
   public static restore(snapshot: EngineSnapshot): Engine {
-    const engine = new Engine(snapshot.seed, snapshot.scenarioId ?? 'sandbox', snapshot.generatorAvoid ?? []);
+    const engine = new Engine(snapshot.seed, snapshot.scenarioId ?? 'sandbox', snapshot.generatorAvoid ?? [], snapshot.options);
     engine.world = cloneWorld(snapshot.world);
     engine.rng.setState(snapshot.rngStates.main);
     engine.rng.restoreForkStates(snapshot.rngStates.forks);
@@ -730,6 +743,11 @@ export class Engine {
           ? { ...snapshot.effectorState.gun.currentEngagement }
           : undefined,
       },
+      missile: snapshot.effectorState.missile ? {
+        ammo: snapshot.effectorState.missile.ammo,
+        busyUntilTick: snapshot.effectorState.missile.busyUntilTick,
+        currentEngagement: snapshot.effectorState.missile.currentEngagement ? { ...snapshot.effectorState.missile.currentEngagement } : undefined,
+      } : { ammo: 0, busyUntilTick: 0 },
     };
     engine.missionState = { ...snapshot.missionState };
     engine.nextActorId = snapshot.nextActorId;

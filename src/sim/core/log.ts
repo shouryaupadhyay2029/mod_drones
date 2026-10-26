@@ -15,6 +15,7 @@ export function migrateSessionLog(value: SessionLog | Record<string, unknown>): 
     totalTicks: Math.max(0, Math.floor(raw.totalTicks ?? 0)),
     generatorAvoid: raw.generatorAvoid ? [...raw.generatorAvoid] : undefined,
     forkOf: raw.forkOf ? { ...raw.forkOf } : undefined,
+    options: raw.options ? { assetHitEndsMission: raw.options.assetHitEndsMission, inventory: { ...raw.options.inventory } } : undefined,
   };
 }
 
@@ -28,7 +29,7 @@ export function forkSession(log: SessionLog, tick: number, parentId?: string): F
   const migrated = migrateSessionLog(log);
   const forkTick = Math.max(0, Math.min(migrated.totalTicks, Math.floor(tick)));
   const prefix = migrated.commands.filter((command) => command.tick < forkTick);
-  const engine = new Engine(migrated.seed, migrated.scenarioId, migrated.generatorAvoid ?? []);
+  const engine = new Engine(migrated.seed, migrated.scenarioId, migrated.generatorAvoid ?? [], migrated.options);
   for (const command of prefix) engine.enqueueCommand(command);
   engine.stepN(forkTick);
   engine.forkOf = {
@@ -47,7 +48,7 @@ export function forkSession(log: SessionLog, tick: number, parentId?: string): F
 
 export function replay(log: SessionLog): string {
   const migrated = migrateSessionLog(log);
-  const engine = new Engine(migrated.seed, migrated.scenarioId, migrated.generatorAvoid ?? []);
+  const engine = new Engine(migrated.seed, migrated.scenarioId, migrated.generatorAvoid ?? [], migrated.options);
 
   for (let i = 0; i < migrated.commands.length; i++) {
     const cmd = migrated.commands[i];

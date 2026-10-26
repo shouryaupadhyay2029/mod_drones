@@ -115,7 +115,9 @@ export function stateHash(payloadOrWorld: WorldState | StateHashPayload, rngStat
         assessedClass: t.assessedClass,
         engagementStatus: t.engagementStatus,
       })),
-      effectorState: full.effectorState,
+      effectorState: full.effectorState?.missile && (full.effectorState.missile.ammo > 0 || full.effectorState.missile.busyUntilTick > 0 || full.effectorState.missile.currentEngagement)
+        ? full.effectorState
+        : full.effectorState ? { jammer: full.effectorState.jammer, gun: full.effectorState.gun } : undefined,
     };
   }
 
