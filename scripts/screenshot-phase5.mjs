@@ -1,10 +1,16 @@
-/* global window, indexedDB, document, HTMLInputElement */
+/* global window, indexedDB, document, HTMLInputElement, sessionStorage */
 import { spawn } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import puppeteer from 'puppeteer-core';
 
+const demoJson = execFileSync(process.execPath, ['node_modules/tsx/dist/cli.mjs', 'scripts/fork-demo.ts', '--records-json'], {
+  encoding: 'utf8',
+  maxBuffer: 24 * 1024 * 1024,
+});
+const demo = JSON.parse(demoJson);
 const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--host', '127.0.0.1', '--port', '4174', '--strictPort'], { stdio: 'inherit' });
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -23,7 +29,7 @@ try {
     const page = await browser.newPage();
     await page.setViewport({ width: 1480, height: 1040, deviceScaleFactor: 1 });
     await page.goto('http://127.0.0.1:4174/#/aar', { waitUntil: 'networkidle0' });
-    await page.evaluate(async () => {
+    await page.evaluate(async ({ parent, fork }) => {
       const request = indexedDB.open('vajra', 2);
       const db = await new Promise((resolve, reject) => {
         request.onupgradeneeded = () => {
@@ -36,64 +42,53 @@ try {
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
       });
-      const sessionLog = {
-        formatVersion: 3, seed: 'phase5-review-seed', scenarioId: 'dawn_intrusion', totalTicks: 1600, generatorAvoid: [], commands: [],
-      };
-      const contact = (cause, assessedClass, answer) => ({
-        actorId: 1, classId: 'bird', weight: 1, observable: true, d: .8, c: .7, e: .8, contactTotal: .77, totalScore: 77,
-        assessedClass, outcome: .7, fit: .8, latency: .8,
-        decisionPath: [{ id: 'classification', question: 'Was contact identified?', answer, points: 18, maxPoints: 25, cause }],
-      });
-      const makeReport = (total, grade, cause, assessedClass, answer, penalties) => ({
-        total, grade, weightedMean: total,
-        subscores: { detection: 84, classification: total, engagement: 80, discipline: penalties.length ? 75 : 100 },
-        perContact: [contact(cause, assessedClass, answer)], unobservable: [], penalties, roeCapApplied: false, reasons: [], missionDecisionPath: [],
-      });
-      const originalReport = makeReport(68, 'Competent', 'misclassification', 'fpv_kamikaze', 'Classified as FPV', [{ reason: 'Engaged bird: -25', points: 25 }]);
-      const forkReport = makeReport(93, 'Proficient', null, 'bird', 'Classified as bird', []);
-      const record = (id, report, extra = {}) => ({
-        id, traineeId: 'phase5-trainee', unitId: 'phase5-unit', startedAt: Date.now(), scenarioKey: 'sandbox', tier: 'scripted', focus: 'none',
-        seed: sessionLog.seed, sessionLog, scoreVersion: '2.2', report,
-        summary: { total: report.total, grade: report.grade, subscores: report.subscores, hostilesTotal: 1, hostilesNeutralised: report.total > 80 ? 1 : 0, assetHit: false, durationTicks: 1600 },
-        hash: id, ...extra,
-      });
-      const original = record('phase5-parent', originalReport);
-      const forkLog = { ...sessionLog, commands: [...sessionLog.commands.slice(0, 1), { tick: 600, type: 'CLASSIFY_TRACK', payload: { trackId: 1, assessedClass: 'bird' } }], forkOf: { parentId: original.id, tick: 600 } };
-      const fork = record('phase5-fork', forkReport, { sessionLog: forkLog, parentId: original.id, forkTick: 600, isFork: true });
       const transaction = db.transaction(['trainees', 'units', 'sessions'], 'readwrite');
-      transaction.objectStore('trainees').put({ id: 'phase5-trainee', callsign: 'PHASE 5', unitId: 'phase5-unit', createdAt: Date.now() });
-      transaction.objectStore('units').put({ id: 'phase5-unit', name: 'Fork Review', createdAt: Date.now() });
-      transaction.objectStore('sessions').put(original);
+      transaction.objectStore('trainees').put({ id: parent.traineeId, callsign: 'PHASE 5.1', unitId: parent.unitId, createdAt: parent.startedAt });
+      transaction.objectStore('units').put({ id: parent.unitId, name: 'Fork Verification', createdAt: parent.startedAt });
+      transaction.objectStore('sessions').put(parent);
       transaction.objectStore('sessions').put(fork);
       await new Promise((resolve, reject) => { transaction.oncomplete = resolve; transaction.onerror = () => reject(transaction.error); });
       db.close();
       window.dispatchEvent(new Event('vajra:data-changed'));
-    });
+    }, { parent: demo.parent, fork: demo.holdFireFork });
 
     const outputDir = path.resolve('docs/screenshots');
     fs.mkdirSync(outputDir, { recursive: true });
-    await page.goto('http://127.0.0.1:4174/#/aar/session/phase5-parent', { waitUntil: 'networkidle0' });
+    await page.goto(`http://127.0.0.1:4174/#/aar/session/${encodeURIComponent(demo.parent.id)}`, { waitUntil: 'networkidle0' });
     await page.waitForSelector('.aar-key-moments');
-    await page.evaluate(() => {
-      const input = document.querySelector('input[aria-label="Replay timeline"]');
-      if (!input) return;
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, '800');
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
-    });
-    await delay(300);
-    await page.screenshot({ path: path.join(outputDir, 'phase5-key-moments.png'), fullPage: true });
-    console.log(`Screenshot saved: ${path.join(outputDir, 'phase5-key-moments.png')}`);
+    await page.waitForFunction(() => document.body.innerText.includes('Replay from 5 s before'));
+    await page.evaluate((tick) => {
+      const slider = document.querySelector('input[aria-label="Replay timeline"]');
+      if (!slider) throw new Error('AAR replay timeline is missing.');
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(slider, String(tick));
+      slider.dispatchEvent(new Event('input', { bubbles: true }));
+      slider.dispatchEvent(new Event('change', { bubbles: true }));
+    }, demo.firstNeutralEngagement.tick);
+    await delay(250);
+    await page.screenshot({ path: path.join(outputDir, 'phase51-real-key-moments.png'), fullPage: true });
+    console.log(`Screenshot saved: ${path.join(outputDir, 'phase51-real-key-moments.png')}`);
 
-    await page.click('.aar-fork-current');
+    await page.evaluate(({ parentId, label, tick, sessionLog }) => {
+      sessionStorage.setItem('vajra:pending-fork', JSON.stringify({
+        parentId,
+        parentLabel: label,
+        traineeId: 'phase51-trainee',
+        unitId: 'phase51-unit',
+        tick,
+        sessionLog,
+      }));
+    }, { parentId: demo.parent.id, label: `${demo.parent.scenarioKey} · ${demo.parent.seed}`, tick: demo.forkTick, sessionLog: demo.parent.sessionLog });
+    await page.goto('http://127.0.0.1:4174/#/fork', { waitUntil: 'networkidle0' });
     await page.waitForSelector('.fork-practice-banner');
-    await page.screenshot({ path: path.join(outputDir, 'phase5-fork-banner.png'), fullPage: true });
-    console.log(`Screenshot saved: ${path.join(outputDir, 'phase5-fork-banner.png')}`);
+    await page.waitForFunction(() => document.body.innerText.includes('DAWN INTRUSION'));
+    await page.screenshot({ path: path.join(outputDir, 'phase51-real-fork-banner.png'), fullPage: true });
+    console.log(`Screenshot saved: ${path.join(outputDir, 'phase51-real-fork-banner.png')}`);
 
-    await page.goto('http://127.0.0.1:4174/#/aar/compare/phase5-parent/phase5-fork', { waitUntil: 'networkidle0' });
+    await page.goto(`http://127.0.0.1:4174/#/aar/compare/${encodeURIComponent(demo.parent.id)}/${encodeURIComponent(demo.holdFireFork.id)}`, { waitUntil: 'networkidle0' });
     await page.waitForSelector('.aar-compare-narrative');
-    await page.screenshot({ path: path.join(outputDir, 'phase5-compare.png'), fullPage: true });
-    console.log(`Screenshot saved: ${path.join(outputDir, 'phase5-compare.png')}`);
+    await page.waitForFunction(() => document.body.innerText.includes('Engaged civilian quadcopter: -25'));
+    await page.screenshot({ path: path.join(outputDir, 'phase51-real-compare.png'), fullPage: true });
+    console.log(`Screenshot saved: ${path.join(outputDir, 'phase51-real-compare.png')}`);
   } finally {
     await browser.close();
   }
