@@ -344,6 +344,26 @@ describe('Console UI Components & Logic Verification', () => {
       expect(html).not.toContain('EW:');
     });
 
+    it('shows the recorded sandbox scenario instead of the dawn fallback', () => {
+      const html = renderToStaticMarkup(
+        <TopBar
+          tick={0}
+          speed={1}
+          isPaused
+          autopilot={false}
+          seed="s1"
+          phase="running"
+          scenarioId="sandbox"
+          onTogglePause={() => {}}
+          onSetSpeed={() => {}}
+          onToggleAutopilot={() => {}}
+        />
+      );
+
+      expect(html).toContain('SANDBOX');
+      expect(html).not.toContain('DAWN INTRUSION');
+    });
+
     it('Classification options include Clutter / false track (hotkey 5) and Bird', () => {
       const clutterOpt = CLASSIFICATION_OPTIONS.find((o) => o.id === 'clutter');
       expect(clutterOpt).toBeDefined();

@@ -168,7 +168,9 @@ export function TopBar({
       ? 'RIDGE RUNNER'
       : scenarioId === 'city_edge_night'
         ? 'CITY EDGE NIGHT'
-        : 'DAWN INTRUSION';
+        : scenarioId === 'sandbox'
+          ? 'SANDBOX'
+          : 'DAWN INTRUSION';
 
   const envStr = environment
     ? `${environment.timeOfDay} · ${environment.weather} · Vis ${environment.visibilityKm}km · ${environment.terrainKind}`
