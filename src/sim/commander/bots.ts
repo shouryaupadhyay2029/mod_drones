@@ -59,18 +59,28 @@ export function missileHappyCommander(view: CommanderView): CommanderCommand[] {
 /** Test-only policy with direct access to the generated plan. */
 export function oracleCommander(view: CommanderView, raid: RaidPlan): CommanderCommand[] {
   if (view.tick !== 0) return [];
-  const shareGun = Math.floor(view.totalPool.gunAmmo / raid.sites.length);
-  const shareMissiles = Math.floor(view.totalPool.missiles / raid.sites.length);
-  return raid.sites.flatMap((site, index) => [
-    {
-      type: 'ALLOCATE' as const,
-      tick: 0,
-      payload: {
-        siteId: site.id,
-        gunAmmo: index === raid.sites.length - 1 ? view.totalPool.gunAmmo - shareGun * index : shareGun,
-        missiles: index === raid.sites.length - 1 ? view.totalPool.missiles - shareMissiles * index : shareMissiles,
-      },
-    },
-    { type: 'SET_MISSILE_AUTH' as const, tick: 0, payload: { siteId: site.id, auth: 'asset_threat' as const } },
+  const allocations = new Map(raid.sites.map((site) => [site.id, { gunAmmo: 0, missiles: 0 }]));
+  // Satisfy the capacity-model demand at each site, with any pool surplus
+  // held at the designated main-effort site. Scarcity, rather than this
+  // test-only oracle, determines whether every computed need can be met.
+  let gunRemaining = view.totalPool.gunAmmo;
+  const gunPriority = [
+    ...raid.sites.filter((site) => site.id === raid.mainEffortSiteId),
+    ...raid.sites.filter((site) => site.id !== raid.mainEffortSiteId),
+  ];
+  for (const site of gunPriority) {
+    const amount = Math.min(gunRemaining, raid.siteNeeds[site.id]?.gunAmmo ?? 0);
+    allocations.get(site.id)!.gunAmmo = amount;
+    gunRemaining -= amount;
+  }
+  // Any rounds above modeled demand are held at the main effort site.
+  allocations.get(raid.mainEffortSiteId)!.gunAmmo += gunRemaining;
+  // Missile authority is deliberately limited to main effort; its stock is
+  // the site's modeled need plus any remaining missile reserve.
+  allocations.get(raid.mainEffortSiteId)!.missiles = view.totalPool.missiles;
+
+  return raid.sites.flatMap((site) => [
+    { type: 'ALLOCATE' as const, tick: 0, payload: { siteId: site.id, ...allocations.get(site.id)! } },
+    { type: 'SET_MISSILE_AUTH' as const, tick: 0, payload: { siteId: site.id, auth: site.id === raid.mainEffortSiteId ? 'asset_threat' as const : 'hold' as const } },
   ]);
 }

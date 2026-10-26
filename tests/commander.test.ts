@@ -8,6 +8,7 @@ import {
   generateRaid,
   intelBrief,
   oracleCommander,
+  oracleCommander,
   replayCommander,
   scoreRaid,
 } from '../src/sim/index.js';
@@ -121,6 +122,18 @@ describe('Phase 6A multi-site simulator', () => {
     expect(session.view().sites.find((site) => site.siteId === 'S2')?.inventory.gunAmmo).toBe(2);
     expect(() => session.step([{ type: 'SET_ROE', tick: session.tick, payload: { siteId: 'missing', roe: 'free' } }])).not.toThrow();
     expect(session.events.some((event) => event.type === 'COMMAND_REJECTED')).toBe(true);
+  });
+
+  it('oracle allocates from exact per-site need and keeps missile authority at main effort only', () => {
+    const raid = generateRaid('oracle-allocation-contract', 'veteran');
+    const commands = oracleCommander(new CommanderSession(raid).view(), raid);
+    const allocations = new Map(commands.filter((command) => command.type === 'ALLOCATE').map((command) => [command.payload.siteId, command.payload]));
+    const authorities = new Map(commands.filter((command) => command.type === 'SET_MISSILE_AUTH').map((command) => [command.payload.siteId, command.payload.auth]));
+    expect([...allocations.values()].reduce((sum, allocation) => sum + allocation.gunAmmo, 0)).toBe(raid.totalPool.gunAmmo);
+    expect([...allocations.values()].reduce((sum, allocation) => sum + allocation.missiles, 0)).toBe(raid.totalPool.missiles);
+    expect(allocations.get(raid.mainEffortSiteId)?.missiles).toBe(raid.totalPool.missiles);
+    expect(authorities.get(raid.mainEffortSiteId)).toBe('asset_threat');
+    expect(raid.sites.filter((site) => site.id !== raid.mainEffortSiteId).every((site) => authorities.get(site.id) === 'hold')).toBe(true);
   });
 
   it('counts each asset impact as 20% damage and scores a hand-calculated raid ledger', () => {
