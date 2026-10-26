@@ -137,3 +137,11 @@ Append a dated section after each future item. Include its commit hash(es), what
 - **Phase 7 test suite** (`7569e51`): added `tests/phase7.test.tsx` covering command delivery at `tick 0` vs `tick + latencyTicks`, offline command rejection, frozen stale views with strictly increasing `dataAgeTicks`, deterministic hashes/replay across tiers, and static UI markup checks.
 - **Verification**: `npm test` — 30 files / 186 tests passed; `npm run lint`, `npm run typecheck`, `npm run typecheck:sim`, and `npm run build` passed.
 - **Open issues / deviations**: Updated the hand-calculated raid total in `tests/commander.test.ts` from `47` to `54` to reflect the new `45/25/10/10/10` weights (`60*0.45 + 0*0.25 + 68.2*0.10 + 100*0.10 + 100*0.10 = 53.82 -> 54`). Pre-existing Phase 4A and Phase 6A calibration target issues remain unchanged.
+
+## 2026-10-26 — Phase 8A audio engine and PWA offline mode
+
+- **Synthetic Web Audio API engine** (`f1916a1`): added `src/app/audio/synth.ts` with `playRadarBlip()` (800 Hz sine wave, 50 ms) and `playWarning()` (alternating 400 Hz / 520 Hz square wave pulse, 200 ms), synchronized with the global default-muted toggle in `TopBar.tsx` / `useDroneAudio.ts`, and hooked into `useMission.ts` on `TRACK_CONFIRMED`, `TRACK_IN_RANGE`, and new tentative tracks.
+- **PWA & Service Worker offline support** (`cceca94`): added `vite-plugin-pwa` (`generateSW` strategy) to `vite.config.ts`, caching all local assets and `/v1` API endpoints, and added `public/manifest.json` configured with VAJRA cream theme colors (`#ded7ca`).
+- **Phase 8A test suite** (`018fa26`): added `tests/phase8a.test.tsx` verifying default mute state, synthetic oscillator frequency/waveform/duration generation on `TRACK_CONFIRMED` and `TRACK_IN_RANGE`, and `manifest.json` theme attributes.
+- **Verification**: `npm test` — 31 files / 189 tests passed; `npm run lint`, `npm run typecheck`, `npm run typecheck:sim`, and `npm run build` (generating `dist/sw.js` and `dist/manifest.json` with 36 precached entries) passed.
+- **Deviations**: Set `workbox.maximumFileSizeToCacheInBytes` to 6 MB in `vite.config.ts` so Workbox precaches the existing 2.5 MB local background assets (`bg.png`, `bg1.png`) without build error.
