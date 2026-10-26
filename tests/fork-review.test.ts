@@ -55,6 +55,14 @@ describe('fork review analytics', () => {
       [1, 'Reached asset'],
       [2, 'n/a (neutral)'],
     ]);
+    const neutralised = compareSessions(report({ perContact: [{
+      ...original.perContact[0]!,
+      decisionPath: [{ id: 'outcome', question: 'Outcome?', answer: 'Neutralised at 1193m', points: 33, maxPoints: 33, cause: null }],
+    }] }), report({ perContact: [{
+      ...original.perContact[0]!,
+      decisionPath: [{ id: 'outcome', question: 'Outcome?', answer: 'Neutralised at 1193m', points: 33, maxPoints: 33, cause: null }],
+    }] }));
+    expect(neutralised.perContact[0]?.outcomeA).toBe('Neutralised at 1193 m');
   });
 
   it('returns at most five ordered cause moments and a fork point five seconds earlier', () => {

@@ -54,7 +54,7 @@ function nodeAnswer(contact: ScoreReportV2['perContact'][number] | undefined, id
 function outcomeAnswer(contact: ScoreReportV2['perContact'][number] | undefined): string {
   if (!contact) return 'No contact';
   if (!THREAT_LIBRARY[contact.classId].hostile) return 'n/a (neutral)';
-  return nodeAnswer(contact, 'outcome', 'Outcome not recorded');
+  return nodeAnswer(contact, 'outcome', 'Outcome not recorded').replace(/(\d+)m\b/, '$1 m');
 }
 
 export function compareSessions(reportA: ScoreReportV2, reportB: ScoreReportV2): SessionComparison {
