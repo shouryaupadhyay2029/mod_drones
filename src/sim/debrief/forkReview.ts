@@ -1,6 +1,7 @@
 import { Engine } from '../core/engine.js';
 import { SessionLog, SimEvent } from '../core/types.js';
 import { DecisionNode, ScoreReportV2 } from '../scoring/doctrine.js';
+import { THREAT_LIBRARY } from '../model/threats.js';
 
 export interface ContactComparison {
   actorId: number;
@@ -50,6 +51,12 @@ function nodeAnswer(contact: ScoreReportV2['perContact'][number] | undefined, id
   return contactNode(contact, id)?.answer ?? fallback;
 }
 
+function outcomeAnswer(contact: ScoreReportV2['perContact'][number] | undefined): string {
+  if (!contact) return 'No contact';
+  if (!THREAT_LIBRARY[contact.classId].hostile) return 'n/a (neutral)';
+  return nodeAnswer(contact, 'outcome', 'Outcome not recorded');
+}
+
 export function compareSessions(reportA: ScoreReportV2, reportB: ScoreReportV2): SessionComparison {
   const contacts = new Map<number, { a?: ScoreReportV2['perContact'][number]; b?: ScoreReportV2['perContact'][number] }>();
   for (const contact of reportA.perContact) contacts.set(contact.actorId, { a: contact });
@@ -63,8 +70,8 @@ export function compareSessions(reportA: ScoreReportV2, reportB: ScoreReportV2):
     return {
       actorId,
       classId: source.classId,
-      outcomeA: nodeAnswer(pair.a, 'outcome', pair.a ? `Outcome score ${pair.a.outcome ?? '—'}` : 'No contact'),
-      outcomeB: nodeAnswer(pair.b, 'outcome', pair.b ? `Outcome score ${pair.b.outcome ?? '—'}` : 'No contact'),
+      outcomeA: outcomeAnswer(pair.a),
+      outcomeB: outcomeAnswer(pair.b),
       classificationA: pair.a?.assessedClass ?? 'unknown',
       classificationB: pair.b?.assessedClass ?? 'unknown',
       engagementA: nodeAnswer(pair.a, 'effector_fit', 'No engagement'),
@@ -81,12 +88,20 @@ export function compareSessions(reportA: ScoreReportV2, reportB: ScoreReportV2):
     const penalty = difference.pointsA - difference.pointsB;
     if (penalty > 0) {
       const actor = reportA.perContact.find((contact) => {
-        const classLabel = contact.classId.replaceAll('_', ' ');
-        return difference.reason.toLowerCase().includes(classLabel) && contact.decisionPath.some((node) => node.cause === 'engaged_neutral');
+        const labels: Record<string, string[]> = {
+          bird: ['bird', 'wildlife'],
+          commercial_quad: ['commercial quad', 'civilian quadcopter'],
+          decoy_drone: ['decoy'],
+        };
+        return (labels[contact.classId] ?? [contact.classId.replaceAll('_', ' ')]).some((label) => difference.reason.toLowerCase().includes(label)) &&
+          contact.decisionPath.some((node) => node.cause === 'engaged_neutral');
       });
-      return `Holding fire${actor ? ` on T${actor.actorId}` : ''} avoided -${penalty}`;
+      if (actor) return `Holding fire on T${actor.actorId} avoided -${penalty}`;
+      if (difference.reason.includes('before it was classified')) return `Classifying before engagement avoided -${penalty}`;
+      if (difference.reason.toLowerCase().includes('false track')) return `Avoiding false-track engagement avoided -${penalty}`;
+      return `The fork avoided ${difference.reason} (-${penalty})`;
     }
-    return `Fork added a ${difference.reason} penalty (-${-penalty})`;
+    return `The fork incurred ${difference.reason} (-${-penalty})`;
   });
   if (narrative.length === 0) narrative.push(reportB.total === reportA.total ? 'The fork produced no score change.' : 'The fork changed the score without changing penalty totals.');
   return {

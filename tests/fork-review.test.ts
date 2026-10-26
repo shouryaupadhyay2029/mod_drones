@@ -13,7 +13,7 @@ function report(overrides: Partial<ScoreReportV2> = {}): ScoreReportV2 {
       decisionPath: [{ id: 'rules_of_engagement', question: 'ROE?', answer: 'Engaged bird', points: 0, maxPoints: 55, cause: 'engaged_neutral' }],
     }],
     unobservable: [],
-    penalties: [{ reason: 'Engaged bird: -25', points: 25 }],
+    penalties: [{ reason: 'Engaged wildlife (bird): -5', points: 5 }],
     roeCapApplied: false,
     reasons: [],
     missionDecisionPath: [],
@@ -40,8 +40,21 @@ describe('fork review analytics', () => {
     expect(result.gradeChange).toBe('Competent → Proficient');
     expect(result.subscoreDeltas).toEqual({ detection: 0, classification: 25, engagement: 20, discipline: 0 });
     expect(result.perContact[0]).toMatchObject({ actorId: 4, classificationA: 'fpv_kamikaze', classificationB: 'bird' });
-    expect(result.penaltyDiff).toEqual([{ reason: 'Engaged bird: -25', pointsA: 25, pointsB: 0, delta: -25 }]);
-    expect(result.narrative).toContain('Holding fire on T4 avoided -25');
+    expect(result.penaltyDiff).toEqual([{ reason: 'Engaged wildlife (bird): -5', pointsA: 5, pointsB: 0, delta: -5 }]);
+    expect(result.narrative).toContain('Holding fire on T4 avoided -5');
+    expect(result.perContact[0]?.outcomeA).toBe('n/a (neutral)');
+  });
+
+  it('shows meaningful hostile outcomes and n/a for neutral contacts', () => {
+    const original = report({ perContact: [
+      { ...report().perContact[0]!, actorId: 1, classId: 'fpv_kamikaze', decisionPath: [{ id: 'outcome', question: 'Outcome?', answer: 'Reached asset', points: 0, maxPoints: 33, cause: 'missed_threat' }] },
+      { ...report().perContact[0]!, actorId: 2, classId: 'commercial_quad', decisionPath: [] },
+    ] });
+    const result = compareSessions(original, original);
+    expect(result.perContact.map((contact) => [contact.actorId, contact.outcomeA])).toEqual([
+      [1, 'Reached asset'],
+      [2, 'n/a (neutral)'],
+    ]);
   });
 
   it('returns at most five ordered cause moments and a fork point five seconds earlier', () => {

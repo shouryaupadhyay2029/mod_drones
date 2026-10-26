@@ -85,7 +85,7 @@
         {
           "id": "outcome",
           "question": "Was threat neutralised before standoff range?",
-          "answer": "Threat was not neutralised",
+          "answer": "Reached asset",
           "points": 0,
           "maxPoints": 33,
           "cause": "missed_threat",

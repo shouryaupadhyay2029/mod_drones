@@ -333,7 +333,9 @@ export function scoreSessionV2(
         question: 'Was threat neutralised before standoff range?',
         answer: isNeutralized
           ? `Neutralised at ${Math.round(neutralizedDist ?? 0)}m`
-          : 'Threat was not neutralised',
+          : actor.state === 'impacted'
+            ? 'Reached asset'
+            : 'Threat was not neutralised',
         points: Math.round(outcomeVal * 33 * 10) / 10,
         maxPoints: 33,
         cause: isNeutralized ? null : 'missed_threat',
