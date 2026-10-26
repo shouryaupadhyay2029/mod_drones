@@ -118,10 +118,23 @@ export interface RaidScoreReport {
   scoreVersion: 'raid-1.1';
   total: number;
   grade: 'Unsatisfactory' | 'Marginal' | 'Competent' | 'Proficient';
-  subscores: { assetPreservation: number; costExchange: number; resourceManagement: number; commandDiscipline: number };
+  subscores: {
+    assetPreservation: number;
+    costExchange: number;
+    resourceManagement: number;
+    commandDiscipline: number;
+    commsResilience: number;
+  };
   sites: SiteRunReport[];
-  costLedger: { attackerDestroyed: number; preventedDamageUnits: number; defenderSpent: number; defenderSpendByEffector: { gun: number; jammer: number; missile: number }; cer: number };
+  costLedger: {
+    attackerDestroyed: number;
+    preventedDamageUnits: number;
+    defenderSpent: number;
+    defenderSpendByEffector: { gun: number; jammer: number; missile: number };
+    cer: number;
+  };
   decisionCauses: string[];
+  droppedCommands: Array<{ tick: number; siteId?: string; type: string; reason: string }>;
   commandTimeline: CommanderLog['commands'];
   missionAssetValue: number;
 }

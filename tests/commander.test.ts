@@ -156,6 +156,7 @@ describe('Phase 6A multi-site simulator', () => {
     expect(report.subscores.assetPreservation).toBe(60);
     expect(report.subscores.costExchange).toBe(0);
     expect(report.subscores.resourceManagement).toBe(68.2);
-    expect(report.total).toBe(47);
+    expect(report.subscores.commsResilience).toBe(100);
+    expect(report.total).toBe(54);
   });
 });
