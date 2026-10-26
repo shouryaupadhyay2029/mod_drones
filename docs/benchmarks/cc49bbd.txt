@@ -1,0 +1,349 @@
+========================================================================================
+BENCHMARK REPORT - VAJRA C-UAS SIMULATOR
+Git Commit: cc49bbd
+Scoring Versions: v1 (basic) and v2.2 (doctrine)
+Generated: 2026-10-26T08:53:31.216Z
+========================================================================================
+
+1. SCRIPTED SCENARIOS SCORES (v1 and v2.2; 3 scenarios x 3 bots x 5 seeds)
+----------------------------------------------------------------------------------------
+Scenario            Bot                   Seed   V1    V2.2  Outcome     Hits  FalseEng  Ticks  Hash
+----------------------------------------------------------------------------------------
+dawn_intrusion      referenceOperator     s1       100   100  all_resolved    0         0    4149  1176cc1860
+dawn_intrusion      referenceOperator     s2       100   100  all_resolved    0         0    4100  191d21a1de
+dawn_intrusion      referenceOperator     s3       100   100  all_resolved    0         0    4126  12e5c20d04
+dawn_intrusion      referenceOperator     s4       100   100  all_resolved    0         0    4030  18d798097c
+dawn_intrusion      referenceOperator     s5       100   100  all_resolved    0         0    4016  1a917a4d98
+dawn_intrusion      idleOperator          s1         0     0  asset_hit      1         0    3629  1634fd8069
+dawn_intrusion      idleOperator          s2         0     0  asset_hit      1         0    3636  120faecd37
+dawn_intrusion      idleOperator          s3         0     0  asset_hit      1         0    3506  1cea9b522c
+dawn_intrusion      idleOperator          s4         0     0  asset_hit      1         0    3457  003f8247c7
+dawn_intrusion      idleOperator          s5         0     0  asset_hit      1         0    3588  08a9265cc4
+dawn_intrusion      triggerHappyOperator  s1        55     0  all_resolved    0         0    4149  0425d90c43
+dawn_intrusion      triggerHappyOperator  s2        55    36  all_resolved    0         0    4100  0dd5af480d
+dawn_intrusion      triggerHappyOperator  s3        55    36  all_resolved    0         0    4126  12d9af6295
+dawn_intrusion      triggerHappyOperator  s4        55    61  all_resolved    0         0    4030  090f349299
+dawn_intrusion      triggerHappyOperator  s5        55     0  all_resolved    0         0    4016  04619064fd
+ridge_runner        referenceOperator     s1       100   100  all_resolved    0         0    3490  114b6b35af
+ridge_runner        referenceOperator     s2       100   100  all_resolved    0         0    3485  07b2b039f3
+ridge_runner        referenceOperator     s3       100   100  all_resolved    0         0    3466  1236515192
+ridge_runner        referenceOperator     s4       100   100  all_resolved    0         0    3509  0637c9f529
+ridge_runner        referenceOperator     s5       100   100  all_resolved    0         0    3437  0e231bc175
+ridge_runner        idleOperator          s1         0     0  asset_hit      1         0    4017  047c1d9a9f
+ridge_runner        idleOperator          s2         0     0  asset_hit      1         0    4053  1f1ce78cec
+ridge_runner        idleOperator          s3         0     0  asset_hit      1         0    4021  1ed47db9d4
+ridge_runner        idleOperator          s4         0     0  asset_hit      1         0    3948  164eb462c3
+ridge_runner        idleOperator          s5         0     0  asset_hit      1         0    4010  0655d45eaf
+ridge_runner        triggerHappyOperator  s1        10     0  asset_hit      1         0    4085  1c20336000
+ridge_runner        triggerHappyOperator  s2        10     0  asset_hit      1         0    4053  0298ef70e9
+ridge_runner        triggerHappyOperator  s3        10     0  asset_hit      1         0    4086  11d7616cd2
+ridge_runner        triggerHappyOperator  s4        10     0  asset_hit      1         0    4087  084bccb4fc
+ridge_runner        triggerHappyOperator  s5        10     0  asset_hit      1         0    4010  1d162d8b18
+city_edge_night     referenceOperator     s1        82    93  all_resolved    0         0    3398  099e08489a
+city_edge_night     referenceOperator     s2        91   100  all_resolved    0         0    3354  1b867b60bc
+city_edge_night     referenceOperator     s3        93    98  all_resolved    0         0    3277  1a17355dc3
+city_edge_night     referenceOperator     s4        59   100  all_resolved    0         0    3559  1b8ca0dd92
+city_edge_night     referenceOperator     s5        59   100  all_resolved    0         0    3516  032ea57e7f
+city_edge_night     idleOperator          s1         0     0  asset_hit      1         0    3445  0d50d255fb
+city_edge_night     idleOperator          s2         0     0  asset_hit      1         0    3406  05a1421393
+city_edge_night     idleOperator          s3         0     0  asset_hit      1         0    3446  0cbfbe5928
+city_edge_night     idleOperator          s4         0     0  asset_hit      1         0    3447  04b47fe230
+city_edge_night     idleOperator          s5         0     0  asset_hit      1         0    3355  181478006e
+city_edge_night     triggerHappyOperator  s1        41     0  all_resolved    0         0    3388  05b93a67a7
+city_edge_night     triggerHappyOperator  s2         9     0  asset_hit      1         0    3572  0a7468a91d
+city_edge_night     triggerHappyOperator  s3         0     0  asset_hit      1        15    3446  1625b93d79
+city_edge_night     triggerHappyOperator  s4         0     0  asset_hit      1        20    3447  15365716e0
+city_edge_night     triggerHappyOperator  s5         0     0  asset_hit      1        20    3355  0bbf5cb02c
+----------------------------------------------------------------------------------------
+
+2. PROCEDURAL TIER SCORES (v1 targets/metrics and v2.2 scores; oracle scored v1; 4 tiers x 20 seeds)
+----------------------------------------------------------------------------------------
+Tier       V1 Mean  V2.2 Mean  Ref Min  Ref Max  V1 Target  Status  Oracle Mean  Oracle >=90%  Asset Hit %
+----------------------------------------------------------------------------------------
+recruit        99.7       98.3       96      100       >=95    PASS        100.0        100.0%         0.0%
+operator       75.6       72.9        8      100       >=80    FAIL        100.0        100.0%        40.0%
+veteran        32.9       52.5        0       92       >=55    FAIL         98.0         95.0%        70.0%
+elite          27.0       46.3        0       93       >=35    FAIL         92.0         80.0%        75.0%
+----------------------------------------------------------------------------------------
+
+3. NUMERIC LOSS BREAKDOWN TABLE (scoring v1, operator, veteran, elite)
+----------------------------------------------------------------------------------------
+Tier       Detection (Score / Loss)   Classification (Score / Loss)   Engagement (Score / Loss)   Asset Hit %
+----------------------------------------------------------------------------------------
+operator                100.0% / 0.0%                    94.2% / 5.8%               89.0% / 11.0%         40.0%
+veteran                 100.0% / 0.0%                    91.9% / 8.1%               75.0% / 25.0%         70.0%
+elite                    99.7% / 0.3%                   87.9% / 12.1%               71.4% / 28.6%         75.0%
+----------------------------------------------------------------------------------------
+
+4. DETERMINISM DOUBLE-CHECKS (v1 and v2.2; 3 Scripted Scenarios + 4 Procedural Tiers)
+----------------------------------------------------------------------------------------
+Scenario / Tier Target            Run 1 Hash  Run 2 Hash  V1-1  V1-2  V2.2-1  V2.2-2  Status
+----------------------------------------------------------------------------------------
+dawn_intrusion (s1)               1176cc1860  1176cc1860      100      100     100     100     PASS
+ridge_runner (s1)                 114b6b35af  114b6b35af      100      100     100     100     PASS
+city_edge_night (s1)              099e08489a  099e08489a       82       82      93      93     PASS
+recruit (bench-recruit-1)         0a7073d55f  0a7073d55f      100      100      95      95     PASS
+operator (bench-operator-1)       01fb9f8802  01fb9f8802       95       95      95      95     PASS
+veteran (bench-veteran-1)         1ec7f98f9b  1ec7f98f9b       65       65      78      78     PASS
+elite (bench-elite-1)             16cf37f2e8  16cf37f2e8       93       93      84      84     PASS
+----------------------------------------------------------------------------------------
+Overall Determinism: PASS (100% byte-for-byte state hash match across duplicate runs)
+
+5. WASTED JAMMER EVENT COUNTS (not a scored table; RF Ambiguity Evaluation)
+----------------------------------------------------------------------------------------
+recruit   : mean wasted jammer (NO_EFFECT) events per run = 0.00
+operator  : mean wasted jammer (NO_EFFECT) events per run = 0.55
+veteran   : mean wasted jammer (NO_EFFECT) events per run = 6.95
+elite     : mean wasted jammer (NO_EFFECT) events per run = 6.80
+
+6. PROVENANCE NOTE
+----------------------------------------------------------------------------------------
+dawn s2's hash changed vs Phase 2B due to the radar hit fix (consecutive hit tracking was added).
+All future benchmark reports must reference committed machine-generated bench files.
+----------------------------------------------------------------------------------------
+
+7. COMMANDER RAID SCORES (raid-1.0; 3 tiers x 4 commanders x 20 seeds)
+----------------------------------------------------------------------------------------
+Tier      Commander               Seed                     Total  Preservation  CER     Hits  Hash
+----------------------------------------------------------------------------------------
+recruit   passiveCommander        raid-bench-recruit-1       100       100.0%   0.02     0 1c6f42bd98
+recruit   heuristicCommander      raid-bench-recruit-1       100       100.0%   0.06     0 032e9a6866
+recruit   missileHappyCommander   raid-bench-recruit-1       100       100.0%   0.02     0 0a8cd6a9ec
+recruit   oracleCommander         raid-bench-recruit-1       100       100.0%   0.06     0 19a710ed33
+recruit   passiveCommander        raid-bench-recruit-2       100       100.0%   0.02     0 08cb9dc9fd
+recruit   heuristicCommander      raid-bench-recruit-2       100       100.0%   0.02     0 0b7c1b0586
+recruit   missileHappyCommander   raid-bench-recruit-2       100       100.0%   0.02     0 0f635e276e
+recruit   oracleCommander         raid-bench-recruit-2       100       100.0%   0.02     0 16e1ecde4f
+recruit   passiveCommander        raid-bench-recruit-3       100       100.0%   0.02     0 0f8ec798bf
+recruit   heuristicCommander      raid-bench-recruit-3       100       100.0%   0.10     0 0674e1ee1b
+recruit   missileHappyCommander   raid-bench-recruit-3       100       100.0%   0.02     0 09fdd7f567
+recruit   oracleCommander         raid-bench-recruit-3       100       100.0%   0.10     0 04502971c0
+recruit   passiveCommander        raid-bench-recruit-4       100       100.0%   0.02     0 1211adcfcd
+recruit   heuristicCommander      raid-bench-recruit-4       100       100.0%   0.02     0 180998ae3a
+recruit   missileHappyCommander   raid-bench-recruit-4       100       100.0%   0.02     0 139270116e
+recruit   oracleCommander         raid-bench-recruit-4       100       100.0%   0.02     0 124bd7b049
+recruit   passiveCommander        raid-bench-recruit-5       100       100.0%   0.02     0 16e8321984
+recruit   heuristicCommander      raid-bench-recruit-5        99       100.0%   0.10     0 1750be1f45
+recruit   missileHappyCommander   raid-bench-recruit-5       100       100.0%   0.02     0 07154a0318
+recruit   oracleCommander         raid-bench-recruit-5       100       100.0%   0.06     0 1159e114fc
+recruit   passiveCommander        raid-bench-recruit-6       100       100.0%   0.02     0 06ab6f86ac
+recruit   heuristicCommander      raid-bench-recruit-6       100       100.0%   0.02     0 14bfc67800
+recruit   missileHappyCommander   raid-bench-recruit-6       100       100.0%   0.02     0 1e4e378fb4
+recruit   oracleCommander         raid-bench-recruit-6       100       100.0%   0.02     0 16a64795d4
+recruit   passiveCommander        raid-bench-recruit-7       100       100.0%   0.04     0 1b91e572c5
+recruit   heuristicCommander      raid-bench-recruit-7       100       100.0%   0.08     0 1726122d8f
+recruit   missileHappyCommander   raid-bench-recruit-7       100       100.0%   0.04     0 14e08bc24f
+recruit   oracleCommander         raid-bench-recruit-7       100       100.0%   0.08     0 08fdab57e7
+recruit   passiveCommander        raid-bench-recruit-8       100       100.0%   0.02     0 02f4b413f0
+recruit   heuristicCommander      raid-bench-recruit-8       100       100.0%   0.06     0 0ea852b318
+recruit   missileHappyCommander   raid-bench-recruit-8       100       100.0%   0.02     0 0ba241bbc9
+recruit   oracleCommander         raid-bench-recruit-8       100       100.0%   0.06     0 1a9705d72a
+recruit   passiveCommander        raid-bench-recruit-9       100       100.0%   0.02     0 07e14137b7
+recruit   heuristicCommander      raid-bench-recruit-9       100       100.0%   0.06     0 06e94be4dc
+recruit   missileHappyCommander   raid-bench-recruit-9       100       100.0%   0.02     0 0c7406a48d
+recruit   oracleCommander         raid-bench-recruit-9       100       100.0%   0.06     0 17bfbec487
+recruit   passiveCommander        raid-bench-recruit-10      100       100.0%   0.02     0 14ffe22228
+recruit   heuristicCommander      raid-bench-recruit-10      100       100.0%   0.02     0 1929d09f10
+recruit   missileHappyCommander   raid-bench-recruit-10      100       100.0%   0.02     0 07edfc2537
+recruit   oracleCommander         raid-bench-recruit-10      100       100.0%   0.02     0 12fb111339
+recruit   passiveCommander        raid-bench-recruit-11      100       100.0%   0.02     0 14dedc2fd8
+recruit   heuristicCommander      raid-bench-recruit-11      100       100.0%   0.06     0 046583fbe0
+recruit   missileHappyCommander   raid-bench-recruit-11      100       100.0%   0.02     0 13e0aa2e8a
+recruit   oracleCommander         raid-bench-recruit-11      100       100.0%   0.06     0 1d6d98c526
+recruit   passiveCommander        raid-bench-recruit-12      100       100.0%   0.02     0 14c95bfdf0
+recruit   heuristicCommander      raid-bench-recruit-12      100       100.0%   0.02     0 09b51559e0
+recruit   missileHappyCommander   raid-bench-recruit-12      100       100.0%   0.02     0 0cb1616a1a
+recruit   oracleCommander         raid-bench-recruit-12      100       100.0%   0.02     0 1daf24925f
+recruit   passiveCommander        raid-bench-recruit-13      100       100.0%   0.02     0 13f53c6981
+recruit   heuristicCommander      raid-bench-recruit-13      100       100.0%   0.02     0 019c179063
+recruit   missileHappyCommander   raid-bench-recruit-13      100       100.0%   0.02     0 0d061487df
+recruit   oracleCommander         raid-bench-recruit-13      100       100.0%   0.02     0 1a3d34f403
+recruit   passiveCommander        raid-bench-recruit-14      100       100.0%   0.06     0 091c7169aa
+recruit   heuristicCommander      raid-bench-recruit-14      100       100.0%   0.09     0 100f544777
+recruit   missileHappyCommander   raid-bench-recruit-14      100       100.0%   0.06     0 1668892c64
+recruit   oracleCommander         raid-bench-recruit-14      100       100.0%   0.09     0 06d1626540
+recruit   passiveCommander        raid-bench-recruit-15      100       100.0%   0.04     0 1f1f64b9c5
+recruit   heuristicCommander      raid-bench-recruit-15      100       100.0%   0.07     0 08e51c8b78
+recruit   missileHappyCommander   raid-bench-recruit-15      100       100.0%   0.04     0 0cdb1f271d
+recruit   oracleCommander         raid-bench-recruit-15      100       100.0%   0.07     0 11053f14c4
+recruit   passiveCommander        raid-bench-recruit-16      100       100.0%   0.02     0 05b90f2822
+recruit   heuristicCommander      raid-bench-recruit-16      100       100.0%   0.02     0 015162fd47
+recruit   missileHappyCommander   raid-bench-recruit-16      100       100.0%   0.02     0 18aaffc91b
+recruit   oracleCommander         raid-bench-recruit-16      100       100.0%   0.02     0 1fab0603a8
+recruit   passiveCommander        raid-bench-recruit-17      100       100.0%   0.03     0 036f828894
+recruit   heuristicCommander      raid-bench-recruit-17       99       100.0%   0.07     0 121d465abe
+recruit   missileHappyCommander   raid-bench-recruit-17      100       100.0%   0.03     0 1717de5744
+recruit   oracleCommander         raid-bench-recruit-17       99       100.0%   0.07     0 0f6a77ca04
+recruit   passiveCommander        raid-bench-recruit-18      100       100.0%   0.02     0 095b1ebc3c
+recruit   heuristicCommander      raid-bench-recruit-18      100       100.0%   0.02     0 1b0d022b0a
+recruit   missileHappyCommander   raid-bench-recruit-18      100       100.0%   0.02     0 0f17c77be8
+recruit   oracleCommander         raid-bench-recruit-18      100       100.0%   0.02     0 18d9160028
+recruit   passiveCommander        raid-bench-recruit-19      100       100.0%   0.02     0 076b86c531
+recruit   heuristicCommander      raid-bench-recruit-19      100       100.0%   0.06     0 0b3bd57f57
+recruit   missileHappyCommander   raid-bench-recruit-19      100       100.0%   0.02     0 1ac73c0ea9
+recruit   oracleCommander         raid-bench-recruit-19      100       100.0%   0.06     0 1bab044e50
+recruit   passiveCommander        raid-bench-recruit-20      100       100.0%   0.02     0 16c03e7e4e
+recruit   heuristicCommander      raid-bench-recruit-20      100       100.0%   0.06     0 1511a4fb4e
+recruit   missileHappyCommander   raid-bench-recruit-20      100       100.0%   0.02     0 02926f4795
+recruit   oracleCommander         raid-bench-recruit-20      100       100.0%   0.06     0 06aa39bf78
+operator  passiveCommander        raid-bench-operator-1       92        93.4%   0.02     1 1eaa41639f
+operator  heuristicCommander      raid-bench-operator-1       96        93.4%   0.06     1 12bfda14f7
+operator  missileHappyCommander   raid-bench-operator-1       62        93.4%  20.01     1 1289322e3c
+operator  oracleCommander         raid-bench-operator-1       93        93.4%   0.22     1 15aaa662c2
+operator  passiveCommander        raid-bench-operator-2       89        89.7%   0.03     1 15b1c1e8ac
+operator  heuristicCommander      raid-bench-operator-2       94        89.7%   0.11     1 138ac8df67
+operator  missileHappyCommander   raid-bench-operator-2       61        89.7%  20.01     1 0acaaf7880
+operator  oracleCommander         raid-bench-operator-2       94        89.7%   0.23     1 171fa88b0b
+operator  passiveCommander        raid-bench-operator-3      100       100.0%   0.04     0 11e9e7bea7
+operator  heuristicCommander      raid-bench-operator-3      100       100.0%   0.11     0 0321fb77ac
+operator  missileHappyCommander   raid-bench-operator-3      100       100.0%   0.04     0 17fd6a4669
+operator  oracleCommander         raid-bench-operator-3      100       100.0%   0.10     0 1b729a6909
+operator  passiveCommander        raid-bench-operator-4       90        90.4%   0.09     1 0266477b51
+operator  heuristicCommander      raid-bench-operator-4       89        90.4%   0.25     1 10e7541d4c
+operator  missileHappyCommander   raid-bench-operator-4       61        90.4%  20.08     1 04bf01a49c
+operator  oracleCommander         raid-bench-operator-4       77       100.0%  11.62     0 077822ce05
+operator  passiveCommander        raid-bench-operator-5       90        89.3%   0.07     1 0727d632e8
+operator  heuristicCommander      raid-bench-operator-5       90        89.3%   0.30     1 0e4cb23df3
+operator  missileHappyCommander   raid-bench-operator-5       60        89.3%  20.01     1 1e863a153c
+operator  oracleCommander         raid-bench-operator-5       77       100.0%  11.60     0 11014d0d43
+operator  passiveCommander        raid-bench-operator-6       85        80.0%   0.02     2 1b763ffa29
+operator  heuristicCommander      raid-bench-operator-6       89        80.0%   0.30     2 084dc1c5b0
+operator  missileHappyCommander   raid-bench-operator-6       61        89.3%  22.87     1 1440dc5183
+operator  oracleCommander         raid-bench-operator-6       90        80.0%   0.38     2 069cc2c98a
+operator  passiveCommander        raid-bench-operator-7       92        94.5%   0.03     1 0bf8479fe7
+operator  heuristicCommander      raid-bench-operator-7       92        94.5%   0.13     1 1a58300f00
+operator  missileHappyCommander   raid-bench-operator-7       68        94.5%  13.35     1 0e3ac8b136
+operator  oracleCommander         raid-bench-operator-7       93        94.5%   0.20     1 1acd6876eb
+operator  passiveCommander        raid-bench-operator-8       89        88.6%   0.02     1 1d2eef8f43
+operator  heuristicCommander      raid-bench-operator-8       61        88.6%  20.14     1 090c1907d7
+operator  missileHappyCommander   raid-bench-operator-8       60        88.6%  20.01     1 13d86f4f2c
+operator  oracleCommander         raid-bench-operator-8       91        88.6%   0.19     1 104afe3340
+operator  passiveCommander        raid-bench-operator-9      100       100.0%   0.02     0 1f62c7e2d0
+operator  heuristicCommander      raid-bench-operator-9      100       100.0%   0.02     0 0d9b369179
+operator  missileHappyCommander   raid-bench-operator-9      100       100.0%   0.02     0 012891d081
+operator  oracleCommander         raid-bench-operator-9      100       100.0%   0.05     0 11245ae269
+operator  passiveCommander        raid-bench-operator-10      88        86.2%   0.09     2 1a1407185c
+operator  heuristicCommander      raid-bench-operator-10      78        94.4%   9.00     1 1d79e2a6c2
+operator  missileHappyCommander   raid-bench-operator-10      65        94.4%  17.79     1 1f150ce769
+operator  oracleCommander         raid-bench-operator-10     100       100.0%   0.12     0 009d349ec7
+operator  passiveCommander        raid-bench-operator-11      87        84.6%   0.05     2 13ff835e41
+operator  heuristicCommander      raid-bench-operator-11      87        84.6%   0.25     2 1d298159dc
+operator  missileHappyCommander   raid-bench-operator-11      58        84.6%  26.69     2 1820bc5361
+operator  oracleCommander         raid-bench-operator-11      92        84.6%   0.27     2 1ea7bb66e6
+operator  passiveCommander        raid-bench-operator-12      88        86.0%   0.02     2 03dd1f2d87
+operator  heuristicCommander      raid-bench-operator-12      92        86.0%   0.21     2 119d63b047
+operator  missileHappyCommander   raid-bench-operator-12      61        86.0%  13.35     2 1fceb16af1
+operator  oracleCommander         raid-bench-operator-12      88        86.0%   0.26     2 04b6bc8944
+operator  passiveCommander        raid-bench-operator-13      85        80.0%   0.06     3 13857e84c1
+operator  heuristicCommander      raid-bench-operator-13      87        80.0%   0.34     3 12e987091a
+operator  missileHappyCommander   raid-bench-operator-13      56        80.0%  40.05     3 0a7341ddb3
+operator  oracleCommander         raid-bench-operator-13      69        86.3%   9.16     2 066d285a63
+operator  passiveCommander        raid-bench-operator-14      88        85.7%   0.02     2 0a08ca125f
+operator  heuristicCommander      raid-bench-operator-14      89        85.7%   0.15     2 026efc5a0a
+operator  missileHappyCommander   raid-bench-operator-14      61        85.7%  13.35     2 0147cda8b7
+operator  oracleCommander         raid-bench-operator-14      89        85.7%   0.26     2 0f60cde3e0
+operator  passiveCommander        raid-bench-operator-15      87        83.5%   0.05     2 0b60886cb2
+operator  heuristicCommander      raid-bench-operator-15      73        91.9%   9.08     1 125c105ae7
+operator  missileHappyCommander   raid-bench-operator-15      64        91.9%  17.81     1 1fa32dcc97
+operator  oracleCommander         raid-bench-operator-15      73        91.6%   9.10     1 1ea38f4143
+operator  passiveCommander        raid-bench-operator-16      88        85.4%   0.07     2 18d7f228e0
+operator  heuristicCommander      raid-bench-operator-16      72        90.5%   9.07     1 0e7d4d9da0
+operator  missileHappyCommander   raid-bench-operator-16      63        90.5%  17.79     1 1b1e10df5d
+operator  oracleCommander         raid-bench-operator-16      89        85.4%   0.34     2 1ae2d88108
+operator  passiveCommander        raid-bench-operator-17     100       100.0%   0.02     0 1b5b0aee6e
+operator  heuristicCommander      raid-bench-operator-17     100       100.0%   0.02     0 0559d90e7f
+operator  missileHappyCommander   raid-bench-operator-17     100       100.0%   0.02     0 1c85ac08fd
+operator  oracleCommander         raid-bench-operator-17     100       100.0%   0.06     0 025fdd0563
+operator  passiveCommander        raid-bench-operator-18      89        88.9%   0.02     1 02fd2e8dc5
+operator  heuristicCommander      raid-bench-operator-18      90        88.9%   0.22     1 1e522feb81
+operator  missileHappyCommander   raid-bench-operator-18      60        88.9%  20.01     1 05d9e067dc
+operator  oracleCommander         raid-bench-operator-18      91        88.9%   0.26     1 19a6e48be4
+operator  passiveCommander        raid-bench-operator-19      88        86.8%   0.02     1 0f2b8bfc4c
+operator  heuristicCommander      raid-bench-operator-19      89        86.8%   0.26     1 1f60c99461
+operator  missileHappyCommander   raid-bench-operator-19      59        86.8%  20.01     1 041901e453
+operator  oracleCommander         raid-bench-operator-19      93        86.8%   0.27     1 18c06c14a9
+operator  passiveCommander        raid-bench-operator-20      85        80.0%   0.02     2 101e40d65e
+operator  heuristicCommander      raid-bench-operator-20      89        80.0%   0.30     2 013cea60a3
+operator  missileHappyCommander   raid-bench-operator-20      62        92.9%  22.87     1 0431a9012a
+operator  oracleCommander         raid-bench-operator-20      90        80.0%   0.38     2 0a61ddc097
+veteran   passiveCommander        raid-bench-veteran-1        85        80.0%   0.07     3 13d6038e02
+veteran   heuristicCommander      raid-bench-veteran-1        73        86.9%   7.44     2 104455b640
+veteran   missileHappyCommander   raid-bench-veteran-1        59        86.9%  21.84     2 1e49566b4c
+veteran   oracleCommander         raid-bench-veteran-1        73        86.9%   7.49     2 17d9ffa747
+veteran   passiveCommander        raid-bench-veteran-2        85        80.0%   0.02     3 00f371e607
+veteran   heuristicCommander      raid-bench-veteran-2        87        80.0%   0.15     3 1508da5d32
+veteran   missileHappyCommander   raid-bench-veteran-2        61        87.9%  18.47     2 0e58f9729b
+veteran   oracleCommander         raid-bench-veteran-2        89        80.0%   0.20     3 193ec5fb6b
+veteran   passiveCommander        raid-bench-veteran-3        85        80.0%   0.09     3 17f68c34e1
+veteran   heuristicCommander      raid-bench-veteran-3        70        91.5%  11.59     1 04cf4a9f9e
+veteran   missileHappyCommander   raid-bench-veteran-3        58        84.8%  21.87     2 1125c288bd
+veteran   oracleCommander         raid-bench-veteran-3        74        88.5%   7.49     2 03f65444d2
+veteran   passiveCommander        raid-bench-veteran-4        85        80.0%   0.07     4 19693c305c
+veteran   heuristicCommander      raid-bench-veteran-4        89        80.0%   0.20     4 105b19312a
+veteran   missileHappyCommander   raid-bench-veteran-4        58        80.0%  17.20     4 13a835c0bc
+veteran   oracleCommander         raid-bench-veteran-4        77        83.8%   4.92     3 1a46e849e4
+veteran   passiveCommander        raid-bench-veteran-5        85        80.0%   0.07     3 1f5fdbfb81
+veteran   heuristicCommander      raid-bench-veteran-5        80        88.7%   6.31     2 1f7b78778c
+veteran   missileHappyCommander   raid-bench-veteran-5        69        96.2%  15.01     1 068f083745
+veteran   oracleCommander         raid-bench-veteran-5        76        87.5%   6.35     2 0af1f78a1d
+veteran   passiveCommander        raid-bench-veteran-6        84        80.0%   0.16     4 1ec01ffb74
+veteran   heuristicCommander      raid-bench-veteran-6        67        90.9%  13.52     2 1337549ba4
+veteran   missileHappyCommander   raid-bench-veteran-6        60        85.0%  16.09     3 1bca50be33
+veteran   oracleCommander         raid-bench-veteran-6        89        80.0%   0.36     4 19f6a29301
+veteran   passiveCommander        raid-bench-veteran-7        85        80.0%   0.13     3 03290f8621
+veteran   heuristicCommander      raid-bench-veteran-7        74        92.0%  11.59     1 0e12fc1ed3
+veteran   missileHappyCommander   raid-bench-veteran-7        56        80.0%  30.05     3 0572524955
+veteran   oracleCommander         raid-bench-veteran-7        93        93.8%   0.18     1 0dc3af525d
+veteran   passiveCommander        raid-bench-veteran-8        85        80.0%   0.04     4 05692d74c7
+veteran   heuristicCommander      raid-bench-veteran-8        74        85.6%   6.34     3 152329ff50
+veteran   missileHappyCommander   raid-bench-veteran-8        62        85.6%  12.32     3 087ac65f73
+veteran   oracleCommander         raid-bench-veteran-8        90        80.0%   0.28     4 00d55be127
+veteran   passiveCommander        raid-bench-veteran-9        85        80.0%   0.07     3 18c3f293c6
+veteran   heuristicCommander      raid-bench-veteran-9        71        80.0%   8.22     3 09bea90f92
+veteran   missileHappyCommander   raid-bench-veteran-9        66        91.7%  15.01     1 19b9220dcb
+veteran   oracleCommander         raid-bench-veteran-9        75        86.7%   6.34     2 10e1ba7cfe
+veteran   passiveCommander        raid-bench-veteran-10       85        80.0%   0.08     3 0292fafc46
+veteran   heuristicCommander      raid-bench-veteran-10       65        85.0%  16.16     2 071dcc6e77
+veteran   missileHappyCommander   raid-bench-veteran-10       63        86.0%  16.01     2 01e52e8d97
+veteran   oracleCommander         raid-bench-veteran-10       76        85.0%   5.54     2 0f7ff3ed51
+veteran   passiveCommander        raid-bench-veteran-11       85        80.0%   0.02     4 0fafa16ad8
+veteran   heuristicCommander      raid-bench-veteran-11       86        80.0%   0.20     4 033b664c73
+veteran   missileHappyCommander   raid-bench-veteran-11       60        86.0%  18.47     3 1e3bbde2f0
+veteran   oracleCommander         raid-bench-veteran-11       85        80.0%   0.25     4 132cbcee72
+veteran   passiveCommander        raid-bench-veteran-12       85        80.0%   0.07     4 0e60496526
+veteran   heuristicCommander      raid-bench-veteran-12       87        80.0%   0.26     4 07e9cbef3f
+veteran   missileHappyCommander   raid-bench-veteran-12       86        80.0%   0.06     4 12f01ee4d0
+veteran   oracleCommander         raid-bench-veteran-12       87        80.0%   0.31     4 1f1ab19c40
+veteran   passiveCommander        raid-bench-veteran-13       85        80.0%   0.09     4 0dc7a2a22e
+veteran   heuristicCommander      raid-bench-veteran-13       70        92.1%  11.61     2 1fa790daa7
+veteran   missileHappyCommander   raid-bench-veteran-13       60        85.9%  14.61     3 1132fa34bc
+veteran   oracleCommander         raid-bench-veteran-13       73        85.9%   7.54     3 1dc94b1407
+veteran   passiveCommander        raid-bench-veteran-14       85        80.0%   0.03     3 1331e6031c
+veteran   heuristicCommander      raid-bench-veteran-14       71        92.8%  10.10     1 1c5e7197cf
+veteran   missileHappyCommander   raid-bench-veteran-14       60        85.2%  18.48     2 1b0b28ec48
+veteran   oracleCommander         raid-bench-veteran-14       76        87.2%   6.31     2 0aff6274af
+veteran   passiveCommander        raid-bench-veteran-15       85        80.0%   0.15     3 10461426a3
+veteran   heuristicCommander      raid-bench-veteran-15       72        85.8%   9.12     2 05d12d404b
+veteran   missileHappyCommander   raid-bench-veteran-15       56        80.0%  40.00     3 1c1794b8ad
+veteran   oracleCommander         raid-bench-veteran-15       70        85.8%   9.17     2 1ddc35dbab
+veteran   passiveCommander        raid-bench-veteran-16       85        80.0%   0.06     4 05c6e840c9
+veteran   heuristicCommander      raid-bench-veteran-16       65        83.6%  16.17     3 0e2d5426c8
+veteran   missileHappyCommander   raid-bench-veteran-16       62        85.2%  16.04     3 01138b7dc7
+veteran   oracleCommander         raid-bench-veteran-16       75        83.6%   5.55     3 0bfa8278cc
+veteran   passiveCommander        raid-bench-veteran-17       85        80.0%   0.05     4 0468b49cf1
+veteran   heuristicCommander      raid-bench-veteran-17       89        80.0%   0.21     4 0137f56740
+veteran   missileHappyCommander   raid-bench-veteran-17       64        87.3%  10.70     3 0b1c123d82
+veteran   oracleCommander         raid-bench-veteran-17       75        83.5%   5.54     3 1fff939626
+veteran   passiveCommander        raid-bench-veteran-18       85        80.0%   0.05     3 053c3e212f
+veteran   heuristicCommander      raid-bench-veteran-18       75        94.2%  10.13     1 1cf48f7b87
+veteran   missileHappyCommander   raid-bench-veteran-18       56        80.0%  24.01     3 1b8d029a3d
+veteran   oracleCommander         raid-bench-veteran-18       74        85.8%   6.34     2 127b565a06
+veteran   passiveCommander        raid-bench-veteran-19       85        80.0%   0.03     4 1c67adf5ce
+veteran   heuristicCommander      raid-bench-veteran-19       72        88.9%   8.13     2 0ac2646e85
+veteran   missileHappyCommander   raid-bench-veteran-19       63        83.2%  14.14     3 118176870f
+veteran   oracleCommander         raid-bench-veteran-19       90        80.0%   0.22     4 026ce2e341
+veteran   passiveCommander        raid-bench-veteran-20       85        80.0%   0.12     3 03a552ab6f
+veteran   heuristicCommander      raid-bench-veteran-20       76        87.0%   5.49     2 02f793655c
+veteran   missileHappyCommander   raid-bench-veteran-20       68        93.0%  13.37     1 1701f7e78b
+veteran   oracleCommander         raid-bench-veteran-20       77        87.0%   5.53     2 059fb3ff83
+----------------------------------------------------------------------------------------
