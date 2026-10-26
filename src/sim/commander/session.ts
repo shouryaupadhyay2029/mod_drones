@@ -83,6 +83,21 @@ export class CommanderSession {
         }
       }
     }
+    if (this.tick === 0 && this.allocatedSiteIds.size === 0) {
+      const gunForSites = Math.floor(this.raid.totalPool.gunAmmo * 0.4);
+      const missilesForSites = Math.floor(this.raid.totalPool.missiles * 0.4);
+      for (const [index, site] of this.raid.sites.entries()) {
+        this.applyCommanderCommand({
+          type: 'ALLOCATE',
+          tick: 0,
+          payload: {
+            siteId: site.id,
+            gunAmmo: Math.floor(gunForSites / this.raid.sites.length) + (index < gunForSites % this.raid.sites.length ? 1 : 0),
+            missiles: Math.floor(missilesForSites / this.raid.sites.length) + (index < missilesForSites % this.raid.sites.length ? 1 : 0),
+          },
+        });
+      }
+    }
     for (const site of this.raid.sites) {
       const engine = this.engines.get(site.id);
       if (!engine) continue;
@@ -240,26 +255,47 @@ export class CommanderSession {
   }
 
   private siteOperator(site: CommanderSite, view: import('../view/traineeView.js').TraineeView): Command[] {
+    const engine = this.engines.get(site.id);
     const proposed = referenceOperator(view);
+    if (site.roe === 'free') {
+      const existing = new Set(proposed.filter((command) => command.type === 'ENGAGE_TRACK').map((command) => Number(command.payload.trackId)));
+      for (const track of view.tracks) {
+        if (track.state !== 'confirmed' || (track.closingRateMps ?? 0) >= -5 || existing.has(track.trackId)) continue;
+        const hostile = track.assessedClass && track.assessedClass !== 'unknown' && THREAT_LIBRARY[track.assessedClass].hostile;
+        const effector = track.assessedClass && track.assessedClass !== 'unknown' && THREAT_LIBRARY[track.assessedClass].rfControlled && track.rangeM <= 1500
+          ? 'jammer'
+          : track.rangeM <= 1000 && (engine?.effectorState.gun.ammo ?? 0) > 0
+            ? 'gun'
+            : hostile && site.missileAuth === 'free' && (engine?.effectorState.missile?.ammo ?? 0) > 0
+              ? 'missile'
+              : null;
+        if (effector) proposed.push({ tick: view.tick, type: 'ENGAGE_TRACK', payload: { trackId: track.trackId, effector } });
+      }
+    }
     const allowed = proposed.filter((command) => {
       if (command.type !== 'ENGAGE_TRACK') return true;
       const trackId = Number(command.payload.trackId);
       const track = view.tracks.find((candidate) => candidate.trackId === trackId);
       if (!track) return false;
-      if (site.roe === 'free') return true;
+      if (site.roe === 'free') return track.state === 'confirmed' && (track.closingRateMps ?? 0) < -5;
       if (!track.assessedClass || track.assessedClass === 'unknown' || !THREAT_LIBRARY[track.assessedClass].hostile) return false;
-      return site.roe !== 'tight' || track.quality >= 0.65;
+      if (site.roe === 'standard') return true;
+      const eo = engine?.getTraineeView().eo;
+      const eoIdentified = eo?.lockedTrackId === track.trackId && eo.level === 'identify';
+      const rfIdentified = track.state === 'confirmed' && track.rfStatus !== 'ambiguous' && (track.rfSignature === 'wideband_video' || track.rfSignature === 'long_range_link');
+      return !!eoIdentified || rfIdentified;
     });
     const missile = view.tracks.find((track) => {
-      if (!track.assessedClass || track.assessedClass === 'unknown' || !THREAT_LIBRARY[track.assessedClass].hostile || track.engagementStatus === 'engaged') return false;
+      if (!track.assessedClass || track.assessedClass === 'unknown' || !THREAT_LIBRARY[track.assessedClass].hostile || !['fpv_kamikaze', 'fpv_fiber'].includes(track.assessedClass) || track.state !== 'confirmed' || track.engagementStatus === 'engaged') return false;
       if (site.missileAuth === 'hold') return false;
       if (site.missileAuth === 'free') return true;
       const closing = Math.max(0, -(track.closingRateMps ?? 0));
       const timeToImpactTicks = closing > 0 ? track.rangeM / closing * 20 : Number.POSITIVE_INFINITY;
-      if (timeToImpactTicks >= 240) return false;
-      const engine = this.engines.get(site.id);
-      const jammerCannotCover = track.rangeM > 1500 || !THREAT_LIBRARY[track.assessedClass].rfControlled || (engine?.effectorState.jammer.busyUntilTick ?? 0) > view.tick;
-      const gunCannotCover = track.rangeM > 1000 || (engine?.effectorState.gun.ammo ?? 0) <= 0 || (engine?.effectorState.gun.busyUntilTick ?? 0) > view.tick;
+      if (timeToImpactTicks >= 200) return false;
+      const jammerReady = Math.max(view.tick, engine?.effectorState.jammer.busyUntilTick ?? 0);
+      const gunReady = Math.max(view.tick, engine?.effectorState.gun.busyUntilTick ?? 0);
+      const jammerCannotCover = !THREAT_LIBRARY[track.assessedClass].rfControlled || jammerReady > view.tick + timeToImpactTicks || track.rangeM > 1500;
+      const gunCannotCover = (engine?.effectorState.gun.ammo ?? 0) <= 0 || gunReady > view.tick + timeToImpactTicks || track.rangeM > 1000;
       return jammerCannotCover && gunCannotCover;
     });
     if (missile && (this.engines.get(site.id)?.effectorState.missile?.ammo ?? 0) > 0) {

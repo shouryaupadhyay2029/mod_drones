@@ -66,7 +66,7 @@ function allocationCommands(raid: RaidPlan, view: CommanderView, allocation: All
   return commands;
 }
 
-function runOne(raid: RaidPlan, policy: Policy): RaidScoreReport {
+function runOne(raid: RaidPlan, policy: Policy, isolateAllocation = false): RaidScoreReport {
   const session = new CommanderSession(raid);
   const view = session.view();
   const commands = allocationCommands(raid, view, policy.allocation, policy.reserve);
@@ -76,7 +76,7 @@ function runOne(raid: RaidPlan, policy: Policy): RaidScoreReport {
   }
   session.step(commands);
   while (!session.isComplete() && session.tick < 4200) {
-    const reserveRetasks = heuristicCommander(session.view()).filter((command) => command.type === 'RETASK_RESERVE');
+    const reserveRetasks = isolateAllocation ? [] : heuristicCommander(session.view()).filter((command) => command.type === 'RETASK_RESERVE');
     session.step(reserveRetasks);
   }
   return scoreRaid(session);
@@ -94,7 +94,7 @@ for (const axis of axes) {
     const tierReports: Array<{ tier: CommanderTier; means: Metrics }> = [];
     const perTier = tiers.map((tier) => {
       const reports: RaidScoreReport[] = [];
-      for (let seed = 1; seed <= 20; seed++) reports.push(runOne(generateRaid(`lever-${tier}-${seed}`, tier), level.policy));
+      for (let seed = 1; seed <= 20; seed++) reports.push(runOne(generateRaid(`lever-${tier}-${seed}`, tier), level.policy, axis.factor === 'allocation'));
       return { tier, means: means(reports) };
     });
     tierReports.push(...perTier);

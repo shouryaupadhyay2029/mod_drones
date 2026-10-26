@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { capacityCheck } from '../src/sim/scenarios/capacity.js';
-import { Engine } from '../src/sim/core/engine.js';
 import { vec3 } from '../src/sim/core/vec.js';
 import {
   CommanderSession,
@@ -69,7 +68,7 @@ describe('Phase 6A multi-site simulator', () => {
     expect(restored.getHash()).toBe(session.getHash());
     restored.runToEnd();
     const report = scoreRaid(restored);
-    expect(report.scoreVersion).toBe('raid-1.0');
+    expect(report.scoreVersion).toBe('raid-1.1');
     expect(report.sites.every((site) => site.scoreSessionV2.total >= 0)).toBe(true);
     const replayHash = replayCommander(raid, restored.getSessionLog());
     expect(replayHash).toBe(restored.getHash());
@@ -89,7 +88,7 @@ describe('Phase 6A multi-site simulator', () => {
     expect(costExchangeScore(oneMissileCer, cheapDecoyCost, 40, 0)).toBeLessThan(costExchangeScore(noMissileCer, cheapDecoyCost, 0, 0));
   });
 
-  it('keeps a one-site no-command run equivalent to a configured standalone Engine', () => {
+  it('defaults an unattended run to an even 40% allocation and retains 60% in reserve', () => {
     const raid = {
       id: 'raid:v1:recruit', seed: 'one-site', tier: 'recruit' as const,
       sites: [{ id: 'S1', name: 'Training Site', valueUnits: 100, mapPosKm: { x: 0, y: 0 }, inventory: { gunAmmo: 0, missiles: 0 }, roe: 'standard' as const, missileAuth: 'hold' as const }],
@@ -97,10 +96,11 @@ describe('Phase 6A multi-site simulator', () => {
       mainEffortSiteId: 'S1', feintSiteIds: [], ewLevel: 'none' as const, fingerprint: 'one-site',
     };
     const session = new CommanderSession(raid);
-    const standalone = new Engine(raid.seed, 'sandbox', [], { assetHitEndsMission: false, missionEndWhenAllResolved: true, inventory: { gunAmmo: 0, missiles: 0 }, ewLevel: 'none' });
     session.step();
-    standalone.step();
-    expect(session.engineForReport('S1')?.getHash()).toBe(standalone.getHash());
+    expect(session.engineForReport('S1')?.effectorState.gun.ammo).toBe(8);
+    expect(session.engineForReport('S1')?.effectorState.missile?.ammo).toBe(0);
+    expect(session.view().totalPool.reserve).toEqual({ gunAmmo: 12, missiles: 2 });
+    expect(session.raid.sites[0]?.missileAuth).toBe('hold');
   });
 
   it('validates commands without throwing and delivers reserve stock after distance times three seconds', () => {
@@ -155,7 +155,7 @@ describe('Phase 6A multi-site simulator', () => {
     expect(report.sites[0]?.attackerCostDestroyed).toBe(0);
     expect(report.subscores.assetPreservation).toBe(60);
     expect(report.subscores.costExchange).toBe(0);
-    expect(report.subscores.resourceManagement).toBe(50);
-    expect(report.total).toBe(45);
+    expect(report.subscores.resourceManagement).toBe(68.2);
+    expect(report.total).toBe(47);
   });
 });
