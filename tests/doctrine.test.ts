@@ -17,6 +17,21 @@ import {
   scoreSessionV2,
 } from '../src/sim/scoring/doctrine.js';
 import { GroundTruthSummary } from '../src/sim/scoring/basic.js';
+import {
+  PENALTY_BIRD_ENGAGED,
+  PENALTY_CIVILIAN_QUAD_ENGAGED,
+  PENALTY_DECOY_ENGAGED,
+  PENALTY_FALSE_TRACK,
+} from '../src/sim/scoring/doctrineConstants.js';
+
+describe('Doctrine penalty constants', () => {
+  it('uses the published generic penalty values', () => {
+    expect(PENALTY_BIRD_ENGAGED).toBe(-5);
+    expect(PENALTY_CIVILIAN_QUAD_ENGAGED).toBe(-25);
+    expect(PENALTY_DECOY_ENGAGED).toBe(-3);
+    expect(PENALTY_FALSE_TRACK).toBe(-5);
+  });
+});
 
 function createMockActor(id: number, classId: ThreatClassId, state: 'active' | 'neutralized' = 'active', neutralizedDist?: number): Actor {
   return {
