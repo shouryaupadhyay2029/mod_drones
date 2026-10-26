@@ -16,6 +16,7 @@
  */
 
 import { useEffect, useRef, useCallback, useState } from 'react';
+import { isAudioMuted, setAudioMuted, subscribeAudioMuted } from '../audio/synth.js';
 
 // Hover motor RPM ≈ 6,600 RPM → fundamental motor shaft rotation f0 ≈ 110 Hz
 const BASE_MOTOR_HZ = 110;
@@ -30,10 +31,16 @@ const ROTOR_PANS = [-0.35, 0.35, -0.2, 0.2];
 const MASTER_VOLUME = 0.20;
 
 export function useDroneAudio() {
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(() => isAudioMuted());
   const ctxRef = useRef<AudioContext | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
   const startedRef = useRef(false);
+
+  useEffect(() => {
+    return subscribeAudioMuted((muted) => {
+      setIsMuted(muted);
+    });
+  }, []);
 
   const bootAudio = useCallback(() => {
     if (startedRef.current) return;
@@ -228,6 +235,7 @@ export function useDroneAudio() {
   const toggleMute = useCallback(() => {
     setIsMuted((prev) => {
       const next = !prev;
+      setAudioMuted(next);
       if (next) {
         // Mute — smoothly fade out over 80ms to avoid audio pops
         if (masterGainRef.current && ctxRef.current) {

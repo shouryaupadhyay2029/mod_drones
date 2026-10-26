@@ -12,6 +12,7 @@ import { SimClient } from '../simClient.js';
 import { persistMissionReport, SessionOwner } from '../storage/sessionPersistence.js';
 import { PendingForkLaunch, takePendingFork } from '../aar/forkLaunch.js';
 import { TrailPoint, updateTrailHistory } from './radar/trails.js';
+import { playRadarBlip, processMissionAudioEvents } from '../audio/synth.js';
 
 export type MissionPhase = 'setup' | 'running' | 'ended';
 
@@ -74,6 +75,8 @@ export function useMission(initialSeed?: string): UseMissionReturn {
 
   const clientRef = useRef<SimClient | null>(null);
   const trailHistoryRef = useRef<Map<number, TrailPoint[]>>(new Map());
+  const processedEventCountRef = useRef<number>(0);
+  const seenTrackIdsRef = useRef<Set<number>>(new Set());
   const autopilotRef = useRef<boolean>(autopilot);
   autopilotRef.current = autopilot;
 
@@ -88,6 +91,22 @@ export function useMission(initialSeed?: string): UseMissionReturn {
       // Update trail history (last 6 plots, changed lastPlotTick only, drop missing tracks)
       if (newView.tracks) {
         updateTrailHistory(trailHistoryRef.current, newView.tracks);
+        for (let i = 0; i < newView.tracks.length; i++) {
+          const track = newView.tracks[i];
+          if (track && !seenTrackIdsRef.current.has(track.trackId)) {
+            seenTrackIdsRef.current.add(track.trackId);
+            if (track.state === 'tentative') {
+              playRadarBlip();
+            }
+          }
+        }
+      }
+
+      if (newView.events) {
+        processedEventCountRef.current = processMissionAudioEvents(
+          newView.events,
+          processedEventCountRef.current
+        );
       }
 
       // Autopilot handling: if enabled, pass view to referenceOperator
@@ -174,6 +193,8 @@ export function useMission(initialSeed?: string): UseMissionReturn {
       }
 
       trailHistoryRef.current.clear();
+      processedEventCountRef.current = 0;
+      seenTrackIdsRef.current.clear();
       setScoreReport(null);
       setScoreReportV2(null);
       setSessionLog(null);
