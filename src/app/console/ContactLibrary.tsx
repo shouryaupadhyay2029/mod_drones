@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { THREAT_LIBRARY, ThreatClassId } from '../../sim/index.js';
 import { BirdAsciiSimulation } from '../components/BirdAsciiSimulation.js';
 import { CivilianQuadAsciiSimulation } from '../components/CivilianQuadAsciiSimulation.js';
+import { FpvKamikazeAsciiSimulation } from '../components/FpvKamikazeAsciiSimulation.js';
+import { FpvFiberAsciiSimulation } from '../components/FpvFiberAsciiSimulation.js';
+import { FixedWingAsciiSimulation } from '../components/FixedWingAsciiSimulation.js';
 import { useLenisScrollRoot } from '../hooks/useLenisScrollRoot.js';
 import './contact-library.css';
 
@@ -313,6 +316,21 @@ export function ContactReferencePage({ contact, onBack }: ContactReferencePagePr
         {previewContact?.id === 'commercial_quad' && (
           <div className="contact-bird-ascii-stage" aria-hidden="true">
             <CivilianQuadAsciiSimulation scrollRootRef={scrollRootRef} />
+          </div>
+        )}
+        {previewContact?.id === 'fpv_kamikaze' && (
+          <div className="contact-bird-ascii-stage" aria-hidden="true">
+            <FpvKamikazeAsciiSimulation scrollRootRef={scrollRootRef} />
+          </div>
+        )}
+        {previewContact?.id === 'fpv_fiber' && (
+          <div className="contact-bird-ascii-stage" aria-hidden="true">
+            <FpvFiberAsciiSimulation scrollRootRef={scrollRootRef} />
+          </div>
+        )}
+        {previewContact?.id === 'fixed_wing_recon' && (
+          <div className="contact-bird-ascii-stage" aria-hidden="true">
+            <FixedWingAsciiSimulation scrollRootRef={scrollRootRef} />
           </div>
         )}
 
