@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CommanderCommand, CommanderSession, CommanderSiteView, CommanderView, MissileAuth, RoePosture, heuristicCommander } from '../../sim/index.js';
+import { CommanderSplitTitle } from './CommanderPage.js';
 
 export interface CommanderConsoleProps {
   session: CommanderSession;
@@ -61,8 +62,13 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
   return (
     <main className="commander-page">
       <header className="commander-heading">
-        <p>VAJRA / COMMAND STAFF / LIVE THEATRE</p>
-        <h1>Raid in progress</h1>
+        <p className="commander-kicker">
+          VAJRA / COMMAND STAFF / LIVE THEATRE{' '}
+          <span className="commander-meta-badge">ACTIVE RAID TELEMETRY</span>
+        </p>
+        <h1 aria-label="Raid in progress">
+          <CommanderSplitTitle text="Raid in progress" />
+        </h1>
         <div className="commander-toolbar">
           <strong>
             {String(Math.floor(view.tick / 1200)).padStart(2, '0')}:
@@ -80,9 +86,14 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
         </div>
       </header>
 
-      <section className="commander-panel">
+      <section
+        className="commander-panel vj-card-cascade"
+        style={{ '--card-index': 1 } as React.CSSProperties}
+      >
         <h2>Theatre map</h2>
         <div className="commander-map commander-live-map">
+          <div className="commander-map-rings" aria-hidden="true" />
+          <div className="commander-map-sweep" aria-hidden="true" />
           {view.sites.map((site, i) => (
             <button
               key={site.siteId}
@@ -133,15 +144,16 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
       )}
 
       <section className="commander-site-grid">
-        {view.sites.map((site) => {
+        {view.sites.map((site, idx) => {
           const isOffline = site.linkStatus === 'offline';
           const sitePending = view.pendingCommands.filter((cmd) => cmd.siteId === site.siteId);
           const lastContactSeconds = (site.dataAgeTicks / 20).toFixed(1);
 
           return (
             <article
-              className={`commander-panel commander-live-card link-${site.linkStatus}${isOffline ? ' commander-card-offline' : ''}`}
+              className={`commander-panel commander-live-card vj-card-cascade link-${site.linkStatus}${isOffline ? ' commander-card-offline' : ''}`}
               key={site.siteId}
+              style={{ '--card-index': idx + 2 } as React.CSSProperties}
             >
               {isOffline && <div className="commander-stale-watermark">STALE DATA</div>}
               <header>
@@ -171,8 +183,8 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
 
               {sitePending.length > 0 && (
                 <div className="commander-site-transmitting">
-                  {sitePending.map((cmd, idx) => (
-                    <small key={`${cmd.type}-${cmd.dispatchTick}-${idx}`}>
+                  {sitePending.map((cmd, cmdIdx) => (
+                    <small key={`${cmd.type}-${cmd.dispatchTick}-${cmdIdx}`}>
                       Transmitting... {cmd.type} ({((Math.max(0, cmd.deliveryTick - view.tick)) / 20).toFixed(1)}s)
                     </small>
                   ))}

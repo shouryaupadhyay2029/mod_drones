@@ -24,13 +24,24 @@ const SUBSCORE_LABELS: Record<string, string> = {
   commsResilience: 'Comms Resilience (10%)',
 };
 
-export function CommanderDebrief({ report, raid, log }: { report: RaidScoreReport; raid: RaidPlan; log: CommanderLog }): React.JSX.Element {
+export function CommanderDebrief({
+  report,
+  raid,
+  log,
+}: {
+  report: RaidScoreReport;
+  raid: RaidPlan;
+  log: CommanderLog;
+}): React.JSX.Element {
   const dropped = report.droppedCommands ?? [];
 
   return (
     <main className="commander-page commander-debrief">
       <header className="commander-heading">
-        <p>VAJRA / COMMAND STAFF / RAID COMPLETE</p>
+        <p className="commander-kicker">
+          VAJRA / COMMAND STAFF / RAID COMPLETE{' '}
+          <span className="commander-meta-badge">AFTER-ACTION LEDGER</span>
+        </p>
         <h1>
           {report.total} <small>/ 100</small>
         </h1>
@@ -38,8 +49,12 @@ export function CommanderDebrief({ report, raid, log }: { report: RaidScoreRepor
       </header>
 
       <section className="commander-score-grid">
-        {Object.entries(report.subscores).map(([key, value]) => (
-          <article className="commander-panel" key={key}>
+        {Object.entries(report.subscores).map(([key, value], idx) => (
+          <article
+            className="commander-panel vj-card-cascade"
+            key={key}
+            style={{ '--card-index': idx } as React.CSSProperties}
+          >
             <h2>{SUBSCORE_LABELS[key] ?? key.replace(/([A-Z])/g, ' $1')}</h2>
             <strong>{value}</strong>
             <div className="commander-health">
@@ -49,7 +64,10 @@ export function CommanderDebrief({ report, raid, log }: { report: RaidScoreRepor
         ))}
       </section>
 
-      <section className="commander-panel">
+      <section
+        className="commander-panel vj-card-cascade"
+        style={{ '--card-index': 5 } as React.CSSProperties}
+      >
         <h2>Cost-exchange ledger · {report.scoreVersion}</h2>
         <div className="commander-ledger">
           <span>
@@ -64,7 +82,8 @@ export function CommanderDebrief({ report, raid, log }: { report: RaidScoreRepor
           <span>
             Gun / jammer / missile{' '}
             <b>
-              {report.costLedger.defenderSpendByEffector.gun} / {report.costLedger.defenderSpendByEffector.jammer} /{' '}
+              {report.costLedger.defenderSpendByEffector.gun} /{' '}
+              {report.costLedger.defenderSpendByEffector.jammer} /{' '}
               {report.costLedger.defenderSpendByEffector.missile}
             </b>
           </span>
@@ -77,50 +96,65 @@ export function CommanderDebrief({ report, raid, log }: { report: RaidScoreRepor
         </div>
         <p>
           Decision causes:{' '}
-          {report.decisionCauses.map((cause) => CAUSE_LABELS[cause] ?? cause).join('; ') || 'none recorded'}
+          {report.decisionCauses.map((cause) => CAUSE_LABELS[cause] ?? cause).join('; ') ||
+            'none recorded'}
         </p>
         <p className="commander-dropped-narrative">
           Dropped commands (DDIL):{' '}
           {dropped.length > 0
-            ? dropped.map((cmd) => `T+${cmd.tick} ${cmd.type} to ${cmd.siteId ?? 'site'} (${cmd.reason})`).join('; ')
+            ? dropped
+                .map((cmd) => `T+${cmd.tick} ${cmd.type} to ${cmd.siteId ?? 'site'} (${cmd.reason})`)
+                .join('; ')
             : 'none — all dispatched commands reached online or degraded links'}
         </p>
       </section>
 
-      <section className="commander-panel">
+      <section
+        className="commander-panel vj-card-cascade"
+        style={{ '--card-index': 6 } as React.CSSProperties}
+      >
         <h2>Site summaries</h2>
         {report.sites.map((site) => (
           <details key={site.siteId}>
             <summary>
-              {raid.sites.find((s) => s.id === site.siteId)?.name ?? site.siteId} · {site.damagePercent}% damage ·{' '}
-              {site.attackerCostDestroyed} destroyed
+              {raid.sites.find((s) => s.id === site.siteId)?.name ?? site.siteId} ·{' '}
+              {site.damagePercent}% damage · {site.attackerCostDestroyed} destroyed
             </summary>
             <p>
               Contact score {site.scoreSessionV2.total} · Grade {site.scoreSessionV2.grade}
             </p>
             <p>
               Detection {site.scoreSessionV2.subscores.detection} · Classification{' '}
-              {site.scoreSessionV2.subscores.classification} · Engagement {site.scoreSessionV2.subscores.engagement} ·{' '}
-              Discipline {site.scoreSessionV2.subscores.discipline}
+              {site.scoreSessionV2.subscores.classification} · Engagement{' '}
+              {site.scoreSessionV2.subscores.engagement} · Discipline{' '}
+              {site.scoreSessionV2.subscores.discipline}
             </p>
             <p>
               Penalties:{' '}
-              {site.scoreSessionV2.penalties.map((penalty) => `${penalty.reason} (${penalty.points})`).join('; ') ||
-                'none'}
+              {site.scoreSessionV2.penalties
+                .map((penalty) => `${penalty.reason} (${penalty.points})`)
+                .join('; ') || 'none'}
             </p>
-            <p>Causes: {site.causes.map((cause) => CAUSE_LABELS[cause] ?? cause).join('; ') || 'none'}</p>
+            <p>
+              Causes: {site.causes.map((cause) => CAUSE_LABELS[cause] ?? cause).join('; ') || 'none'}
+            </p>
           </details>
         ))}
       </section>
 
-      <section className="commander-panel">
+      <section
+        className="commander-panel vj-card-cascade"
+        style={{ '--card-index': 7 } as React.CSSProperties}
+      >
         <h2>Commander command timeline</h2>
         {log.commands.map((command, i) => (
           <p key={`${command.tick}-${i}`}>
             T+{command.tick}: {command.type} {command.siteId ?? JSON.stringify(command.payload)}
             {command.rejected
               ? ` [DROPPED: ${command.reason ?? 'Link offline'}]`
-              : command.deliveryTick !== undefined && command.deliveryTick !== null && command.deliveryTick > command.tick
+              : command.deliveryTick !== undefined &&
+                command.deliveryTick !== null &&
+                command.deliveryTick > command.tick
               ? ` [Delivered T+${command.deliveryTick}]`
               : ''}
           </p>

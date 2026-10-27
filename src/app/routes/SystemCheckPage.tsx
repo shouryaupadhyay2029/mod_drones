@@ -2,6 +2,58 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Engine, replay } from '../../sim/index.js';
 import { TextRoll } from '../components/TextRoll.js';
 import { SimClient, SimStateUpdate } from '../simClient.js';
+import { useLenisScrollRoot } from '../hooks/useLenisScrollRoot.js';
+import '../aar/aar.css';
+
+function SplitTitle({ text }: { text: string }) {
+  return (
+    <>
+      {text.split('').map((ch, i) => (
+        <span key={i} className="vj-char-mask">
+          <span
+            className="vj-split-char"
+            style={{ '--char-index': i } as React.CSSProperties}
+          >
+            {ch === ' ' ? ' ' : ch}
+          </span>
+        </span>
+      ))}
+    </>
+  );
+}
+
+function RevealWords({
+  text,
+  accentWords = [],
+  baseIndex = 0,
+}: {
+  text: string;
+  accentWords?: string[];
+  baseIndex?: number;
+}) {
+  const parts = text.split(/(\s+)/);
+  return (
+    <>
+      {parts.map((part, wordIdx) => {
+        if (/^\s+$/.test(part)) {
+          return part;
+        }
+        const cleanWord = part.replace(/[.,;—–]/g, '');
+        const isAccent = accentWords.includes(cleanWord);
+        return (
+          <span key={wordIdx} className="vj-word-mask">
+            <span
+              className={`vj-reveal-word${isAccent ? ' is-accent' : ''}`}
+              style={{ '--word-index': baseIndex + wordIdx } as React.CSSProperties}
+            >
+              {part}
+            </span>
+          </span>
+        );
+      })}
+    </>
+  );
+}
 
 export function SystemCheckPage(): React.JSX.Element {
   const [seedInput, setSeedInput] = useState<string>('alpha-omega-42');
@@ -31,6 +83,9 @@ export function SystemCheckPage(): React.JSX.Element {
   const clientRef = useRef<SimClient | null>(null);
   const lastTickCountRef = useRef<number>(0);
   const lastTpsTimeRef = useRef<number>(performance.now());
+  const scrollRootRef = useRef<HTMLDivElement | null>(null);
+
+  useLenisScrollRoot(scrollRootRef);
 
   useEffect(() => {
     const client = new SimClient();
@@ -153,73 +208,133 @@ export function SystemCheckPage(): React.JSX.Element {
   };
 
   return (
-    <div style={styles.container}>
-      {/* Disclaimer Banner */}
-      <header style={styles.banner}>
-        <div style={styles.bannerTag}>NOTICE</div>
-        <div style={styles.bannerText}>
-          TRAINING SIMULATION — generic open-source parameters only.
+    <div
+      ref={scrollRootRef}
+      data-scroll-root=""
+      style={{
+        ...styles.container,
+        backgroundImage: 'url(/textures/fine-grain.png)',
+      }}
+    >
+      <div data-lenis-content="" style={styles.contentWrapper}>
+        {/* 8-Column Stair Transition */}
+        <div className="vj-stair-transition" aria-hidden="true">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="vj-stair-panel"
+              style={{ '--stair-index': i } as React.CSSProperties}
+            />
+          ))}
         </div>
-      </header>
 
-      {/* Main Container */}
-      <main style={styles.main}>
-        <div style={styles.titleSection}>
-          <h1 style={styles.title}>System Check</h1>
-          <span style={styles.versionBadge}>PHASE 0 • DETERMINISTIC CORE</span>
+        {/* Top Editorial Navigation Bar */}
+        <header style={styles.navBar}>
+          <a href="#/" style={styles.brandLink}>
+            <img
+              src="/vajra-emblem.png"
+              alt=""
+              style={{ width: 24, height: 26 }}
+            />{' '}
+            VAJRA / SYSTEM CHECK
+          </a>
+          <a href="#/" style={styles.returnLink}>
+            <TextRoll center stagger={0.015}>
+              RETURN TO CONSOLE ↗
+            </TextRoll>
+          </a>
+        </header>
+
+        {/* Hero Header */}
+        <div style={styles.eyebrow}>
+          PHASE 0 · DETERMINISTIC CORE // ENGINE DIAGNOSTICS
         </div>
+        <h1 style={styles.heroTitle}>
+          <SplitTitle text="System check" />
+        </h1>
+        <p style={styles.heroSubtitle}>
+          <RevealWords
+            text="Deterministic simulation clock, FNV-1a 64-bit state digest, bit-parity replay verification, and snapshot round-trip diagnostics. Training simulation — generic open-source parameters only."
+            accentWords={['Deterministic', 'FNV-1a', 'bit-parity', 'snapshot']}
+          />
+        </p>
 
         {/* Live Metrics Grid */}
         <section style={styles.metricsGrid}>
-          <div style={styles.metricCard}>
+          <div
+            className="aar-card vj-card-cascade"
+            style={{ ...styles.metricCard, '--card-index': 0 } as React.CSSProperties}
+          >
             <div style={styles.metricLabel}>TICK</div>
             <div style={styles.metricValue}>{simState.tick.toLocaleString()}</div>
+            <div style={styles.metricCaption}>Simulation ticks</div>
           </div>
-          <div style={styles.metricCard}>
+          <div
+            className="aar-card vj-card-cascade"
+            style={{ ...styles.metricCard, '--card-index': 1 } as React.CSSProperties}
+          >
             <div style={styles.metricLabel}>STATE HASH</div>
             <div style={{ ...styles.metricValue, ...styles.monoHash }}>
               {simState.hash || 'COMPUTING...'}
             </div>
+            <div style={styles.metricCaption}>FNV-1a 64-bit digest</div>
           </div>
-          <div style={styles.metricCard}>
+          <div
+            className="aar-card vj-card-cascade"
+            style={{ ...styles.metricCard, '--card-index': 2 } as React.CSSProperties}
+          >
             <div style={styles.metricLabel}>ENTITIES</div>
             <div style={styles.metricValue}>{simState.entityCount}</div>
+            <div style={styles.metricCaption}>Active tracked contacts</div>
           </div>
-          <div style={styles.metricCard}>
-            <div style={styles.metricLabel}>SPEED (TICKS/SEC)</div>
-            <div style={styles.metricValue}>
-              {tps} <span style={styles.unitText}>tps</span>
-            </div>
+          <div
+            className="aar-card vj-card-cascade"
+            style={{ ...styles.metricCard, '--card-index': 3 } as React.CSSProperties}
+          >
+            <div style={styles.metricLabel}>THROUGHPUT</div>
+            <div style={styles.metricValue}>{tps}</div>
+            <div style={styles.metricCaption}>Worker throughput</div>
           </div>
-          <div style={styles.metricCard}>
+          <div
+            className="aar-card vj-card-cascade"
+            style={{ ...styles.metricCard, '--card-index': 4 } as React.CSSProperties}
+          >
             <div style={styles.metricLabel}>RUN STATE</div>
             <div
               style={{
                 ...styles.metricValue,
-                color: simState.isRunning ? '#4ade80' : '#f87171',
+                color: simState.isRunning ? '#4e660e' : '#a83322',
               }}
             >
+              <span
+                className="vj-status-dot"
+                style={{
+                  backgroundColor: simState.isRunning ? '#4e660e' : '#a83322',
+                }}
+              />
               {simState.isRunning ? 'RUNNING' : 'PAUSED'}
             </div>
+            <div style={styles.metricCaption}>Engine loop state</div>
           </div>
         </section>
 
         {/* Controls Section */}
-        <section style={styles.controlPanel}>
+        <section
+          className="aar-card vj-card-cascade"
+          style={{ ...styles.controlPanel, '--card-index': 5 } as React.CSSProperties}
+        >
           <div style={styles.seedRow}>
-            <label htmlFor="seedInput" style={styles.fieldLabel}>
-              SIM SEED:
-            </label>
             <input
               id="seedInput"
               type="text"
               value={seedInput}
               onChange={(e) => setSeedInput(e.target.value)}
               style={styles.input}
-              placeholder="Enter seed string or number..."
             />
             <button onClick={handleReset} style={styles.buttonSecondary}>
-              <TextRoll center stagger={0.02}>Reset With Seed</TextRoll>
+              <TextRoll center stagger={0.02}>
+                Reset With Seed
+              </TextRoll>
             </button>
           </div>
 
@@ -232,7 +347,9 @@ export function SystemCheckPage(): React.JSX.Element {
                 opacity: simState.isRunning ? 0.5 : 1,
               }}
             >
-              <TextRoll center stagger={0.02}>Start</TextRoll>
+              <TextRoll center stagger={0.02}>
+                Start
+              </TextRoll>
             </button>
             <button
               onClick={handlePause}
@@ -242,62 +359,66 @@ export function SystemCheckPage(): React.JSX.Element {
                 opacity: !simState.isRunning ? 0.5 : 1,
               }}
             >
-              <TextRoll center stagger={0.02}>Pause</TextRoll>
+              <TextRoll center stagger={0.02}>
+                Pause
+              </TextRoll>
             </button>
             <button onClick={handleSpawnEntity} style={styles.buttonAction}>
-              <TextRoll center stagger={0.02}>Spawn Test Entity</TextRoll>
+              <TextRoll center stagger={0.02}>
+                Spawn Test Entity
+              </TextRoll>
             </button>
           </div>
         </section>
 
         {/* Verification Checks */}
         <section style={styles.verificationSection}>
-          <h2 style={styles.sectionHeader}>Deterministic Verification Diagnostics</h2>
-
-          {/* Replay Verification */}
-          <div style={styles.verifyCard}>
+          <div
+            className="aar-card vj-card-cascade"
+            style={{ ...styles.verifyCard, '--card-index': 6 } as React.CSSProperties}
+          >
             <div style={styles.verifyHeaderRow}>
               <div>
                 <h3 style={styles.verifyTitle}>Replay Verification</h3>
-                <p style={styles.verifyDesc}>
-                  Replays the entire command log through a fresh Engine to confirm 100% bit-parity.
-                </p>
               </div>
               <button
                 id="btn-verify-replay"
                 onClick={handleVerifyReplay}
                 style={styles.buttonVerify}
               >
-                <TextRoll center stagger={0.02}>Verify Replay</TextRoll>
+                <TextRoll center stagger={0.02}>
+                  Verify Replay
+                </TextRoll>
               </button>
             </div>
             {replayResult.status !== 'IDLE' && (
               <div
                 style={{
                   ...styles.resultBox,
-                  borderColor: replayResult.status === 'PASS' ? '#22c55e' : '#ef4444',
+                  borderColor:
+                    replayResult.status === 'PASS'
+                      ? 'rgba(78, 102, 14, 0.45)'
+                      : 'rgba(184, 51, 39, 0.45)',
                 }}
               >
                 <div style={styles.resultBadgeRow}>
                   <span
                     style={{
                       ...styles.badge,
-                      backgroundColor: replayResult.status === 'PASS' ? '#15803d' : '#b91c1c',
+                      backgroundColor:
+                        replayResult.status === 'PASS' ? '#4e660e' : '#a83322',
                     }}
                   >
                     {replayResult.status}
                   </span>
-                  <span style={styles.resultSummary}>
-                    Evaluated across {replayResult.ticks?.toLocaleString()} ticks
-                  </span>
                 </div>
                 <div style={styles.hashCompareRow}>
                   <div>
-                    <span style={styles.subLabel}>Live Hash: </span>
+                    <span style={styles.subLabel}>Live: </span>
                     <code style={styles.codeHash}>{replayResult.liveHash}</code>
                   </div>
                   <div>
-                    <span style={styles.subLabel}>Replay Hash: </span>
+                    <span style={styles.subLabel}>Replay: </span>
                     <code style={styles.codeHash}>{replayResult.replayHash}</code>
                   </div>
                 </div>
@@ -305,59 +426,64 @@ export function SystemCheckPage(): React.JSX.Element {
             )}
           </div>
 
-          {/* Snapshot Verification */}
-          <div style={styles.verifyCard}>
+          <div
+            className="aar-card vj-card-cascade"
+            style={{ ...styles.verifyCard, '--card-index': 7 } as React.CSSProperties}
+          >
             <div style={styles.verifyHeaderRow}>
               <div>
-                <h3 style={styles.verifyTitle}>Snapshot & Restore Verification</h3>
-                <p style={styles.verifyDesc}>
-                  Captures current state, passes through JSON serialization, advances both engines
-                  500 ticks.
-                </p>
+                <h3 style={styles.verifyTitle}>Snapshot & Restore</h3>
               </div>
               <button
                 id="btn-verify-snapshot"
                 onClick={handleVerifySnapshot}
                 style={styles.buttonVerify}
               >
-                <TextRoll center stagger={0.02}>Verify Snapshot</TextRoll>
+                <TextRoll center stagger={0.02}>
+                  Verify Snapshot
+                </TextRoll>
               </button>
             </div>
             {snapshotResult.status !== 'IDLE' && (
               <div
                 style={{
                   ...styles.resultBox,
-                  borderColor: snapshotResult.status === 'PASS' ? '#22c55e' : '#ef4444',
+                  borderColor:
+                    snapshotResult.status === 'PASS'
+                      ? 'rgba(78, 102, 14, 0.45)'
+                      : 'rgba(184, 51, 39, 0.45)',
                 }}
               >
                 <div style={styles.resultBadgeRow}>
                   <span
                     style={{
                       ...styles.badge,
-                      backgroundColor: snapshotResult.status === 'PASS' ? '#15803d' : '#b91c1c',
+                      backgroundColor:
+                        snapshotResult.status === 'PASS' ? '#4e660e' : '#a83322',
                     }}
                   >
                     {snapshotResult.status}
                   </span>
-                  <span style={styles.resultSummary}>
-                    Advanced both branches by {snapshotResult.ticksTested} ticks
-                  </span>
                 </div>
                 <div style={styles.hashCompareRow}>
                   <div>
-                    <span style={styles.subLabel}>Baseline Hash: </span>
-                    <code style={styles.codeHash}>{snapshotResult.baselineHash}</code>
+                    <span style={styles.subLabel}>Baseline: </span>
+                    <code style={styles.codeHash}>
+                      {snapshotResult.baselineHash}
+                    </code>
                   </div>
                   <div>
-                    <span style={styles.subLabel}>Restored Hash: </span>
-                    <code style={styles.codeHash}>{snapshotResult.restoredHash}</code>
+                    <span style={styles.subLabel}>Restored: </span>
+                    <code style={styles.codeHash}>
+                      {snapshotResult.restoredHash}
+                    </code>
                   </div>
                 </div>
               </div>
             )}
           </div>
         </section>
-      </main>
+      </div>
     </div>
   );
 }
@@ -365,264 +491,224 @@ export function SystemCheckPage(): React.JSX.Element {
 const styles: Record<string, React.CSSProperties> = {
   container: {
     minHeight: '100vh',
-    backgroundColor: '#0b0b0b',
-    color: '#e4e4e7',
-    fontFamily:
-      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-    display: 'flex',
-    flexDirection: 'column',
+    backgroundColor: '#ded7ca',
+    color: '#181716',
+    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
   },
-  banner: {
-    backgroundColor: '#000000',
-    borderBottom: '1px solid #1a1a1a',
-    padding: '10px 24px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  bannerTag: {
-    backgroundColor: '#cbb3e8',
-    color: '#080808',
-    padding: '2px 8px',
-    borderRadius: '4px',
-    fontWeight: 800,
-    fontSize: '11px',
-    letterSpacing: '0.05em',
-    boxShadow: '0 0 8px rgba(203, 179, 232, 0.4)',
-  },
-  bannerText: {
-    color: '#b5b5be',
-    fontSize: '13px',
-    fontWeight: 500,
-  },
-  main: {
-    maxWidth: '1000px',
-    width: '100%',
+  contentWrapper: {
+    maxWidth: '1240px',
     margin: '0 auto',
-    padding: '32px 24px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
+    padding: '28px clamp(20px, 4vw, 64px) 72px',
   },
-  titleSection: {
+  navBar: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '12px',
-    borderBottom: '1px solid #262626',
-    paddingBottom: '16px',
+    paddingBottom: '18px',
+    borderBottom: '1px solid rgba(24, 23, 22, 0.18)',
   },
-  title: {
-    margin: 0,
-    fontSize: '24px',
-    fontWeight: 700,
-    letterSpacing: '-0.02em',
-    color: '#ffffff',
+  brandLink: {
+    fontSize: '12px',
+    fontWeight: 800,
+    letterSpacing: '0.16em',
+    color: '#181716',
+    textDecoration: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
   },
-  versionBadge: {
-    backgroundColor: '#121212',
-    border: '1px solid #d4ff3f',
-    color: '#d4ff3f',
-    padding: '4px 10px',
-    borderRadius: '4px',
+  returnLink: {
     fontSize: '11px',
-    fontWeight: 600,
-    letterSpacing: '0.05em',
-    boxShadow: '0 0 8px rgba(212, 255, 63, 0.3)',
+    fontWeight: 800,
+    letterSpacing: '0.1em',
+    color: '#181716',
+    textDecoration: 'none',
+  },
+  eyebrow: {
+    color: '#a83322',
+    fontSize: '10px',
+    fontWeight: 800,
+    letterSpacing: '0.2em',
+    marginTop: '32px',
+  },
+  heroTitle: {
+    fontSize: 'clamp(38px, 5.5vw, 68px)',
+    fontWeight: 800,
+    letterSpacing: '-0.055em',
+    lineHeight: 0.96,
+    color: '#181716',
+    margin: '8px 0 12px',
+  },
+  heroSubtitle: {
+    color: '#58544e',
+    fontSize: '14px',
+    maxWidth: '720px',
+    lineHeight: 1.6,
   },
   metricsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-    gap: '16px',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '14px',
+    margin: '28px 0 22px',
   },
   metricCard: {
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
+    backgroundColor: 'rgba(239, 235, 226, 0.9)',
+    border: '1px solid rgba(45, 40, 35, 0.17)',
     borderRadius: '8px',
-    padding: '16px',
+    padding: '18px 20px',
+    boxShadow: '0 10px 28px rgba(45, 40, 35, 0.05)',
   },
   metricLabel: {
-    color: '#cbb3e8',
-    fontSize: '11px',
-    fontWeight: 600,
-    letterSpacing: '0.08em',
-    marginBottom: '6px',
+    color: '#726c62',
+    fontSize: '10px',
+    fontWeight: 800,
+    letterSpacing: '0.14em',
+    textTransform: 'uppercase',
   },
   metricValue: {
-    fontSize: '20px',
-    fontWeight: 700,
-    color: '#ffffff',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
+    color: '#181716',
+    fontSize: '30px',
+    fontWeight: 800,
+    letterSpacing: '-0.04em',
+    marginTop: '8px',
   },
   monoHash: {
-    fontSize: '14px',
-    color: '#cbb3e8',
+    fontSize: '18px',
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+    color: '#a83322',
   },
-  unitText: {
-    fontSize: '13px',
-    color: '#71717a',
-    fontWeight: 400,
+  metricCaption: {
+    fontSize: '11px',
+    color: '#767065',
+    marginTop: '4px',
   },
   controlPanel: {
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
+    backgroundColor: 'rgba(239, 235, 226, 0.9)',
+    border: '1px solid rgba(45, 40, 35, 0.17)',
     borderRadius: '8px',
-    padding: '20px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
+    padding: '22px 24px',
   },
   seedRow: {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    flexWrap: 'wrap',
-  },
-  fieldLabel: {
-    fontSize: '12px',
-    fontWeight: 600,
-    color: '#cbb3e8',
-    letterSpacing: '0.05em',
+    marginBottom: '16px',
   },
   input: {
-    backgroundColor: '#0c0c0e',
-    border: '1px solid #2a2a2e',
-    color: '#ffffff',
-    padding: '8px 12px',
-    borderRadius: '6px',
+    backgroundColor: '#e4ded2',
+    border: '1px solid rgba(45, 40, 35, 0.24)',
+    color: '#181716',
+    padding: '10px 14px',
+    borderRadius: '5px',
+    fontFamily: 'ui-monospace, monospace',
     fontSize: '13px',
-    fontFamily: 'inherit',
-    flex: '1 1 200px',
-    outline: 'none',
+    fontWeight: 600,
+    flex: 1,
   },
   buttonRow: {
     display: 'flex',
     gap: '12px',
-    flexWrap: 'wrap',
   },
   buttonPrimary: {
-    backgroundColor: '#d4ff3f',
-    color: '#080808',
-    border: 'none',
-    borderRadius: '6px',
-    padding: '8px 18px',
-    fontSize: '13px',
+    backgroundColor: '#181716',
+    color: '#f4eee3',
+    border: '1px solid #181716',
+    borderRadius: '5px',
+    padding: '10px 20px',
+    fontSize: '11px',
     fontWeight: 800,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
     cursor: 'pointer',
-    boxShadow: '0 0 10px rgba(212, 255, 63, 0.4)',
   },
   buttonSecondary: {
-    backgroundColor: '#181818',
-    color: '#ffffff',
-    border: '1px solid #333333',
-    borderRadius: '6px',
-    padding: '8px 16px',
-    fontSize: '13px',
-    fontWeight: 600,
+    backgroundColor: 'rgba(255, 255, 255, 0.55)',
+    color: '#181716',
+    border: '1px solid rgba(45, 40, 35, 0.22)',
+    borderRadius: '5px',
+    padding: '10px 18px',
+    fontSize: '11px',
+    fontWeight: 800,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
     cursor: 'pointer',
   },
   buttonAction: {
-    backgroundColor: '#181818',
-    color: '#cbb3e8',
-    border: '1px solid rgba(203, 179, 232, 0.35)',
-    borderRadius: '6px',
-    padding: '8px 18px',
-    fontSize: '13px',
-    fontWeight: 600,
-    cursor: 'pointer',
-  },
-  buttonVerify: {
-    backgroundColor: '#d4ff3f',
-    color: '#080808',
-    border: 'none',
-    borderRadius: '6px',
-    padding: '8px 16px',
-    fontSize: '13px',
+    backgroundColor: 'rgba(168, 51, 34, 0.1)',
+    color: '#a83322',
+    border: '1px solid rgba(168, 51, 34, 0.32)',
+    borderRadius: '5px',
+    padding: '10px 18px',
+    fontSize: '11px',
     fontWeight: 800,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
     cursor: 'pointer',
-    alignSelf: 'flex-start',
-    boxShadow: '0 0 10px rgba(212, 255, 63, 0.4)',
   },
   verificationSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  sectionHeader: {
-    fontSize: '15px',
-    fontWeight: 700,
-    color: '#cbb3e8',
-    letterSpacing: '0.05em',
-    textTransform: 'uppercase',
-    margin: '8px 0 0 0',
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '14px',
+    marginTop: '28px',
   },
   verifyCard: {
-    backgroundColor: '#121212',
-    border: '1px solid #262626',
+    backgroundColor: 'rgba(239, 235, 226, 0.9)',
+    border: '1px solid rgba(45, 40, 35, 0.17)',
     borderRadius: '8px',
-    padding: '20px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '14px',
+    padding: '22px 24px',
   },
   verifyHeaderRow: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'start',
     gap: '16px',
-    flexWrap: 'wrap',
+    marginBottom: '16px',
   },
   verifyTitle: {
-    margin: '0 0 4px 0',
-    fontSize: '16px',
-    fontWeight: 600,
-    color: '#ffffff',
-  },
-  verifyDesc: {
     margin: 0,
-    fontSize: '12px',
-    color: '#b5b5be',
+    fontSize: '14px',
+    fontWeight: 800,
+    color: '#181716',
+    letterSpacing: '0.05em',
+  },
+  buttonVerify: {
+    backgroundColor: '#a83322',
+    color: '#fff4ec',
+    border: 'none',
+    borderRadius: '5px',
+    padding: '10px 18px',
+    fontSize: '11px',
+    fontWeight: 800,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
   },
   resultBox: {
-    backgroundColor: '#0c0c0e',
+    backgroundColor: '#e4ded2',
     border: '1px solid',
-    borderRadius: '6px',
+    borderRadius: '5px',
     padding: '14px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-  },
-  resultBadgeRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
   },
   badge: {
     color: '#fff',
     padding: '2px 8px',
     borderRadius: '4px',
-    fontSize: '11px',
-    fontWeight: 700,
-    letterSpacing: '0.08em',
-  },
-  resultSummary: {
-    fontSize: '12px',
-    color: '#c4c7d4',
+    fontSize: '10px',
+    fontWeight: 800,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
   },
   hashCompareRow: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
+    marginTop: '12px',
     fontSize: '12px',
+    fontFamily: 'ui-monospace, monospace',
   },
   subLabel: {
-    color: '#767a8f',
+    color: '#767065',
+    fontWeight: 600,
   },
   codeHash: {
-    color: '#d4ff3f',
-    fontWeight: 600,
+    color: '#181716',
+    fontWeight: 700,
   },
 };
