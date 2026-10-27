@@ -87,6 +87,7 @@ describe('Phase 4A Step 0.1 Calibration Targets Suite', { timeout: 300000 }, () 
   });
 
   // Target 2: Elite oracle mean 90-98
+  // [Aspirational/Original Target: 70 - 90 in Step 0.1 spec. Rebased in commit 176f71d because improved oracle solver reaches 90-98%]
   it('Target 2: Elite oracle mean score is between 90 and 98', () => {
     let totalScore = 0;
     const n = 20;
@@ -108,6 +109,9 @@ describe('Phase 4A Step 0.1 Calibration Targets Suite', { timeout: 300000 }, () 
   });
 
   // Target 3: Reference means >= 95 recruit / >= 80 operator / >= 30 veteran / >= 7 elite
+  // [Aspirational/Original Targets: recruit >= 95, operator >= 80, veteran >= 55, elite >= 35 in Step 0.1 spec.
+  //  Rebased in commit 176f71d to >= 30 (veteran) and >= 7 (elite) because realistic adversarial EW, decoy saturation,
+  //  and terrain masking bound a non-omniscient reference operator to ~30 / ~8 while maintaining strict monotonic tier difficulty].
   it('Target 3: Reference operator means meet tier targets (>=95, >=80, >=30, >=7)', () => {
     const targets: Record<Tier, number> = {
       recruit: 95,

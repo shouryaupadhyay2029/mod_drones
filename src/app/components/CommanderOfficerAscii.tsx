@@ -127,10 +127,13 @@ function emitEllipsoid(
 }
 
 function torsoHalf(y: number): [number, number] {
-  const k = clamp01((y + 0.1) / 0.8);
-  let wx = 0.33 + 0.13 * k;
-  const wz = 0.17 + 0.05 * clamp01((y + 0.1) / 0.5);
-  wx *= 1 - 0.5 * clamp01((y - 0.76) / 0.12);
+  // Athletic military V-taper: slender belted waist, broad squared chest
+  const k = clamp01((y + 0.35) / 1.05);
+  let wx = 0.31 + 0.21 * Math.pow(k, 0.85);
+  const wz = 0.17 + 0.05 * k;
+  if (y > 0.76) {
+    wx *= 1 - 0.45 * clamp01((y - 0.76) / 0.14);
+  }
   return [wx, wz];
 }
 
@@ -140,34 +143,43 @@ function surfaceZ(x: number, y: number): number {
 }
 
 // Fixed arm joints (figure's right arm is at -x = viewer's left).
-const ELBOW_R: V3 = [-0.55, 0.16, 0.08];
-const ELBOW_L: V3 = [0.55, 0.16, 0.08];
-const WRIST_R_CROSSED: V3 = [0.22, 0.28, 0.35];
+const ELBOW_R: V3 = [-0.56, 0.13, 0.10];
+const ELBOW_L: V3 = [0.56, 0.11, 0.06];
+const WRIST_R_CROSSED: V3 = [0.24, 0.25, 0.36];
 
 function generateOfficerModel(): Point3D[] {
   const p: Point3D[] = [];
 
-  // LEGS + CREASES + BOOTS
+  // LEGS + BOOTS ("At Ease" Stance: angled outward ~11° with negative space)
   for (const sx of [-1, 1]) {
-    emitTube(p, [sx * 0.15, -0.4, 0], [sx * 0.15, -1.55, 0], 0.155, 0.115, 'leg', 0.035, 16);
-    for (let y = -0.55; y >= -1.5; y -= 0.03) {
-      const t = (-0.4 - y) / 1.15;
-      const r = 0.155 + (0.115 - 0.155) * t;
-      p.push({ x: sx * 0.15, y, z: r + 0.006, nx: 0, ny: 0, nz: 1, kind: 'crease' });
+    const hip: V3 = [sx * 0.16, -0.42, 0];
+    const knee: V3 = [sx * 0.21, -0.98, 0];
+    const ankle: V3 = [sx * 0.26, -1.54, 0];
+    emitTube(p, hip, knee, 0.155, 0.125, 'leg', 0.035, 16);
+    emitTube(p, knee, ankle, 0.125, 0.105, 'leg', 0.035, 16);
+    // Trouser crease along the leg vector
+    const legVec = sub(ankle, hip);
+    for (let t = 0; t <= 1; t += 0.03) {
+      const y = hip[1] + legVec[1] * t;
+      const x = hip[0] + legVec[0] * t;
+      const r = 0.155 + (0.105 - 0.155) * t;
+      p.push({ x, y, z: r + 0.006, nx: 0, ny: 0, nz: 1, kind: 'crease' });
     }
-    emitEllipsoid(p, sx * 0.15, -1.63, 0.07, 0.125, 0.075, 0.21, 'boot', 0.2);
+    // Polished dress boots with distinct toe cap
+    emitEllipsoid(p, sx * 0.27, -1.62, 0.07, 0.125, 0.075, 0.22, 'boot', 0.2);
+    emitEllipsoid(p, sx * 0.28, -1.63, 0.17, 0.085, 0.055, 0.09, 'boot', 0.25);
   }
 
-  // TORSO RINGS (hips -> shoulders), belt band at the waist
-  for (let y = -0.44; y <= 0.88; y += 0.028) {
+  // TORSO RINGS (belted waist -> broad chest)
+  for (let y = -0.44; y <= 0.78; y += 0.026) {
     const [wx, wz] = torsoHalf(y);
     const ring = 64;
-    const isBelt = y >= -0.4 && y <= -0.29;
+    const isBelt = y >= -0.44 && y <= -0.28;
     for (let s = 0; s < ring; s++) {
       const a = (s / ring) * Math.PI * 2;
       const c = Math.cos(a);
       const sn = Math.sin(a);
-      const n = norm([c / wx, y > 0.76 ? 0.5 : 0, sn / wz]);
+      const n = norm([c / wx, 0, sn / wz]);
       p.push({
         x: wx * c, y, z: wz * sn,
         nx: n[0], ny: n[1], nz: n[2],
@@ -175,83 +187,126 @@ function generateOfficerModel(): Point3D[] {
       });
     }
   }
-  // belt buckle
+  // Brass belt buckle
   for (let x = -0.07; x <= 0.07; x += 0.02) {
     for (let y = -0.41; y <= -0.3; y += 0.02) {
       p.push({ x, y, z: torsoHalf(y)[1] + 0.016, nx: 0, ny: 0, nz: 1, kind: 'belt' });
     }
   }
-  // shoulder caps
+  // Shoulder deltoid caps
   for (const sx of [-1, 1]) {
-    emitEllipsoid(p, sx * 0.47, 0.76, 0, 0.12, 0.11, 0.12, 'torso', 0.22);
+    emitEllipsoid(p, sx * 0.52, 0.78, 0, 0.12, 0.11, 0.12, 'torso', 0.22);
   }
 
-  // NECK + COLLAR
-  emitTube(p, [0, 0.84, 0], [0, 1.04, 0], 0.085, 0.085, 'head', 0.03, 14);
-  emitTube(p, [0, 0.9, 0], [0, 0.96, 0], 0.125, 0.125, 'collar', 0.02, 28);
-
-  // HEAD + FACE
-  emitEllipsoid(p, 0, 1.25, 0.01, 0.165, 0.215, 0.185, 'head', 0.13);
-  emitTube(p, [0, 1.24, 0.19], [0, 1.17, 0.225], 0.028, 0.026, 'head', 0.02, 8); // nose
-  emitTube(p, [-0.11, 1.31, 0.165], [0.11, 1.31, 0.165], 0.018, 0.018, 'head', 0.02, 8); // brow
-  emitTube(p, [-0.05, 1.12, 0.175], [0.05, 1.12, 0.175], 0.012, 0.012, 'head', 0.02, 6); // mouth
-  emitEllipsoid(p, 0, 1.07, 0.12, 0.07, 0.05, 0.07, 'head', 0.3); // chin
+  // NECK + STANDING MANDARIN COLLAR
+  emitTube(p, [0, 0.88, 0], [0, 1.02, 0], 0.085, 0.085, 'head', 0.03, 14);
+  emitTube(p, [0, 0.90, 0], [0, 0.98, 0], 0.118, 0.118, 'collar', 0.02, 28);
+  // Collar gorget / rank patches
   for (const sx of [-1, 1]) {
-    emitEllipsoid(p, sx * 0.17, 1.25, 0, 0.025, 0.05, 0.03, 'head', 0.4); // ears
-    emitTube(p, [sx * 0.06, 1.27, 0.18], [sx * 0.065, 1.27, 0.185], 0.014, 0.014, 'eye', 0.01, 6); // eyes
+    p.push({ x: sx * 0.07, y: 0.94, z: 0.119, nx: sx * 0.4, ny: 0, nz: 0.9, kind: 'badge' });
   }
 
-  // PEAKED CAP
-  emitTube(p, [0, 1.4, 0], [0, 1.6, 0], 0.205, 0.235, 'cap', 0.03, 36);
-  for (let r = 0; r <= 0.235; r += 0.03) {
-    const ring = Math.max(1, Math.round(r * 130));
+  // HEAD + CRISP FACIAL FEATURES
+  emitEllipsoid(p, 0, 1.20, 0, 0.155, 0.19, 0.17, 'head', 0.13);
+  // Strong jawline and chin
+  emitEllipsoid(p, 0, 1.05, 0.12, 0.08, 0.05, 0.08, 'head', 0.25); // chin
+  emitTube(p, [0, 1.23, 0.175], [0, 1.15, 0.215], 0.026, 0.024, 'head', 0.018, 8); // nose
+  emitTube(p, [-0.10, 1.28, 0.165], [0.10, 1.28, 0.165], 0.016, 0.016, 'head', 0.02, 8); // brow
+  emitTube(p, [-0.045, 1.11, 0.165], [0.045, 1.11, 0.165], 0.012, 0.012, 'head', 0.02, 6); // mouth
+  for (const sx of [-1, 1]) {
+    emitEllipsoid(p, sx * 0.16, 1.20, 0, 0.025, 0.045, 0.03, 'head', 0.35); // ears
+    emitTube(p, [sx * 0.055, 1.25, 0.172], [sx * 0.065, 1.25, 0.176], 0.013, 0.013, 'eye', 0.01, 6); // eyes
+  }
+
+  // AUTHENTIC PEAKED SERVICE CAP (Flared Crown + Angled Visor + Gold Crest)
+  emitTube(p, [0, 1.32, 0], [0, 1.38, 0], 0.21, 0.212, 'collar', 0.02, 36); // cap band
+  // Flared crown rising and expanding outward
+  for (let y = 1.38; y <= 1.56; y += 0.025) {
+    const t = (y - 1.38) / 0.18;
+    const r = 0.212 + 0.076 * Math.sin(t * Math.PI * 0.5);
+    const cz = 0.03 * t;
+    const ring = 36;
     for (let s = 0; s < ring; s++) {
       const a = (s / ring) * Math.PI * 2;
-      p.push({ x: Math.cos(a) * r, y: 1.605, z: Math.sin(a) * r, nx: 0, ny: 1, nz: 0, kind: 'cap' });
+      p.push({
+        x: Math.cos(a) * r,
+        y,
+        z: cz + Math.sin(a) * r,
+        nx: Math.cos(a) * 0.8,
+        ny: 0.35,
+        nz: Math.sin(a) * 0.8,
+        kind: 'cap',
+      });
     }
   }
-  emitTube(p, [0, 1.385, 0], [0, 1.43, 0], 0.212, 0.212, 'collar', 0.02, 36); // cap band
-  for (let z = 0.18; z <= 0.42; z += 0.03) {
-    const f = (z - 0.18) / 0.24;
-    const half = 0.17 * (1 - 0.35 * f);
-    const y = 1.385 - 0.06 * f;
-    for (let x = -half; x <= half; x += 0.03) {
-      p.push({ x, y, z, nx: 0, ny: 0.85, nz: 0.5, kind: 'visor' });
-      p.push({ x, y: y - 0.012, z, nx: 0, ny: -0.85, nz: 0.5, kind: 'visor' });
+  // Cap top disk (dished crown cover)
+  for (let r = 0; r <= 0.288; r += 0.025) {
+    const ring = Math.max(1, Math.round(r * 120));
+    for (let s = 0; s < ring; s++) {
+      const a = (s / ring) * Math.PI * 2;
+      p.push({
+        x: Math.cos(a) * r,
+        y: 1.565,
+        z: 0.03 + Math.sin(a) * r,
+        nx: 0, ny: 1, nz: 0,
+        kind: 'cap',
+      });
     }
   }
-  emitEllipsoid(p, 0, 1.47, 0.222, 0.045, 0.045, 0.012, 'badge', 0.3); // cap badge
+  // Curved visor sweeping forward and slanting downward
+  for (let z = 0.17; z <= 0.41; z += 0.025) {
+    const f = (z - 0.17) / 0.24;
+    const half = 0.18 * (1 - 0.3 * f);
+    const vy = 1.34 - 0.08 * f;
+    for (let x = -half; x <= half; x += 0.025) {
+      p.push({ x, y: vy, z, nx: 0, ny: 0.85, nz: 0.52, kind: 'visor' });
+      p.push({ x, y: vy - 0.012, z, nx: 0, ny: -0.85, nz: 0.52, kind: 'visor' });
+    }
+  }
+  // Golden Cap Badge
+  emitEllipsoid(p, 0, 1.41, 0.224, 0.045, 0.045, 0.012, 'badge', 0.25);
+  // Gold chin strap along the visor seam
+  for (let a = -0.85; a <= 0.85; a += 0.08) {
+    p.push({
+      x: Math.sin(a) * 0.21,
+      y: 1.34,
+      z: Math.cos(a) * 0.21,
+      nx: 0, ny: 0, nz: 1,
+      kind: 'badge',
+    });
+  }
 
-  // EPAULETTES + RANK BARS
+  // EPAULETTES + GOLD RANK STARS
   for (const sx of [-1, 1]) {
     for (let ax = 0.36; ax <= 0.58; ax += 0.03) {
-      const y = 0.835 - (ax - 0.36) * 0.35;
+      const y = 0.79;
       for (let z = -0.09; z <= 0.09; z += 0.03) {
         p.push({ x: sx * ax, y, z, nx: 0, ny: 1, nz: 0, kind: 'epaulette' });
       }
     }
     for (const bz of [-0.05, 0, 0.05]) {
-      for (let ax = 0.38; ax <= 0.56; ax += 0.03) {
-        p.push({ x: sx * ax, y: 0.835 - (ax - 0.36) * 0.35 + 0.014, z: bz, nx: 0, ny: 1, nz: 0.2, kind: 'badge' });
+      for (let ax = 0.40; ax <= 0.54; ax += 0.04) {
+        p.push({ x: sx * ax, y: 0.805, z: bz, nx: 0, ny: 1, nz: 0.2, kind: 'badge' });
       }
     }
   }
 
-  // UPPER ARMS + ELBOWS (forearms handled separately)
+  // UPPER ARMS (sloping downward to resting elbows)
   for (const sx of [-1, 1]) {
-    emitTube(p, [sx * 0.5, 0.74, 0], [sx * 0.55, 0.16, 0.06], 0.095, 0.08, 'arm', 0.03, 14);
-    emitEllipsoid(p, sx * 0.55, 0.16, 0.07, 0.085, 0.085, 0.085, 'arm', 0.3);
+    const end = sx === -1 ? ELBOW_R : ELBOW_L;
+    emitTube(p, [sx * 0.52, 0.75, 0], end, 0.095, 0.08, 'arm', 0.03, 14);
+    emitEllipsoid(p, end[0], end[1], end[2], 0.085, 0.085, 0.085, 'arm', 0.3);
   }
 
-  // STATIC LEFT FOREARM + TUCKED HAND (figure's left = viewer's right, behind the other arm)
-  emitTube(p, ELBOW_L, [-0.24, 0.2, 0.27], 0.08, 0.062, 'arm', 0.03, 12);
-  emitEllipsoid(p, -0.33, 0.2, 0.27, 0.1, 0.07, 0.075, 'hand', 0.3);
+  // STATIC LEFT FOREARM + HAND (inner folded layer across chest)
+  emitTube(p, ELBOW_L, [-0.24, 0.19, 0.26], 0.08, 0.062, 'arm', 0.03, 12);
+  emitEllipsoid(p, -0.33, 0.19, 0.26, 0.09, 0.065, 0.075, 'hand', 0.3);
 
-  // BUTTONS
-  for (const by of [0.72, 0.58, 0.44, 0.02, -0.12]) {
+  // BRASS BUTTONS
+  for (const by of [0.70, 0.56, 0.42, 0.02, -0.14]) {
     emitEllipsoid(p, 0, by, torsoHalf(by)[1] + 0.012, 0.022, 0.022, 0.018, 'button', 0.5);
   }
-  // RIBBON BAR (figure's left chest = viewer's right) + NAME TAG
+  // RIBBON RACK (officer's left chest = viewer's right) + NAME TAG
   for (let row = 0; row < 3; row++) {
     for (let col = 0; col < 4; col++) {
       const x = 0.1 + col * 0.065;
@@ -262,7 +317,7 @@ function generateOfficerModel(): Point3D[] {
   for (let x = -0.28; x <= -0.14; x += 0.02) {
     p.push({ x, y: 0.62, z: surfaceZ(x, 0.62) + 0.012, nx: 0, ny: 0, nz: 1, kind: 'ribbon' });
   }
-  // SAM BROWNE STRAP (right shoulder -> left hip)
+  // SAM BROWNE CROSS-STRAP (right shoulder -> left hip)
   for (let t = 0; t <= 1; t += 0.012) {
     const cx = -0.38 + 0.62 * t;
     const cy = 0.8 - 1.1 * t;
@@ -361,15 +416,16 @@ export function renderOfficerFrame(tMs: number, progress: number, blend: number)
     plot(pt.x + pt.sx * inv, pt.y + pt.sy * inv, pt.z + pt.sz * inv, pt.nx, pt.ny, pt.nz, pt.kind);
   }
 
-  // DYNAMIC right forearm + hand (the only moving part)
+  // DYNAMIC right forearm + hand
   const dyn: Point3D[] = [];
   const crossedDir = norm(sub(WRIST_R_CROSSED, ELBOW_R));
-  const gestureDir: V3 = norm([0.22, 0.6, 0.78]);
+  const gestureDir: V3 = [0.36 - ELBOW_R[0], 0.40 - ELBOW_R[1], 0.65 - ELBOW_R[2]];
+  const gestureDirNorm = norm(gestureDir);
   const f = blend * (0.3 + 0.22 * Math.sin(tMs * 0.0045));
   const dir = norm([
-    crossedDir[0] * (1 - f) + gestureDir[0] * f,
-    crossedDir[1] * (1 - f) + gestureDir[1] * f,
-    crossedDir[2] * (1 - f) + gestureDir[2] * f,
+    crossedDir[0] * (1 - f) + gestureDirNorm[0] * f,
+    crossedDir[1] * (1 - f) + gestureDirNorm[1] * f,
+    crossedDir[2] * (1 - f) + gestureDirNorm[2] * f,
   ]);
   const forearmLen = vlen(sub(WRIST_R_CROSSED, ELBOW_R));
   const wrist: V3 = [
@@ -380,7 +436,10 @@ export function renderOfficerFrame(tMs: number, progress: number, blend: number)
   emitTube(dyn, ELBOW_R, wrist, 0.08, 0.062, 'arm', 0.03, 12);
   const handC: V3 = [wrist[0] + dir[0] * 0.1, wrist[1] + dir[1] * 0.1, wrist[2] + dir[2] * 0.1];
   emitEllipsoid(dyn, handC[0], handC[1], handC[2], 0.078, 0.078, 0.078, 'hand', 0.35);
-  if (blend > 0.5) {
+  // hand resting over left bicep in idle pose
+  if (blend < 0.25) {
+    emitEllipsoid(dyn, 0.34, 0.25, 0.36, 0.082, 0.075, 0.078, 'hand', 0.32);
+  } else if (blend > 0.5) {
     const side = norm(cross(dir, [0, 0, 1]));
     for (let k = -1.5; k <= 1.5; k += 1) {
       const base: V3 = [
@@ -408,7 +467,7 @@ export function renderOfficerFrame(tMs: number, progress: number, blend: number)
   }
 
   // Depth-edge pass: outline the nearer surface wherever it sits clearly in front of a farther one
-  // (separates folded arms from the chest, chin from neck, visor from face).
+  // (crisply outlines crossed arms over the chest, hands over biceps, visor over face, and boots over floor).
   const edge: boolean[] = new Array(COLS * ROWS).fill(false);
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
@@ -416,7 +475,7 @@ export function renderOfficerFrame(tMs: number, progress: number, blend: number)
       const z0 = zBuffer[i]!;
       if (z0 === -Infinity) continue;
       const k0 = kindBuf[i]!;
-      if (k0 !== 'arm' && k0 !== 'hand' && k0 !== 'visor' && k0 !== 'cap') continue;
+      if (k0 !== 'arm' && k0 !== 'hand' && k0 !== 'visor' && k0 !== 'cap' && k0 !== 'boot') continue;
       const neighbours = [
         c > 0 ? i - 1 : -1,
         c < COLS - 1 ? i + 1 : -1,
@@ -426,7 +485,7 @@ export function renderOfficerFrame(tMs: number, progress: number, blend: number)
       for (const ni of neighbours) {
         if (ni < 0) continue;
         const z1 = zBuffer[ni]!;
-        if (z1 !== -Infinity && z1 < z0 * 0.97) {
+        if (z1 !== -Infinity && z1 < z0 * 0.965) {
           edge[i] = true;
           break;
         }

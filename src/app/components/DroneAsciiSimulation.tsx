@@ -164,9 +164,9 @@ function generateDroneModel(): Point3D[] {
     points.push({ x, y, z, nx: normX, ny: normY, nz: normZ, kind });
   };
 
-  // 1. Central Fuselage / Carbon-Fiber Body (Dual-deck faceted plates)
-  for (let x = -0.42; x <= 0.42; x += 0.03) {
-    for (let z = -0.56; z <= 0.56; z += 0.03) {
+  // 1. Central Fuselage / Carbon-Fiber Body (Dual-deck faceted plates + cooling vents + bevels)
+  for (let x = -0.42; x <= 0.42; x += 0.028) {
+    for (let z = -0.56; z <= 0.56; z += 0.028) {
       // Octagonal boundary chamfer
       if (Math.abs(x) * 1.25 + Math.abs(z) * 0.95 > 0.88) continue;
 
@@ -176,40 +176,49 @@ function generateDroneModel(): Point3D[] {
       // Lower carbon deck (Facing Down)
       addPt(x, -0.10, z, 0, -1, 0, 'body');
 
-      // Perimeter structural bulkheads
+      // Top Deck Longitudinal Heat Vents
+      if (Math.abs(x) > 0.08 && Math.abs(x) < 0.28 && Math.abs(z) < 0.38 && Math.abs(z) > 0.08) {
+        if (Math.abs(z % 0.08) < 0.025) {
+          addPt(x, 0.125, z, x > 0 ? 0.6 : -0.6, 0.8, 0, 'body');
+        }
+      }
+
+      // Perimeter structural bulkheads and angled edge bevels
       const isPerimeter =
         Math.abs(x) > 0.30 || Math.abs(z) > 0.46 || (Math.abs(x) * 1.25 + Math.abs(z) * 0.95 > 0.76);
       if (isPerimeter) {
-        for (let y = -0.10; y <= 0.10; y += 0.035) {
-          addPt(x, y, z, x * 1.5, 0, z * 1.5, 'body');
+        for (let y = -0.10; y <= 0.10; y += 0.032) {
+          addPt(x, y, z, x * 1.8, y * 0.5, z * 1.8, 'body');
         }
       }
     }
   }
 
-  // 2. High-Capacity Battery Pack & Top Avionics Hump
-  for (let x = -0.24; x <= 0.24; x += 0.03) {
-    for (let z = -0.32; z <= 0.22; z += 0.03) {
+  // 2. High-Capacity Battery Pack & Top Avionics Deck Hump
+  for (let x = -0.24; x <= 0.24; x += 0.028) {
+    for (let z = -0.32; z <= 0.22; z += 0.028) {
       const curve = 1.0 - (x * x) / (0.24 * 0.24) * 0.4;
       const topY = 0.10 + 0.13 * curve;
-      for (let y = 0.10; y <= topY; y += 0.03) {
-        addPt(x, y, z, x, 0.8, z * 0.5, 'body');
+      for (let y = 0.10; y <= topY; y += 0.028) {
+        addPt(x, y, z, x * 1.2, 0.8, z * 0.6, 'body');
       }
     }
   }
 
   // 2b. Satellite GPS Receiver Puck on Avionics Deck
-  for (let theta = 0; theta < Math.PI * 2; theta += 0.3) {
-    for (let r = 0.02; r <= 0.09; r += 0.025) {
-      addPt(r * Math.cos(theta), 0.24, -0.10 + r * Math.sin(theta), 0, 1, 0, 'body');
+  for (let theta = 0; theta < Math.PI * 2; theta += 0.26) {
+    for (let r = 0.02; r <= 0.095; r += 0.022) {
+      const px = r * Math.cos(theta);
+      const pz = -0.10 + r * Math.sin(theta);
+      addPt(px, 0.24, pz, px * 2, 1.0, (pz + 0.10) * 2, 'body');
     }
   }
 
-  // 3. Forward Optical Tracking Camera & Gimbal Turret (Spherical volume)
+  // 3. Forward EO/IR Dual Gimbal Turret (Spherical volume & Dual Lens Assembly)
   const gimbalCenter = { x: 0, y: -0.07, z: 0.68 };
   const gimbalRadius = 0.17;
-  for (let phi = 0; phi <= Math.PI; phi += 0.18) {
-    for (let theta = 0; theta < Math.PI * 2; theta += 0.22) {
+  for (let phi = 0; phi <= Math.PI; phi += 0.16) {
+    for (let theta = 0; theta < Math.PI * 2; theta += 0.20) {
       const rx = gimbalRadius * Math.sin(phi) * Math.cos(theta);
       const ry = gimbalRadius * Math.sin(phi) * Math.sin(theta);
       const rz = gimbalRadius * Math.cos(phi);
@@ -224,16 +233,46 @@ function generateDroneModel(): Point3D[] {
       );
     }
   }
-  // Camera optical lens ring
-  for (let theta = 0; theta < Math.PI * 2; theta += 0.2) {
-    const lr = 0.08;
+
+  // 3b. Primary Optical Camera Lens & Bezel Ring
+  for (let theta = 0; theta < Math.PI * 2; theta += 0.18) {
+    const lr = 0.085;
+    const lx = lr * Math.cos(theta);
+    const ly = lr * Math.sin(theta);
+    // Outer lens bezel ring
     addPt(
-      gimbalCenter.x + lr * Math.cos(theta),
-      gimbalCenter.y + lr * Math.sin(theta),
-      gimbalCenter.z + gimbalRadius + 0.02,
+      gimbalCenter.x + lx,
+      gimbalCenter.y + ly,
+      gimbalCenter.z + gimbalRadius + 0.018,
+      lx * 0.8,
+      ly * 0.8,
+      1.0,
+      'camera',
+    );
+    // Inner optical glass element
+    if (theta % 0.36 < 0.18) {
+      addPt(
+        gimbalCenter.x + lx * 0.5,
+        gimbalCenter.y + ly * 0.5,
+        gimbalCenter.z + gimbalRadius + 0.025,
+        0,
+        0,
+        1.0,
+        'camera',
+      );
+    }
+  }
+
+  // 3c. Secondary Thermal IR Camera Port
+  const irCenter = { x: 0.065, y: -0.06, z: 0.85 };
+  for (let theta = 0; theta < Math.PI * 2; theta += 0.3) {
+    addPt(
+      irCenter.x + 0.035 * Math.cos(theta),
+      irCenter.y + 0.035 * Math.sin(theta),
+      irCenter.z,
       0,
       0,
-      1,
+      1.0,
       'camera',
     );
   }
@@ -241,15 +280,15 @@ function generateDroneModel(): Point3D[] {
   // 4. Rear Dual Angled Telemetry & Video Antennas
   for (const sign of [-1, 1]) {
     const ax = sign * 0.10;
-    for (let y = 0.10; y <= 0.40; y += 0.03) {
-      addPt(ax, y, -0.60, sign * 0.3, 0.7, -0.6, 'antenna');
+    for (let y = 0.10; y <= 0.42; y += 0.028) {
+      addPt(ax, y, -0.60, sign * 0.4, 0.7, -0.6, 'antenna');
     }
     // Angled whip antenna tip
-    addPt(ax + sign * 0.04, 0.44, -0.65, sign * 0.5, 0.6, -0.6, 'antenna');
-    addPt(ax + sign * 0.08, 0.48, -0.70, sign * 0.6, 0.5, -0.6, 'antenna');
+    addPt(ax + sign * 0.04, 0.46, -0.65, sign * 0.5, 0.6, -0.6, 'antenna');
+    addPt(ax + sign * 0.08, 0.50, -0.70, sign * 0.6, 0.5, -0.6, 'antenna');
   }
 
-  // 5. Four Carbon-Fiber Motor Arms with Ducted Rotor Guards
+  // 5. Four Carbon-Fiber Motor Arms with 4-Spoke Ducted Rotor Guards
   const armAngles = [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4, (7 * Math.PI) / 4];
   const armLength = 1.55;
   const guardRadius = 0.62;
@@ -261,64 +300,72 @@ function generateDroneModel(): Point3D[] {
     const perpZ = cosA;
 
     // Reinforced tubular arm trusses
-    for (let r = 0.28; r <= armLength; r += 0.025) {
+    for (let r = 0.28; r <= armLength; r += 0.024) {
       addPt(r * cosA, 0.03, r * sinA, 0, 1, 0, 'arm');
       addPt(r * cosA, -0.05, r * sinA, 0, -1, 0, 'arm');
-      addPt(r * cosA + perpX * 0.035, -0.01, r * sinA + perpZ * 0.035, perpX, 0, perpZ, 'arm');
-      addPt(r * cosA - perpX * 0.035, -0.01, r * sinA - perpZ * 0.035, -perpX, 0, -perpZ, 'arm');
+      addPt(r * cosA + perpX * 0.038, -0.01, r * sinA + perpZ * 0.038, perpX, 0, perpZ, 'arm');
+      addPt(r * cosA - perpX * 0.038, -0.01, r * sinA - perpZ * 0.038, -perpX, 0, -perpZ, 'arm');
     }
 
     // Heavy-duty Brushless Motor Stator Pod
     const mx = armLength * cosA;
     const mz = armLength * sinA;
-    for (let my = -0.12; my <= 0.13; my += 0.03) {
-      for (let theta = 0; theta < Math.PI * 2; theta += 0.3) {
+    for (let my = -0.12; my <= 0.13; my += 0.028) {
+      for (let theta = 0; theta < Math.PI * 2; theta += 0.28) {
         const mr = 0.15;
         const cx = mr * Math.cos(theta);
         const cz = mr * Math.sin(theta);
-        addPt(mx + cx, my, mz + cz, cx, 0.2, cz, 'motor');
+        addPt(mx + cx, my, mz + cz, cx * 1.5, 0.2, cz * 1.5, 'motor');
       }
     }
-    // Motor Bell Top Dome Cap
-    for (let r = 0.03; r <= 0.14; r += 0.03) {
-      for (let theta = 0; theta < Math.PI * 2; theta += 0.4) {
+    // Motor Bell Top Dome Cap & Shaft Bolt
+    for (let r = 0.02; r <= 0.145; r += 0.028) {
+      for (let theta = 0; theta < Math.PI * 2; theta += 0.36) {
         addPt(mx + r * Math.cos(theta), 0.14, mz + r * Math.sin(theta), 0, 1, 0, 'motor');
       }
     }
 
-    // 360-Degree Circular Rotor Guard Duct around each motor (high-density continuous rim)
-    for (let theta = 0; theta < Math.PI * 2; theta += 0.06) {
+    // 360-Degree Circular Rotor Guard Duct around each motor
+    for (let theta = 0; theta < Math.PI * 2; theta += 0.055) {
       const gx = guardRadius * Math.cos(theta);
       const gz = guardRadius * Math.sin(theta);
 
-      // Upper guard rim
+      // Upper guard rim (facing upward & outward)
       addPt(mx + gx, 0.08, mz + gz, gx * 0.8, 0.6, gz * 0.8, 'arm');
-      // Lower guard rim
+      // Lower guard rim (facing downward & outward)
       addPt(mx + gx, -0.05, mz + gz, gx * 0.8, -0.6, gz * 0.8, 'arm');
-      // Outer duct aerodynamic shroud
-      addPt(mx + (guardRadius + 0.02) * Math.cos(theta), 0.015, mz + (guardRadius + 0.02) * Math.sin(theta), gx, 0, gz, 'arm');
+      // Outer duct aerodynamic shroud (facing pure outward for crisp rim light)
+      addPt(mx + (guardRadius + 0.022) * Math.cos(theta), 0.015, mz + (guardRadius + 0.022) * Math.sin(theta), gx, 0, gz, 'arm');
     }
 
-    // Guard radial reinforcement spokes (4 spokes per motor)
+    // Guard radial reinforcement spokes (4 spokes per motor at 0°, 90°, 180°, 270°)
     for (let spokeAngle = 0; spokeAngle < Math.PI * 2; spokeAngle += Math.PI / 2) {
       const sc = Math.cos(spokeAngle);
       const ss = Math.sin(spokeAngle);
-      for (let gr = 0.15; gr <= guardRadius; gr += 0.04) {
-        addPt(mx + gr * sc, 0.01, mz + gr * ss, -ss, 0.8, sc, 'arm');
+      for (let gr = 0.15; gr <= guardRadius; gr += 0.038) {
+        addPt(mx + gr * sc, 0.01, mz + gr * ss, -ss * 0.5, 0.8, sc * 0.5, 'arm');
       }
     }
   }
 
-  // 6. Tactical Landing Skids
+  // 6. Tactical Landing Gear Skids & Structural Support Struts
   for (const signX of [-1, 1]) {
     const sx = signX * 0.44;
-    for (let sz = -0.58; sz <= 0.58; sz += 0.03) {
-      const tipCurve = sz > 0.46 ? (sz - 0.46) * 0.75 : 0;
-      addPt(sx, -0.28 + tipCurve, sz, signX * 0.7, -0.5, 0, 'body');
+    // Longitudinal skid tube
+    for (let sz = -0.58; sz <= 0.58; sz += 0.028) {
+      const tipCurve = Math.abs(sz) > 0.46 ? (Math.abs(sz) - 0.46) * 0.75 : 0;
+      addPt(sx, -0.28 + tipCurve, sz, signX * 0.8, -0.6, sz * 0.3, 'body');
     }
-    for (let sy = -0.28; sy <= -0.10; sy += 0.03) {
-      addPt(sx, sy, 0.30, signX, 0, 0, 'body');
-      addPt(sx, sy, -0.30, signX, 0, 0, 'body');
+    // Vertical mounting legs
+    for (let sy = -0.28; sy <= -0.10; sy += 0.028) {
+      addPt(sx, sy, 0.30, signX * 0.9, 0, 0.3, 'body');
+      addPt(sx, sy, -0.30, signX * 0.9, 0, -0.3, 'body');
+    }
+    // Angled cross-braces
+    for (let t = 0; t <= 1.0; t += 0.2) {
+      const bx = sx * (1.0 - t * 0.3);
+      const by = -0.10 - t * 0.18;
+      addPt(bx, by, 0.0, signX * 0.7, -0.4, 0, 'body');
     }
   }
 
@@ -355,20 +402,10 @@ export function DroneAsciiSimulation({
   const lineBlRef = useRef<SVGPathElement | null>(null);
   const lineBrRef = useRef<SVGPathElement | null>(null);
 
-  const dotTlRef = useRef<SVGCircleElement | null>(null);
-  const dotTrRef = useRef<SVGCircleElement | null>(null);
-  const dotBlRef = useRef<SVGCircleElement | null>(null);
-  const dotBrRef = useRef<SVGCircleElement | null>(null);
-
-  const ringTlRef = useRef<SVGCircleElement | null>(null);
-  const ringTrRef = useRef<SVGCircleElement | null>(null);
-  const ringBlRef = useRef<SVGCircleElement | null>(null);
-  const ringBrRef = useRef<SVGCircleElement | null>(null);
-
-  const pinTlRef = useRef<SVGCircleElement | null>(null);
-  const pinTrRef = useRef<SVGCircleElement | null>(null);
-  const pinBlRef = useRef<SVGCircleElement | null>(null);
-  const pinBrRef = useRef<SVGCircleElement | null>(null);
+  const reticleTlRef = useRef<SVGGElement | null>(null);
+  const reticleTrRef = useRef<SVGGElement | null>(null);
+  const reticleBlRef = useRef<SVGGElement | null>(null);
+  const reticleBrRef = useRef<SVGGElement | null>(null);
 
   // Layout cache to avoid layout thrashing during 60fps loop
   const layoutRef = useRef({
@@ -469,23 +506,6 @@ export function DroneAsciiSimulation({
 
     if (svgRef.current) {
       svgRef.current.setAttribute('viewBox', `0 0 ${contW} ${contH}`);
-    }
-
-    if (pinTlRef.current) {
-      pinTlRef.current.setAttribute('cx', String(c1Pos.x));
-      pinTlRef.current.setAttribute('cy', String(c1Pos.y));
-    }
-    if (pinTrRef.current) {
-      pinTrRef.current.setAttribute('cx', String(c2Pos.x));
-      pinTrRef.current.setAttribute('cy', String(c2Pos.y));
-    }
-    if (pinBlRef.current) {
-      pinBlRef.current.setAttribute('cx', String(c3Pos.x));
-      pinBlRef.current.setAttribute('cy', String(c3Pos.y));
-    }
-    if (pinBrRef.current) {
-      pinBrRef.current.setAttribute('cx', String(c4Pos.x));
-      pinBrRef.current.setAttribute('cy', String(c4Pos.y));
     }
   };
 
@@ -818,62 +838,37 @@ export function DroneAsciiSimulation({
         y: originY + (brPt.screenY / rows) * preHeight,
       };
 
-      // Update SVG HUD Leader Lines (only when HUD is active and visible)
+      // Update SVG HUD Leader Lines & Tactical Reticles (only when HUD is active and visible)
       if (!isHudHidden) {
-        if (lineTlRef.current) {
-          const doglegX = c1.x + 44;
-          lineTlRef.current.setAttribute('d', `M ${c1.x} ${c1.y} L ${doglegX} ${c1.y} L ${rTL.x} ${rTL.y}`);
-        }
-        if (dotTlRef.current) {
-          dotTlRef.current.setAttribute('cx', String(rTL.x));
-          dotTlRef.current.setAttribute('cy', String(rTL.y));
-        }
-        if (ringTlRef.current) {
-          ringTlRef.current.setAttribute('cx', String(rTL.x));
-          ringTlRef.current.setAttribute('cy', String(rTL.y));
-        }
+        const reticleAngle = (currentTime * 0.002) % (Math.PI * 2);
 
-        if (lineTrRef.current) {
-          const doglegX = c2.x - 44;
-          lineTrRef.current.setAttribute('d', `M ${c2.x} ${c2.y} L ${doglegX} ${c2.y} L ${rTR.x} ${rTR.y}`);
-        }
-        if (dotTrRef.current) {
-          dotTrRef.current.setAttribute('cx', String(rTR.x));
-          dotTrRef.current.setAttribute('cy', String(rTR.y));
-        }
-        if (ringTrRef.current) {
-          ringTrRef.current.setAttribute('cx', String(rTR.x));
-          ringTrRef.current.setAttribute('cy', String(rTR.y));
-        }
+        const updateReticleGroup = (
+          pathEl: SVGPathElement | null,
+          reticleEl: SVGGElement | null,
+          cardPos: { x: number; y: number },
+          rotorPt: { x: number; y: number },
+          isRightSide: boolean,
+        ) => {
+          if (!pathEl || !reticleEl) return;
+          const doglegOffset = isRightSide ? -44 : 44;
+          const doglegX = cardPos.x + doglegOffset;
+          pathEl.setAttribute(
+            'd',
+            `M ${cardPos.x} ${cardPos.y} L ${doglegX} ${cardPos.y} L ${rotorPt.x} ${rotorPt.y}`,
+          );
+          reticleEl.setAttribute(
+            'transform',
+            `translate(${rotorPt.x}, ${rotorPt.y}) rotate(${(reticleAngle * 180) / Math.PI})`,
+          );
+        };
 
-        if (lineBlRef.current) {
-          const doglegX = c3.x + 44;
-          lineBlRef.current.setAttribute('d', `M ${c3.x} ${c3.y} L ${doglegX} ${c3.y} L ${rBL.x} ${rBL.y}`);
-        }
-        if (dotBlRef.current) {
-          dotBlRef.current.setAttribute('cx', String(rBL.x));
-          dotBlRef.current.setAttribute('cy', String(rBL.y));
-        }
-        if (ringBlRef.current) {
-          ringBlRef.current.setAttribute('cx', String(rBL.x));
-          ringBlRef.current.setAttribute('cy', String(rBL.y));
-        }
-
-        if (lineBrRef.current) {
-          const doglegX = c4.x - 44;
-          lineBrRef.current.setAttribute('d', `M ${c4.x} ${c4.y} L ${doglegX} ${c4.y} L ${rBR.x} ${rBR.y}`);
-        }
-        if (dotBrRef.current) {
-          dotBrRef.current.setAttribute('cx', String(rBR.x));
-          dotBrRef.current.setAttribute('cy', String(rBR.y));
-        }
-        if (ringBrRef.current) {
-          ringBrRef.current.setAttribute('cx', String(rBR.x));
-          ringBrRef.current.setAttribute('cy', String(rBR.y));
-        }
+        updateReticleGroup(lineTlRef.current, reticleTlRef.current, c1, rTL, false);
+        updateReticleGroup(lineTrRef.current, reticleTrRef.current, c2, rTR, true);
+        updateReticleGroup(lineBlRef.current, reticleBlRef.current, c3, rBL, false);
+        updateReticleGroup(lineBrRef.current, reticleBrRef.current, c4, rBR, true);
       }
 
-      // 2. Render ASCII 3D Point Cloud with Volumetric Directional Lighting
+      // 2. Render ASCII 3D Point Cloud with Volumetric Directional Lighting & Blinn-Phong Specular Rim Highlights
       for (let i = 0; i < allPoints.length; i++) {
         const pt = allPoints[i]!;
 
@@ -910,17 +905,33 @@ export function DroneAsciiSimulation({
             const nz2 = ny * sinP + nz1 * cosP;
             const nx2 = nx1;
 
-            // Lambertian diffuse lighting dot product: N · L
-            const dot = nx2 * lightDir[0] + ny2 * lightDir[1] + nz2 * lightDir[2];
-            const diffuse = Math.max(0, dot);
+            // 1. Lambertian Diffuse Lighting: N · L
+            const diffDot = nx2 * lightDir[0] + ny2 * lightDir[1] + nz2 * lightDir[2];
+            const diffuse = Math.max(0, diffDot);
+
+            // 2. Blinn-Phong Specular Rim Highlight (V = [0, 0, -1] viewing vector into screen)
+            // Halfway vector H = normalize(L + V) where V = (0, 0, -1)
+            const hx = lightDir[0];
+            const hy = lightDir[1];
+            const hz = lightDir[2] - 1.0;
+            const hLen = Math.sqrt(hx * hx + hy * hy + hz * hz);
+            const normHx = hLen > 1e-6 ? hx / hLen : 0;
+            const normHy = hLen > 1e-6 ? hy / hLen : 0;
+            const normHz = hLen > 1e-6 ? hz / hLen : -1;
+
+            const ndotH = nx2 * normHx + ny2 * normHy + nz2 * normHz;
+            const specular = Math.pow(Math.max(0, ndotH), 16); // Sharp carbon-fiber highlight exponent
+
+            // 3. Rim Lighting edge pop (grazing angles where normal is perpendicular to view vector)
+            const rim = Math.pow(1.0 - Math.abs(nz2), 3.0);
 
             // Depth modulation (closer surfaces have bolder ink presence)
             const depthNorm = Math.max(0, Math.min(1, (z2 + 1.8) / 3.6));
 
-            // Combined 3D lighting model: 62% directional light + 38% depth
-            const ambient = 0.28;
-            const lightFactor = ambient + (1.0 - ambient) * diffuse;
-            const combinedIntensity = 0.62 * lightFactor + 0.38 * depthNorm;
+            // Combined 3D lighting model: Diffuse + Specular + Rim + Depth
+            const ambient = 0.24;
+            const lightFactor = ambient + 0.52 * diffuse + 0.35 * specular + 0.22 * rim;
+            const combinedIntensity = 0.58 * lightFactor + 0.42 * depthNorm;
 
             const minInk = 3;
             let rampIdx = minInk + Math.floor(combinedIntensity * (ASCII_RAMP.length - 1 - minInk));
@@ -928,6 +939,8 @@ export function DroneAsciiSimulation({
             if (pt.kind === 'propeller') {
               rampIdx = Math.min(ASCII_RAMP.length - 1, rampIdx + 2);
             } else if (pt.kind === 'camera') {
+              rampIdx = Math.min(ASCII_RAMP.length - 1, rampIdx + 2);
+            } else if (pt.kind === 'motor') {
               rampIdx = Math.min(ASCII_RAMP.length - 1, rampIdx + 1);
             }
 
@@ -1021,7 +1034,7 @@ export function DroneAsciiSimulation({
         {/* Card Connection Boundary Pins */}
         {/* Connection Pins removed for ultra-clean minimalist look */}
 
-        {/* Top-Left Leader Line & Reticle */}
+        {/* Top-Left Leader Line & Rotating Targeting Reticle */}
         <path
           ref={lineTlRef}
           className="hero-leader-line"
@@ -1029,10 +1042,17 @@ export function DroneAsciiSimulation({
           strokeWidth="1.6"
           fill="none"
         />
-        <circle ref={ringTlRef} r="9" fill="none" stroke="#d35623" strokeWidth="1" strokeDasharray="2 2" />
-        <circle ref={dotTlRef} r="3" fill="#d35623" />
+        <g ref={reticleTlRef}>
+          <circle r="11" fill="none" stroke="#d35623" strokeWidth="1" strokeDasharray="3 3" />
+          <circle r="6" fill="none" stroke="#d35623" strokeWidth="0.8" opacity="0.7" />
+          <line x1="-15" y1="0" x2="-8" y2="0" stroke="#d35623" strokeWidth="1.2" />
+          <line x1="8" y1="0" x2="15" y2="0" stroke="#d35623" strokeWidth="1.2" />
+          <line x1="0" y1="-15" x2="0" y2="-8" stroke="#d35623" strokeWidth="1.2" />
+          <line x1="0" y1="8" x2="0" y2="15" stroke="#d35623" strokeWidth="1.2" />
+          <circle r="2.5" fill="#d35623" />
+        </g>
 
-        {/* Top-Right Leader Line & Reticle */}
+        {/* Top-Right Leader Line & Rotating Targeting Reticle */}
         <path
           ref={lineTrRef}
           className="hero-leader-line"
@@ -1040,10 +1060,17 @@ export function DroneAsciiSimulation({
           strokeWidth="1.6"
           fill="none"
         />
-        <circle ref={ringTrRef} r="9" fill="none" stroke="#d35623" strokeWidth="1" strokeDasharray="2 2" />
-        <circle ref={dotTrRef} r="3" fill="#d35623" />
+        <g ref={reticleTrRef}>
+          <circle r="11" fill="none" stroke="#d35623" strokeWidth="1" strokeDasharray="3 3" />
+          <circle r="6" fill="none" stroke="#d35623" strokeWidth="0.8" opacity="0.7" />
+          <line x1="-15" y1="0" x2="-8" y2="0" stroke="#d35623" strokeWidth="1.2" />
+          <line x1="8" y1="0" x2="15" y2="0" stroke="#d35623" strokeWidth="1.2" />
+          <line x1="0" y1="-15" x2="0" y2="-8" stroke="#d35623" strokeWidth="1.2" />
+          <line x1="0" y1="8" x2="0" y2="15" stroke="#d35623" strokeWidth="1.2" />
+          <circle r="2.5" fill="#d35623" />
+        </g>
 
-        {/* Bottom-Left Leader Line & Reticle */}
+        {/* Bottom-Left Leader Line & Rotating Targeting Reticle */}
         <path
           ref={lineBlRef}
           className="hero-leader-line"
@@ -1051,10 +1078,17 @@ export function DroneAsciiSimulation({
           strokeWidth="1.6"
           fill="none"
         />
-        <circle ref={ringBlRef} r="9" fill="none" stroke="#d35623" strokeWidth="1" strokeDasharray="2 2" />
-        <circle ref={dotBlRef} r="3" fill="#d35623" />
+        <g ref={reticleBlRef}>
+          <circle r="11" fill="none" stroke="#d35623" strokeWidth="1" strokeDasharray="3 3" />
+          <circle r="6" fill="none" stroke="#d35623" strokeWidth="0.8" opacity="0.7" />
+          <line x1="-15" y1="0" x2="-8" y2="0" stroke="#d35623" strokeWidth="1.2" />
+          <line x1="8" y1="0" x2="15" y2="0" stroke="#d35623" strokeWidth="1.2" />
+          <line x1="0" y1="-15" x2="0" y2="-8" stroke="#d35623" strokeWidth="1.2" />
+          <line x1="0" y1="8" x2="0" y2="15" stroke="#d35623" strokeWidth="1.2" />
+          <circle r="2.5" fill="#d35623" />
+        </g>
 
-        {/* Bottom-Right Leader Line & Reticle */}
+        {/* Bottom-Right Leader Line & Rotating Targeting Reticle */}
         <path
           ref={lineBrRef}
           className="hero-leader-line"
@@ -1062,8 +1096,15 @@ export function DroneAsciiSimulation({
           strokeWidth="1.6"
           fill="none"
         />
-        <circle ref={ringBrRef} r="9" fill="none" stroke="#d35623" strokeWidth="1" strokeDasharray="2 2" />
-        <circle ref={dotBrRef} r="3" fill="#d35623" />
+        <g ref={reticleBrRef}>
+          <circle r="11" fill="none" stroke="#d35623" strokeWidth="1" strokeDasharray="3 3" />
+          <circle r="6" fill="none" stroke="#d35623" strokeWidth="0.8" opacity="0.7" />
+          <line x1="-15" y1="0" x2="-8" y2="0" stroke="#d35623" strokeWidth="1.2" />
+          <line x1="8" y1="0" x2="15" y2="0" stroke="#d35623" strokeWidth="1.2" />
+          <line x1="0" y1="-15" x2="0" y2="-8" stroke="#d35623" strokeWidth="1.2" />
+          <line x1="0" y1="8" x2="0" y2="15" stroke="#d35623" strokeWidth="1.2" />
+          <circle r="2.5" fill="#d35623" />
+        </g>
       </svg>
 
       {/* Feature 1: Top-Left (Radar Tracking) — Anchored to outer top-left screen quadrant */}

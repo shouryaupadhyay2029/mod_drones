@@ -19,6 +19,15 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Paper texture supplied for the opening hero viewport. */
+.mission-hero-backdrop {
+  background-color: #e8e2d6;
+  background-image: url('../../../bg.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 .vj-about em {
   font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
   font-style: italic;
@@ -109,8 +118,8 @@
   display: inline-block;
   white-space: pre;
   opacity: clamp(0.2, var(--x), 1);
-  transform: translate3d(0, clamp(0px, calc((1 - var(--x)) * 10px), 10px), 0);
-  will-change: opacity, transform;
+  transform: translate3d(0, calc((1 - var(--w, 0)) * 10px), 0);
+  will-change: transform, color, opacity;
   transition: opacity 0.06s linear, transform 0.06s ease-out;
 }
 
@@ -657,8 +666,13 @@
   gap: 12px;
   padding: 36px clamp(20px, 5vw, 76px);
   border: 1px solid rgba(45, 40, 35, 0.16);
-  background: rgba(222, 215, 202, 0.97);
+  background-color: #eee9df;
+  background-image: url('../../../bg1.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   box-shadow: 0 8px 26px rgba(32, 28, 23, 0.035);
+  will-change: transform;
 }
 
 .vj-guide-header-copy::before {
@@ -716,6 +730,7 @@
   border-right: 1px solid var(--vj-line);
   border-bottom: 1px solid var(--vj-line);
   border-radius: 0;
+  will-change: transform;
   transition:
     transform 0.3s cubic-bezier(0.2, 0.75, 0.25, 1),
     background-color 0.3s ease,
@@ -986,6 +1001,7 @@
   width: 100%;
   text-align: justify;
   text-align-last: justify;
+  transform: translate3d(0, calc((1 - var(--p, 1)) * 18%), 0);
 }
 
 /* Sub-row Links */

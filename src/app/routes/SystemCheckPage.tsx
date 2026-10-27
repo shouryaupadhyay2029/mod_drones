@@ -5,23 +5,6 @@ import { SimClient, SimStateUpdate } from '../simClient.js';
 import { useLenisScrollRoot } from '../hooks/useLenisScrollRoot.js';
 import '../aar/aar.css';
 
-function SplitTitle({ text }: { text: string }) {
-  return (
-    <>
-      {text.split('').map((ch, i) => (
-        <span key={i} className="vj-char-mask">
-          <span
-            className="vj-split-char"
-            style={{ '--char-index': i } as React.CSSProperties}
-          >
-            {ch === ' ' ? ' ' : ch}
-          </span>
-        </span>
-      ))}
-    </>
-  );
-}
-
 function RevealWords({
   text,
   accentWords = [],
@@ -211,12 +194,9 @@ export function SystemCheckPage(): React.JSX.Element {
     <div
       ref={scrollRootRef}
       data-scroll-root=""
-      style={{
-        ...styles.container,
-        backgroundImage: 'url(/textures/fine-grain.png)',
-      }}
+      className="syscheck-root"
     >
-      <div data-lenis-content="" style={styles.contentWrapper}>
+      <div data-lenis-content="" className="syscheck-shell">
         {/* 8-Column Stair Transition */}
         <div className="vj-stair-transition" aria-hidden="true">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -229,80 +209,84 @@ export function SystemCheckPage(): React.JSX.Element {
         </div>
 
         {/* Top Editorial Navigation Bar */}
-        <header style={styles.navBar}>
+        <header className="aar-topline" style={styles.navBar}>
           <a href="#/" style={styles.brandLink}>
             <img
               src="/vajra-emblem.png"
               alt=""
               style={{ width: 24, height: 26 }}
             />{' '}
-            VAJRA / SYSTEM CHECK
+            VAJRA <span className="aar-muted">/</span> SYSTEM CHECK
           </a>
-          <a href="#/" style={styles.returnLink}>
+          <a href="#/" className="aar-back-link">
             <TextRoll center stagger={0.015}>
               RETURN TO CONSOLE ↗
             </TextRoll>
           </a>
         </header>
 
-        {/* Hero Header */}
-        <div style={styles.eyebrow}>
-          PHASE 0 · DETERMINISTIC CORE // ENGINE DIAGNOSTICS
-        </div>
-        <h1 style={styles.heroTitle}>
-          <SplitTitle text="System check" />
-        </h1>
-        <p style={styles.heroSubtitle}>
-          <RevealWords
-            text="Deterministic simulation clock, FNV-1a 64-bit state digest, bit-parity replay verification, and snapshot round-trip diagnostics. Training simulation — generic open-source parameters only."
-            accentWords={['Deterministic', 'FNV-1a', 'bit-parity', 'snapshot']}
-          />
-        </p>
-
-        {/* Live Metrics Grid */}
-        <section style={styles.metricsGrid}>
-          <div
-            className="aar-card vj-card-cascade"
-            style={{ ...styles.metricCard, '--card-index': 0 } as React.CSSProperties}
-          >
-            <div style={styles.metricLabel}>TICK</div>
-            <div style={styles.metricValue}>{simState.tick.toLocaleString()}</div>
-            <div style={styles.metricCaption}>Simulation ticks</div>
+        {/* Hero Header with Stacked Display Title and Theatre Badge */}
+        <div className="syscheck-heading-wrap">
+          <div className="syscheck-heading-left">
+            <p className="syscheck-kicker">
+              PHASE 0 <span className="kicker-sep">/</span> DETERMINISTIC CORE <span className="kicker-sep">/</span> ENGINE DIAGNOSTICS
+            </p>
+            <h1 className="syscheck-title-stack" aria-label="System diagnostics">
+              <span className="vj-title-line-mask">
+                <span className="syscheck-title-main anim-title-main">System</span>
+              </span>
+              <span className="vj-title-line-mask">
+                <span className="syscheck-title-sub anim-title-sub">diagnostics</span>
+              </span>
+            </h1>
+            <p className="syscheck-subtitle">
+              <span className="syscheck-bullet">•</span>{' '}
+              <RevealWords
+                text="Deterministic simulation clock, FNV-1a 64-bit state digest, bit-parity replay verification, and snapshot round-trip diagnostics. Training simulation — generic open-source parameters only."
+                accentWords={['Deterministic', 'FNV-1a', 'bit-parity', 'snapshot']}
+              />
+            </p>
           </div>
-          <div
-            className="aar-card vj-card-cascade"
-            style={{ ...styles.metricCard, '--card-index': 1 } as React.CSSProperties}
-          >
-            <div style={styles.metricLabel}>STATE HASH</div>
-            <div style={{ ...styles.metricValue, ...styles.monoHash }}>
+          <div className="syscheck-heading-right">
+            <div className="syscheck-theatre-badge">
+              <span className="badge-tag">DIAGNOSTIC TESTBED</span>
+              <span className="badge-code">// CORE-00</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Metrics Grid - Embedded on Background */}
+        <section className="aar-grid aar-grid-kpis" style={{ marginTop: 24, marginBottom: 28 }}>
+          <div className="syscheck-kpi" style={{ animationDelay: '0.42s' }}>
+            <span className="syscheck-kpi-label">TICK</span>
+            <div className="syscheck-kpi-value">{simState.tick.toLocaleString()}</div>
+            <span className="syscheck-kpi-note">Simulation ticks</span>
+          </div>
+          <div className="syscheck-kpi" style={{ animationDelay: '0.50s' }}>
+            <span className="syscheck-kpi-label">STATE HASH</span>
+            <div
+              className="syscheck-kpi-value"
+              style={{ fontSize: '18px', fontFamily: 'ui-monospace, monospace', color: '#a83322' }}
+            >
               {simState.hash || 'COMPUTING...'}
             </div>
-            <div style={styles.metricCaption}>FNV-1a 64-bit digest</div>
+            <span className="syscheck-kpi-note">FNV-1a 64-bit digest</span>
           </div>
-          <div
-            className="aar-card vj-card-cascade"
-            style={{ ...styles.metricCard, '--card-index': 2 } as React.CSSProperties}
-          >
-            <div style={styles.metricLabel}>ENTITIES</div>
-            <div style={styles.metricValue}>{simState.entityCount}</div>
-            <div style={styles.metricCaption}>Active tracked contacts</div>
+          <div className="syscheck-kpi" style={{ animationDelay: '0.58s' }}>
+            <span className="syscheck-kpi-label">ENTITIES</span>
+            <div className="syscheck-kpi-value">{simState.entityCount}</div>
+            <span className="syscheck-kpi-note">Active tracked contacts</span>
           </div>
-          <div
-            className="aar-card vj-card-cascade"
-            style={{ ...styles.metricCard, '--card-index': 3 } as React.CSSProperties}
-          >
-            <div style={styles.metricLabel}>THROUGHPUT</div>
-            <div style={styles.metricValue}>{tps}</div>
-            <div style={styles.metricCaption}>Worker throughput</div>
+          <div className="syscheck-kpi" style={{ animationDelay: '0.66s' }}>
+            <span className="syscheck-kpi-label">THROUGHPUT</span>
+            <div className="syscheck-kpi-value">{tps}</div>
+            <span className="syscheck-kpi-note">Worker throughput</span>
           </div>
-          <div
-            className="aar-card vj-card-cascade"
-            style={{ ...styles.metricCard, '--card-index': 4 } as React.CSSProperties}
-          >
-            <div style={styles.metricLabel}>RUN STATE</div>
+          <div className="syscheck-kpi" style={{ animationDelay: '0.74s' }}>
+            <span className="syscheck-kpi-label">RUN STATE</span>
             <div
+              className="syscheck-kpi-value"
               style={{
-                ...styles.metricValue,
                 color: simState.isRunning ? '#4e660e' : '#a83322',
               }}
             >
@@ -314,15 +298,12 @@ export function SystemCheckPage(): React.JSX.Element {
               />
               {simState.isRunning ? 'RUNNING' : 'PAUSED'}
             </div>
-            <div style={styles.metricCaption}>Engine loop state</div>
+            <span className="syscheck-kpi-note">Engine loop state</span>
           </div>
         </section>
 
-        {/* Controls Section */}
-        <section
-          className="aar-card vj-card-cascade"
-          style={{ ...styles.controlPanel, '--card-index': 5 } as React.CSSProperties}
-        >
+        {/* Controls Section - Embedded Directly on Background */}
+        <section className="syscheck-controls-strip">
           <div style={styles.seedRow}>
             <input
               id="seedInput"
@@ -371,12 +352,9 @@ export function SystemCheckPage(): React.JSX.Element {
           </div>
         </section>
 
-        {/* Verification Checks */}
+        {/* Verification Checks - Embedded Directly on Background */}
         <section style={styles.verificationSection}>
-          <div
-            className="aar-card vj-card-cascade"
-            style={{ ...styles.verifyCard, '--card-index': 6 } as React.CSSProperties}
-          >
+          <div className="syscheck-verify-block" style={{ animationDelay: '0.85s' }}>
             <div style={styles.verifyHeaderRow}>
               <div>
                 <h3 style={styles.verifyTitle}>Replay Verification</h3>
@@ -426,10 +404,7 @@ export function SystemCheckPage(): React.JSX.Element {
             )}
           </div>
 
-          <div
-            className="aar-card vj-card-cascade"
-            style={{ ...styles.verifyCard, '--card-index': 7 } as React.CSSProperties}
-          >
+          <div className="syscheck-verify-block" style={{ animationDelay: '0.95s' }}>
             <div style={styles.verifyHeaderRow}>
               <div>
                 <h3 style={styles.verifyTitle}>Snapshot & Restore</h3>
@@ -595,11 +570,11 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '16px',
   },
   input: {
-    backgroundColor: '#e4ded2',
-    border: '1px solid rgba(45, 40, 35, 0.24)',
+    backgroundColor: 'rgba(45, 40, 35, 0.04)',
+    border: '1px solid rgba(45, 40, 35, 0.22)',
     color: '#181716',
-    padding: '10px 14px',
-    borderRadius: '5px',
+    padding: '9px 14px',
+    borderRadius: '4px',
     fontFamily: 'ui-monospace, monospace',
     fontSize: '13px',
     fontWeight: 600,
@@ -675,18 +650,19 @@ const styles: Record<string, React.CSSProperties> = {
     backgroundColor: '#a83322',
     color: '#fff4ec',
     border: 'none',
-    borderRadius: '5px',
-    padding: '10px 18px',
+    borderRadius: '4px',
+    padding: '9px 18px',
     fontSize: '11px',
     fontWeight: 800,
-    letterSpacing: '0.1em',
+    letterSpacing: '0.12em',
     textTransform: 'uppercase',
     cursor: 'pointer',
+    boxShadow: '0 4px 14px rgba(168, 51, 34, 0.22)',
   },
   resultBox: {
-    backgroundColor: '#e4ded2',
+    backgroundColor: 'rgba(45, 40, 35, 0.03)',
     border: '1px solid',
-    borderRadius: '5px',
+    borderRadius: '4px',
     padding: '14px',
   },
   badge: {

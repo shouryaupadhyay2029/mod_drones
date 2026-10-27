@@ -199,8 +199,11 @@ body {
 }
 
 .console-header.is-scrolled {
-  background: transparent;
-  border-bottom-color: transparent;
+  /* Keep the floating nav strip full-bleed; the nav itself stays inset. */
+  background: rgba(222, 215, 202, 0.94);
+  border-bottom-color: rgba(45, 40, 35, 0.13);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .console-header.is-scrolled .console-main-nav {

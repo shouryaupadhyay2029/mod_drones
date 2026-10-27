@@ -59,18 +59,6 @@ function launchFork(session: SessionRecord, tick: number): void {
   window.location.hash = '#/fork';
 }
 
-function SplitTitle({ text }: { text: string }): React.JSX.Element {
-  return <>
-    {text.split('').map((ch, i) => (
-      <span className="vj-char-mask" key={i}>
-        <span className="vj-split-char" style={{ '--char-index': i } as React.CSSProperties}>
-          {ch === ' ' ? ' ' : ch}
-        </span>
-      </span>
-    ))}
-  </>;
-}
-
 function RevealWords({ text, accentWords = [], baseIndex = 0 }: { text: string; accentWords?: string[]; baseIndex?: number }): React.JSX.Element {
   const parts = text.split(/(\s+)/);
   let wordCounter = 0;
@@ -138,28 +126,54 @@ function AnimatedKpiValue({ value }: { value: string | number }): React.JSX.Elem
 }
 
 function shellHeader(label: string, subtitle: string): React.JSX.Element {
-  return <>
-    <div className="vj-stair-transition" aria-hidden="true">
-      {Array.from({ length: 8 }, (_, i) => (
-        <span className="vj-stair-panel" key={i} style={{ '--stair-index': i } as React.CSSProperties} />
-      ))}
-    </div>
-    <header className="aar-topline">
-      <a className="aar-brand" href="#/" aria-label="Return to VAJRA console">
-        <img src="/vajra-emblem.png" alt="" /> VAJRA <span className="aar-muted">/</span> AAR
-      </a>
-      <a className="aar-back-link" href="#/">
-        <TextRoll center stagger={0.015}>RETURN TO CONSOLE ↗</TextRoll>
-      </a>
-    </header>
-    <div className="aar-title-group">
-      <p className="aar-kicker">TRAINING ANALYTICS / LOCAL RECORDS <span className="aar-meta-badge">VAJRA // TELEMETRY ARCHIVE</span></p>
-      <h1 className="aar-title" aria-label={label}><SplitTitle text={label} /></h1>
-    </div>
-    <p className="aar-subtitle">
-      <RevealWords text={subtitle} accentWords={['performance', 'trends', 'readiness', 'score', 'replay', 'timeline']} />
-    </p>
-  </>;
+  const words = label.split(' ');
+  const firstWord = words.length > 1 ? words.slice(0, Math.ceil(words.length / 2)).join(' ') : label;
+  const secondWord = words.length > 1 ? words.slice(Math.ceil(words.length / 2)).join(' ') : '';
+
+  return (
+    <>
+      <div className="vj-stair-transition" aria-hidden="true">
+        {Array.from({ length: 8 }, (_, i) => (
+          <span className="vj-stair-panel" key={i} style={{ '--stair-index': i } as React.CSSProperties} />
+        ))}
+      </div>
+      <header className="aar-topline">
+        <a className="aar-brand" href="#/" aria-label="Return to VAJRA console">
+          <img src="/vajra-emblem.png" alt="" /> VAJRA <span className="aar-muted">/</span> AFTER ACTION REVIEW
+        </a>
+        <a className="aar-back-link" href="#/">
+          <TextRoll center stagger={0.015}>RETURN TO CONSOLE ↗</TextRoll>
+        </a>
+      </header>
+      <div className="aar-heading-wrap">
+        <div className="aar-heading-left">
+          <p className="aar-kicker">
+            TRAINING ANALYTICS <span className="kicker-sep">/</span> LOCAL RECORDS <span className="kicker-sep">/</span> TELEMETRY
+          </p>
+          <h1 className="aar-title-stack" aria-label={label}>
+            <span className="vj-title-line-mask">
+              <span className="aar-title-main anim-title-main">{firstWord}</span>
+            </span>
+            {secondWord ? (
+              <span className="vj-title-line-mask">
+                <span className="aar-title-sub anim-title-sub">{secondWord}</span>
+              </span>
+            ) : null}
+          </h1>
+          <p className="aar-subtitle">
+            <span className="aar-bullet">•</span>{' '}
+            <RevealWords text={subtitle} accentWords={['performance', 'trends', 'readiness', 'score', 'replay', 'timeline']} />
+          </p>
+        </div>
+        <div className="aar-heading-right">
+          <div className="aar-theatre-badge">
+            <span className="badge-tag">TELEMETRY ARCHIVE</span>
+            <span className="badge-code">// 43R-TH</span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
 
 function CsvDownload({ sessions, trainees }: { sessions: SessionRecord[]; trainees: TraineeRecord[] }): React.JSX.Element {
@@ -424,7 +438,7 @@ export function AarPage(): React.JSX.Element {
 
 function Kpi({ label, value, note, index = 0 }: { label: string; value: string | number; note: string; index?: number }): React.JSX.Element {
   return (
-    <section className="aar-card vj-card-cascade" style={{ '--card-index': index } as React.CSSProperties}>
+    <section className="aar-kpi" style={{ animationDelay: `${0.4 + index * 0.08}s` }}>
       <span className="aar-kpi-label">{label}</span>
       <strong className="aar-kpi-value"><AnimatedKpiValue value={value} /></strong>
       <span className="aar-kpi-note">{note}</span>
