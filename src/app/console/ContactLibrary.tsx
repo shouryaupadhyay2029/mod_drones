@@ -5,6 +5,7 @@ import { CivilianQuadAsciiSimulation } from '../components/CivilianQuadAsciiSimu
 import { FpvKamikazeAsciiSimulation } from '../components/FpvKamikazeAsciiSimulation.js';
 import { FpvFiberAsciiSimulation } from '../components/FpvFiberAsciiSimulation.js';
 import { FixedWingAsciiSimulation } from '../components/FixedWingAsciiSimulation.js';
+import { DecoyDroneAsciiSimulation } from '../components/DecoyDroneAsciiSimulation.js';
 import { useLenisScrollRoot } from '../hooks/useLenisScrollRoot.js';
 import './contact-library.css';
 
@@ -331,6 +332,11 @@ export function ContactReferencePage({ contact, onBack }: ContactReferencePagePr
         {previewContact?.id === 'fixed_wing_recon' && (
           <div className="contact-bird-ascii-stage" aria-hidden="true">
             <FixedWingAsciiSimulation scrollRootRef={scrollRootRef} />
+          </div>
+        )}
+        {previewContact?.id === 'decoy_drone' && (
+          <div className="contact-bird-ascii-stage" aria-hidden="true">
+            <DecoyDroneAsciiSimulation scrollRootRef={scrollRootRef} />
           </div>
         )}
 
