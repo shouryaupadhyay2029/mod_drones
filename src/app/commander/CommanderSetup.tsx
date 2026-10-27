@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { CommanderCommand, CommanderTier, MissileAuth, RaidPlan, RoePosture, generateRaid, intelBrief } from '../../sim/index.js';
 import { TextRoll } from '../components/TextRoll.js';
+import { CommanderOfficerAscii } from '../components/CommanderOfficerAscii.js';
 import { CommanderRevealWords, CommanderSplitTitle } from './CommanderPage.js';
 
 export interface CommanderSetupProps {
@@ -114,6 +115,12 @@ export function CommanderSetup({ onLaunch }: CommanderSetupProps): React.JSX.Ele
           />
         </span>
       </header>
+
+      <div className="commander-officer-stage" aria-hidden="true">
+        <div className="commander-officer-scale">
+          <CommanderOfficerAscii speaking={false} />
+        </div>
+      </div>
 
       <section
         className="commander-panel commander-controls vj-card-cascade"

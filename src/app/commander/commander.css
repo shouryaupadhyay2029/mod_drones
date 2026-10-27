@@ -806,3 +806,20 @@
     font-size: 10px;
   }
 }
+
+/* Officer preview stage (Step 1 preview) */
+.commander-officer-stage {
+  position: relative;
+  height: 580px;
+  margin: 0 0 8px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+.commander-officer-scale {
+  transform: none;
+  transform-origin: top center;
+  width: 100%;
+}
+
