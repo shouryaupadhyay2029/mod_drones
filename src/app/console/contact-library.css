@@ -32,6 +32,7 @@
   position: fixed;
   inset: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   box-sizing: border-box;
   padding: clamp(28px, 7vh, 76px) 24px;
   isolation: isolate;
@@ -683,6 +684,22 @@
     opacity: 1;
     transform: translate3d(0, 0, 0);
   }
+}
+
+.contact-bird-ascii-stage {
+  position: sticky;
+  top: 8vh;
+  height: 420px;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-top: -10px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+  overflow: visible;
 }
 
 @media (prefers-reduced-motion: reduce) {

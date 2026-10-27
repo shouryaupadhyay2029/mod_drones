@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { THREAT_LIBRARY, ThreatClassId } from '../../sim/index.js';
+import { BirdAsciiSimulation } from '../components/BirdAsciiSimulation.js';
+import { CivilianQuadAsciiSimulation } from '../components/CivilianQuadAsciiSimulation.js';
 import { useLenisScrollRoot } from '../hooks/useLenisScrollRoot.js';
 import './contact-library.css';
 
@@ -139,7 +141,7 @@ export function ContactReferencePage({ contact, onBack }: ContactReferencePagePr
   const scrollRootRef = useRef<HTMLElement | null>(null);
   useLenisScrollRoot(scrollRootRef);
   const [hoveredContact, setHoveredContact] = useState<ContactReference | null>(null);
-  const [pinnedContact, setPinnedContact] = useState<ContactReference | null>(null);
+  const [pinnedContact, setPinnedContact] = useState<ContactReference | null>(contact);
   const hoverResetTimer = useRef<number | null>(null);
   const previewContact = hoveredContact ?? pinnedContact;
   const profile = THREAT_LIBRARY[(previewContact ?? contact).modelClass];
@@ -151,6 +153,10 @@ export function ContactReferencePage({ contact, onBack }: ContactReferencePagePr
   const cursorTargetRef = useRef({ x: 0, y: 0 });
   const cursorCurrentRef = useRef({ x: 0, y: 0 });
   const activeContactIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    setPinnedContact(contact);
+  }, [contact]);
 
   useEffect(() => {
     setTitleLayers((layers) => layers.current === titleText
@@ -299,6 +305,17 @@ export function ContactReferencePage({ contact, onBack }: ContactReferencePagePr
           </h1>
         </header>
 
+        {previewContact?.id === 'bird' && (
+          <div className="contact-bird-ascii-stage" aria-hidden="true">
+            <BirdAsciiSimulation scrollRootRef={scrollRootRef} />
+          </div>
+        )}
+        {previewContact?.id === 'commercial_quad' && (
+          <div className="contact-bird-ascii-stage" aria-hidden="true">
+            <CivilianQuadAsciiSimulation scrollRootRef={scrollRootRef} />
+          </div>
+        )}
+
         {previewContact && (
           <>
             <div className="contact-editorial-copy" key={previewContact.id}>
@@ -339,8 +356,8 @@ export function ContactReferencePage({ contact, onBack }: ContactReferencePagePr
                 <dl className="contact-editorial-guide">
                   <div><dt>SPEED / COURSE</dt><dd><RevealText text="Estimated motion magnitude and direction of travel. Values are withheld until the track has enough plots for a stable velocity estimate." accentWords={['track', 'stable']} /></dd></div>
                   <div><dt>CLOSING RATE</dt><dd><RevealText text="Range-rate relative to the defended asset: negative means range is decreasing; positive means it is increasing." accentWords={['negative', 'positive']} phase={1} /></dd></div>
-                  <div><dt>TURN RATE</dt><dd><RevealText text="Change in estimated course over time. Read it across several updates because smoothing and plot noise can distort a single value." accentWords={['course', 'plot noise']} phase={2} /></dd></div>
                   <div><dt>ALTITUDE</dt><dd><RevealText text="Estimated height in metres above mean sea level (MSL), not height above the local terrain." accentWords={['MSL', 'not']} phase={3} /></dd></div>
+                  <div><dt>TURN RATE</dt><dd><RevealText text="Change in estimated course over time. Read it across several updates because smoothing and plot noise can distort a single value." accentWords={['course', 'plot noise']} phase={2} /></dd></div>
                   <div><dt>RCS BUCKET / QUALITY</dt><dd><RevealText text="RCS is reported as a broad return-size bucket. Track quality summarizes continuity and measurement quality; it is not an identity probability." accentWords={['track quality', 'not']} phase={4} /></dd></div>
                   <div><dt>RF / EO-IR</dt><dd><RevealText text="RF status describes whether a line or signature was associated with the track. EO/IR may provide a broad visual hint when the turret is locked and conditions permit." accentWords={['RF', 'EO/IR']} phase={5} /></dd></div>
                 </dl>
