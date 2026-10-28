@@ -68,13 +68,23 @@ describe('Phase 6A multi-site simulator', () => {
     expect(restored.getHash()).toBe(session.getHash());
     restored.runToEnd();
     const report = scoreRaid(restored);
-    expect(report.scoreVersion).toBe('raid-1.1');
+    expect(report.scoreVersion).toBe('raid-1.2');
     expect(report.sites.every((site) => site.scoreSessionV2.total >= 0)).toBe(true);
     const replayHash = replayCommander(raid, restored.getSessionLog());
     expect(replayHash).toBe(restored.getHash());
   });
 
-  it('uses the specified piecewise CER curve and never rewards more spend on the same destroyed cost', () => {
+  it('uses avoidable spend for cost exchange score (100 - clamp(avoidableSpend / (0.10 * totalValue) * 100))', () => {
+    // 0 avoidable spend gives 100
+    expect(costExchangeScore(0, 400)).toBe(100);
+    // 20 avoidable spend on 40 budget gives 50
+    expect(costExchangeScore(20, 400)).toBe(50);
+    // 40 avoidable spend on 40 budget gives 0
+    expect(costExchangeScore(40, 400)).toBe(0);
+    // 80 avoidable spend on 40 budget is clamped to 0
+    expect(costExchangeScore(80, 400)).toBe(0);
+
+    // Legacy CER curve is still supported in 4-arg mode
     expect(costExchangeScore(1, 10, 10, 0)).toBe(100);
     expect(costExchangeScore(5, 10, 50, 0)).toBe(60);
     expect(costExchangeScore(10, 10, 100, 0)).toBe(30);
@@ -82,10 +92,6 @@ describe('Phase 6A multi-site simulator', () => {
     expect(costExchangeScore(10, 10, 100, 0)).toBeLessThan(costExchangeScore(5, 10, 50, 0));
     expect(costExchangeScore(0, 0, 1, 0)).toBe(0);
     expect(costExchangeScore(0, 0, 0, 0)).toBe(100);
-    const cheapDecoyCost = 0.5;
-    const noMissileCer = 0 / cheapDecoyCost;
-    const oneMissileCer = 40 / cheapDecoyCost;
-    expect(costExchangeScore(oneMissileCer, cheapDecoyCost, 40, 0)).toBeLessThan(costExchangeScore(noMissileCer, cheapDecoyCost, 0, 0));
   });
 
   it('defaults an unattended run to an even 40% allocation and retains 60% in reserve', () => {
@@ -154,9 +160,9 @@ describe('Phase 6A multi-site simulator', () => {
     expect(report.sites[0]?.defenderSpend).toBe(0);
     expect(report.sites[0]?.attackerCostDestroyed).toBe(0);
     expect(report.subscores.assetPreservation).toBe(60);
-    expect(report.subscores.costExchange).toBe(0);
+    expect(report.subscores.costExchange).toBe(100);
     expect(report.subscores.resourceManagement).toBe(68.2);
     expect(report.subscores.commsResilience).toBe(100);
-    expect(report.total).toBe(54);
+    expect(report.total).toBe(79);
   });
 });

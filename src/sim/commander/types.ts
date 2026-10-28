@@ -107,6 +107,7 @@ export interface SiteRunReport {
   attackerCostDestroyed: number;
   preventedDamageUnits: number;
   defenderSpend: number;
+  avoidableSpend?: number;
   defenderSpendByEffector: { gun: number; jammer: number; missile: number };
   hits: number;
   falseEngagements: number;
@@ -115,7 +116,7 @@ export interface SiteRunReport {
 }
 
 export interface RaidScoreReport {
-  scoreVersion: 'raid-1.1';
+  scoreVersion: 'raid-1.2';
   total: number;
   grade: 'Unsatisfactory' | 'Marginal' | 'Competent' | 'Proficient';
   subscores: {
@@ -130,6 +131,7 @@ export interface RaidScoreReport {
     attackerDestroyed: number;
     preventedDamageUnits: number;
     defenderSpent: number;
+    avoidableSpend: number;
     defenderSpendByEffector: { gun: number; jammer: number; missile: number };
     cer: number;
   };

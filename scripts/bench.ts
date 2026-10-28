@@ -388,7 +388,7 @@ async function main() {
   output += `----------------------------------------------------------------------------------------\n`;
 
   const raidRows = runCommanderBenchmark(20, ['recruit', 'operator', 'veteran']);
-  output += `\n7. COMMANDER RAID SCORES (raid-1.0; 3 tiers x 4 commanders x 20 seeds)\n`;
+  output += `\n7. COMMANDER RAID SCORES (${RAID_SCORE_VERSION}; 3 tiers x 4 commanders x 20 seeds)\n`;
   output += `----------------------------------------------------------------------------------------\n`;
   output += `Tier      Commander               Seed                     Total  Preservation  CER     Hits  Hash\n`;
   output += `----------------------------------------------------------------------------------------\n`;

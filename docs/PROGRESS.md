@@ -175,3 +175,26 @@ Append a dated section after each future item. Include its commit hash(es), what
   - `src/sim` contains zero audio references or Web Audio imports.
   - `AudioContext` only initializes after user gesture (default muted). Mute toggle in `TopBar.tsx` / `synth.ts` persists across app views.
 - **Screenshots**: Real captured PNGs stored in `docs/screenshots/` (Commander console, System Check, AAR session review, degraded comms stale watermark, what-if compare).
+
+## 2026-10-28 — Item 1: Raid Cost Scoring (raid-1.2) Avoidable Spend
+
+- **Raid cost scoring update (`raid-1.2`)**:
+  - Replaced the "total spend / destroyed cost" CER penalty term in `scoreRaid.ts` with avoidable spend: missile rounds fired at decoys (`decoy_drone` or `role === 'decoy'`), neutrals (`!THREAT_LIBRARY[classId].hostile`), ghost tracks (`isGhost || !actor`), or at hostiles with time-to-impact > 20 s at launch (`rangeAtFire / speed > 20`).
+  - Cost score formula: `Cost score = 100 - clamp(avoidableSpend / (0.10 * total site value) * 100)`.
+  - Maintained CER as informational only in `costLedger.cer`.
+  - Preserved subscore weights: 45% Asset Preservation / 25% Cost Exchange / 10% Resource Management / 10% Command Discipline / 10% Comms Resilience.
+- **Missile engagement mechanics**:
+  - Updated `src/sim/systems/engagement.ts` to allow physical missile launches at decoys, neutrals, and ghost tracks when commanded (removing artificial ground-truth peeking that previously rejected valid trainee mistakes), properly incurring the 40-unit avoidable spend penalty.
+  - Stamped `rangeAtFire: rangeToAsset` into `ENGAGEMENT_STARTED` event payload for launch range provenance.
+- **Reporting, Goldens & Debrief UI**:
+  - Bumped `RaidScoreReport['scoreVersion']` to `'raid-1.2'`.
+  - Updated `CommanderDebrief.tsx` with subscore label `Avoidable Cost (25%)`, avoidable missile spend summary, and informational CER indicator.
+  - Updated `scripts/bench.ts` Section 7 header from hardcoded `raid-1.0` to dynamic `${RAID_SCORE_VERSION}` (`raid-1.2`).
+  - Regenerated golden artifact `docs/benchmarks/commander-demo-operator-s1.json` via `scripts/commander-demo.ts`.
+  - Updated unit test assertions in `tests/commander.test.ts`.
+- **Verification**:
+  - `npm test`: 31 files passed (31), 189 tests passed (189).
+  - `npm run lint`: passed cleanly.
+  - `npm run typecheck`: passed cleanly.
+  - `npm run typecheck:sim`: passed cleanly.
+

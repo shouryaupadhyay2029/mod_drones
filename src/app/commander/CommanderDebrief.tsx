@@ -18,7 +18,7 @@ const CAUSE_LABELS: Record<string, string> = {
 
 const SUBSCORE_LABELS: Record<string, string> = {
   assetPreservation: 'Asset Preservation (45%)',
-  costExchange: 'Cost Exchange (25%)',
+  costExchange: 'Avoidable Cost (25%)',
   resourceManagement: 'Resource Management (10%)',
   commandDiscipline: 'Command Discipline (10%)',
   commsResilience: 'Comms Resilience (10%)',
@@ -80,6 +80,9 @@ export function CommanderDebrief({
             Defender spent <b>{report.costLedger.defenderSpent}</b>
           </span>
           <span>
+            Avoidable missile spend <b>{report.costLedger.avoidableSpend ?? 0}</b>
+          </span>
+          <span>
             Gun / jammer / missile{' '}
             <b>
               {report.costLedger.defenderSpendByEffector.gun} /{' '}
@@ -88,7 +91,7 @@ export function CommanderDebrief({
             </b>
           </span>
           <span>
-            CER <b>{report.costLedger.cer}</b>
+            Cost-exchange ratio (CER, info) <b>{report.costLedger.cer}</b>
           </span>
           <span>
             Comms Resilience <b>{report.subscores.commsResilience}</b>

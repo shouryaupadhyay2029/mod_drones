@@ -150,23 +150,34 @@ export function tryEngageTrack(
       events.push({ tick: currentTick, type: 'ENGAGEMENT_REJECTED', payload: { reason: 'out_of_range', trackId, effector, range: rangeToAsset } });
       return;
     }
-    if (!actor || !THREAT_LIBRARY[actor.classId].hostile) {
-      events.push({ tick: currentTick, type: 'ENGAGEMENT_REJECTED', payload: { reason: 'hostile_required', trackId, effector } });
-      return;
-    }
     if (missile.currentEngagement || currentTick < missile.busyUntilTick) {
       events.push({ tick: currentTick, type: 'ENGAGEMENT_REJECTED', payload: { reason: 'effector_busy', trackId, effector } });
       return;
     }
     missile.ammo--;
     const engagement: ActiveEngagement = {
-      effector: 'missile', trackId, actorId: actor.id, startTick: currentTick,
-      resolveTick: currentTick + MISSILE_RESOLVE_TICKS, rangeAtFire: rangeToAsset, speedAtFire: actor.speed,
+      effector: 'missile',
+      trackId,
+      actorId: actor?.id ?? track.actorId,
+      startTick: currentTick,
+      resolveTick: currentTick + MISSILE_RESOLVE_TICKS,
+      rangeAtFire: rangeToAsset,
+      speedAtFire: actor?.speed ?? 0,
     };
     missile.busyUntilTick = currentTick + MISSILE_BUSY_TICKS;
     missile.currentEngagement = engagement;
     track.engagementStatus = 'engaged';
-    events.push({ tick: currentTick, type: 'ENGAGEMENT_STARTED', payload: { trackId, effector, resolveTick: engagement.resolveTick, ammoRemaining: missile.ammo } });
+    events.push({
+      tick: currentTick,
+      type: 'ENGAGEMENT_STARTED',
+      payload: {
+        trackId,
+        effector,
+        resolveTick: engagement.resolveTick,
+        ammoRemaining: missile.ammo,
+        rangeAtFire: rangeToAsset,
+      },
+    });
   }
 }
 

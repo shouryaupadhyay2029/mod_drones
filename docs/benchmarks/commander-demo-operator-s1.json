@@ -140,6 +140,9 @@
     "commands": [
       {
         "tick": 0,
+        "dispatchTick": 0,
+        "deliveryTick": 0,
+        "siteId": "S1",
         "type": "ALLOCATE",
         "payload": {
           "siteId": "S1",
@@ -149,6 +152,9 @@
       },
       {
         "tick": 0,
+        "dispatchTick": 0,
+        "deliveryTick": 0,
+        "siteId": "S2",
         "type": "ALLOCATE",
         "payload": {
           "siteId": "S2",
@@ -158,6 +164,9 @@
       },
       {
         "tick": 0,
+        "dispatchTick": 0,
+        "deliveryTick": 0,
+        "siteId": "S1",
         "type": "SET_MISSILE_AUTH",
         "payload": {
           "siteId": "S1",
@@ -166,6 +175,9 @@
       },
       {
         "tick": 0,
+        "dispatchTick": 0,
+        "deliveryTick": 0,
+        "siteId": "S2",
         "type": "SET_MISSILE_AUTH",
         "payload": {
           "siteId": "S2",
@@ -173,7 +185,10 @@
         }
       },
       {
-        "tick": 58,
+        "tick": 98,
+        "dispatchTick": 98,
+        "deliveryTick": 98,
+        "siteId": "S1",
         "type": "RETASK_RESERVE",
         "payload": {
           "toSiteId": "S1",
@@ -182,16 +197,10 @@
         }
       },
       {
-        "tick": 2810,
-        "type": "RETASK_RESERVE",
-        "payload": {
-          "toSiteId": "S1",
-          "item": "gunAmmo",
-          "amount": 1
-        }
-      },
-      {
-        "tick": 2919,
+        "tick": 2831,
+        "dispatchTick": 2831,
+        "deliveryTick": 2862,
+        "siteId": "S1",
         "type": "RETASK_RESERVE",
         "payload": {
           "toSiteId": "S1",
@@ -200,36 +209,46 @@
         }
       }
     ],
-    "totalTicks": 2929
+    "totalTicks": 2935
   },
   "score": {
-    "scoreVersion": "raid-1.0",
-    "total": 100,
-    "grade": "Distinguished",
+    "scoreVersion": "raid-1.2",
+    "total": 96,
+    "grade": "Proficient",
     "subscores": {
-      "assetPreservation": 100,
+      "assetPreservation": 91.9,
       "costExchange": 100,
-      "resourceManagement": 100,
-      "commandDiscipline": 100
+      "resourceManagement": 92.9,
+      "commandDiscipline": 100,
+      "commsResilience": 100
     },
     "sites": [
       {
         "siteId": "S1",
-        "damagePercent": 0,
-        "attackerCostDestroyed": 2.5,
-        "defenderSpend": 0.18,
-        "hits": 0,
+        "damagePercent": 20,
+        "attackerCostDestroyed": 1,
+        "preventedDamageUnits": 0,
+        "defenderSpend": 0.1,
+        "avoidableSpend": 0,
+        "defenderSpendByEffector": {
+          "gun": 0.08,
+          "jammer": 0.02,
+          "missile": 0
+        },
+        "hits": 1,
         "falseEngagements": 0,
-        "causes": [],
+        "causes": [
+          "misallocated_inventory"
+        ],
         "scoreSessionV2": {
-          "total": 80,
-          "grade": "Competent",
+          "total": 50,
+          "grade": "Marginal",
           "weightedMean": 79.8,
           "subscores": {
             "detection": 100,
             "classification": 77.8,
             "engagement": 73.3,
-            "discipline": 100
+            "discipline": 70
           },
           "perContact": [
             {
@@ -373,11 +392,11 @@
                 {
                   "id": "outcome",
                   "question": "Was threat neutralised before standoff range?",
-                  "answer": "Neutralised at 78m",
+                  "answer": "Reached asset",
                   "points": 0,
                   "maxPoints": 33,
-                  "cause": null,
-                  "note": "Distance: 78m"
+                  "cause": "missed_threat",
+                  "note": "Missed"
                 },
                 {
                   "id": "effector_fit",
@@ -407,9 +426,16 @@
             }
           ],
           "unobservable": [],
-          "penalties": [],
+          "penalties": [
+            {
+              "reason": "Defended asset was hit: -30",
+              "points": 30
+            }
+          ],
           "roeCapApplied": false,
-          "reasons": [],
+          "reasons": [
+            "Defended asset was hit: -30"
+          ],
           "missionDecisionPath": []
         }
       },
@@ -417,7 +443,14 @@
         "siteId": "S2",
         "damagePercent": 0,
         "attackerCostDestroyed": 1,
+        "preventedDamageUnits": 0,
         "defenderSpend": 0.02,
+        "avoidableSpend": 0,
+        "defenderSpendByEffector": {
+          "gun": 0,
+          "jammer": 0.02,
+          "missile": 0
+        },
         "hits": 0,
         "falseEngagements": 0,
         "causes": [],
@@ -551,14 +584,29 @@
       }
     ],
     "costLedger": {
-      "attackerDestroyed": 3.5,
-      "defenderSpent": 0.2,
+      "attackerDestroyed": 2,
+      "preventedDamageUnits": 0,
+      "defenderSpent": 0.12,
+      "avoidableSpend": 0,
+      "defenderSpendByEffector": {
+        "gun": 0.08,
+        "jammer": 0.04,
+        "missile": 0
+      },
       "cer": 0.06
     },
-    "decisionCauses": [],
+    "decisionCauses": [
+      "misallocated_inventory",
+      "reserve_unused",
+      "late_retask"
+    ],
+    "droppedCommands": [],
     "commandTimeline": [
       {
         "tick": 0,
+        "dispatchTick": 0,
+        "deliveryTick": 0,
+        "siteId": "S1",
         "type": "ALLOCATE",
         "payload": {
           "siteId": "S1",
@@ -568,6 +616,9 @@
       },
       {
         "tick": 0,
+        "dispatchTick": 0,
+        "deliveryTick": 0,
+        "siteId": "S2",
         "type": "ALLOCATE",
         "payload": {
           "siteId": "S2",
@@ -577,6 +628,9 @@
       },
       {
         "tick": 0,
+        "dispatchTick": 0,
+        "deliveryTick": 0,
+        "siteId": "S1",
         "type": "SET_MISSILE_AUTH",
         "payload": {
           "siteId": "S1",
@@ -585,6 +639,9 @@
       },
       {
         "tick": 0,
+        "dispatchTick": 0,
+        "deliveryTick": 0,
+        "siteId": "S2",
         "type": "SET_MISSILE_AUTH",
         "payload": {
           "siteId": "S2",
@@ -592,7 +649,10 @@
         }
       },
       {
-        "tick": 58,
+        "tick": 98,
+        "dispatchTick": 98,
+        "deliveryTick": 98,
+        "siteId": "S1",
         "type": "RETASK_RESERVE",
         "payload": {
           "toSiteId": "S1",
@@ -601,16 +661,10 @@
         }
       },
       {
-        "tick": 2810,
-        "type": "RETASK_RESERVE",
-        "payload": {
-          "toSiteId": "S1",
-          "item": "gunAmmo",
-          "amount": 1
-        }
-      },
-      {
-        "tick": 2919,
+        "tick": 2831,
+        "dispatchTick": 2831,
+        "deliveryTick": 2862,
+        "siteId": "S1",
         "type": "RETASK_RESERVE",
         "payload": {
           "toSiteId": "S1",
@@ -635,7 +689,7 @@
         },
         {
           "classId": "fpv_fiber",
-          "state": "neutralized"
+          "state": "impacted"
         }
       ],
       "engagementEvents": [
@@ -657,19 +711,9 @@
             "ammoRemaining": 0,
             "resolveTick": 2228
           }
-        },
-        {
-          "tick": 2918,
-          "type": "ENGAGEMENT_STARTED",
-          "payload": {
-            "trackId": 3,
-            "effector": "gun",
-            "ammoRemaining": 0,
-            "resolveTick": 2928
-          }
         }
       ],
-      "assetHits": 0
+      "assetHits": 1
     },
     {
       "siteId": "S2",

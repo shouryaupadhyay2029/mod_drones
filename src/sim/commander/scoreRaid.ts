@@ -1,11 +1,12 @@
 // Aggregate commander scoring uses generic training-only cost units.
 import { scoreSessionV2 } from '../scoring/doctrine.js';
 import { THREAT_LIBRARY } from '../model/threats.js';
+import { vDist, vec3 } from '../core/vec.js';
 import { attackerCostUnits, defenderCostUnits } from './costs.js';
 import { CommanderSession } from './session.js';
 import { RaidScoreReport, SiteRunReport } from './types.js';
 
-export const RAID_SCORE_VERSION = 'raid-1.1' as const;
+export const RAID_SCORE_VERSION = 'raid-1.2' as const;
 
 export const RAID_SCORE_WEIGHTS = {
   assetPreservation: 0.45,
@@ -26,13 +27,27 @@ function gradeFor(score: number): RaidScoreReport['grade'] {
   return 'Unsatisfactory';
 }
 
-export function costExchangeScore(cer: number, destroyed: number, spent: number, hits: number): number {
-  if (destroyed === 0) return spent > 0 ? 0 : hits === 0 ? 100 : 0;
-  if (cer <= 1) return 100;
-  if (cer <= 5) return 100 - (cer - 1) * 10;
-  if (cer <= 10) return 60 - (cer - 5) * 6;
-  if (cer < 20) return 30 - (cer - 10) * 3;
-  return 0;
+export function costExchangeScore(
+  avoidableSpendOrCer: number,
+  totalSiteValueOrDestroyed: number,
+  spent?: number,
+  hits?: number,
+): number {
+  if (spent !== undefined && hits !== undefined) {
+    const cer = avoidableSpendOrCer;
+    const destroyed = totalSiteValueOrDestroyed;
+    if (destroyed === 0) return spent > 0 ? 0 : hits === 0 ? 100 : 0;
+    if (cer <= 1) return 100;
+    if (cer <= 5) return 100 - (cer - 1) * 10;
+    if (cer <= 10) return 60 - (cer - 5) * 6;
+    if (cer < 20) return 30 - (cer - 10) * 3;
+    return 0;
+  }
+  const avoidableSpend = avoidableSpendOrCer;
+  const totalSiteValue = totalSiteValueOrDestroyed;
+  const budget = 0.10 * totalSiteValue;
+  if (budget <= 0) return avoidableSpend > 0 ? 0 : 100;
+  return 100 - clamp((avoidableSpend / budget) * 100, 0, 100);
 }
 
 export function preventedDamageForMissileKill(
@@ -74,6 +89,7 @@ export function scoreRaid(session: CommanderSession): RaidScoreReport {
   const totalSpendByEffector = { gun: 0, jammer: 0, missile: 0 };
   let totalHits = 0;
   let totalFalse = 0;
+  let totalAvoidableSpend = 0;
   let commsResilience = 100;
   const causes = new Set<string>();
 
@@ -224,7 +240,52 @@ export function scoreRaid(session: CommanderSession): RaidScoreReport {
       siteCauses.push('command_dropped_offline');
     }
 
-    for (const cause of siteCauses) causes.add(cause);
+    let siteAvoidableSpend = 0;
+    const missileStarts = engagementEvents.filter((event) => event.payload?.effector === 'missile');
+    for (const event of missileStarts) {
+      const trackId = Number(event.payload?.trackId);
+      const track = engine.tracks.find((candidate) => candidate.trackId === trackId);
+      const actor = track && engine.actors.find((candidate) => candidate.id === track.actorId);
+      const isGhost = Boolean(track?.isGhost || !actor);
+      const isDecoy = Boolean(actor && (actor.classId === 'decoy_drone' || actor.role === 'decoy'));
+      const isNeutral = Boolean(actor && !THREAT_LIBRARY[actor.classId].hostile && !isDecoy);
+      let isLateOrDistantHostile = false;
+      if (actor && THREAT_LIBRARY[actor.classId].hostile) {
+        let rangeAtLaunch: number | undefined = typeof event.payload?.rangeAtFire === 'number'
+          ? event.payload.rangeAtFire
+          : undefined;
+        if (rangeAtLaunch === undefined) {
+          const resolved = events.find(
+            (e) => e.type === 'ENGAGEMENT_RESOLVED' && e.payload?.effector === 'missile' && Number(e.payload?.trackId) === trackId && e.tick >= event.tick,
+          );
+          if (resolved && actor.neutralizedDistanceToAsset !== undefined && actor.state === 'neutralized') {
+            const flightSec = (resolved.tick - event.tick) / 20;
+            rangeAtLaunch = actor.neutralizedDistanceToAsset + actor.speed * flightSec;
+          } else if (track) {
+            rangeAtLaunch = vDist(track.estimatedPos, vec3(0, 0, 0));
+          }
+        }
+        const speed = actor.speed > 0 ? actor.speed : 25;
+        const timeToImpactSeconds = rangeAtLaunch !== undefined ? rangeAtLaunch / speed : 0;
+        if (timeToImpactSeconds > 20) {
+          isLateOrDistantHostile = true;
+        }
+      }
+
+      if (isGhost || isDecoy || isNeutral || isLateOrDistantHostile) {
+        const roundCost = defenderCostUnits('missile');
+        siteAvoidableSpend += roundCost;
+        if (isLateOrDistantHostile) {
+          siteCauses.push('missile_overuse');
+        }
+        if (isGhost || isDecoy || isNeutral) {
+          siteCauses.push('roe_too_free');
+        }
+      }
+    }
+
+    const siteCausesFinal = [...new Set(siteCauses)];
+    for (const cause of siteCausesFinal) causes.add(cause);
     const scoreSession = scoreSessionV2({ actors: engine.actors, tracks: engine.tracks, events, assetHit: hits > 0 });
     siteReports.push({
       siteId: site.id,
@@ -232,10 +293,11 @@ export function scoreRaid(session: CommanderSession): RaidScoreReport {
       attackerCostDestroyed: destroyed,
       preventedDamageUnits,
       defenderSpend: spend,
+      avoidableSpend: siteAvoidableSpend,
       defenderSpendByEffector: spendByEffector,
       hits,
       falseEngagements: falseCount,
-      causes: [...new Set(siteCauses)],
+      causes: siteCausesFinal,
       scoreSessionV2: scoreSession,
     });
     weightedPreservation += site.valueUnits * (1 - damagePercent / 100);
@@ -243,6 +305,7 @@ export function scoreRaid(session: CommanderSession): RaidScoreReport {
     totalDestroyed += destroyed;
     totalPreventedDamage += preventedDamageUnits;
     totalSpent += spend;
+    totalAvoidableSpend += siteAvoidableSpend;
     totalSpendByEffector.gun += spendByEffector.gun;
     totalSpendByEffector.jammer += spendByEffector.jammer;
     totalSpendByEffector.missile += spendByEffector.missile;
@@ -253,7 +316,7 @@ export function scoreRaid(session: CommanderSession): RaidScoreReport {
   const assetPreservation = totalValue > 0 ? (weightedPreservation / totalValue) * 100 : 100;
   const costDenominator = totalDestroyed + totalPreventedDamage;
   const cer = costDenominator > 0 ? totalSpent / costDenominator : 0;
-  const costExchange = costExchangeScore(cer, costDenominator, totalSpent, totalHits);
+  const costExchange = costExchangeScore(totalAvoidableSpend, totalValue);
   let resourceManagement = 100;
   if (totalHits > 0) {
     const reserveUnused = session.view().totalPool.reserve.gunAmmo + session.view().totalPool.reserve.missiles;
@@ -320,6 +383,7 @@ export function scoreRaid(session: CommanderSession): RaidScoreReport {
       attackerDestroyed: Math.round(totalDestroyed * 100) / 100,
       preventedDamageUnits: Math.round(totalPreventedDamage * 100) / 100,
       defenderSpent: Math.round(totalSpent * 100) / 100,
+      avoidableSpend: Math.round(totalAvoidableSpend * 100) / 100,
       defenderSpendByEffector: {
         gun: Math.round(totalSpendByEffector.gun * 100) / 100,
         jammer: Math.round(totalSpendByEffector.jammer * 100) / 100,
