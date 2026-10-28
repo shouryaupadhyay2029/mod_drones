@@ -95,6 +95,9 @@ export function CommanderSetup({ onLaunch }: CommanderSetupProps): React.JSX.Ele
       roeBySite,
       authBySite,
     );
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
     onLaunch(raid, commands, autopilot);
   };
 

@@ -96,6 +96,11 @@ body {
   background-color: var(--bg-primary);
 }
 
+.console-layout.is-debrief {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .console-grid {
   display: grid;
   grid-template-columns: 1fr 400px;
@@ -620,10 +625,11 @@ button, a, input, select {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 24px;
+  padding: 32px 20px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   animation: fadeInModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -640,8 +646,8 @@ button, a, input, select {
   position: relative;
   width: 100%;
   max-width: 860px;
-  max-height: 92vh;
-  overflow-y: auto;
+  margin: auto;
+  max-height: none;
   background-color: #e7e2d6;
   border: 1px solid rgba(45, 40, 35, 0.22);
   border-radius: 12px;

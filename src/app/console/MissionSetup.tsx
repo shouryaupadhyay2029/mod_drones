@@ -279,7 +279,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
 
       {/* Tactical Mission Briefing Modal Overlay (Triggered from Navbar or Hero) */}
       <div
-        className={`briefing-modal-overlay ${isModalOpen ? 'is-open' : ''}`}
+        className={`briefing-modal-overlay ${isModalOpen ? 'is-open' : ''}`} data-lenis-prevent=""
         style={{
           display: isModalOpen ? 'flex' : 'none',
         }}

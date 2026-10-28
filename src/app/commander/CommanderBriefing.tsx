@@ -56,11 +56,12 @@ export function CommanderBriefing({ onClose }: CommanderBriefingProps): React.JS
     if (leavingRef.current) return;
     leavingRef.current = true;
     setPhase('leaving');
-    window.setTimeout(onClose, 700);
+    window.setTimeout(onClose, 250);
   }, [onClose]);
 
   const advance = useCallback((): void => {
-    if (!introDone || leavingRef.current) return;
+    if (leavingRef.current) return;
+    setIntroDone(true);
     if (typed < step.text.length) {
       setTyped(step.text.length);
     } else if (stepIndex < BRIEFING_STEPS.length - 1) {
@@ -69,7 +70,7 @@ export function CommanderBriefing({ onClose }: CommanderBriefingProps): React.JS
     } else {
       finish();
     }
-  }, [introDone, typed, step.text.length, stepIndex, finish]);
+  }, [typed, step.text.length, stepIndex, finish]);
 
   // Intro timeline + scroll lock
   useEffect(() => {

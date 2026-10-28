@@ -198,3 +198,21 @@ Append a dated section after each future item. Include its commit hash(es), what
   - `npm run typecheck`: passed cleanly.
   - `npm run typecheck:sim`: passed cleanly.
 
+## 2026-10-29 — Launch Mission Page Functionality & Tactical Cockpit UX
+
+- **Mission Launch Cockpit (`src/app/console/MissionSetup.tsx`)**:
+  - Embedded an interactive Hero Tactical Launch Cockpit directly on the opening screen, resolving the issue where mission launch controls were obscured in a closed modal overlay.
+  - Added one-click scenario selector chips for `Dawn Intrusion`, `Ridge Runner`, `City Edge Night`, and `Procedural Swarm` directly in the hero.
+  - Added primary `START MISSION NOW` (with one-click instant launch) and `MISSION BRIEFING & SEED ↗` actions in the hero hub.
+  - Added live status pills displaying active scenario, seed, and trainee callsign.
+  - Fixed modal scrolling conflict by applying `data-lenis-prevent=""` to the modal overlay and switching card alignment to `margin: auto; max-height: none` inside an auto-scrolling container, ensuring all scenario options and the start button are accessible on all screens.
+  - Ensured window scroll is reset to `(0, 0)` upon launching any mission so the tactical radar scope is immediately in view.
+- **Commander Briefing & Setup Responsiveness (`src/app/commander/CommanderBriefing.tsx`, `CommanderSetup.tsx`)**:
+  - Removed artificial `introDone` blocking on `advance()` and `finish()` so keyboard shortcuts (`Enter`, `Space`, `ArrowRight`, `Escape`) and clicks on "Skip briefing" or "Continue" respond immediately without lag.
+  - Added `window.scrollTo(0, 0)` on `CommanderSetup` raid launch.
+- **Verification**:
+  - `npm run lint`, `npm run typecheck`, and `npm run typecheck:sim`: passed cleanly with exit code 0.
+  - `tests/components.test.tsx`: 13/13 passed.
+  - `tests/phase6b.test.tsx`: 5/5 passed.
+
+
