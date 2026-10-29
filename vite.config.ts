@@ -97,13 +97,17 @@ export default defineConfig({
           },
           {
             urlPattern: ({ request }) =>
-              ['style', 'script', 'worker', 'image', 'font', 'document'].includes(request.destination),
-            handler: 'CacheFirst',
+              ['style', 'script', 'worker', 'font', 'document'].includes(request.destination),
+            handler: 'NetworkFirst',
             options: {
-              cacheName: 'vajra-local-assets-cache',
+              cacheName: 'vajra-app-runtime-cache',
+              networkTimeoutSeconds: 3,
               expiration: {
                 maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
               },
             },
           },

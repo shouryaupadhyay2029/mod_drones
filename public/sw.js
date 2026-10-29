@@ -1,1 +1,24 @@
-if(!self.define){let e,r={};const a=(a,i)=>(a=new URL(a+".js",i).href,r[a]||new Promise(r=>{if("document"in self){const e=document.createElement("script");e.src=a,e.onload=r,document.head.appendChild(e)}else e=a,importScripts(a),r()}).then(()=>{let e=r[a];if(!e)throw new Error(`Module ${a} didn’t register its module`);return e}));self.define=(i,n)=>{const c=e||("document"in self?document.currentScript.src:"")||location.href;if(r[c])return;let s={};const d=e=>a(e,c),o={module:{uri:c},exports:s,require:d};r[c]=Promise.all(i.map(e=>o[e]||d(e))).then(e=>(n(...e),s))}}define(["./workbox-8553a241"],function(e){"use strict";self.addEventListener("message",e=>{e.data&&"SKIP_WAITING"===e.data.type&&self.skipWaiting()}),e.precacheAndRoute([{url:"vajra-wordmark.png",revision:"7d8d59022c778c53b0bde06618fc34a5"},{url:"vajra-raw.jpg",revision:"04daccb56bbfdcf574475af6dc4a65be"},{url:"vajra-logo.png",revision:"5ff17e44d5ac955f80ad2c0070c34337"},{url:"vajra-emblem.svg",revision:"f7ed5d8fd8aa3e0445373ec0b54f1573"},{url:"vajra-emblem.png",revision:"a08e777294724691854760113597f89f"},{url:"registerSW.js",revision:"6c55133f7593a7ee822decf91fc92c0f"},{url:"manifest.json",revision:"3b36291e918b01a6820bdfaa47a1241a"},{url:"index.html",revision:"3f1d6fa6a5d3701924a69857707abfd8"},{url:"favicon.svg",revision:"f7ed5d8fd8aa3e0445373ec0b54f1573"},{url:"textures/terrain-radar.png",revision:"ca51ed20ebfdd2d764e2bd5abf1fd66a"},{url:"textures/fine-grain.png",revision:"e8caff586e0a0a29026f0fb8d28ab8c3"},{url:"textures/commander-grid.jpg",revision:"6f40a57401cb60984c569b7d4b8cc283"},{url:"contact-library/rf_drone.png",revision:"812c4b7563bfffd5cbc33d371f7c163e"},{url:"contact-library/radio_clutter.png",revision:"3e48d3a9185387e6bf4748507eced9d3"},{url:"contact-library/fpv.png",revision:"6c61aab7824e4d4102c2549e508841f0"},{url:"contact-library/fixed_wingUAV.png",revision:"a7e8a87e379face0e4b6e7ca1e66c1f2"},{url:"contact-library/decoy_profilw.png",revision:"4a0523bc99dd189494c9bc8ba9b5780c"},{url:"contact-library/CIVILIAN_quad.png",revision:"23dd5cae361fcde2d6756003fc1ef75b"},{url:"contact-library/BIRD.png",revision:"e113659655b3c61017dbd998312b02bf"},{url:"assets/sim.worker-CdKFg3k3.js",revision:null},{url:"assets/index-z1rW8acQ.css",revision:null},{url:"assets/index-mnE2ewPX.js",revision:null},{url:"assets/bg1-BTFmXEwk.png",revision:null},{url:"assets/bg-Dgakp4TO.png",revision:null},{url:"favicon.svg",revision:"f7ed5d8fd8aa3e0445373ec0b54f1573"},{url:"vajra-emblem.png",revision:"a08e777294724691854760113597f89f"},{url:"vajra-emblem.svg",revision:"f7ed5d8fd8aa3e0445373ec0b54f1573"},{url:"vajra-logo.png",revision:"5ff17e44d5ac955f80ad2c0070c34337"},{url:"vajra-wordmark.png",revision:"7d8d59022c778c53b0bde06618fc34a5"},{url:"contact-library/BIRD.png",revision:"e113659655b3c61017dbd998312b02bf"},{url:"contact-library/CIVILIAN_quad.png",revision:"23dd5cae361fcde2d6756003fc1ef75b"},{url:"contact-library/decoy_profilw.png",revision:"4a0523bc99dd189494c9bc8ba9b5780c"},{url:"contact-library/fixed_wingUAV.png",revision:"a7e8a87e379face0e4b6e7ca1e66c1f2"},{url:"contact-library/fpv.png",revision:"6c61aab7824e4d4102c2549e508841f0"},{url:"contact-library/radio_clutter.png",revision:"3e48d3a9185387e6bf4748507eced9d3"},{url:"contact-library/rf_drone.png",revision:"812c4b7563bfffd5cbc33d371f7c163e"},{url:"textures/fine-grain.png",revision:"e8caff586e0a0a29026f0fb8d28ab8c3"},{url:"textures/terrain-radar.png",revision:"ca51ed20ebfdd2d764e2bd5abf1fd66a"},{url:"manifest.json",revision:"3b36291e918b01a6820bdfaa47a1241a"}],{}),e.cleanupOutdatedCaches(),e.registerRoute(new e.NavigationRoute(e.createHandlerBoundToURL("index.html"))),e.registerRoute(({url:e})=>e.pathname.startsWith("/v1"),new e.NetworkFirst({cacheName:"vajra-v1-api-cache",networkTimeoutSeconds:3,plugins:[new e.ExpirationPlugin({maxEntries:100,maxAgeSeconds:2592e3}),new e.CacheableResponsePlugin({statuses:[0,200]})]}),"GET"),e.registerRoute(({request:e})=>["style","script","worker","image","font","document"].includes(e.destination),new e.CacheFirst({cacheName:"vajra-local-assets-cache",plugins:[new e.ExpirationPlugin({maxEntries:200,maxAgeSeconds:2592e3})]}),"GET")});
+// VAJRA Service Worker - Automatic Cache Invalidation & Network-First Gateway
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          console.log('[VAJRA SW] Purging outdated cache:', cacheName);
+          return caches.delete(cacheName);
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  // Always fetch fresh from network; fall back to cache only when offline
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match(event.request))
+  );
+});
