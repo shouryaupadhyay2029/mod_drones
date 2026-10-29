@@ -43,7 +43,7 @@ export function EffectorPanel({
         {/* Jammer Card */}
         <div className="mil-cue-card" style={{ gap: '6px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#f1ece1' }}>RF JAMMER</span>
+            <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#181716' }}>RF JAMMER</span>
             <span
               className="mil-tag"
               style={{
@@ -61,15 +61,15 @@ export function EffectorPanel({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '9px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span className="mil-cue-label">RANGE</span>
-              <span style={{ color: '#d6cebf', fontWeight: 700 }}>1,500 m</span>
+              <span style={{ color: '#181716', fontWeight: 700 }}>1,500 m</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span className="mil-cue-label">CYCLE</span>
-              <span style={{ color: '#d6cebf', fontWeight: 700 }}>3.0 s</span>
+              <span style={{ color: '#181716', fontWeight: 700 }}>3.0 s</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span className="mil-cue-label">TARGET</span>
-              <span style={{ color: '#d6cebf', fontWeight: 700 }}>RF-Links</span>
+              <span style={{ color: '#181716', fontWeight: 700 }}>RF-Links</span>
             </div>
           </div>
         </div>
@@ -77,7 +77,7 @@ export function EffectorPanel({
         {/* Kinetic Gun Card */}
         <div className="mil-cue-card" style={{ gap: '6px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#f1ece1' }}>KINETIC GUN</span>
+            <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#181716' }}>KINETIC GUN</span>
             <span
               className="mil-tag"
               style={{
@@ -117,11 +117,11 @@ export function EffectorPanel({
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span className="mil-cue-label">RANGE</span>
-              <span style={{ color: '#d6cebf', fontWeight: 700 }}>1,000 m</span>
+              <span style={{ color: '#181716', fontWeight: 700 }}>1,000 m</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span className="mil-cue-label">BURST</span>
-              <span style={{ color: '#d6cebf', fontWeight: 700 }}>5 rounds</span>
+              <span style={{ color: '#181716', fontWeight: 700 }}>5 rounds</span>
             </div>
           </div>
         </div>
@@ -130,7 +130,7 @@ export function EffectorPanel({
       {/* Tactile Ammo Rack Magazine View */}
       <div className="mil-ammo-grid">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '8.5px' }}>
-          <span style={{ color: '#8c8275', fontWeight: 700, letterSpacing: '0.06em' }}>MAGAZINE TRAY (20 ROUNDS)</span>
+          <span style={{ color: '#58544e', fontWeight: 700, letterSpacing: '0.06em' }}>MAGAZINE TRAY (20 ROUNDS)</span>
           <span style={{ color: currentAmmo <= 5 ? '#f87171' : '#34d399', fontWeight: 800 }}>
             {Math.floor(currentAmmo / 5)} BURSTS AVAILABLE
           </span>

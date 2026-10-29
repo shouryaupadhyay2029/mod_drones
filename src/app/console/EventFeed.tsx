@@ -16,22 +16,22 @@ function formatClock(tick: number): string {
 function getEventColor(type: string): string {
   switch (type) {
     case 'TRACK_CONFIRMED':
-      return '#34d399'; // Emerald
+      return '#15803d'; // Emerald
     case 'TRACK_LOST':
-      return '#8c8275';
+      return '#58544e';
     case 'ENGAGEMENT_STARTED':
-      return '#38bdf8'; // Tactical Cyan
+      return '#0284c7'; // Tactical Cyan
     case 'ENGAGEMENT_RESOLVED':
-      return '#34d399'; // Emerald
+      return '#15803d'; // Emerald
     case 'NO_EFFECT':
-      return '#fb7185'; // Soft Red
+      return '#b83327'; // Soft Red
     case 'COMMAND_REJECTED':
     case 'ENGAGEMENT_REJECTED':
-      return '#fb7185'; // Soft Red
+      return '#b83327'; // Soft Red
     case 'MISSION_END':
-      return '#a89f91'; // Slate
+      return '#58544e'; // Slate
     default:
-      return '#d6cebf';
+      return '#181716';
   }
 }
 
@@ -78,7 +78,7 @@ export function EventFeed({ events }: EventFeedProps): React.JSX.Element {
 
       <div className="mil-teleprinter-list">
         {reversedEvents.length === 0 ? (
-          <div style={{ color: '#8c8275', fontSize: '10.5px', fontStyle: 'italic', padding: '14px 0', textAlign: 'center' }}>
+          <div style={{ color: '#58544e', fontSize: '10.5px', fontStyle: 'italic', padding: '14px 0', textAlign: 'center' }}>
             Awaiting combat telemetry events...
           </div>
         ) : (

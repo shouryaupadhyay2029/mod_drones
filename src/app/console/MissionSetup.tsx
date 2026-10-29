@@ -346,7 +346,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
                       style={{ cursor: 'pointer', accentColor: '#181716' }}
                     />
                     <span style={styles.scenarioCardTitle}>
-                      <TextRoll stagger={0.02}>{sc.title}</TextRoll>
+                      {sc.title}
                     </span>
                   </div>
                   <div style={styles.scenarioCardSubtitle}>{sc.subtitle}</div>
@@ -384,7 +384,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
                   style={{ cursor: 'pointer', accentColor: '#181716' }}
                 />
                 <span style={styles.scenarioCardTitle}>
-                  <TextRoll stagger={0.02}>Procedural Swarm</TextRoll>
+                  Procedural Swarm
                 </span>
               </div>
               <div style={styles.scenarioCardSubtitle}>Dynamic Multi-Tier Procedural Adversary</div>
@@ -629,13 +629,15 @@ const styles: Record<string, React.CSSProperties> = {
   },
   scenarioList: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(185px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
     gap: '10px',
   },
   scenarioCard: {
     border: '1px solid',
     borderRadius: '6px',
-    padding: '10px 12px',
+    padding: '12px 14px',
+    minWidth: 0,
+    overflow: 'hidden',
     cursor: 'pointer',
     display: 'flex',
     flexDirection: 'column',
@@ -649,11 +651,17 @@ const styles: Record<string, React.CSSProperties> = {
   },
   scenarioCardTitle: {
     fontSize: '13px',
+    lineHeight: '1.35',
+    wordBreak: 'break-word',
+    whiteSpace: 'normal',
     fontWeight: 700,
     color: '#181716',
   },
   scenarioCardSubtitle: {
-    fontSize: '10px',
+    fontSize: '10.5px',
+    lineHeight: '1.35',
+    wordBreak: 'break-word',
+    whiteSpace: 'normal',
     color: '#635e57',
     marginLeft: '24px',
   },

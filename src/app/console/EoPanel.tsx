@@ -104,7 +104,7 @@ export function EoPanel({
               gap: '4px',
               padding: '3px 8px',
               borderRadius: '4px',
-              border: isIr ? '1px solid rgba(74, 222, 128, 0.4)' : '1px solid rgba(255, 255, 255, 0.15)',
+              border: isIr ? '1px solid rgba(74, 222, 128, 0.4)' : '1px solid rgba(45, 40, 35, 0.25)',
             }}
           >
             <span>{eo.channel.toUpperCase()}</span>
@@ -251,7 +251,7 @@ export function EoPanel({
           <span style={{ color: isIr ? '#4ade80' : '#cbb3e8' }}>
             {eo.channel === 'tv' ? 'OPTICAL TV' : 'FLIR THERMAL IR'}
           </span>
-          <span style={{ color: '#8c8275' }}>
+          <span style={{ color: '#58544e' }}>
             {isLocked ? `LOCKED: T${eo.lockedTrackId}` : isSlewing ? 'SLEWING...' : 'STANDBY'}
           </span>
         </div>
@@ -276,7 +276,7 @@ export function EoPanel({
           >
             <span>RELEASE LOCK</span>
             <kbd className="mil-keycap" style={{ background: '#381e1e', color: '#fca5a5', borderColor: '#ef4444' }}>E</kbd>
-            <span style={{ color: '#8c8275', fontSize: '9px' }}>(T{eo.lockedTrackId})</span>
+            <span style={{ color: '#58544e', fontSize: '9px' }}>(T{eo.lockedTrackId})</span>
           </button>
         ) : selectedTrackId !== null ? (
           <button
@@ -294,7 +294,7 @@ export function EoPanel({
           >
             <span>LOCK TARGET</span>
             <kbd className="mil-keycap" style={{ borderColor: '#38bdf8', color: '#38bdf8' }}>E</kbd>
-            <span style={{ color: '#8c8275', fontSize: '9px' }}>(T{selectedTrackId})</span>
+            <span style={{ color: '#58544e', fontSize: '9px' }}>(T{selectedTrackId})</span>
           </button>
         ) : (
           <button
@@ -303,10 +303,13 @@ export function EoPanel({
             className="mil-btn-tactile"
             style={{
               width: '100%',
-              padding: '8px 12px',
-              fontSize: '10.5px',
-              color: '#686055',
-              borderColor: 'rgba(255, 255, 255, 0.06)',
+              padding: '10px 14px',
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#58544e',
+              backgroundColor: '#f7f3eb',
+              border: '1px solid rgba(45, 40, 35, 0.16)',
+              borderRadius: '6px',
             }}
           >
             SELECT A TRACK TO LOCK [E]
@@ -328,7 +331,7 @@ export function EoPanel({
                   ? '#38bdf8'
                   : eo.level === 'detect'
                   ? '#f59e0b'
-                  : '#8c8275',
+                  : '#58544e',
             }}
           >
             {eo.level.toUpperCase()}
@@ -340,7 +343,7 @@ export function EoPanel({
           style={{
             width: '100%',
             height: '4px',
-            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+            backgroundColor: 'rgba(45, 40, 35, 0.12)',
             borderRadius: '2px',
             overflow: 'hidden',
           }}
@@ -366,7 +369,7 @@ export function EoPanel({
         {/* Classification Hint Text */}
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
           <span className="mil-cue-label">SENSOR HINT:</span>
-          <span style={{ color: '#f1ece1', fontWeight: 700 }}>
+          <span style={{ color: '#181716', fontWeight: 700 }}>
             {eo.hint ? eo.hint.replace(/_/g, ' ').toUpperCase() : 'NO RESOLUTION'}
           </span>
         </div>

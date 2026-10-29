@@ -125,7 +125,7 @@ export function TrackDetail({
           <span
             className="mil-cue-value"
             style={{
-              color: track.velocityValid && track.closingRateMps !== undefined && track.closingRateMps < -2 ? '#fb7185' : '#f1ece1',
+              color: track.velocityValid && track.closingRateMps !== undefined && track.closingRateMps < -2 ? '#b83327' : '#181716',
             }}
           >
             {track.velocityValid && track.closingRateMps !== undefined ? `${Math.round(track.closingRateMps)} m/s` : '—'}
@@ -147,7 +147,7 @@ export function TrackDetail({
         </div>
         <div className="mil-cue-card">
           <span className="mil-cue-label">QUALITY</span>
-          <span className="mil-cue-value" style={{ color: track.quality >= 0.8 ? '#34d399' : '#f1ece1' }}>
+          <span className="mil-cue-value" style={{ color: track.quality >= 0.8 ? '#15803d' : '#181716' }}>
             {(track.quality * 100).toFixed(0)}%
           </span>
         </div>
@@ -218,10 +218,10 @@ export function TrackDetail({
       {/* Classification Rocker Matrix */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#8c8275', letterSpacing: '0.08em' }}>
+          <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#58544e', letterSpacing: '0.08em' }}>
             CLASSIFICATION MATRIX
           </span>
-          <span style={{ fontSize: '9px', color: '#686055' }}>[HOTKEYS 1-7, 0]</span>
+          <span style={{ fontSize: '9px', color: '#787268' }}>[HOTKEYS 1-7, 0]</span>
         </div>
         <div className="mil-classify-grid">
           {CLASSIFICATION_OPTIONS.map((opt: ClassificationOption, idx: number) => {
@@ -237,7 +237,7 @@ export function TrackDetail({
                 disabled={missionEnded}
                 onClick={() => onClassify(track.trackId, opt.id)}
               >
-                <span style={{ color: isAssessed ? '#f1ece1' : '#c9c1b3' }}>{opt.label}</span>
+                <span style={{ color: isAssessed ? '#ffffff' : '#181716' }}>{opt.label}</span>
                 <kbd className="mil-keycap" style={{ borderColor: isAssessed ? '#c2410c' : undefined }}>
                   {keyLabel}
                 </kbd>
@@ -250,10 +250,10 @@ export function TrackDetail({
       {/* Engagement Effectors */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#8c8275', letterSpacing: '0.08em' }}>
+          <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#58544e', letterSpacing: '0.08em' }}>
             AUTHORIZE DEFENSE EFFECTOR
           </span>
-          <span style={{ fontSize: '9px', color: '#686055' }}>[SAFETY INTERLOCKED]</span>
+          <span style={{ fontSize: '9px', color: '#787268' }}>[SAFETY INTERLOCKED]</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
