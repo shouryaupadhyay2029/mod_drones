@@ -1,6 +1,7 @@
 /* ==========================================================================
-   VAJRA Luxury Editorial Mission Debrief Styling
-   Warm Shaded Stone (#DED7CA), Obsidian Ink (#181716), Terracotta (#C2410C)
+   VAJRA C-UAS Luxury Editorial & Mil-Spec Operational Assessment Debrief Styling
+   Warm Shaded Stone (#DFD8CB), Obsidian Ink (#181716), Terracotta (#C2410C)
+   NATO STANAG 4686 & DoD C-UAS Evaluation Dossier Standards
    ========================================================================== */
 
 .debrief-container {
@@ -15,7 +16,7 @@
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
-  padding: 32px clamp(20px, 5vw, 64px) 160px;
+  padding: 24px clamp(16px, 4vw, 56px) 140px;
   color: #181716;
   background-color: #dfd8cb;
   background-image: url('/textures/commander-grid.jpg');
@@ -36,7 +37,7 @@
   background-image: url('/textures/terrain-radar.png');
   background-size: cover;
   background-position: top right;
-  opacity: 0.28;
+  opacity: 0.22;
   mix-blend-mode: multiply;
   mask-image: radial-gradient(ellipse at 80% 25%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 74%);
   -webkit-mask-image: radial-gradient(ellipse at 80% 25%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 74%);
@@ -45,74 +46,192 @@
 }
 
 .debrief-shell {
-  width: min(1180px, 100%);
+  width: min(1200px, 100%);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
   position: relative;
   z-index: 1;
 }
 
-/* Header & Meta */
-.debrief-header {
+/* ==========================================================================
+   Formal Military Classification Banner
+   ========================================================================== */
+.debrief-classification-banner {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid rgba(45, 40, 35, 0.18);
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: #181716;
+  color: #ded7ca;
+  padding: 8px 16px;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(24, 23, 22, 0.18);
+  border-left: 4px solid #c2410c;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.debrief-badge-row {
+.classification-strip-left {
   display: flex;
   align-items: center;
   gap: 10px;
+  font-weight: 800;
+}
+
+.classification-lock-icon {
+  color: #c2410c;
+  font-size: 10px;
+}
+
+.classification-strip-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #a89d8f;
+  font-size: 10px;
+}
+
+.classification-divider {
+  opacity: 0.4;
+}
+
+/* ==========================================================================
+   Mil-Spec Header Block
+   ========================================================================== */
+.debrief-mil-header {
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(45, 40, 35, 0.18);
+  border-radius: 10px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 4px 20px rgba(24, 23, 22, 0.04);
+}
+
+.debrief-header-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
   flex-wrap: wrap;
 }
 
-.debrief-pill {
+.debrief-header-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.debrief-service-tag {
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 10px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(45, 40, 35, 0.08);
-  border: 1px solid rgba(45, 40, 35, 0.2);
-  color: #3d2f24;
-}
-
-.debrief-pill-accent {
-  background: rgba(194, 65, 12, 0.1);
-  border-color: rgba(194, 65, 12, 0.35);
-  color: #c2410c;
-}
-
-.debrief-pill-tier {
-  background: rgba(30, 90, 150, 0.08);
-  border-color: rgba(30, 90, 150, 0.3);
-  color: #174873;
+  font-weight: 800;
+  color: #705e4d;
 }
 
 .debrief-title {
   margin: 0;
-  font-size: clamp(24px, 3.5vw, 36px);
-  font-weight: 800;
+  font-size: clamp(22px, 3.2vw, 32px);
+  font-weight: 900;
   letter-spacing: -0.02em;
   color: #181716;
   line-height: 1.15;
-  text-transform: uppercase;
 }
 
-/* Tabs & Controls */
+.debrief-header-meta-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.debrief-mil-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(45, 40, 35, 0.07);
+  border: 1px solid rgba(45, 40, 35, 0.18);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+
+.chip-key {
+  font-weight: 700;
+  color: #705e4d;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.chip-val {
+  font-weight: 800;
+  color: #181716;
+}
+
+.chip-highlight {
+  background: rgba(194, 65, 12, 0.1);
+  border-color: rgba(194, 65, 12, 0.35);
+}
+
+.chip-highlight .chip-key {
+  color: #c2410c;
+}
+
+.chip-highlight .chip-val {
+  color: #c2410c;
+}
+
+.debrief-sub-meta-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid rgba(45, 40, 35, 0.12);
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+
+.sub-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sub-meta-label {
+  color: #705e4d;
+  font-weight: 700;
+}
+
+.sub-meta-value {
+  color: #181716;
+  font-weight: 800;
+}
+
+.sub-meta-divider {
+  color: rgba(45, 40, 35, 0.3);
+}
+
+/* ==========================================================================
+   Tabs, Controls & Action Toolbar
+   ========================================================================== */
 .debrief-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  padding-bottom: 4px;
 }
 
 .debrief-tab-group {
@@ -151,8 +270,15 @@
   background: rgba(45, 40, 35, 0.1);
 }
 
+.debrief-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .debrief-replay-btn {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75);
   border: 1px solid rgba(45, 40, 35, 0.24);
   color: #181716;
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
@@ -160,11 +286,11 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 700;
-  padding: 8px 18px;
+  padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(24, 23, 22, 0.05);
+  box-shadow: 0 2px 6px rgba(24, 23, 22, 0.04);
 }
 
 .debrief-replay-btn:hover {
@@ -173,18 +299,41 @@
   transform: translateY(-1px);
 }
 
-/* Executive Verdict Banner */
+.debrief-print-btn {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(45, 40, 35, 0.24);
+  color: #181716;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.debrief-print-btn:hover {
+  background: #ffffff;
+  border-color: #181716;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Commander's Executive Tactical Verdict Banner
+   ========================================================================== */
 .debrief-verdict-banner {
   border-radius: 10px;
   padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   box-shadow: 0 4px 16px rgba(24, 23, 22, 0.04);
 }
 
 .verdict-failed {
-  background: rgba(163, 26, 0, 0.08);
+  background: rgba(163, 26, 0, 0.07);
   border: 1px solid rgba(163, 26, 0, 0.35);
   color: #7a1400;
 }
@@ -207,6 +356,14 @@
   color: #6e3d00;
 }
 
+.debrief-verdict-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .debrief-verdict-status {
   display: flex;
   align-items: center;
@@ -214,7 +371,7 @@
 }
 
 .debrief-verdict-icon {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
 }
 
@@ -222,8 +379,20 @@
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 13px;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.debrief-verdict-tag {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(45, 40, 35, 0.08);
+  color: #5c4b3c;
 }
 
 .debrief-verdict-summary {
@@ -234,9 +403,9 @@
 }
 
 .debrief-verdict-tip {
-  margin-top: 4px;
+  margin-top: 2px;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.7);
   border-radius: 6px;
   font-size: 12px;
   line-height: 1.45;
@@ -244,12 +413,14 @@
   border-left: 3px solid #c2410c;
 }
 
-/* Score Showcase */
+/* ==========================================================================
+   Readiness Score Showcase Hero & 4 Command Pillars
+   ========================================================================== */
 .debrief-score-hero {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 280px 1fr;
   gap: 24px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.76);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(45, 40, 35, 0.18);
@@ -258,7 +429,7 @@
   box-shadow: 0 8px 30px rgba(24, 23, 22, 0.05);
 }
 
-@media (max-width: 820px) {
+@media (max-width: 860px) {
   .debrief-score-hero {
     grid-template-columns: 1fr;
   }
@@ -275,7 +446,7 @@
   gap: 6px;
 }
 
-@media (max-width: 820px) {
+@media (max-width: 860px) {
   .debrief-score-dial {
     padding-right: 0;
     padding-bottom: 20px;
@@ -350,31 +521,65 @@
   margin-top: 4px;
 }
 
-/* Subscore Cards */
+.debrief-dial-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #5c4b3c;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+.debrief-dial-deductions {
+  color: #a31a00;
+  font-weight: 700;
+}
+
+/* 4 Command Pillars Grid */
 .debrief-subscores-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
   align-content: center;
 }
 
 .debrief-subscore-item {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.85);
   border: 1px solid rgba(45, 40, 35, 0.16);
   border-radius: 8px;
-  padding: 12px 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(24, 23, 22, 0.03);
+}
+
+.debrief-subscore-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .debrief-subscore-label {
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   font-weight: 800;
   color: #705e4d;
+}
+
+.debrief-pillar-weight {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: #8c7d6e;
+  background: rgba(45, 40, 35, 0.06);
+  padding: 2px 5px;
+  border-radius: 3px;
 }
 
 .debrief-subscore-value {
@@ -385,9 +590,9 @@
 }
 
 .debrief-subscore-desc {
-  font-size: 10px;
+  font-size: 10.5px;
   color: #7a6a5b;
-  line-height: 1.25;
+  line-height: 1.3;
 }
 
 .debrief-subscore-bar {
@@ -404,40 +609,78 @@
   transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Summary Grid for v1 */
-.debrief-summary-metrics {
+/* ==========================================================================
+   Logistics & Munitions Expenditure Ledger
+   ========================================================================== */
+.debrief-logistics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  align-content: center;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
 }
 
-.debrief-summary-metric {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(45, 40, 35, 0.16);
+.debrief-logistics-card {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(45, 40, 35, 0.18);
   border-radius: 8px;
-  padding: 12px 14px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(24, 23, 22, 0.03);
 }
 
-.debrief-summary-label {
+.logistics-card-title {
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   font-size: 10px;
-  letter-spacing: 0.08em;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  font-weight: 700;
   color: #705e4d;
+  border-bottom: 1px solid rgba(45, 40, 35, 0.1);
+  padding-bottom: 6px;
 }
 
-.debrief-summary-val {
-  font-size: 18px;
-  font-weight: 800;
+.logistics-card-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.logistics-number {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
   color: #181716;
 }
 
-/* Section Blocks */
+.logistics-unit {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #7a6a5b;
+}
+
+.logistics-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: #5c4b3c;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(45, 40, 35, 0.12);
+}
+
+.logistics-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   Section Blocks & Editorial Tables
+   ========================================================================== */
 .debrief-section {
   display: flex;
   flex-direction: column;
@@ -479,7 +722,6 @@
   color: #7a6a5b;
 }
 
-/* Editorial Tables */
 .debrief-table-wrapper {
   overflow-x: auto;
   background: rgba(255, 255, 255, 0.85);
@@ -653,39 +895,100 @@
   line-height: 1.45;
 }
 
-/* Effector Grid */
-.debrief-effector-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
+/* ==========================================================================
+   Official Certification Block
+   ========================================================================== */
+.debrief-certification-block {
+  margin-top: 8px;
 }
 
-.debrief-effector-card {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(45, 40, 35, 0.16);
+.debrief-cert-card {
+  background: rgba(45, 40, 35, 0.05);
+  border: 1px solid rgba(45, 40, 35, 0.2);
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.cert-card-left {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  max-width: 650px;
 }
 
-.debrief-effector-label {
+.cert-badge {
   font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #705e4d;
+  color: #1b6d1b;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.debrief-effector-val {
-  font-size: 15px;
+.cert-badge::before {
+  content: '✓';
+  font-size: 11px;
+}
+
+.cert-title {
+  margin: 0;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 13px;
   font-weight: 800;
+  letter-spacing: 0.06em;
   color: #181716;
 }
 
-/* Action Buttons Bar */
+.cert-desc {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #5c4b3c;
+}
+
+.cert-card-right {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 10.5px;
+}
+
+.cert-digest-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cert-label {
+  color: #705e4d;
+  font-weight: 700;
+}
+
+.cert-hash {
+  color: #181716;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cert-status {
+  color: #1b6d1b;
+  font-weight: 800;
+}
+
+/* ==========================================================================
+   Action Buttons Bar
+   ========================================================================== */
 .debrief-actions-bar {
   display: flex;
   align-items: center;
@@ -760,51 +1063,55 @@
   transform: translateY(-1px);
 }
 
-/* Unobservable contacts */
-.debrief-unobservable-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 10px;
-}
-
-.debrief-unobservable-card {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(45, 40, 35, 0.16);
-  border-radius: 6px;
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  font-size: 11px;
-}
-
-.debrief-actor-badge {
-  font-weight: 800;
-  color: #181716;
-}
-
-.debrief-class-badge {
-  color: #5c4b3c;
-  background: rgba(45, 40, 35, 0.08);
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-weight: 700;
-}
-
-.debrief-reason-text {
-  color: #a31a00;
-  font-weight: 600;
-}
-
-.debrief-note-text {
-  color: #7a6a5b;
-}
-
 .debrief-storage-status {
   margin: 0;
   color: #705e4d;
   font-size: 11px;
   letter-spacing: 0.04em;
   font-weight: 600;
+}
+
+/* ==========================================================================
+   Print Dossier Stylesheet
+   ========================================================================== */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .debrief-container {
+    padding: 0 !important;
+    background: none !important;
+    overflow: visible !important;
+  }
+
+  .debrief-container::before {
+    display: none !important;
+  }
+
+  .debrief-toolbar,
+  .debrief-actions-bar,
+  .debrief-print-btn,
+  .debrief-replay-btn {
+    display: none !important;
+  }
+
+  .debrief-mil-header,
+  .debrief-score-hero,
+  .debrief-logistics-card,
+  .debrief-table-wrapper,
+  .debrief-cert-card {
+    background: #ffffff !important;
+    border: 1px solid #444444 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .debrief-classification-banner {
+    background: #000000 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

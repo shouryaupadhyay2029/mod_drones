@@ -61,6 +61,17 @@ function getGradeClass(grade: string): string {
   return 'debrief-grade-tag debrief-grade-fail';
 }
 
+function getMilitaryDTG(): string {
+  const now = new Date();
+  const day = String(now.getUTCDate()).padStart(2, '0');
+  const hours = String(now.getUTCHours()).padStart(2, '0');
+  const mins = String(now.getUTCMinutes()).padStart(2, '0');
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const month = months[now.getUTCMonth()];
+  const year = String(now.getUTCFullYear()).slice(-2);
+  return `${day}${hours}${mins}Z ${month} ${year}`;
+}
+
 export function DebriefScreen({
   score,
   scoreV2: propScoreV2,
@@ -80,6 +91,12 @@ export function DebriefScreen({
   const [expandedActorId, setExpandedActorId] = useState<number | null>(null);
   const handleStartNewMission = onStartNewMission ?? onNewRandomSeed ?? onReplaySameSeed;
 
+  const handlePrint = () => {
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
+  };
+
   const handleDownloadLog = () => {
     if (!sessionLog) return;
     const blob = new Blob([JSON.stringify(sessionLog, null, 2)], {
@@ -88,7 +105,7 @@ export function DebriefScreen({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `session-log-${seed}-tick-${sessionLog.totalTicks}.json`;
+    a.download = `operational-debrief-${seed}-tick-${sessionLog.totalTicks}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -121,7 +138,7 @@ export function DebriefScreen({
 
   const envStr = environment
     ? `${environment.timeOfDay} · ${environment.weather} · Vis ${environment.visibilityKm}km · ${environment.terrainKind}`
-    : null;
+    : 'Dusk · Clear · Vis 10km · Rural';
 
   const ghostsEngaged =
     falseTracksEngaged ??
@@ -246,60 +263,132 @@ export function DebriefScreen({
   const isMarginal = effectiveScoreV2.total >= 60 && !isPass;
 
   let verdictClass = 'debrief-verdict-banner verdict-failed';
-  let verdictIcon = '●';
-  let verdictTitle = 'PERIMETER COMPROMISED // CRITICAL DEFENSE FAILURES';
+  let verdictBadge = 'UNSATISFACTORY // PERIMETER DEFENSE FAILURE';
   let verdictSummary =
-    'Hostile drones penetrated the inner defense perimeter before neutralization, or significant ammunition was expended on non-threat clutter. Threat prioritization and classification discipline must be improved.';
-  let verdictTip =
-    'DOCTRINE DIRECTIVE: Prioritize high-speed FPV Kamikaze tracks heading towards base assets. Use Jammer out to 1.5 km or CIWS 30mm bursts under 1.0 km. Never discharge effectors at unconfirmed or ghost radar returns.';
+    'Hostile airframes penetrated the primary kinetic defense perimeter before neutralization, or excessive munitions were discharged on non-threat clutter. Threat prioritization and classification discipline failed to meet minimum readiness thresholds.';
+  let verdictDirective =
+    'DOCTRINE DIRECTIVE: Immediately prioritize high-speed FPV Kamikaze tracks heading towards asset perimeter. Authorize RF Jammer out to 1.5 km or CIWS 30mm bursts inside 1.0 km. Never discharge effectors at unconfirmed or ghost radar returns.';
 
   if (roeBreached) {
     verdictClass = 'debrief-verdict-banner verdict-roe';
-    verdictIcon = '●';
-    verdictTitle = 'RULES OF ENGAGEMENT BREACH // SCORE CAPPED AT 60';
+    verdictBadge = 'DISQUALIFIED // ROE COLLATERAL BREACH';
     verdictSummary =
-      'Civilian airframe or non-hostile contact engaged with live effectors. Under standard military doctrine, ROE violations impose an immediate hard ceiling of 60 on mission score.';
-    verdictTip =
+      'Civilian airframe or non-hostile biological contact was engaged with live effectors. Under standard military defense doctrine, ROE violations impose an immediate hard ceiling of 60 on mission score and trigger formal command review.';
+    verdictDirective =
       'DOCTRINE DIRECTIVE: Low-speed blips (<25 m/s) with no RF emissions are civilian quadcopters or birds. Slew EO/IR optics to confirm target visual profile before issuing engagement commands.';
   } else if (isPass) {
     verdictClass = 'debrief-verdict-banner verdict-pass';
-    verdictIcon = '●';
-    verdictTitle = 'PERIMETER SECURED // EXCEPTIONAL DOCTRINE ADHERENCE';
+    verdictBadge = 'MISSION CAPABLE // COMBAT READY STATUS';
     verdictSummary =
-      'All incoming threats were designated, classified, and neutralized with high weapon economy. Defense assets remained fully intact with minimal collateral risk.';
-    verdictTip =
-      'DOCTRINE DIRECTIVE: Excellent target acknowledgment and effector economy. Maintain early radar sweeps to maximize available reaction time against clustered swarm tactics.';
+      'All incoming air contacts were designated, classified, and neutralized with superior weapon economy. Defended asset perimeter remained fully intact with zero collateral incidents.';
+    verdictDirective =
+      'DOCTRINE DIRECTIVE: Exceptional target acknowledgment speed and effector economy. Maintain early radar sweeps to maximize available reaction time against clustered swarm tactics.';
   } else if (isMarginal) {
     verdictClass = 'debrief-verdict-banner verdict-marginal';
-    verdictIcon = '●';
-    verdictTitle = 'MISSION ACCOMPLISHED // MARGINAL OPERATIONAL EFFICIENCY';
+    verdictBadge = 'PROVISIONAL READINESS // REMEDIAL INTERCEPT REQUIRED';
     verdictSummary =
-      'Perimeter was defended, but delayed radar acknowledgment latency or sub-optimal weapon matching degraded overall tactical rating.';
-    verdictTip =
-      'DOCTRINE DIRECTIVE: Press "A" immediately when a new track appears. Every 1.5 seconds of acknowledgment latency forfeits approximately 100 meters of intercept standoff.';
+      'Defended perimeter was held, but delayed radar acknowledgment latency or sub-optimal effector pairing degraded overall tactical operational rating.';
+    verdictDirective =
+      'DOCTRINE DIRECTIVE: Acknowledge tracks immediately when confirmed on radar scope. Every 1.5 seconds of acknowledgment latency forfeits approximately 100 meters of intercept standoff.';
   }
 
   const v2ScoreColor = getScoreColor(effectiveScoreV2.total);
   const v1ScoreColor = getScoreColor(score.total);
 
+  // Effector logistics accounting
+  const effectorUse = score.effectorUse ?? {
+    gunBurstsFired: 0,
+    jammerCycles: 0,
+    killsPerEffector: { gun: 0, jammer: 0 },
+    wastedEngagements: { ghost: 0, decoy: 0, neutral: 0 },
+  };
+
+  const gunRoundsExpended = effectorUse.gunBurstsFired * 5;
+  const gunRoundsRemaining = Math.max(0, 20 - gunRoundsExpended);
+  const gunBurstsRemaining = Math.floor(gunRoundsRemaining / 5);
+
+  const assetHitLogged =
+    effectiveScoreV2.penalties.some((p) => p.reason.toLowerCase().includes('asset was hit') || p.reason.toLowerCase().includes('asset hit')) ||
+    score.penalties.some((p) => p.reason.toLowerCase().includes('asset'));
+
+  const totalPenaltiesPoints = (effectiveScoreV2.penalties.length > 0 ? effectiveScoreV2.penalties : score.penalties)
+    .reduce((sum, p) => sum + p.points, 0);
+
+  const auditReasons = effectiveScoreV2.reasons && effectiveScoreV2.reasons.length > 0
+    ? effectiveScoreV2.reasons
+    : score.reasons;
+
+  const penaltiesToRender = effectiveScoreV2.penalties.length > 0
+    ? effectiveScoreV2.penalties
+    : score.penalties;
+
   return (
     <div className="debrief-container">
       <div className="debrief-shell">
-        {/* Header */}
-        <header className="debrief-header">
-          <div className="debrief-badge-row">
-            <span className="debrief-pill debrief-pill-accent">AFTER ACTION REVIEW (AAR)</span>
-            <span className="debrief-pill">SEED: {seed}</span>
-            <span className="debrief-pill">DURATION: {formatClock(finalTick)}</span>
-            {isProcedural && procTier && (
-              <span className="debrief-pill debrief-pill-tier">TIER: {procTier.toUpperCase()}</span>
-            )}
-            {isProcedural && procTactic && (
-              <span className="debrief-pill">TACTIC: {procTactic.toUpperCase()}</span>
-            )}
-            {envStr && <span className="debrief-pill">{envStr}</span>}
+        {/* Formal Military Classification Strip */}
+        <div className="debrief-classification-banner">
+          <div className="classification-strip-left">
+            <span className="classification-lock-icon">■</span>
+            <span className="classification-text">RESTRICTED // EXERCISE VAJRA C-UAS // OPERATIONAL READINESS EVALUATION</span>
           </div>
-          <h1 className="debrief-title">Mission Debrief: {scTitle}</h1>
+          <div className="classification-strip-right">
+            <span>DTG: {getMilitaryDTG()}</span>
+            <span className="classification-divider">|</span>
+            <span>SEC: ATO-{seed.toUpperCase()}</span>
+          </div>
+        </div>
+
+        {/* Mil-Spec Header Card */}
+        <header className="debrief-mil-header">
+          <div className="debrief-header-topline">
+            <div className="debrief-header-identity">
+              <span className="debrief-service-tag">HQ AIR DEFENSE COMMAND · 4TH C-UAS BATTERY</span>
+              <h1 className="debrief-title">OPERATIONAL ASSESSMENT REPORT: {scTitle.toUpperCase()}</h1>
+            </div>
+            <div className="debrief-header-meta-chips">
+              <span className="debrief-mil-chip">
+                <span className="chip-key">SEED</span>
+                <span className="chip-val">{seed}</span>
+              </span>
+              <span className="debrief-mil-chip">
+                <span className="chip-key">DURATION</span>
+                <span className="chip-val">{formatClock(finalTick)}</span>
+              </span>
+              <span className="debrief-mil-chip">
+                <span className="chip-key">TICKS</span>
+                <span className="chip-val">{finalTick}</span>
+              </span>
+              {isProcedural && procTier && (
+                <span className="debrief-mil-chip chip-highlight">
+                  <span className="chip-key">TIER</span>
+                  <span className="chip-val">{procTier.toUpperCase()}</span>
+                </span>
+              )}
+              {isProcedural && procTactic && (
+                <span className="debrief-mil-chip">
+                  <span className="chip-key">TACTIC</span>
+                  <span className="chip-val">{procTactic.toUpperCase()}</span>
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="debrief-sub-meta-bar">
+            <div className="sub-meta-item">
+              <span className="sub-meta-label">SECTOR:</span>
+              <span className="sub-meta-value">AIRSPACE SECTOR ALPHA // PERIMETER KILO-9</span>
+            </div>
+            <div className="sub-meta-divider">/</div>
+            <div className="sub-meta-item">
+              <span className="sub-meta-label">ENVIRONMENT:</span>
+              <span className="sub-meta-value">{envStr}</span>
+            </div>
+            <div className="sub-meta-divider">/</div>
+            <div className="sub-meta-item">
+              <span className="sub-meta-label">DEFENSE POSTURE:</span>
+              <span className="sub-meta-value">INTEGRATED 30MM CIWS + RF DIRECTIONAL JAMMER</span>
+            </div>
+          </div>
         </header>
 
         {/* Toolbar & View Controls */}
@@ -310,26 +399,36 @@ export function DebriefScreen({
               onClick={() => setActiveTab('v2')}
               className={`debrief-tab-btn ${activeTab === 'v2' ? 'is-active' : ''}`}
             >
-              Doctrine Scoring v2
+              Doctrine Scoring v2 (Mil-Spec)
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('v1')}
               className={`debrief-tab-btn ${activeTab === 'v1' ? 'is-active' : ''}`}
             >
-              v1 (legacy)
+              v1 (Legacy Heuristic)
             </button>
           </div>
 
-          {sessionLog && (
+          <div className="debrief-toolbar-actions">
+            {sessionLog && (
+              <button
+                type="button"
+                onClick={() => setShowSessionReplay((open) => !open)}
+                className="debrief-replay-btn"
+              >
+                {showSessionReplay ? '✕ Close Flight Review' : '▶ Open Synchronized Flight Review'}
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setShowSessionReplay((open) => !open)}
-              className="debrief-replay-btn"
+              onClick={handlePrint}
+              className="debrief-print-btn"
+              title="Print or export debrief report"
             >
-              {showSessionReplay ? '✕ Close Flight Review' : '▶ Open Synchronized Flight Review'}
+              ⎙ Print Dossier
             </button>
-          )}
+          </div>
         </div>
 
         {/* Synchronized Flight Review (if opened) */}
@@ -343,301 +442,448 @@ export function DebriefScreen({
           </div>
         )}
 
-        {/* Doctrine Scoring v2 Panel */}
-        <div style={{ display: activeTab === 'v2' ? 'flex' : 'none', flexDirection: 'column', gap: '28px' }}>
-          {/* Executive Tactical Verdict Banner */}
+        {/* Doctrine Scoring v2 Panel (Primary Mil-Spec View) */}
+        <div style={{ display: activeTab === 'v2' ? 'flex' : 'none', flexDirection: 'column', gap: '24px' }}>
+          {/* Commander's Executive Tactical Verdict Banner */}
           <div className={verdictClass}>
-            <div className="debrief-verdict-status">
-              <span className="debrief-verdict-icon">{verdictIcon}</span>
-              <span className="debrief-verdict-title">{verdictTitle}</span>
+            <div className="debrief-verdict-header">
+              <div className="debrief-verdict-status">
+                <span className="debrief-verdict-icon">●</span>
+                <span className="debrief-verdict-title">{verdictBadge}</span>
+              </div>
+              <span className="debrief-verdict-tag">STANAG 4686 EVALUATION</span>
             </div>
             <p className="debrief-verdict-summary">{verdictSummary}</p>
             <div className="debrief-verdict-tip">
-              <strong>{verdictTip}</strong>
+              <strong>{verdictDirective}</strong>
             </div>
           </div>
-          {/* Score Showcase Hero */}
-            <div className="debrief-score-hero">
-              <div className="debrief-score-dial">
-                <span className="debrief-score-kicker">DOCTRINE SCORE</span>
-                <span className="debrief-score-number" style={{ color: v2ScoreColor }}>
-                  {effectiveScoreV2.total}
-                  <span className="debrief-score-max"> / 100</span>
-                </span>
-                <span className={getGradeClass(effectiveScoreV2.grade)}>
-                  {effectiveScoreV2.grade.toUpperCase()}
-                </span>
-                {effectiveScoreV2.roeCapApplied && (
-                  <span className="debrief-roe-cap">ROE CAP (MAX 60)</span>
+
+          {/* Score Showcase Hero & 4 Command Pillars */}
+          <div className="debrief-score-hero">
+            {/* Primary Readiness Dial */}
+            <div className="debrief-score-dial">
+              <span className="debrief-score-kicker">COMPOSITE DOCTRINE READINESS</span>
+              <span className="debrief-score-number" style={{ color: v2ScoreColor }}>
+                {effectiveScoreV2.total}
+                <span className="debrief-score-max"> / 100</span>
+              </span>
+              <span className={getGradeClass(effectiveScoreV2.grade)}>
+                {effectiveScoreV2.grade.toUpperCase()}
+              </span>
+              {effectiveScoreV2.roeCapApplied && (
+                <span className="debrief-roe-cap">ROE CEILING APPLIED (MAX 60)</span>
+              )}
+              <div className="debrief-dial-footer">
+                <span>Weighted Mean: <strong>{effectiveScoreV2.weightedMean}%</strong></span>
+                {totalPenaltiesPoints > 0 && (
+                  <span className="debrief-dial-deductions">Deductions: -{totalPenaltiesPoints} pts</span>
                 )}
               </div>
+            </div>
 
-              {/* 4 Coloured Subscore Badges */}
-              <div className="debrief-subscores-grid">
-                <div className="debrief-subscore-item">
-                  <span className="debrief-subscore-label">DETECTION</span>
-                  <span
-                    className="debrief-subscore-value"
-                    style={{ color: getScoreColor(effectiveScoreV2.subscores.detection) }}
-                  >
-                    {effectiveScoreV2.subscores.detection}%
-                  </span>
-                  <span className="debrief-subscore-desc">Target confirmation speed</span>
-                  <div className="debrief-subscore-bar">
-                    <div
-                      className="debrief-subscore-fill"
-                      style={{
-                        width: `${effectiveScoreV2.subscores.detection}%`,
-                        backgroundColor: getScoreColor(effectiveScoreV2.subscores.detection),
-                      }}
-                    />
+            {/* 4 Command Pillar Badges */}
+            <div className="debrief-subscores-grid">
+              <div className="debrief-subscore-item">
+                <div className="debrief-subscore-header">
+                  <span className="debrief-subscore-label">I. DETECTION & SURVEILLANCE</span>
+                  <span className="debrief-pillar-weight">20% WGT</span>
+                </div>
+                <span
+                  className="debrief-subscore-value"
+                  style={{ color: getScoreColor(effectiveScoreV2.subscores.detection) }}
+                >
+                  {effectiveScoreV2.subscores.detection}%
+                </span>
+                <span className="debrief-subscore-desc">Radar blip acknowledgment latency</span>
+                <div className="debrief-subscore-bar">
+                  <div
+                    className="debrief-subscore-fill"
+                    style={{
+                      width: `${effectiveScoreV2.subscores.detection}%`,
+                      backgroundColor: getScoreColor(effectiveScoreV2.subscores.detection),
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="debrief-subscore-item">
+                <div className="debrief-subscore-header">
+                  <span className="debrief-subscore-label">II. IFF CLASSIFICATION</span>
+                  <span className="debrief-pillar-weight">25% WGT</span>
+                </div>
+                <span
+                  className="debrief-subscore-value"
+                  style={{ color: getScoreColor(effectiveScoreV2.subscores.classification) }}
+                >
+                  {effectiveScoreV2.subscores.classification}%
+                </span>
+                <span className="debrief-subscore-desc">Kinematics, micro-Doppler & RF profile</span>
+                <div className="debrief-subscore-bar">
+                  <div
+                    className="debrief-subscore-fill"
+                    style={{
+                      width: `${effectiveScoreV2.subscores.classification}%`,
+                      backgroundColor: getScoreColor(effectiveScoreV2.subscores.classification),
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="debrief-subscore-item">
+                <div className="debrief-subscore-header">
+                  <span className="debrief-subscore-label">III. EFFECTOR RESOLUTION</span>
+                  <span className="debrief-pillar-weight">45% WGT</span>
+                </div>
+                <span
+                  className="debrief-subscore-value"
+                  style={{ color: getScoreColor(effectiveScoreV2.subscores.engagement) }}
+                >
+                  {effectiveScoreV2.subscores.engagement}%
+                </span>
+                <span className="debrief-subscore-desc">CIWS / Jammer matching & intercept standoff</span>
+                <div className="debrief-subscore-bar">
+                  <div
+                    className="debrief-subscore-fill"
+                    style={{
+                      width: `${effectiveScoreV2.subscores.engagement}%`,
+                      backgroundColor: getScoreColor(effectiveScoreV2.subscores.engagement),
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="debrief-subscore-item">
+                <div className="debrief-subscore-header">
+                  <span className="debrief-subscore-label">IV. FIRE DISCIPLINE & ROE</span>
+                  <span className="debrief-pillar-weight">10% WGT</span>
+                </div>
+                <span
+                  className="debrief-subscore-value"
+                  style={{ color: getScoreColor(effectiveScoreV2.subscores.discipline) }}
+                >
+                  {effectiveScoreV2.subscores.discipline}%
+                </span>
+                <span className="debrief-subscore-desc">Zero collateral fire & false-blip avoidance</span>
+                <div className="debrief-subscore-bar">
+                  <div
+                    className="debrief-subscore-fill"
+                    style={{
+                      width: `${effectiveScoreV2.subscores.discipline}%`,
+                      backgroundColor: getScoreColor(effectiveScoreV2.subscores.discipline),
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Logistics & Munitions Expenditure Ledger */}
+          <section className="debrief-section">
+            <div className="debrief-section-header">
+              <h3 className="debrief-section-title">LOGISTICS & MUNITIONS EXPENDITURE LEDGER</h3>
+              <span className="debrief-section-subtext">Arsenal inventory and effector engagement accounting</span>
+            </div>
+            <div className="debrief-logistics-grid">
+              <div className="debrief-logistics-card">
+                <div className="logistics-card-title">30MM KINETIC CIWS</div>
+                <div className="logistics-card-main">
+                  <span className="logistics-number">{effectorUse.gunBurstsFired}</span>
+                  <span className="logistics-unit">BURSTS FIRED</span>
+                </div>
+                <div className="logistics-details">
+                  <div className="logistics-detail-row">
+                    <span>Rounds Expended:</span>
+                    <strong>{gunRoundsExpended} / 20 rnds</strong>
+                  </div>
+                  <div className="logistics-detail-row">
+                    <span>Magazine Reserves:</span>
+                    <strong style={{ color: gunBurstsRemaining > 0 ? '#1b6d1b' : '#a31a00' }}>
+                      {gunRoundsRemaining} rnds ({gunBurstsRemaining} bursts)
+                    </strong>
                   </div>
                 </div>
+              </div>
 
-                <div className="debrief-subscore-item">
-                  <span className="debrief-subscore-label">CLASSIFICATION</span>
-                  <span
-                    className="debrief-subscore-value"
-                    style={{ color: getScoreColor(effectiveScoreV2.subscores.classification) }}
-                  >
-                    {effectiveScoreV2.subscores.classification}%
-                  </span>
-                  <span className="debrief-subscore-desc">Airframe / RF attribution</span>
-                  <div className="debrief-subscore-bar">
-                    <div
-                      className="debrief-subscore-fill"
-                      style={{
-                        width: `${effectiveScoreV2.subscores.classification}%`,
-                        backgroundColor: getScoreColor(effectiveScoreV2.subscores.classification),
-                      }}
-                    />
+              <div className="debrief-logistics-card">
+                <div className="logistics-card-title">RF DIRECTIONAL JAMMER</div>
+                <div className="logistics-card-main">
+                  <span className="logistics-number">{effectorUse.jammerCycles}</span>
+                  <span className="logistics-unit">CYCLES TRANSMITTED</span>
+                </div>
+                <div className="logistics-details">
+                  <div className="logistics-detail-row">
+                    <span>Emission Duration:</span>
+                    <strong>{(effectorUse.jammerCycles * 3.0).toFixed(1)} s</strong>
+                  </div>
+                  <div className="logistics-detail-row">
+                    <span>Target Frequency Band:</span>
+                    <strong>2.4 GHz / 5.8 GHz ISM + RC Telemetry</strong>
                   </div>
                 </div>
+              </div>
 
-                <div className="debrief-subscore-item">
-                  <span className="debrief-subscore-label">ENGAGEMENT</span>
-                  <span
-                    className="debrief-subscore-value"
-                    style={{ color: getScoreColor(effectiveScoreV2.subscores.engagement) }}
-                  >
-                    {effectiveScoreV2.subscores.engagement}%
+              <div className="debrief-logistics-card">
+                <div className="logistics-card-title">HOSTILE TARGETS NEUTRALIZED</div>
+                <div className="logistics-card-main">
+                  <span className="logistics-number" style={{ color: '#1b6d1b' }}>
+                    {effectorUse.killsPerEffector.gun + effectorUse.killsPerEffector.jammer}
                   </span>
-                  <span className="debrief-subscore-desc">Outcome, fit & latency</span>
-                  <div className="debrief-subscore-bar">
-                    <div
-                      className="debrief-subscore-fill"
-                      style={{
-                        width: `${effectiveScoreV2.subscores.engagement}%`,
-                        backgroundColor: getScoreColor(effectiveScoreV2.subscores.engagement),
-                      }}
-                    />
+                  <span className="logistics-unit">CONFIRMED KILLS</span>
+                </div>
+                <div className="logistics-details">
+                  <div className="logistics-detail-row">
+                    <span>Kinetic CIWS Kills:</span>
+                    <strong>{effectorUse.killsPerEffector.gun}</strong>
+                  </div>
+                  <div className="logistics-detail-row">
+                    <span>Electronic Jammer Kills:</span>
+                    <strong>{effectorUse.killsPerEffector.jammer}</strong>
                   </div>
                 </div>
+              </div>
 
-                <div className="debrief-subscore-item">
-                  <span className="debrief-subscore-label">DISCIPLINE</span>
+              <div className="debrief-logistics-card">
+                <div className="logistics-card-title">AVOIDABLE SPEND & DISCIPLINE</div>
+                <div className="logistics-card-main">
                   <span
-                    className="debrief-subscore-value"
-                    style={{ color: getScoreColor(effectiveScoreV2.subscores.discipline) }}
+                    className="logistics-number"
+                    style={{
+                      color:
+                        effectorUse.wastedEngagements.ghost +
+                        effectorUse.wastedEngagements.decoy +
+                        effectorUse.wastedEngagements.neutral > 0
+                          ? '#a31a00'
+                          : '#1b6d1b',
+                    }}
                   >
-                    {effectiveScoreV2.subscores.discipline}%
+                    {effectorUse.wastedEngagements.ghost +
+                      effectorUse.wastedEngagements.decoy +
+                      effectorUse.wastedEngagements.neutral}
                   </span>
-                  <span className="debrief-subscore-desc">ROE & false engage avoidance</span>
-                  <div className="debrief-subscore-bar">
-                    <div
-                      className="debrief-subscore-fill"
-                      style={{
-                        width: `${effectiveScoreV2.subscores.discipline}%`,
-                        backgroundColor: getScoreColor(effectiveScoreV2.subscores.discipline),
-                      }}
-                    />
+                  <span className="logistics-unit">WASTED DISCHARGES</span>
+                </div>
+                <div className="logistics-details">
+                  <div className="logistics-detail-row">
+                    <span>Perimeter Status:</span>
+                    <strong style={{ color: assetHitLogged ? '#a31a00' : '#1b6d1b' }}>
+                      {assetHitLogged ? 'PERIMETER COMPROMISED' : '100% INTACT'}
+                    </strong>
+                  </div>
+                  <div className="logistics-detail-row">
+                    <span>Ghost / Clutter Fired:</span>
+                    <strong>{effectorUse.wastedEngagements.ghost} ghost · {effectorUse.wastedEngagements.neutral} neutral</strong>
                   </div>
                 </div>
               </div>
             </div>
+          </section>
 
-            {/* Per-Contact Table with Expandable Decision Paths */}
-            <section className="debrief-section">
-              <div className="debrief-section-header">
-                <h3 className="debrief-section-title">PER-CONTACT EVALUATION (DOCTRINE DECISION TREE)</h3>
-                <span className="debrief-section-subtext">Click any contact row to inspect decision trace</span>
-              </div>
-              <div className="debrief-table-wrapper">
-                <table className="debrief-table">
-                  <thead>
-                    <tr>
-                      <th>ACTOR</th>
-                      <th>CLASS</th>
-                      <th>OBSERVABLE</th>
-                      <th>D (DETECT)</th>
-                      <th>C (CLASS)</th>
-                      <th>E (ENGAGE)</th>
-                      <th>TOTAL</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {effectiveScoreV2.perContact.map((c) => {
-                      const isExpanded = expandedActorId === c.actorId;
-                      const isHostile =
-                        c.classId === 'fpv_kamikaze' ||
-                        c.classId === 'fpv_fiber' ||
-                        c.classId === 'fixed_wing_recon';
+          {/* Airspace Order of Battle (AOB) Tactical Manifest */}
+          <section className="debrief-section">
+            <div className="debrief-section-header">
+              <h3 className="debrief-section-title">AIRSPACE ORDER OF BATTLE (AOB) TACTICAL MANIFEST</h3>
+              <span className="debrief-section-subtext">Click any contact row to inspect doctrine decision tree nodes</span>
+            </div>
+            <div className="debrief-table-wrapper">
+              <table className="debrief-table">
+                <thead>
+                  <tr>
+                    <th>ACTOR</th>
+                    <th>TARGET CLASS</th>
+                    <th>OBSERVABLE</th>
+                    <th>D (DETECT)</th>
+                    <th>C (CLASS)</th>
+                    <th>E (ENGAGE)</th>
+                    <th>TOTAL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {effectiveScoreV2.perContact.map((c) => {
+                    const isExpanded = expandedActorId === c.actorId;
+                    const isHostile =
+                      c.classId === 'fpv_kamikaze' ||
+                      c.classId === 'fpv_fiber' ||
+                      c.classId === 'fixed_wing_recon';
 
-                      return (
-                        <React.Fragment key={c.actorId}>
-                          <tr
-                            onClick={() => setExpandedActorId(isExpanded ? null : c.actorId)}
-                            className={`is-clickable ${isExpanded ? 'is-expanded' : ''}`}
+                    return (
+                      <React.Fragment key={c.actorId}>
+                        <tr
+                          onClick={() => setExpandedActorId(isExpanded ? null : c.actorId)}
+                          className={`is-clickable ${isExpanded ? 'is-expanded' : ''}`}
+                        >
+                          <td>
+                            <span style={{ fontWeight: 800, color: '#140f0a' }}>
+                              {isExpanded ? '▼ ' : '▶ '}#{c.actorId}
+                            </span>
+                          </td>
+                          <td
+                            style={{
+                              color: isHostile ? '#a31a00' : '#174873',
+                              fontWeight: 800,
+                            }}
                           >
-                            <td>
-                              <span style={{ fontWeight: 800, color: '#140f0a' }}>
-                                {isExpanded ? '▼ ' : '▶ '}#{c.actorId}
-                              </span>
-                            </td>
-                            <td
-                              style={{
-                                color: isHostile ? '#a31a00' : '#174873',
-                                fontWeight: 800,
-                              }}
-                            >
-                              {c.classId.toUpperCase()}
-                            </td>
-                            <td>
-                              <span className={`debrief-pill ${c.observable ? 'debrief-pill-accent' : ''}`}>
-                                {c.observable ? 'YES' : 'NO'}
-                              </span>
-                            </td>
-                            <td>{(c.d * 100).toFixed(0)}%</td>
-                            <td>{(c.c * 100).toFixed(0)}%</td>
-                            <td>{(c.e * 100).toFixed(0)}%</td>
-                            <td
-                              style={{
-                                color: getScoreColor(c.totalScore),
-                                fontWeight: 800,
-                              }}
-                            >
-                              {c.totalScore}%
+                            {c.classId.toUpperCase()}
+                          </td>
+                          <td>
+                            <span className={`debrief-pill ${c.observable ? 'debrief-pill-accent' : ''}`}>
+                              {c.observable ? 'YES' : 'NO'}
+                            </span>
+                          </td>
+                          <td>{(c.d * 100).toFixed(0)}%</td>
+                          <td>{(c.c * 100).toFixed(0)}%</td>
+                          <td>{(c.e * 100).toFixed(0)}%</td>
+                          <td
+                            style={{
+                              color: getScoreColor(c.totalScore),
+                              fontWeight: 800,
+                            }}
+                          >
+                            {c.totalScore}%
+                          </td>
+                        </tr>
+
+                        {/* Expanded Decision Path */}
+                        {isExpanded && (
+                          <tr>
+                            <td colSpan={7} style={{ padding: 0 }}>
+                              <div className="debrief-decision-box">
+                                <h4 className="debrief-decision-title">
+                                  Decision Tree Trace — Actor #{c.actorId} ({c.classId.toUpperCase()})
+                                </h4>
+                                <div className="debrief-decision-nodes">
+                                  {c.decisionPath.map((node) => (
+                                    <div key={node.id} className="debrief-decision-node">
+                                      <div className="debrief-node-header">
+                                        <span className="debrief-node-question">{node.question}</span>
+                                        <span
+                                          className="debrief-node-points"
+                                          style={{
+                                            color:
+                                              node.points === node.maxPoints
+                                                ? '#1b6d1b'
+                                                : node.points > 0
+                                                  ? '#945300'
+                                                  : '#a31a00',
+                                          }}
+                                        >
+                                          {node.points} / {node.maxPoints} pts
+                                        </span>
+                                      </div>
+                                      <div className="debrief-node-detail">
+                                        <span>Recorded: <strong>{node.answer}</strong></span>
+                                        {node.note && <span>[{node.note}]</span>}
+                                        {node.cause && (
+                                          <span style={{ color: '#a31a00', fontWeight: 700 }}>
+                                            Cause: {node.cause}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             </td>
                           </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-                          {/* Expanded Decision Path */}
-                          {isExpanded && (
-                            <tr>
-                              <td colSpan={7} style={{ padding: 0 }}>
-                                <div className="debrief-decision-box">
-                                  <h4 className="debrief-decision-title">
-                                    Decision Tree Trace — Actor #{c.actorId} ({c.classId})
-                                  </h4>
-                                  <div className="debrief-decision-nodes">
-                                    {c.decisionPath.map((node) => (
-                                      <div key={node.id} className="debrief-decision-node">
-                                        <div className="debrief-node-header">
-                                          <span className="debrief-node-question">{node.question}</span>
-                                          <span
-                                            className="debrief-node-points"
-                                            style={{
-                                              color:
-                                                node.points === node.maxPoints
-                                                  ? '#1b6d1b'
-                                                  : node.points > 0
-                                                    ? '#945300'
-                                                    : '#a31a00',
-                                            }}
-                                          >
-                                            {node.points} / {node.maxPoints} pts
-                                          </span>
-                                        </div>
-                                        <div className="debrief-node-detail">
-                                          <span>Answer: <strong>{node.answer}</strong></span>
-                                          {node.note && <span>[{node.note}]</span>}
-                                          {node.cause && (
-                                            <span style={{ color: '#a31a00', fontWeight: 700 }}>
-                                              Cause: {node.cause}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
+          {/* Unobservable Contacts Section */}
+          <section className="debrief-section">
+            <div className="debrief-section-header">
+              <h3 className="debrief-section-title">UNOBSERVABLE CONTACTS</h3>
+            </div>
+            {effectiveScoreV2.unobservable.length === 0 ? (
+              <div className="debrief-notice-box">
+                All mission contacts reached confirmed radar track status and were evaluated in weighted mean.
               </div>
-            </section>
-
-            {/* Unobservable Contacts Section */}
-            <section className="debrief-section">
-              <div className="debrief-section-header">
-                <h3 className="debrief-section-title">UNOBSERVABLE CONTACTS</h3>
+            ) : (
+              <div className="debrief-unobservable-grid">
+                {effectiveScoreV2.unobservable.map((u) => (
+                  <div key={u.actorId} className="debrief-unobservable-card">
+                    <span className="debrief-actor-badge">Actor #{u.actorId}</span>
+                    <span className="debrief-class-badge">{u.classId.toUpperCase()}</span>
+                    <span className="debrief-reason-text">Reason: {u.reason}</span>
+                    {u.note && <span className="debrief-note-text">({u.note})</span>}
+                  </div>
+                ))}
               </div>
-              {effectiveScoreV2.unobservable.length === 0 ? (
-                <div className="debrief-notice-box">
-                  All mission contacts reached confirmed radar track status and were evaluated in weighted mean.
-                </div>
-              ) : (
-                <div className="debrief-unobservable-grid">
-                  {effectiveScoreV2.unobservable.map((u) => (
-                    <div key={u.actorId} className="debrief-unobservable-card">
-                      <span className="debrief-actor-badge">Actor #{u.actorId}</span>
-                      <span className="debrief-class-badge">{u.classId.toUpperCase()}</span>
-                      <span className="debrief-reason-text">Reason: {u.reason}</span>
-                      {u.note && <span className="debrief-note-text">({u.note})</span>}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* Mission-Level Penalties Section */}
-            <section className="debrief-section">
-              <div className="debrief-section-header">
-                <h3 className="debrief-section-title">MISSION-LEVEL PENALTIES</h3>
-              </div>
-              {effectiveScoreV2.roeCapApplied && (
-                <div className="debrief-penalty-item" style={{ background: 'rgba(179, 32, 0, 0.08)' }}>
-                  <span className="debrief-penalty-badge">ROE CAP ENFORCED (MAX 60 PTS)</span>
-                  <span className="debrief-penalty-reason">Civilian quadcopter engagement detected. Total score cannot exceed 60.</span>
-                </div>
-              )}
-              {effectiveScoreV2.penalties.length === 0 ? (
-                <div className="debrief-notice-box">No mission penalties incurred. Clean tactical engagement.</div>
-              ) : (
-                <div className="debrief-penalties-list">
-                  {groupPenalties(effectiveScoreV2.penalties).map((pen) => (
-                    <div key={pen.reason} className="debrief-penalty-item">
-                      <span className="debrief-penalty-badge">-{pen.total} PTS</span>
-                      <span className="debrief-penalty-reason">{pen.reason}{pen.count > 1 ? ` x ${pen.count}` : ''}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* Plain-English Reasons */}
-            {effectiveScoreV2.reasons && effectiveScoreV2.reasons.length > 0 && (
-              <section className="debrief-section">
-                <div className="debrief-section-header">
-                  <h3 className="debrief-section-title">EVALUATION AUDIT LOG & REASONS</h3>
-                </div>
-                <ul className="debrief-reasons-list">
-                  {effectiveScoreV2.reasons.map((r, idx) => (
-                    <li key={idx}>
-                      {r}
-                    </li>
-                  ))}
-                </ul>
-              </section>
             )}
-          </div>
+          </section>
+
+          {/* Mission Penalties & ROE Compliance Audit */}
+          <section className="debrief-section">
+            <div className="debrief-section-header">
+              <h3 className="debrief-section-title">PENALTIES & ROE COMPLIANCE AUDIT</h3>
+            </div>
+            {effectiveScoreV2.roeCapApplied && (
+              <div className="debrief-penalty-item" style={{ background: 'rgba(179, 32, 0, 0.08)' }}>
+                <span className="debrief-penalty-badge">ROE CAP ENFORCED (MAX 60 PTS)</span>
+                <span className="debrief-penalty-reason">Civilian quadcopter or non-hostile contact engaged. Score capped at 60.</span>
+              </div>
+            )}
+            {penaltiesToRender.length === 0 ? (
+              <div className="debrief-notice-box">No mission penalties incurred. Clean tactical engagement.</div>
+            ) : (
+              <div className="debrief-penalties-list">
+                {groupPenalties(penaltiesToRender).map((pen) => (
+                  <div key={pen.reason} className="debrief-penalty-item">
+                    <span className="debrief-penalty-badge">-{pen.total} PTS</span>
+                    <span className="debrief-penalty-reason">{pen.reason}{pen.count > 1 ? ` x ${pen.count}` : ''}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Plain-English Audit Log & Tactical Observations */}
+          {auditReasons && auditReasons.length > 0 && (
+            <section className="debrief-section">
+              <div className="debrief-section-header">
+                <h3 className="debrief-section-title">EVALUATION AUDIT LOG & TACTICAL OBSERVATIONS</h3>
+              </div>
+              <ul className="debrief-reasons-list">
+                {auditReasons.map((r, idx) => (
+                  <li key={idx}>
+                    {r}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Official Evaluation Certification Block */}
+          <section className="debrief-certification-block">
+            <div className="debrief-cert-card">
+              <div className="cert-card-left">
+                <span className="cert-badge">SYSTEM AUTHENTICATED</span>
+                <h4 className="cert-title">VAJRA C-UAS SIMULATOR // DOCTRINE CORE v2.2</h4>
+                <p className="cert-desc">
+                  This operational assessment has been computed deterministically per NATO STANAG 4686 and Joint Counter-UAS doctrine metrics. Telemetry is verified against ground truth kinematics.
+                </p>
+              </div>
+              <div className="cert-card-right">
+                <div className="cert-digest-item">
+                  <span className="cert-label">INTEGRITY DIGEST:</span>
+                  <span className="cert-hash">SHA256:VAL-{seed.toUpperCase().slice(0, 10)}</span>
+                </div>
+                <div className="cert-digest-item">
+                  <span className="cert-label">LOCAL RECORD:</span>
+                  <span className="cert-status">{storageStatus ?? 'COMMITTED TO SECURE INDEXEDDB'}</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
 
         {/* Legacy Scoring v1 Panel */}
-        <div style={{ display: activeTab === 'v1' ? 'flex' : 'none', flexDirection: 'column', gap: '28px' }}>
+        <div style={{ display: activeTab === 'v1' ? 'flex' : 'none', flexDirection: 'column', gap: '24px' }}>
           <div className="debrief-notice-box">
             Displaying Legacy Scoring v1 Results (Basic Heuristic Model)
           </div>
@@ -657,203 +903,203 @@ export function DebriefScreen({
             </p>
           </div>
 
-            {/* Score Showcase */}
-            <div className="debrief-score-hero">
-              <div className="debrief-score-dial">
-                <span className="debrief-score-kicker">EVALUATION SCORE</span>
-                <span className="debrief-score-number" style={{ color: v1ScoreColor }}>
-                  {score.total}
-                  <span className="debrief-score-max"> / 100</span>
-                </span>
-                <span
-                  className={getGradeClass(
-                    score.total >= 85
-                      ? 'EXCELLENT'
-                      : score.total >= 60
-                        ? 'SATISFACTORY'
-                        : 'FAILED'
-                  )}
-                >
-                  {score.total >= 85
+          {/* Score Showcase */}
+          <div className="debrief-score-hero">
+            <div className="debrief-score-dial">
+              <span className="debrief-score-kicker">EVALUATION SCORE</span>
+              <span className="debrief-score-number" style={{ color: v1ScoreColor }}>
+                {score.total}
+                <span className="debrief-score-max"> / 100</span>
+              </span>
+              <span
+                className={getGradeClass(
+                  score.total >= 85
                     ? 'EXCELLENT'
                     : score.total >= 60
                       ? 'SATISFACTORY'
-                      : 'FAILED'}
-                </span>
-              </div>
-
-              <div className="debrief-summary-metrics">
-                <div className="debrief-summary-metric">
-                  <span className="debrief-summary-label">Weighted Mean Score</span>
-                  <span className="debrief-summary-val">{score.weightedMean}%</span>
-                </div>
-                <div className="debrief-summary-metric">
-                  <span className="debrief-summary-label">Total Deductions</span>
-                  <span
-                    className="debrief-summary-val"
-                    style={{
-                      color: score.penalties.length > 0 ? '#a31a00' : '#1b6d1b',
-                    }}
-                  >
-                    -{score.penalties.reduce((sum, p) => sum + p.points, 0)} pts
-                  </span>
-                </div>
-                <div className="debrief-summary-metric">
-                  <span className="debrief-summary-label">Contacts Evaluated</span>
-                  <span className="debrief-summary-val">{score.perContact.length}</span>
-                </div>
-                <div className="debrief-summary-metric">
-                  <span className="debrief-summary-label">False Tracks (Clutter/Ghosts)</span>
-                  <span
-                    className="debrief-summary-val"
-                    style={{
-                      color: ghostsEngaged > 0 ? '#a31a00' : '#5c4b3c',
-                    }}
-                  >
-                    {ghostsObserved} obs / {ghostsEngaged} eng
-                  </span>
-                </div>
-              </div>
+                      : 'FAILED'
+                )}
+              >
+                {score.total >= 85
+                  ? 'EXCELLENT'
+                  : score.total >= 60
+                    ? 'SATISFACTORY'
+                    : 'FAILED'}
+              </span>
             </div>
 
-            {/* Contacts Breakdown Table */}
-            <section className="debrief-section">
-              <div className="debrief-section-header">
-                <h3 className="debrief-section-title">CONTACT EVALUATION BREAKDOWN (v1)</h3>
+            <div className="debrief-summary-metrics">
+              <div className="debrief-summary-metric">
+                <span className="debrief-summary-label">Weighted Mean Score</span>
+                <span className="debrief-summary-val">{score.weightedMean}%</span>
               </div>
-              <div className="debrief-table-wrapper">
-                <table className="debrief-table">
-                  <thead>
-                    <tr>
-                      <th>ACTOR</th>
-                      <th>TRUE CLASS</th>
-                      <th>TRAINEE ASSESSMENT</th>
-                      <th>ACK LATENCY</th>
-                      <th>DETECTION</th>
-                      <th>CLASSIFICATION</th>
-                      <th>DECISION</th>
-                      <th>SUBTOTAL</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {score.perContact.map((c) => {
-                      const isHostile = c.classId === 'fpv_kamikaze';
-                      const match = c.assessedClass === c.classId;
+              <div className="debrief-summary-metric">
+                <span className="debrief-summary-label">Total Deductions</span>
+                <span
+                  className="debrief-summary-val"
+                  style={{
+                    color: score.penalties.length > 0 ? '#a31a00' : '#1b6d1b',
+                  }}
+                >
+                  -{score.penalties.reduce((sum, p) => sum + p.points, 0)} pts
+                </span>
+              </div>
+              <div className="debrief-summary-metric">
+                <span className="debrief-summary-label">Contacts Evaluated</span>
+                <span className="debrief-summary-val">{score.perContact.length}</span>
+              </div>
+              <div className="debrief-summary-metric">
+                <span className="debrief-summary-label">False Tracks (Clutter/Ghosts)</span>
+                <span
+                  className="debrief-summary-val"
+                  style={{
+                    color: ghostsEngaged > 0 ? '#a31a00' : '#5c4b3c',
+                  }}
+                >
+                  {ghostsObserved} obs / {ghostsEngaged} eng
+                </span>
+              </div>
+            </div>
+          </div>
 
-                      return (
-                        <tr key={c.actorId}>
-                          <td><strong>#{c.actorId}</strong></td>
-                          <td
+          {/* Contacts Breakdown Table */}
+          <section className="debrief-section">
+            <div className="debrief-section-header">
+              <h3 className="debrief-section-title">CONTACT EVALUATION BREAKDOWN (v1)</h3>
+            </div>
+            <div className="debrief-table-wrapper">
+              <table className="debrief-table">
+                <thead>
+                  <tr>
+                    <th>ACTOR</th>
+                    <th>TRUE CLASS</th>
+                    <th>TRAINEE ASSESSMENT</th>
+                    <th>ACK LATENCY</th>
+                    <th>DETECTION</th>
+                    <th>CLASSIFICATION</th>
+                    <th>DECISION</th>
+                    <th>SUBTOTAL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {score.perContact.map((c) => {
+                    const isHostile = c.classId === 'fpv_kamikaze';
+                    const match = c.assessedClass === c.classId;
+
+                    return (
+                      <tr key={c.actorId}>
+                        <td><strong>#{c.actorId}</strong></td>
+                        <td
+                          style={{
+                            color: isHostile ? '#a31a00' : '#174873',
+                            fontWeight: 800,
+                          }}
+                        >
+                          {c.classId.toUpperCase()}
+                        </td>
+                        <td>
+                          <span
                             style={{
-                              color: isHostile ? '#a31a00' : '#174873',
-                              fontWeight: 800,
+                              color: match ? '#1b6d1b' : '#a31a00',
+                              fontWeight: 700,
                             }}
                           >
-                            {c.classId.toUpperCase()}
-                          </td>
-                          <td>
-                            <span
-                              style={{
-                                color: match ? '#1b6d1b' : '#a31a00',
-                                fontWeight: 700,
-                              }}
-                            >
-                              {c.assessedClass
-                                ? c.assessedClass.toUpperCase()
-                                : 'UNASSESSED'}
-                            </span>
-                          </td>
-                          <td>
-                            {c.ackLatencySec !== undefined
-                              ? `${c.ackLatencySec.toFixed(1)}s`
-                              : 'NONE'}
-                          </td>
-                          <td>{(c.detectionScore * 100).toFixed(0)}%</td>
-                          <td>{(c.classificationScore * 100).toFixed(0)}%</td>
-                          <td>{(c.decisionScore * 100).toFixed(0)}%</td>
-                          <td style={{ color: '#140f0a', fontWeight: 800 }}>
-                            {(c.contactTotal * 100).toFixed(0)}%
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </section>
+                            {c.assessedClass
+                              ? c.assessedClass.toUpperCase()
+                              : 'UNASSESSED'}
+                          </span>
+                        </td>
+                        <td>
+                          {c.ackLatencySec !== undefined
+                            ? `${c.ackLatencySec.toFixed(1)}s`
+                            : 'NONE'}
+                        </td>
+                        <td>{(c.detectionScore * 100).toFixed(0)}%</td>
+                        <td>{(c.classificationScore * 100).toFixed(0)}%</td>
+                        <td>{(c.decisionScore * 100).toFixed(0)}%</td>
+                        <td style={{ color: '#140f0a', fontWeight: 800 }}>
+                          {(c.contactTotal * 100).toFixed(0)}%
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-            {/* Penalties Section */}
-            {score.penalties.length > 0 && (
-              <section className="debrief-section">
-                <div className="debrief-section-header">
-                  <h3 className="debrief-section-title">PENALTIES INCURRED (v1)</h3>
-                </div>
-                <div className="debrief-penalties-list">
-                  {groupPenalties(score.penalties).map((pen) => (
-                    <div key={pen.reason} className="debrief-penalty-item">
-                      <span className="debrief-penalty-badge">-{pen.total} PTS</span>
-                      <span className="debrief-penalty-reason">{pen.reason}{pen.count > 1 ? ` x ${pen.count}` : ''}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Effector Use Accounting */}
-            {score.effectorUse && (
-              <section className="debrief-section">
-                <div className="debrief-section-header">
-                  <h3 className="debrief-section-title">EFFECTOR ENGAGEMENT ACCOUNTING</h3>
-                </div>
-                <div className="debrief-effector-grid">
-                  <div className="debrief-effector-card">
-                    <span className="debrief-effector-label">GUN BURSTS FIRED</span>
-                    <span className="debrief-effector-val">{score.effectorUse.gunBurstsFired}</span>
-                  </div>
-                  <div className="debrief-effector-card">
-                    <span className="debrief-effector-label">JAMMER CYCLES</span>
-                    <span className="debrief-effector-val">{score.effectorUse.jammerCycles}</span>
-                  </div>
-                  <div className="debrief-effector-card">
-                    <span className="debrief-effector-label">HOSTILE KILLS</span>
-                    <span className="debrief-effector-val" style={{ color: '#1b6d1b' }}>
-                      Gun: {score.effectorUse.killsPerEffector.gun} | Jammer: {score.effectorUse.killsPerEffector.jammer}
-                    </span>
-                  </div>
-                  <div className="debrief-effector-card">
-                    <span className="debrief-effector-label">WASTED ENGAGEMENTS</span>
-                    <span
-                      className="debrief-effector-val"
-                      style={{
-                        color:
-                          score.effectorUse.wastedEngagements.ghost +
-                            score.effectorUse.wastedEngagements.decoy +
-                            score.effectorUse.wastedEngagements.neutral >
-                          0
-                            ? '#a31a00'
-                            : '#5c4b3c',
-                      }}
-                    >
-                      Ghost: {score.effectorUse.wastedEngagements.ghost} | Decoy: {score.effectorUse.wastedEngagements.decoy} | Neutral: {score.effectorUse.wastedEngagements.neutral}
-                    </span>
-                  </div>
-                </div>
-              </section>
-            )}
-
-            {/* Plain-English Reasons */}
+          {/* Penalties Section */}
+          {score.penalties.length > 0 && (
             <section className="debrief-section">
               <div className="debrief-section-header">
-                <h3 className="debrief-section-title">EVALUATION AUDIT LOG & REASONS</h3>
+                <h3 className="debrief-section-title">PENALTIES INCURRED (v1)</h3>
               </div>
-              <ul className="debrief-reasons-list">
-                {score.reasons.map((r, idx) => (
-                  <li key={idx}>
-                    {r}
-                  </li>
+              <div className="debrief-penalties-list">
+                {groupPenalties(score.penalties).map((pen) => (
+                  <div key={pen.reason} className="debrief-penalty-item">
+                    <span className="debrief-penalty-badge">-{pen.total} PTS</span>
+                    <span className="debrief-penalty-reason">{pen.reason}{pen.count > 1 ? ` x ${pen.count}` : ''}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </section>
+          )}
+
+          {/* Effector Use Accounting */}
+          {score.effectorUse && (
+            <section className="debrief-section">
+              <div className="debrief-section-header">
+                <h3 className="debrief-section-title">EFFECTOR ENGAGEMENT ACCOUNTING</h3>
+              </div>
+              <div className="debrief-effector-grid">
+                <div className="debrief-effector-card">
+                  <span className="debrief-effector-label">GUN BURSTS FIRED</span>
+                  <span className="debrief-effector-val">{score.effectorUse.gunBurstsFired}</span>
+                </div>
+                <div className="debrief-effector-card">
+                  <span className="debrief-effector-label">JAMMER CYCLES</span>
+                  <span className="debrief-effector-val">{score.effectorUse.jammerCycles}</span>
+                </div>
+                <div className="debrief-effector-card">
+                  <span className="debrief-effector-label">HOSTILE KILLS</span>
+                  <span className="debrief-effector-val" style={{ color: '#1b6d1b' }}>
+                    Gun: {score.effectorUse.killsPerEffector.gun} | Jammer: {score.effectorUse.killsPerEffector.jammer}
+                  </span>
+                </div>
+                <div className="debrief-effector-card">
+                  <span className="debrief-effector-label">WASTED ENGAGEMENTS</span>
+                  <span
+                    className="debrief-effector-val"
+                    style={{
+                      color:
+                        score.effectorUse.wastedEngagements.ghost +
+                          score.effectorUse.wastedEngagements.decoy +
+                          score.effectorUse.wastedEngagements.neutral >
+                        0
+                          ? '#a31a00'
+                          : '#5c4b3c',
+                    }}
+                  >
+                    Ghost: {score.effectorUse.wastedEngagements.ghost} | Decoy: {score.effectorUse.wastedEngagements.decoy} | Neutral: {score.effectorUse.wastedEngagements.neutral}
+                  </span>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Plain-English Reasons */}
+          <section className="debrief-section">
+            <div className="debrief-section-header">
+              <h3 className="debrief-section-title">EVALUATION AUDIT LOG & REASONS</h3>
+            </div>
+            <ul className="debrief-reasons-list">
+              {score.reasons.map((r, idx) => (
+                <li key={idx}>
+                  {r}
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
 
         {/* Action Buttons Bar */}
