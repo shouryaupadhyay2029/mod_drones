@@ -197,7 +197,15 @@ export function TopBar({
     return () => scrollRoot.removeEventListener('scroll', updateScrollState);
   }, [phase]);
 
+  // Reset dropdown when switching phase
+  useEffect(() => {
+    setActiveDropdown(null);
+    isPinnedRef.current = false;
+  }, [phase]);
+
   const handleDropdownEnter = (menu: 'contacts' | 'systems' | 'intel') => {
+    // Strictly prevent hover-triggered dropdowns during combat or debrief
+    if (phase !== 'setup') return;
     if (leaveTimerRef.current) {
       clearTimeout(leaveTimerRef.current);
       leaveTimerRef.current = null;
@@ -208,6 +216,7 @@ export function TopBar({
   };
 
   const handleDropdownLeave = () => {
+    if (phase !== 'setup') return;
     if (isPinnedRef.current) return;
     if (leaveTimerRef.current) {
       clearTimeout(leaveTimerRef.current);
@@ -222,7 +231,7 @@ export function TopBar({
       clearTimeout(leaveTimerRef.current);
       leaveTimerRef.current = null;
     }
-    if (activeDropdown === menu && isPinnedRef.current) {
+    if (activeDropdown === menu) {
       isPinnedRef.current = false;
       setActiveDropdown(null);
     } else {
@@ -250,7 +259,11 @@ export function TopBar({
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
-      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const insideDropdown = target.closest('.mega-dropdown-panel');
+      const insideToggle = target.closest('.nav-mega-btn');
+      if (!insideDropdown && !insideToggle) {
         isPinnedRef.current = false;
         setActiveDropdown(null);
       }
@@ -261,10 +274,10 @@ export function TopBar({
         setActiveDropdown(null);
       }
     };
-    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('pointerdown', handleOutsideClick);
     document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('pointerdown', handleOutsideClick);
       document.removeEventListener('keydown', handleKeyDown);
       if (leaveTimerRef.current) {
         clearTimeout(leaveTimerRef.current);
@@ -274,6 +287,14 @@ export function TopBar({
 
   return (
     <header style={styles.headerRoot} className={`console-header${isScrolled ? ' is-scrolled' : ''}`}>
+      {/* Dimmed backdrop overlay when dropdown is active to prevent overlap trapping */}
+      {activeDropdown && (
+        <div
+          className="mega-dropdown-backdrop"
+          onClick={handleCloseDropdown}
+          aria-hidden="true"
+        />
+      )}
       {/* Luxury Integrated Navigation Bar — Part of the page background */}
       <nav ref={navRef} style={styles.mainNav} className="console-main-nav">
         {/* Left: Brand Identity */}
@@ -317,13 +338,22 @@ export function TopBar({
             <div
               className={`mega-dropdown-panel ${activeDropdown === 'contacts' ? 'is-open' : ''}`}
               onMouseEnter={() => {
-                if (leaveTimerRef.current) {
+                if (phase === 'setup' && leaveTimerRef.current) {
                   clearTimeout(leaveTimerRef.current);
                   leaveTimerRef.current = null;
                 }
               }}
               onMouseLeave={handleDropdownLeave}
             >
+              <button
+                type="button"
+                className="mega-dropdown-close-btn"
+                onClick={handleCloseDropdown}
+                aria-label="Close contact deck"
+                title="Close (Esc)"
+              >
+                ✕
+              </button>
               <div className="mega-menu-grid contact-menu-grid">
                 <div className="mega-menu-list">
                   {CONTACT_REFERENCES.map((contact, index) => (
@@ -407,13 +437,22 @@ export function TopBar({
             <div
               className={`mega-dropdown-panel panel-right-align ${activeDropdown === 'systems' ? 'is-open' : ''}`}
               onMouseEnter={() => {
-                if (leaveTimerRef.current) {
+                if (phase === 'setup' && leaveTimerRef.current) {
                   clearTimeout(leaveTimerRef.current);
                   leaveTimerRef.current = null;
                 }
               }}
               onMouseLeave={handleDropdownLeave}
             >
+              <button
+                type="button"
+                className="mega-dropdown-close-btn"
+                onClick={handleCloseDropdown}
+                aria-label="Close defense systems panel"
+                title="Close (Esc)"
+              >
+                ✕
+              </button>
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
@@ -539,13 +578,22 @@ export function TopBar({
             <div
               className={`mega-dropdown-panel panel-right-align ${activeDropdown === 'intel' ? 'is-open' : ''}`}
               onMouseEnter={() => {
-                if (leaveTimerRef.current) {
+                if (phase === 'setup' && leaveTimerRef.current) {
                   clearTimeout(leaveTimerRef.current);
                   leaveTimerRef.current = null;
                 }
               }}
               onMouseLeave={handleDropdownLeave}
             >
+              <button
+                type="button"
+                className="mega-dropdown-close-btn"
+                onClick={handleCloseDropdown}
+                aria-label="Close threat intel panel"
+                title="Close (Esc)"
+              >
+                ✕
+              </button>
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
                   <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
@@ -626,9 +674,15 @@ export function TopBar({
                       and target discrimination govern scoring.
                     </p>
                   </div>
-                  <button onClick={() => openBriefingModal()} style={styles.previewCardBtn}>
-                    START INTERCEPTION ⚡
-                  </button>
+                  {phase === 'running' ? (
+                    <button onClick={handleCloseDropdown} style={styles.previewCardBtn}>
+                      RESUME RADAR SCOPE ✕
+                    </button>
+                  ) : (
+                    <button onClick={() => openBriefingModal()} style={styles.previewCardBtn}>
+                      START INTERCEPTION ⚡
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

@@ -263,7 +263,6 @@ body {
   color: var(--text-muted);
 }
 
-.nav-mega-item:hover .nav-mega-chevron,
 .nav-mega-btn.is-active .nav-mega-chevron {
   transform: rotate(180deg);
 }
@@ -302,29 +301,54 @@ body {
   transform: translateX(-50%) translateY(-8px) scale(0.98);
 }
 
-.nav-mega-item:hover .mega-dropdown-panel.panel-right-align,
-.mega-dropdown-panel.panel-right-align.is-open {
-  transform: translateX(-50%) translateY(0) scale(1);
-}
-
-/* Invisible hover bridge to eliminate the gap between trigger button and dropdown */
-.mega-dropdown-panel::before {
-  content: '';
-  position: absolute;
-  top: -16px;
-  left: 0;
-  right: 0;
-  height: 16px;
-  background: transparent;
-  pointer-events: auto;
-}
-
-.nav-mega-item:hover .mega-dropdown-panel,
+/* Strictly controlled by React .is-open state - no accidental hover trap over radar */
 .mega-dropdown-panel.is-open {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.mega-dropdown-panel.panel-right-align.is-open {
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.mega-dropdown-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9980;
+  background: rgba(20, 18, 16, 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  cursor: pointer;
+}
+
+.mega-dropdown-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(45, 40, 35, 0.08);
+  border: 1px solid rgba(45, 40, 35, 0.18);
+  border-radius: 50%;
+  color: #181716;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.16s ease;
+  line-height: 1;
+}
+
+.mega-dropdown-close-btn:hover {
+  background: #181716;
+  color: #ffffff;
+  border-color: #181716;
+  transform: scale(1.05);
 }
 
 .mega-menu-grid {
