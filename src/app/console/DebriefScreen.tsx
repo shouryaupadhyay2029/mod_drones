@@ -36,7 +36,8 @@ export interface DebriefScreenProps {
   falseTracksObserved?: number;
   falseTracksEngaged?: number;
   onReplaySameSeed: () => void;
-  onNewRandomSeed: () => void;
+  onNewRandomSeed?: () => void;
+  onStartNewMission?: () => void;
 }
 
 function formatClock(tick: number): string {
@@ -72,10 +73,12 @@ export function DebriefScreen({
   falseTracksEngaged,
   onReplaySameSeed,
   onNewRandomSeed,
+  onStartNewMission,
 }: DebriefScreenProps): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<'v2' | 'v1'>('v2');
   const [showSessionReplay, setShowSessionReplay] = useState(false);
   const [expandedActorId, setExpandedActorId] = useState<number | null>(null);
+  const handleStartNewMission = onStartNewMission ?? onNewRandomSeed ?? onReplaySameSeed;
 
   const handleDownloadLog = () => {
     if (!sessionLog) return;
@@ -237,6 +240,45 @@ export function DebriefScreen({
     missionDecisionPath: [],
   };
 
+  // Executive Tactical Verdict calculations
+  const roeBreached = effectiveScoreV2.roeCapApplied;
+  const isPass = effectiveScoreV2.total >= 85;
+  const isMarginal = effectiveScoreV2.total >= 60 && !isPass;
+
+  let verdictClass = 'debrief-verdict-banner verdict-failed';
+  let verdictIcon = '🔴';
+  let verdictTitle = 'PERIMETER COMPROMISED // CRITICAL DEFENSE FAILURES';
+  let verdictSummary =
+    'Hostile drones penetrated the inner defense perimeter before neutralization, or significant ammunition was expended on non-threat clutter. Threat prioritization and classification discipline must be improved.';
+  let verdictTip =
+    'DOCTRINE DIRECTIVE: Prioritize high-speed FPV Kamikaze tracks heading towards base assets. Use Jammer out to 1.5 km or CIWS 30mm bursts under 1.0 km. Never discharge effectors at unconfirmed or ghost radar returns.';
+
+  if (roeBreached) {
+    verdictClass = 'debrief-verdict-banner verdict-roe';
+    verdictIcon = '🟠';
+    verdictTitle = 'RULES OF ENGAGEMENT BREACH // SCORE CAPPED AT 60';
+    verdictSummary =
+      'Civilian airframe or non-hostile contact engaged with live effectors. Under standard military doctrine, ROE violations impose an immediate hard ceiling of 60 on mission score.';
+    verdictTip =
+      'DOCTRINE DIRECTIVE: Low-speed blips (<25 m/s) with no RF emissions are civilian quadcopters or birds. Slew EO/IR optics to confirm target visual profile before issuing engagement commands.';
+  } else if (isPass) {
+    verdictClass = 'debrief-verdict-banner verdict-pass';
+    verdictIcon = '🟢';
+    verdictTitle = 'PERIMETER SECURED // EXCEPTIONAL DOCTRINE ADHERENCE';
+    verdictSummary =
+      'All incoming threats were designated, classified, and neutralized with high weapon economy. Defense assets remained fully intact with minimal collateral risk.';
+    verdictTip =
+      'DOCTRINE DIRECTIVE: Excellent target acknowledgment and effector economy. Maintain early radar sweeps to maximize available reaction time against clustered swarm tactics.';
+  } else if (isMarginal) {
+    verdictClass = 'debrief-verdict-banner verdict-marginal';
+    verdictIcon = '🟡';
+    verdictTitle = 'MISSION ACCOMPLISHED // MARGINAL OPERATIONAL EFFICIENCY';
+    verdictSummary =
+      'Perimeter was defended, but delayed radar acknowledgment latency or sub-optimal weapon matching degraded overall tactical rating.';
+    verdictTip =
+      'DOCTRINE DIRECTIVE: Press "A" immediately when a new track appears. Every 1.5 seconds of acknowledgment latency forfeits approximately 100 meters of intercept standoff.';
+  }
+
   const v2ScoreColor = getScoreColor(effectiveScoreV2.total);
   const v1ScoreColor = getScoreColor(score.total);
 
@@ -303,6 +345,17 @@ export function DebriefScreen({
 
         {/* Doctrine Scoring v2 Panel */}
         <div style={{ display: activeTab === 'v2' ? 'flex' : 'none', flexDirection: 'column', gap: '28px' }}>
+          {/* Executive Tactical Verdict Banner */}
+          <div className={verdictClass}>
+            <div className="debrief-verdict-status">
+              <span className="debrief-verdict-icon">{verdictIcon}</span>
+              <span className="debrief-verdict-title">{verdictTitle}</span>
+            </div>
+            <p className="debrief-verdict-summary">{verdictSummary}</p>
+            <div className="debrief-verdict-tip">
+              <strong>{verdictTip}</strong>
+            </div>
+          </div>
           {/* Score Showcase Hero */}
             <div className="debrief-score-hero">
               <div className="debrief-score-dial">
@@ -586,8 +639,23 @@ export function DebriefScreen({
         {/* Legacy Scoring v1 Panel */}
         <div style={{ display: activeTab === 'v1' ? 'flex' : 'none', flexDirection: 'column', gap: '28px' }}>
           <div className="debrief-notice-box">
-              Displaying Legacy Scoring v1 Results (Basic Heuristic Model)
+            Displaying Legacy Scoring v1 Results (Basic Heuristic Model)
+          </div>
+          <div className={`debrief-verdict-banner ${score.total >= 85 ? 'verdict-pass' : score.total >= 60 ? 'verdict-marginal' : 'verdict-failed'}`}>
+            <div className="debrief-verdict-status">
+              <span className="debrief-verdict-icon">{score.total >= 85 ? '🟢' : score.total >= 60 ? '🟡' : '🔴'}</span>
+              <span className="debrief-verdict-title">
+                {score.total >= 85 ? 'EVALUATION PASSED (v1 HEURISTIC)' : score.total >= 60 ? 'MARGINAL EVALUATION (v1 HEURISTIC)' : 'EVALUATION FAILED (v1 HEURISTIC)'}
+              </span>
             </div>
+            <p className="debrief-verdict-summary">
+              {score.total >= 85
+                ? 'All evaluated contacts engaged within acceptable operational bounds under legacy heuristic scoring.'
+                : score.total >= 60
+                  ? 'Mission accomplished with noticeable penalties or unclassified engagements.'
+                  : 'Critical defense failures or high deduction penalties incurred during evaluation.'}
+            </p>
+          </div>
 
             {/* Score Showcase */}
             <div className="debrief-score-hero">
@@ -802,7 +870,7 @@ export function DebriefScreen({
           <button
             id="btn-new-random-seed"
             type="button"
-            onClick={onNewRandomSeed}
+            onClick={handleStartNewMission}
             className="debrief-btn-primary"
           >
             <TextRoll center stagger={0.02}>🎲 New Random Seed</TextRoll>

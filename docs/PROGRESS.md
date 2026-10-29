@@ -257,20 +257,29 @@ Append a dated section after each future item. Include its commit hash(es), what
   - Offline mission execution: Web Worker simulation engine runs 100% in-browser offline.
   - Offline data persistence: IndexedDB database `vajra-cuas` stores session records, logs, and score reports offline, persisting across reloads in AAR.
 
-## 2026-10-29 — Item 4: Repo Hygiene, PWA Documentation & Benchmark Artifacts
+## 2026-10-29 — AAR Debrief Editorial Theme Harmonization & Scroll Unlocking
 
-- **Repository Hygiene**:
-  - Deleted obsolete `docs/screenshots/test.png`.
-  - Staged and verified intended assets (`bg.webp`, `bg1.webp`, `CommanderBriefing.tsx`, `public/textures/*`, screenshots, `public/registerSW.js`, `public/sw.js`, `public/workbox-8553a241.js`).
-  - Added dedicated "Run offline / install as PWA" section to `README.md` with step-by-step instructions for offline testing, local previewing, and browser PWA installation.
-  - Updated benchmark artifact `docs/benchmarks/c3779da.txt` documenting Section 7 with `raid-1.2` scoring across 3 tiers × 4 commanders × 20 seeds.
-- **Verification Suite**:
-  - `npm test`: clean pass across all test files.
-  - `npm run lint`: clean pass.
+- **Theme & Aesthetic Harmonization**:
+  - Unified `DebriefScreen.tsx` and `src/app/console/debrief.css` with the luxury editorial military aesthetic:
+    - Base warm shaded stone background (`#dfd8cb`), subtle topo grid pattern (`/textures/commander-grid.jpg`), and multiply-blended radar vignette (`/textures/terrain-radar.png`).
+    - High-contrast obsidian ink typography (`#181716`), warm charcoal accents, and terracotta highlights (`#c2410c`).
+    - Replaced disconnected dark cards with unified translucent glass-panel surfaces (`rgba(255, 255, 255, 0.75)` to `0.85`) and subtle hairline dividers (`rgba(45, 40, 35, 0.16)`).
+- **Viewport Scroll Trap Elimination**:
+  - Eliminated conflicting nested scroll containers between `.console-layout.is-debrief` (`height: 100vh; overflow: hidden;`) and `.debrief-container` (`flex: 1 1 0%; min-height: 0; overflow-y: auto !important;`).
+  - Added generous scroll runway (`padding-bottom: 160px;`) ensuring bottom action controls (`Replay Same Seed`, `New Random Seed`, `Download Session Log`) are completely unobstructed and immediately accessible across all screen dimensions.
+- **Report Clarity & Executive Tactical Verdicts**:
+  - Added an intuitive **Executive Tactical Verdict Banner** atop both Doctrine v2 and legacy v1 debriefs:
+    - Immediate visual status indicators (`🟢 PERIMETER SECURED`, `🟡 MARGINAL OPERATIONAL EFFICIENCY`, `🔴 PERIMETER COMPROMISED`, `🟠 ROE BREACH`).
+    - Plain-English mission summaries explaining exact tactical causes for the score.
+    - Specific, actionable **Doctrine Directives** for trainee improvement (weapon pairing: Jammer <= 1.5 km vs CIWS 30mm <= 1.0 km; radar acknowledgment latency impacts; target classification discipline).
+  - Enhanced contact decision tree traces, unobservable breakdown, and effector engagement accounting.
+- **Verification**:
   - `npm run typecheck`: clean pass.
-  - `npm run typecheck:sim`: clean pass.
-  - `npm run build`: built in 2.68s, precache 18 entries, 1122.53 KiB (< 3 MB).
-  - `npm run test:targets`: raw output captured and reported.
+  - `npm run typecheck:sim`: clean pass (0 DOM references in `src/sim`).
+  - `npm run lint`: clean pass.
+  - `npm test`: 31 passed (31 files, 189 tests).
+  - `npm run build`: built in 1.73s, precache 18 entries, 1127.60 KiB (< 3 MB).
+
 
 
 

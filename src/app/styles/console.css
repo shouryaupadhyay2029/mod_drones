@@ -97,8 +97,9 @@ body {
 }
 
 .console-layout.is-debrief {
-  overflow-y: auto;
-  overflow-x: hidden;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
 }
 
 .console-grid {
