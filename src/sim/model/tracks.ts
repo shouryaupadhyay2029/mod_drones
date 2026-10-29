@@ -39,4 +39,5 @@ export interface Track {
   lastSweepChecked: number;
   rfStatus?: RfStatus;
   rfSignature?: RfSignature;
+  terminal_lock?: boolean;
 }

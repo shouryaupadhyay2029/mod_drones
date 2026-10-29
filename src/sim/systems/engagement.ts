@@ -80,6 +80,19 @@ export function tryEngageTrack(
     };
     effectorState.jammer.busyUntilTick = currentTick + JAMMER_DWELL_TICKS;
     effectorState.jammer.currentEngagement = engagement;
+    if (actor?.terminal_lock || track.terminal_lock) {
+      events.push({
+        tick: currentTick,
+        type: 'JAMMER_IMMUNE_WARNING',
+        payload: {
+          trackId,
+          effector: 'jammer',
+          reason: 'terminal_lock_rf_immune',
+          warning: 'AUTONOMOUS LOCK: RF IMMUNE - USE KINETIC',
+        },
+      });
+    }
+
     track.engagementStatus = 'engaged';
 
     events.push({
@@ -200,12 +213,17 @@ export function runEngagementSystem(
 
     if (actor && actor.state === 'active') {
       const threat = THREAT_LIBRARY[actor.classId];
-      if (!threat.rfControlled) {
+      if (!threat.rfControlled || actor.terminal_lock) {
         result = 'no_effect';
         events.push({
           tick: currentTick,
           type: 'NO_EFFECT',
-          payload: { trackId: jam.trackId, effector: 'jammer', reason: 'target_not_rf_controlled' },
+          payload: {
+            trackId: jam.trackId,
+            effector: 'jammer',
+            reason: actor.terminal_lock ? 'terminal_lock_rf_immune' : 'target_not_rf_controlled',
+            warning: actor.terminal_lock ? 'AUTONOMOUS LOCK: RF IMMUNE - USE KINETIC' : undefined,
+          },
         });
       } else {
         const roll = effectorRng.next();

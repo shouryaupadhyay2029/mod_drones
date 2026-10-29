@@ -94,7 +94,7 @@ export function oracleStep(view: TraineeView, engine: Engine): Command[] {
       trackId: t.trackId,
       rangeM: t.rangeM,
       timeToImpact: tti,
-      rfControlled: threat.rfControlled,
+      rfControlled: threat.rfControlled && !actor.terminal_lock && !t.terminal_lock,
     });
   }
 

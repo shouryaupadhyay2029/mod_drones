@@ -39,11 +39,11 @@ ridge_runner        triggerHappyOperator  s2        10     0  asset_hit      1  
 ridge_runner        triggerHappyOperator  s3        10     0  asset_hit      1         0    4086  11d7616cd2
 ridge_runner        triggerHappyOperator  s4        10     0  asset_hit      1         0    4087  084bccb4fc
 ridge_runner        triggerHappyOperator  s5        10     0  asset_hit      1         0    4010  1d162d8b18
-city_edge_night     referenceOperator     s1        82    93  all_resolved    0         0    3398  099e08489a
+city_edge_night     referenceOperator     s1        82    95  all_resolved    0         0    3398  0011f111f0
 city_edge_night     referenceOperator     s2        91   100  all_resolved    0         0    3354  1b867b60bc
 city_edge_night     referenceOperator     s3        93    98  all_resolved    0         0    3277  1a17355dc3
-city_edge_night     referenceOperator     s4        59   100  all_resolved    0         0    3559  1b8ca0dd92
-city_edge_night     referenceOperator     s5        59   100  all_resolved    0         0    3516  032ea57e7f
+city_edge_night     referenceOperator     s4        59   100  all_resolved    0         0    3559  08927b7bb0
+city_edge_night     referenceOperator     s5        59   100  all_resolved    0         0    3516  0d401da799
 city_edge_night     idleOperator          s1         0     0  asset_hit      1         0    3445  0d50d255fb
 city_edge_night     idleOperator          s2         0     0  asset_hit      1         0    3406  05a1421393
 city_edge_night     idleOperator          s3         0     0  asset_hit      1         0    3446  0cbfbe5928

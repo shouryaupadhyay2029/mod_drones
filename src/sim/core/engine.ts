@@ -197,6 +197,31 @@ export class Engine {
     );
     this.nextTrackId = trackRef.current;
 
+    // Terminal optical lock: hostile FPV drones switch to autonomous optical targeting under 800m
+    for (let i = 0; i < this.actors.length; i++) {
+      const actor = this.actors[i];
+      if (
+        actor &&
+        actor.state === 'active' &&
+        (actor.classId === 'fpv_kamikaze' || actor.classId === 'fpv_fiber')
+      ) {
+        const rangeToAsset = vDist(actor.pos, vec3(0, 0, 0));
+        if (rangeToAsset < 800) {
+          actor.terminal_lock = true;
+        }
+      }
+    }
+
+    // Sync terminal lock state to active tracks
+    for (let i = 0; i < this.tracks.length; i++) {
+      const trk = this.tracks[i];
+      if (!trk || trk.state === 'dropped') continue;
+      const actor = this.actors.find((a) => a.id === trk.actorId);
+      if (actor?.terminal_lock) {
+        trk.terminal_lock = true;
+      }
+    }
+
     // Record the first trainee-estimated entry into each effector's engagement range.
     for (const track of this.tracks) {
       if (track.state === 'dropped') continue;

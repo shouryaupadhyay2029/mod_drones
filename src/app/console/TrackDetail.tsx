@@ -30,6 +30,7 @@ export function TrackDetail({
   onEngage,
   onHoldFire,
 }: TrackDetailProps): React.JSX.Element {
+  const [jamWarningTriggered, setJamWarningTriggered] = React.useState(false);
   if (!track) {
     return (
       <div className="mil-panel">
@@ -91,18 +92,24 @@ export function TrackDetail({
     : track.engagementStatus === 'holding_fire'
       ? 'Already holding fire'
       : null;
+  const isTerminalLocked = track.terminal_lock === true;
 
   return (
     <div className="mil-panel">
       {/* Mil-Spec Header */}
       <div className="mil-header">
         <div className="mil-header-left">
-          <span className={`mil-led ${track.state === 'confirmed' ? 'mil-led-green' : 'mil-led-amber'}`} />
+          <span className={`mil-led ${isTerminalLocked ? 'mil-led-red' : track.state === 'confirmed' ? 'mil-led-green' : 'mil-led-amber'}`} />
           <span className="mil-kicker">// SYS.01</span>
-          <span className="mil-title">TRACK T{track.trackId}</span>
+          <span className="mil-title" style={{ color: isTerminalLocked ? '#b83327' : undefined }}>
+            TRACK T{track.trackId}
+          </span>
         </div>
-        <span className={`mil-tag ${track.state === 'confirmed' ? 'mil-tag-confirmed' : 'mil-tag-tentative'}`}>
-          {track.state.toUpperCase()}
+        <span
+          className={`mil-tag ${isTerminalLocked ? 'mil-tag-lock' : track.state === 'confirmed' ? 'mil-tag-confirmed' : 'mil-tag-tentative'}`}
+          style={isTerminalLocked ? { color: '#ef4444', borderColor: '#ef4444', background: 'rgba(239, 68, 68, 0.12)' } : undefined}
+        >
+          {isTerminalLocked ? 'OPTICAL LOCK' : track.state.toUpperCase()}
         </span>
       </div>
 
@@ -249,6 +256,23 @@ export function TrackDetail({
 
       {/* Engagement Effectors */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {jamWarningTriggered && (
+          <div
+            style={{
+              background: '#b83327',
+              color: '#ffffff',
+              padding: '6px 8px',
+              borderRadius: '3px',
+              fontSize: '10px',
+              fontWeight: 800,
+              letterSpacing: '0.06em',
+              textAlign: 'center',
+              boxShadow: '0 0 10px rgba(239, 68, 68, 0.4)',
+            }}
+          >
+            AUTONOMOUS LOCK: RF IMMUNE - USE KINETIC
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#58544e', letterSpacing: '0.08em' }}>
             AUTHORIZE DEFENSE EFFECTOR
@@ -262,13 +286,23 @@ export function TrackDetail({
               id="btn-engage-jammer"
               className="mil-btn-tactile mil-btn-jammer"
               disabled={jammerDisabledReason !== null}
-              onClick={() => onEngage(track.trackId, 'jammer')}
+              onClick={() => {
+                if (isTerminalLocked) {
+                  setJamWarningTriggered(true);
+                  setTimeout(() => setJamWarningTriggered(false), 3000);
+                }
+                onEngage(track.trackId, 'jammer');
+              }}
               style={{ width: '100%' }}
             >
               <span>ENGAGE JAMMER</span>
               <kbd className="mil-keycap" style={{ background: '#7c2d12', color: '#fed7aa', borderColor: '#ea580c' }}>J</kbd>
             </button>
-            {jammerDisabledReason && (
+            {isTerminalLocked ? (
+              <span className="mil-disabled-tag" style={{ color: '#ef4444', fontWeight: 800 }}>
+                AUTONOMOUS LOCK: RF IMMUNE - USE KINETIC
+              </span>
+            ) : jammerDisabledReason && (
               <span className="mil-disabled-tag">{jammerDisabledReason}</span>
             )}
           </div>

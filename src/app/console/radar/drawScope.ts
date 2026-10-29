@@ -392,7 +392,8 @@ function drawTrack(
     radiusPx
   );
 
-  const color = getAssessedColor(track.assessedClass);
+  const isTerminalLocked = track.terminal_lock === true;
+  const color = isTerminalLocked ? '#ef4444' : getAssessedColor(track.assessedClass);
   const isSelected = options.selectedTrackId === track.trackId;
 
   // 1. Trail: last 6 plots fading
@@ -466,7 +467,7 @@ function drawTrack(
   // 4. Selection Targeting Reticle: High-Precision Tactical Corners
   if (isSelected) {
     ctx.save();
-    ctx.strokeStyle = '#38bdf8';
+    ctx.strokeStyle = isTerminalLocked ? '#ef4444' : '#38bdf8';
     ctx.lineWidth = 1.5;
     ctx.shadowColor = 'rgba(56, 189, 248, 0.6)';
     ctx.shadowBlur = 6;
@@ -501,6 +502,30 @@ function drawTrack(
     ctx.lineTo(plotPx.x + bSize, plotPx.y + bSize - bArm);
     ctx.stroke();
 
+    ctx.restore();
+  }
+
+  // 4b. Terminal optical lock warning on PPI
+  if (isTerminalLocked) {
+    ctx.save();
+    ctx.font = 'bold 8.5px ui-monospace, monospace';
+    const warnText = 'AUTONOMOUS LOCK: RF IMMUNE - USE KINETIC';
+    const textWidth = ctx.measureText(warnText).width;
+    const badgeW = textWidth + 12;
+    const badgeH = 16;
+    const badgeX = plotPx.x - badgeW / 2;
+    const badgeY = plotPx.y - 25;
+
+    ctx.fillStyle = 'rgba(185, 28, 28, 0.94)';
+    ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
+    ctx.strokeStyle = '#fca5a5';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(warnText, plotPx.x, badgeY + badgeH / 2);
     ctx.restore();
   }
 

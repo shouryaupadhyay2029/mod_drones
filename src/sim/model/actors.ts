@@ -25,6 +25,7 @@ export interface Actor {
   neutralizedDistanceToAsset?: number;
   groupId?: number | string;
   role?: 'striker' | 'decoy';
+  terminal_lock?: boolean;
 }
 
 export function createActor(
@@ -72,6 +73,7 @@ export function createActor(
     state: 'active',
     behaviour,
     speed: chosenSpeed,
+    terminal_lock: false,
   };
 }
 
@@ -86,6 +88,14 @@ export function updateActorBehaviour(
   if (actor.state !== 'active') {
     actor.vel = vec3(0, 0, 0);
     return;
+  }
+
+  // Terminal optical lock: hostile FPVs switch to autonomous optical targeting under 800m
+  if ((actor.classId === 'fpv_kamikaze' || actor.classId === 'fpv_fiber') && actor.state === 'active') {
+    const distToAsset = vDist2D(actor.pos, vec3(0, 0, 0));
+    if (distToAsset < 800) {
+      actor.terminal_lock = true;
+    }
   }
 
   // At departTick the bird becomes state 'left_area' immediately (exits coverage)

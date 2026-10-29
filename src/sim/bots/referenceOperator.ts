@@ -249,12 +249,14 @@ export function referenceOperator(view: TraineeView): Command[] {
     }
 
     // Re-evaluate if jammer proved ineffective on this track (it is fiber FPV)
+    // NOTE: If the track is terminal locked, it is NOT fiber FPV - it is an FPV with terminal optical lock.
     const jammerIneffective = view.events.some(
       (e) =>
         e.type === 'NO_EFFECT' &&
-        e.payload?.trackId === track.trackId
+        e.payload?.trackId === track.trackId &&
+        e.payload?.reason !== 'terminal_lock_rf_immune'
     );
-    if (jammerIneffective && track.assessedClass !== 'fpv_fiber') {
+    if (jammerIneffective && !track.terminal_lock && track.assessedClass !== 'fpv_fiber') {
       commands.push({
         tick: view.tick,
         type: 'CLASSIFY_TRACK',
@@ -387,17 +389,32 @@ export function referenceOperator(view: TraineeView): Command[] {
     if (!item) continue;
     const track = item.track;
 
+    const isTerminalLocked = track.terminal_lock === true;
     const jammerFailedOnTrack = view.events.some(
       (e) =>
         e.type === 'NO_EFFECT' &&
         e.payload?.trackId === track.trackId
     );
+    const cannotJam = isTerminalLocked || jammerFailedOnTrack || track.rfStatus === 'silent' || track.assessedClass === 'fpv_fiber';
     const isSilent = track.rfStatus === 'silent' || track.assessedClass === 'fpv_fiber' || jammerFailedOnTrack;
     const isEmitting =
-      !jammerFailedOnTrack &&
+      !cannotJam &&
       (track.rfStatus === 'emitting' ||
         track.rfSignature === 'wideband_video' ||
         track.rfSignature === 'long_range_link');
+
+    // Terminal locked track: RF jammer has 0% effectiveness, must engage with kinetic gun
+    if (isTerminalLocked) {
+      if (!gunUsed && track.rangeM <= 1000) {
+        commands.push({
+          tick: view.tick,
+          type: 'ENGAGE_TRACK',
+          payload: { trackId: track.trackId, effector: 'gun' },
+        });
+        gunUsed = true;
+      }
+      continue;
+    }
 
     // High priority gun engagement for penetrating threats (<600m)
     if (!gunUsed && track.rangeM <= 600) {

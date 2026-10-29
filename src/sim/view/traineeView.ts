@@ -53,6 +53,7 @@ export interface TraineeTrack {
   lastPlotTick: number;
   rfStatus?: RfStatus;
   rfSignature?: RfSignature;
+  terminal_lock?: boolean;
 }
 
 export interface TraineeEffectorsView {
@@ -145,6 +146,7 @@ export function buildTraineeView(
       lastPlotTick: t.lastDetectedTick,
       rfStatus: t.rfStatus ?? 'unknown',
       rfSignature: t.rfSignature,
+      terminal_lock: t.terminal_lock ?? false,
     });
   }
 
