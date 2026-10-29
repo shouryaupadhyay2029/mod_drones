@@ -1,5 +1,6 @@
 import React from 'react';
 import { TraineeEffectorsView } from '../../sim/index.js';
+import './tactical-console.css';
 
 export interface EffectorPanelProps {
   effectors: TraineeEffectorsView;
@@ -22,169 +23,131 @@ export function EffectorPanel({
   const isJammerReady = jammerBusySec === 0;
   const isGunReady = gunBusySec === 0 && effectors.gun.ammo > 0;
 
+  // Generate 20 round pips for ammo rack
+  const totalRounds = 20;
+  const currentAmmo = Math.max(0, Math.min(totalRounds, effectors.gun.ammo));
+
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>DEFENSE EFFECTORS STATUS</div>
-      <div style={styles.grid}>
+    <div className="mil-panel">
+      {/* Header */}
+      <div className="mil-header">
+        <div className="mil-header-left">
+          <span className={`mil-led ${isJammerReady && isGunReady ? 'mil-led-green' : 'mil-led-amber'}`} />
+          <span className="mil-kicker">// SYS.03</span>
+          <span className="mil-title">DEFENSE EFFECTORS STATUS</span>
+        </div>
+        <span className="mil-tag mil-tag-confirmed">ONLINE</span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         {/* Jammer Card */}
-        <div style={styles.card}>
-          <div style={styles.cardTitleRow}>
-            <span style={styles.cardTitle}>RF JAMMER</span>
+        <div className="mil-cue-card" style={{ gap: '6px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#f1ece1' }}>RF JAMMER</span>
             <span
+              className="mil-tag"
               style={{
-                ...styles.statusBadge,
-                backgroundColor: isJammerReady ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                border: isJammerReady ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(245, 158, 11, 0.4)',
+                fontSize: '8.5px',
+                padding: '1px 5px',
+                backgroundColor: isJammerReady ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
                 color: isJammerReady ? '#34d399' : '#fbbf24',
+                borderColor: isJammerReady ? 'rgba(16, 185, 129, 0.35)' : 'rgba(245, 158, 11, 0.35)',
               }}
             >
-              {isJammerReady ? 'READY' : `ACTIVE (${jammerBusySec}s)`}
+              {isJammerReady ? 'READY' : `BUSY (${jammerBusySec}s)`}
             </span>
           </div>
-          <div style={styles.cardDetail}>
-            <div style={styles.row}>
-              <span style={styles.label}>EFFECTIVE RANGE:</span>
-              <span style={styles.val}>1,500 m</span>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '9px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="mil-cue-label">RANGE</span>
+              <span style={{ color: '#d6cebf', fontWeight: 700 }}>1,500 m</span>
             </div>
-            <div style={styles.row}>
-              <span style={styles.label}>CYCLE DURATION:</span>
-              <span style={styles.val}>3.0 s</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="mil-cue-label">CYCLE</span>
+              <span style={{ color: '#d6cebf', fontWeight: 700 }}>3.0 s</span>
             </div>
-            <div style={styles.row}>
-              <span style={styles.label}>TARGET TYPES:</span>
-              <span style={styles.val}>RF-controlled links</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="mil-cue-label">TARGET</span>
+              <span style={{ color: '#d6cebf', fontWeight: 700 }}>RF-Links</span>
             </div>
           </div>
         </div>
 
         {/* Kinetic Gun Card */}
-        <div style={styles.card}>
-          <div style={styles.cardTitleRow}>
-            <span style={styles.cardTitle}>KINETIC GUN</span>
+        <div className="mil-cue-card" style={{ gap: '6px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#f1ece1' }}>KINETIC GUN</span>
             <span
+              className="mil-tag"
               style={{
-                ...styles.statusBadge,
+                fontSize: '8.5px',
+                padding: '1px 5px',
                 backgroundColor: isGunReady
-                  ? 'rgba(16, 185, 129, 0.15)'
+                  ? 'rgba(16, 185, 129, 0.12)'
                   : effectors.gun.ammo <= 0
-                    ? 'rgba(244, 63, 94, 0.18)'
-                    : 'rgba(245, 158, 11, 0.15)',
-                border: isGunReady
-                  ? '1px solid rgba(16, 185, 129, 0.4)'
-                  : effectors.gun.ammo <= 0
-                    ? '1px solid rgba(244, 63, 94, 0.4)'
-                    : '1px solid rgba(245, 158, 11, 0.4)',
+                  ? 'rgba(239, 68, 68, 0.15)'
+                  : 'rgba(245, 158, 11, 0.12)',
                 color: isGunReady
                   ? '#34d399'
                   : effectors.gun.ammo <= 0
-                    ? '#fb7185'
-                    : '#fbbf24',
+                  ? '#f87171'
+                  : '#fbbf24',
+                borderColor: isGunReady
+                  ? 'rgba(16, 185, 129, 0.35)'
+                  : effectors.gun.ammo <= 0
+                  ? 'rgba(239, 68, 68, 0.4)'
+                  : 'rgba(245, 158, 11, 0.35)',
               }}
             >
               {effectors.gun.ammo <= 0
-                ? 'OUT OF AMMO'
+                ? 'EMPTY'
                 : isGunReady
-                  ? 'ARMED'
-                  : `RELOAD (${gunBusySec}s)`}
+                ? 'ARMED'
+                : `CYCLE (${gunBusySec}s)`}
             </span>
           </div>
-          <div style={styles.cardDetail}>
-            <div style={styles.row}>
-              <span style={styles.label}>AMMO REMAINING:</span>
-              <span
-                style={{
-                  ...styles.val,
-                  color: effectors.gun.ammo <= 5 ? '#fb7185' : '#34d399',
-                  fontWeight: 700,
-                }}
-              >
-                {effectors.gun.ammo} / 20 rounds
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '9px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="mil-cue-label">AMMO</span>
+              <span style={{ color: currentAmmo <= 5 ? '#f87171' : '#34d399', fontWeight: 800 }}>
+                {currentAmmo} / 20 rnds
               </span>
             </div>
-            <div style={styles.row}>
-              <span style={styles.label}>EFFECTIVE RANGE:</span>
-              <span style={styles.val}>1,000 m</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="mil-cue-label">RANGE</span>
+              <span style={{ color: '#d6cebf', fontWeight: 700 }}>1,000 m</span>
             </div>
-            <div style={styles.row}>
-              <span style={styles.label}>BURST SIZE:</span>
-              <span style={styles.val}>5 rounds</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="mil-cue-label">BURST</span>
+              <span style={{ color: '#d6cebf', fontWeight: 700 }}>5 rounds</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Tactile Ammo Rack Magazine View */}
+      <div className="mil-ammo-grid">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '8.5px' }}>
+          <span style={{ color: '#8c8275', fontWeight: 700, letterSpacing: '0.06em' }}>MAGAZINE TRAY (20 ROUNDS)</span>
+          <span style={{ color: currentAmmo <= 5 ? '#f87171' : '#34d399', fontWeight: 800 }}>
+            {Math.floor(currentAmmo / 5)} BURSTS AVAILABLE
+          </span>
+        </div>
+        <div className="mil-ammo-rack">
+          {Array.from({ length: totalRounds }).map((_, idx) => {
+            const isReady = idx < currentAmmo;
+            return (
+              <div
+                key={idx}
+                className={`mil-ammo-pip ${isReady ? 'is-ready' : 'is-spent'}`}
+                title={`Round ${idx + 1}: ${isReady ? 'Ready' : 'Expended'}`}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    backgroundColor: '#0c1015',
-    border: '1px solid rgba(255, 255, 255, 0.08)',
-    borderRadius: '10px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
-    padding: '12px 14px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    fontFamily: 'ui-monospace, monospace',
-  },
-  header: {
-    fontSize: '11px',
-    fontWeight: 700,
-    color: '#f8fafc',
-    letterSpacing: '0.06em',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-    gap: '8px',
-  },
-  card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    border: '1px solid rgba(255, 255, 255, 0.06)',
-    borderRadius: '6px',
-    padding: '9px 11px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  cardTitleRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  cardTitle: {
-    color: '#f8fafc',
-    fontSize: '11px',
-    fontWeight: 700,
-    letterSpacing: '0.04em',
-  },
-  statusBadge: {
-    padding: '1px 6px',
-    borderRadius: '3px',
-    fontSize: '9.5px',
-    fontWeight: 700,
-    fontFamily: 'ui-monospace, monospace',
-    letterSpacing: '0.04em',
-  },
-  cardDetail: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    fontSize: '10.5px',
-  },
-  row: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  label: {
-    color: '#64748b',
-    fontSize: '9.5px',
-    letterSpacing: '0.02em',
-  },
-  val: {
-    color: '#e2e8f0',
-    fontWeight: 600,
-  },
-};

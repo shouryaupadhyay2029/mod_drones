@@ -12,6 +12,7 @@ import { TrackTable } from '../console/TrackTable.js';
 import { useMission } from '../console/useMission.js';
 import '../styles/console.css';
 import '../console/forkPractice.css';
+import '../console/tactical-console.css';
 
 export function ConsolePage(): React.JSX.Element {
   const {
@@ -118,48 +119,40 @@ export function ConsolePage(): React.JSX.Element {
               onSelectTrack={selectTrack}
             />
 
-            {/* Hotkeys Legend */}
-            <div className="hotkeys-legend">
-              <span style={{ fontWeight: 700, color: '#38bdf8', letterSpacing: '0.06em' }}>HOTKEYS:</span>
-              <span className="legend-item">
-                <kbd className="legend-key">Tab</kbd> Next Track
-              </span>
-              <span className="legend-item">
-                <kbd className="legend-key">N</kbd> Next Unclass
-              </span>
-              <span className="legend-item">
-                <kbd className="legend-key">A</kbd> Ack
-              </span>
-              <span className="legend-item">
-                <kbd className="legend-key">Shift+A</kbd> Ack All
-              </span>
-              <span className="legend-item">
-                <kbd className="legend-key">1-7, 0</kbd> Classify
-              </span>
-              <span className="legend-item">
-                <kbd className="legend-key">J</kbd> Jammer
-              </span>
-              <span className="legend-item">
-                <kbd className="legend-key">G</kbd> Gun
-              </span>
-              <span className="legend-item">
-                <kbd className="legend-key">H</kbd> Hold Fire
-              </span>
-              <span className="legend-item">
-                <kbd className="legend-key">E</kbd> Lock EO
-              </span>
-              <span className="legend-item">
-                <kbd className="legend-key">T</kbd> Toggle TV/IR
-              </span>
-              <span className="legend-item">
-                <kbd className="legend-key">Space</kbd> Pause
-              </span>
-              <span className="legend-item">
-                <kbd className="legend-key">+/-</kbd> Speed
-              </span>
-              <span className="legend-item">
-                <kbd className="legend-key">Esc</kbd> Deselect
-              </span>
+            {/* Mil-Spec Tactile Hotkeys Legend Strip */}
+            <div className="mil-hotkeys-strip" role="toolbar" aria-label="Console Hotkeys">
+              <div className="mil-hotkeys-group">
+                <span className="mil-hotkeys-kicker">TARGETING</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">Tab</kbd> Next</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">N</kbd> Unclass</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">Esc</kbd> Deselect</span>
+              </div>
+
+              <div className="mil-hotkeys-group">
+                <span className="mil-hotkeys-kicker">ACTIONS</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">A</kbd> Ack</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">Shift+A</kbd> All</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">1-7, 0</kbd> Classify</span>
+              </div>
+
+              <div className="mil-hotkeys-group">
+                <span className="mil-hotkeys-kicker">EFFECTORS</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">J</kbd> Jammer</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">G</kbd> Gun</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">H</kbd> Hold</span>
+              </div>
+
+              <div className="mil-hotkeys-group">
+                <span className="mil-hotkeys-kicker">OPTRONICS</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">E</kbd> Lock EO</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">T</kbd> TV/IR</span>
+              </div>
+
+              <div className="mil-hotkeys-group">
+                <span className="mil-hotkeys-kicker">SIM</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">Space</kbd> Pause</span>
+                <span className="mil-hotkey-item"><kbd className="mil-keycap">+/-</kbd> Speed</span>
+              </div>
             </div>
           </div>
 

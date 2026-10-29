@@ -1,0 +1,588 @@
+/* ==========================================================================
+   VAJRA Tactical Combat Console Styling
+   Matte Avionics Chassis (#141311), Military Slate (#1A1916), Terracotta (#C2410C)
+   Tactile Hardware Pushbuttons, Mil-Spec Telemetry, NVIS-compatible Reticles
+   ========================================================================== */
+
+/* ── Universal Mil-Spec Panel Chassis ─────────────────────────────────── */
+.mil-panel {
+  background-color: #141311;
+  background-image: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.13);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle corner bolt accents on panels */
+.mil-panel::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.8);
+}
+
+.mil-panel::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.8);
+}
+
+/* ── Panel Header & LED Indicators ───────────────────────────────────── */
+.mil-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.mil-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mil-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.mil-led-green {
+  background-color: #10b981;
+  box-shadow: 0 0 6px #10b981, inset 0 0 2px #34d399;
+}
+
+.mil-led-amber {
+  background-color: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b, inset 0 0 2px #fbbf24;
+}
+
+.mil-led-red {
+  background-color: #ef4444;
+  box-shadow: 0 0 6px #ef4444, inset 0 0 2px #f87171;
+}
+
+.mil-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #f1ece1;
+  text-transform: uppercase;
+}
+
+.mil-kicker {
+  color: #c2410c;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-right: 4px;
+}
+
+.mil-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid;
+  text-transform: uppercase;
+}
+
+.mil-tag-confirmed {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.mil-tag-tentative {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.mil-tag-neutral {
+  background: rgba(100, 116, 139, 0.12);
+  color: #94a3b8;
+  border-color: rgba(100, 116, 139, 0.25);
+}
+
+/* ── Tactile Mechanical Pushbuttons ──────────────────────────────────── */
+.mil-btn-tactile {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-weight: 700;
+  border: 1px solid;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.12s ease;
+  user-select: none;
+}
+
+.mil-btn-tactile:hover:not(:disabled) {
+  filter: brightness(1.12);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.mil-btn-tactile:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.mil-btn-tactile:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+  box-shadow: none;
+}
+
+/* Jammer Button: Amber / Terracotta Tactile Switch */
+.mil-btn-jammer {
+  background: linear-gradient(180deg, #9a3412 0%, #7c2d12 100%);
+  color: #ffedd5;
+  border-color: #ea580c;
+  padding: 10px 14px;
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.mil-btn-jammer:hover:not(:disabled) {
+  border-color: #fb923c;
+  box-shadow: 0 0 12px rgba(234, 88, 12, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Gun Button: Deep Crimson / Kinetic Switch */
+.mil-btn-gun {
+  background: linear-gradient(180deg, #991b1b 0%, #7f1d1d 100%);
+  color: #fee2e2;
+  border-color: #dc2626;
+  padding: 10px 14px;
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.mil-btn-gun:hover:not(:disabled) {
+  border-color: #ef4444;
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Acknowledge Button: Tactical Slate */
+.mil-btn-ack {
+  background: linear-gradient(180deg, #27272a 0%, #18181b 100%);
+  color: #f4f4f5;
+  border-color: rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+}
+
+.mil-btn-ack:hover:not(:disabled) {
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+/* Hold Fire Button: Amber Warning */
+.mil-btn-hold {
+  background: linear-gradient(180deg, #292524 0%, #1c1917 100%);
+  color: #fef08a;
+  border-color: rgba(234, 179, 8, 0.35);
+  padding: 8px 12px;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+}
+
+.mil-btn-hold:hover:not(:disabled) {
+  border-color: #eab308;
+  background: #3b2e1e;
+}
+
+/* ── Classification Rocker Matrix ────────────────────────────────────── */
+.mil-classify-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.mil-classify-btn {
+  background: #1c1b18;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  padding: 6px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.mil-classify-btn:hover:not(:disabled) {
+  background: #272522;
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.mil-classify-btn.is-active {
+  background: #292524;
+  border-color: #c2410c;
+  box-shadow: 0 0 8px rgba(194, 65, 12, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* ── Hardware Mechanical Keycaps ─────────────────────────────────────── */
+.mil-keycap {
+  display: inline-block;
+  background: #24221f;
+  color: #d6cebf;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 2px solid #0d0c0a;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: 800;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  line-height: 1.2;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Telemetry Cues Grid ─────────────────────────────────────────────── */
+.mil-cues-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.mil-cue-card {
+  background: #181715;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 5px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mil-cue-label {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #8c8275;
+  text-transform: uppercase;
+}
+
+.mil-cue-value {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #f1ece1;
+}
+
+/* ── Tactical Hotkeys Legend Bar ─────────────────────────────────────── */
+.mil-hotkeys-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background-color: #141311;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 6px 14px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
+  font-size: 10px;
+  color: #a89f91;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+.mil-hotkeys-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mil-hotkeys-kicker {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #c2410c;
+  text-transform: uppercase;
+  margin-right: 2px;
+}
+
+.mil-hotkey-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #c9c1b3;
+}
+
+/* ── Target Designator Standby HUD ──────────────────────────────────── */
+.mil-standby-box {
+  background: rgba(20, 19, 17, 0.6);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.mil-standby-reticle {
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(194, 65, 12, 0.4);
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mil-standby-reticle::before,
+.mil-standby-reticle::after {
+  content: '';
+  position: absolute;
+  background: rgba(194, 65, 12, 0.6);
+}
+
+.mil-standby-reticle::before {
+  width: 100%;
+  height: 1px;
+}
+
+.mil-standby-reticle::after {
+  height: 100%;
+  width: 1px;
+}
+
+.mil-standby-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #f1ece1;
+}
+
+.mil-standby-desc {
+  font-size: 10px;
+  color: #8c8275;
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+.mil-standby-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #c2410c;
+  background: rgba(194, 65, 12, 0.1);
+  border: 1px solid rgba(194, 65, 12, 0.25);
+  border-radius: 4px;
+  padding: 4px 10px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Disabled Reason Warning Banner ──────────────────────────────────── */
+.mil-disabled-tag {
+  color: #ef4444;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+  display: block;
+  margin-top: 2px;
+}
+
+/* ── Segmented Ammo Rack ─────────────────────────────────────────────── */
+.mil-ammo-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #100f0d;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.mil-ammo-rack {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+}
+
+.mil-ammo-pip {
+  height: 14px;
+  border-radius: 2px;
+  background: #24221f;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.2s ease;
+}
+
+.mil-ammo-pip.is-ready {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  border-color: #fbbf24;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
+}
+
+.mil-ammo-pip.is-spent {
+  background: #171614;
+  border-color: rgba(255, 255, 255, 0.03);
+  opacity: 0.3;
+}
+
+/* ── Segmented Tactile Channel Rocker ────────────────────────────────── */
+.mil-rocker-group {
+  display: inline-flex;
+  background: #171614;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.mil-rocker-btn {
+  background: transparent;
+  color: #8c8275;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.mil-rocker-btn.is-active {
+  background: #262420;
+  color: #f1ece1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.mil-rocker-btn.is-active-ir {
+  background: #132418;
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.4);
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.2);
+}
+
+/* ── Air Picture Table ──────────────────────────────────────────────── */
+.mil-table-wrapper {
+  overflow-x: auto;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #100f0d;
+}
+
+.mil-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  text-align: left;
+}
+
+.mil-th {
+  background: #181715;
+  color: #8c8275;
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.mil-td {
+  padding: 7px 10px;
+  color: #d6cebf;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.mil-tr {
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.mil-tr:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+/* ── Teleprinter Event Log ───────────────────────────────────────────── */
+.mil-teleprinter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  max-height: 240px;
+  font-size: 10.5px;
+  padding-right: 4px;
+}
+
+.mil-teleprinter-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.015);
+  border-left: 2px solid rgba(255, 255, 255, 0.08);
+  line-height: 1.4;
+}
+
+.mil-teleprinter-time {
+  color: #8c8275;
+  font-weight: 700;
+  font-size: 9.5px;
+  flex-shrink: 0;
+}
+
+.mil-teleprinter-tag {
+  font-weight: 800;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.mil-teleprinter-msg {
+  color: #e2dbce;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

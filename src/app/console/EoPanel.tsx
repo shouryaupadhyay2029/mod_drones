@@ -1,5 +1,6 @@
 import React from 'react';
 import { TimeOfDay, TraineeEoView } from '../../sim/index.js';
+import './tactical-console.css';
 
 export interface EoPanelProps {
   eo: TraineeEoView;
@@ -56,44 +57,58 @@ export function EoPanel({
     : '#f8fafc'; // Crisp white/grey optical
 
   return (
-    <div style={styles.container}>
+    <div className="mil-panel">
       {/* Header with Title, Channel Toggle, and Status Badge */}
-      <div style={styles.headerRow}>
-        <div style={styles.titleGroup}>
-          <span style={styles.title}>EO/IR SENSOR TURRET</span>
+      <div className="mil-header">
+        <div className="mil-header-left">
           <span
+            className={`mil-led ${
+              isLocked ? 'mil-led-green' : isSlewing ? 'mil-led-amber' : 'mil-led'
+            }`}
+            style={{ backgroundColor: !isLocked && !isSlewing ? '#8c8275' : undefined }}
+          />
+          <span className="mil-kicker">// SYS.02</span>
+          <span className="mil-title">EO/IR SENSOR TURRET</span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span
+            className="mil-tag"
             style={{
-              ...styles.stateBadge,
               backgroundColor: isLocked
-                ? 'rgba(212, 255, 63, 0.15)'
+                ? 'rgba(16, 185, 129, 0.12)'
                 : isSlewing
-                ? 'rgba(245, 158, 11, 0.15)'
-                : 'rgba(148, 163, 184, 0.1)',
-              color: isLocked ? '#d4ff3f' : isSlewing ? '#f59e0b' : '#94a3b8',
+                ? 'rgba(245, 158, 11, 0.12)'
+                : 'rgba(100, 116, 139, 0.12)',
+              color: isLocked ? '#34d399' : isSlewing ? '#fbbf24' : '#94a3b8',
               borderColor: isLocked
-                ? 'rgba(212, 255, 63, 0.4)'
+                ? 'rgba(16, 185, 129, 0.35)'
                 : isSlewing
-                ? 'rgba(245, 158, 11, 0.4)'
-                : 'rgba(148, 163, 184, 0.2)',
+                ? 'rgba(245, 158, 11, 0.35)'
+                : 'rgba(100, 116, 139, 0.25)',
             }}
           >
             {eo.state.toUpperCase()}
           </span>
-        </div>
 
-        <div style={styles.controlsGroup}>
+          {/* Tactile Channel Rocker */}
           <button
             type="button"
             id="btn-toggle-channel"
             onClick={onToggleChannel}
             title="Toggle TV / IR Channel [T]"
+            className={`mil-rocker-btn ${isIr ? 'is-active-ir' : 'is-active'}`}
             style={{
-              ...styles.channelBtn,
-              borderColor: isIr ? '#4ade80' : '#cbb3e8',
-              color: isIr ? '#4ade80' : '#f8fafc',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '3px 8px',
+              borderRadius: '4px',
+              border: isIr ? '1px solid rgba(74, 222, 128, 0.4)' : '1px solid rgba(255, 255, 255, 0.15)',
             }}
           >
-            {eo.channel.toUpperCase()} [T]
+            <span>{eo.channel.toUpperCase()}</span>
+            <kbd className="mil-keycap" style={{ fontSize: '8px', padding: '0 4px' }}>T</kbd>
           </button>
         </div>
       </div>
@@ -101,12 +116,27 @@ export function EoPanel({
       {/* Viewport: Vector Silhouette and HUD Crosshairs */}
       <div
         style={{
-          ...styles.viewport,
+          position: 'relative',
+          height: '110px',
+          borderRadius: '6px',
+          border: '1px solid rgba(255, 255, 255, 0.10)',
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           backgroundColor: viewportBg,
         }}
       >
         {/* Reticle / FOV Grid Overlay */}
-        <svg style={styles.svgOverlay} viewBox="0 0 300 120">
+        <svg
+          viewBox="0 0 300 120"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+          }}
+        >
           {/* Corner brackets */}
           <path d="M 20 25 L 20 15 L 35 15" stroke={reticleColor} strokeWidth="1.5" fill="none" />
           <path d="M 280 25 L 280 15 L 265 15" stroke={reticleColor} strokeWidth="1.5" fill="none" />
@@ -137,14 +167,11 @@ export function EoPanel({
             >
               {eo.hint === 'commercial_quad' && (
                 <g transform="translate(150, 60)" fill={silhouetteColor} stroke={silhouetteColor}>
-                  {/* Central chassis */}
                   <rect x="-12" y="-12" width="24" height="24" rx="4" />
-                  {/* 4 Diagonal Arms */}
                   <line x1="-10" y1="-10" x2="-28" y2="-28" strokeWidth="3" />
                   <line x1="10" y1="-10" x2="28" y2="-28" strokeWidth="3" />
                   <line x1="-10" y1="10" x2="-28" y2="28" strokeWidth="3" />
                   <line x1="10" y1="10" x2="28" y2="28" strokeWidth="3" />
-                  {/* 4 Rotors */}
                   <ellipse cx="-28" cy="-28" rx="14" ry="4" fill="none" strokeWidth="1.5" />
                   <ellipse cx="28" cy="-28" rx="14" ry="4" fill="none" strokeWidth="1.5" />
                   <ellipse cx="-28" cy="28" rx="14" ry="4" fill="none" strokeWidth="1.5" />
@@ -154,10 +181,8 @@ export function EoPanel({
 
               {(eo.hint === 'fpv_kamikaze' || eo.hint === 'fpv_fiber') && (
                 <g transform="translate(150, 60)" fill={silhouetteColor} stroke={silhouetteColor}>
-                  {/* Compact aggressive X-frame */}
                   <rect x="-8" y="-14" width="16" height="28" rx="3" />
                   <circle cx="0" cy="-12" r="3" fill="#e34234" />
-                  {/* Small high-speed props */}
                   <line x1="-6" y1="-8" x2="-22" y2="-18" strokeWidth="2.5" />
                   <line x1="6" y1="-8" x2="22" y2="-18" strokeWidth="2.5" />
                   <line x1="-6" y1="8" x2="-22" y2="18" strokeWidth="2.5" />
@@ -173,18 +198,14 @@ export function EoPanel({
                 eo.hint === 'fixed_wing' ||
                 eo.hint === 'decoy_drone') && (
                 <g transform="translate(150, 60)" fill={silhouetteColor} stroke={silhouetteColor}>
-                  {/* Fuselage */}
                   <ellipse cx="0" cy="0" rx="6" ry="30" />
-                  {/* Main Swept Wings */}
                   <polygon points="-55,-2 -50,6 0,0 50,6 55,-2 0,-8" />
-                  {/* Tail stabilizer */}
                   <polygon points="-18,22 -14,26 0,20 14,26 18,22 0,18" />
                 </g>
               )}
 
               {eo.hint === 'bird' && (
                 <g transform="translate(150, 60)" fill={silhouetteColor} stroke={silhouetteColor}>
-                  {/* Avian organic curved wings */}
                   <ellipse cx="0" cy="0" rx="5" ry="14" />
                   <path d="M 0 -2 Q -25 -22 -45 -10 Q -25 -4 0 2 Q 25 -4 45 -10 Q 25 -22 0 -2" />
                   <polygon points="-4,14 0,22 4,14" />
@@ -205,7 +226,6 @@ export function EoPanel({
 
               {eo.hint === 'object' && (
                 <g transform="translate(150, 60)" fill={silhouetteColor}>
-                  {/* Generic blurry blob */}
                   <ellipse cx="0" cy="0" rx="16" ry="12" />
                 </g>
               )}
@@ -214,58 +234,101 @@ export function EoPanel({
         </svg>
 
         {/* Channel & Mode Tag in Corner */}
-        <div style={styles.hudOverlayTags}>
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '4px',
+            left: '8px',
+            right: '8px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: '8px',
+            fontFamily: 'ui-monospace, monospace',
+            fontWeight: 700,
+            pointerEvents: 'none',
+          }}
+        >
           <span style={{ color: isIr ? '#4ade80' : '#cbb3e8' }}>
             {eo.channel === 'tv' ? 'OPTICAL TV' : 'FLIR THERMAL IR'}
           </span>
-          <span style={{ color: '#94a3b8' }}>
+          <span style={{ color: '#8c8275' }}>
             {isLocked ? `LOCKED: T${eo.lockedTrackId}` : isSlewing ? 'SLEWING...' : 'STANDBY'}
           </span>
         </div>
       </div>
 
       {/* Target Lock Action & Telemetry Controls */}
-      <div style={styles.actionRow}>
+      <div style={{ display: 'flex', width: '100%' }}>
         {eo.lockedTrackId !== undefined ? (
           <button
             type="button"
             id="btn-eo-release"
             onClick={onRelease}
-            style={styles.btnRelease}
+            className="mil-btn-tactile"
+            style={{
+              width: '100%',
+              background: 'linear-gradient(180deg, #2a1f1d 0%, #1c1514 100%)',
+              color: '#f87171',
+              borderColor: 'rgba(239, 68, 68, 0.4)',
+              padding: '8px 12px',
+              fontSize: '11px',
+            }}
           >
-            RELEASE LOCK [E] (T{eo.lockedTrackId})
+            <span>RELEASE LOCK</span>
+            <kbd className="mil-keycap" style={{ background: '#381e1e', color: '#fca5a5', borderColor: '#ef4444' }}>E</kbd>
+            <span style={{ color: '#8c8275', fontSize: '9px' }}>(T{eo.lockedTrackId})</span>
           </button>
         ) : selectedTrackId !== null ? (
           <button
             type="button"
             id="btn-eo-lock"
             onClick={() => onLock(selectedTrackId)}
-            style={styles.btnLock}
+            className="mil-btn-tactile mil-btn-ack"
+            style={{
+              width: '100%',
+              borderColor: 'rgba(56, 189, 248, 0.4)',
+              color: '#38bdf8',
+              padding: '8px 12px',
+              fontSize: '11px',
+            }}
           >
-            LOCK TARGET [E] (T{selectedTrackId})
+            <span>LOCK TARGET</span>
+            <kbd className="mil-keycap" style={{ borderColor: '#38bdf8', color: '#38bdf8' }}>E</kbd>
+            <span style={{ color: '#8c8275', fontSize: '9px' }}>(T{selectedTrackId})</span>
           </button>
         ) : (
-          <button type="button" disabled style={styles.btnDisabled}>
+          <button
+            type="button"
+            disabled
+            className="mil-btn-tactile"
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              fontSize: '10.5px',
+              color: '#686055',
+              borderColor: 'rgba(255, 255, 255, 0.06)',
+            }}
+          >
             SELECT A TRACK TO LOCK [E]
           </button>
         )}
       </div>
 
       {/* Resolution Quality Bar & Hint Readout */}
-      <div style={styles.telemetryCard}>
-        <div style={styles.resolutionHeader}>
-          <span style={styles.fieldLabel}>OPTICAL RESOLUTION:</span>
+      <div className="mil-cue-card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '9px' }}>
+          <span className="mil-cue-label">OPTICAL RESOLUTION:</span>
           <span
             style={{
-              ...styles.levelBadge,
+              fontWeight: 800,
               color:
                 eo.level === 'identify'
-                  ? '#d4ff3f'
+                  ? '#34d399'
                   : eo.level === 'recognize'
                   ? '#38bdf8'
                   : eo.level === 'detect'
                   ? '#f59e0b'
-                  : '#94a3b8',
+                  : '#8c8275',
             }}
           >
             {eo.level.toUpperCase()}
@@ -273,27 +336,37 @@ export function EoPanel({
         </div>
 
         {/* Quality Progress Bar */}
-        <div style={styles.barTrack}>
+        <div
+          style={{
+            width: '100%',
+            height: '4px',
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+            borderRadius: '2px',
+            overflow: 'hidden',
+          }}
+        >
           <div
             style={{
-              ...styles.barFill,
+              height: '100%',
+              borderRadius: '2px',
               width: `${Math.round(eo.quality * 100)}%`,
               backgroundColor:
                 eo.level === 'identify'
-                  ? '#d4ff3f'
+                  ? '#34d399'
                   : eo.level === 'recognize'
                   ? '#38bdf8'
                   : eo.level === 'detect'
                   ? '#f59e0b'
                   : '#64748b',
+              transition: 'width 0.2s ease',
             }}
           />
         </div>
 
         {/* Classification Hint Text */}
-        <div style={styles.hintRow}>
-          <span style={styles.hintLabel}>SENSOR HINT:</span>
-          <span style={styles.hintValue}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
+          <span className="mil-cue-label">SENSOR HINT:</span>
+          <span style={{ color: '#f1ece1', fontWeight: 700 }}>
             {eo.hint ? eo.hint.replace(/_/g, ' ').toUpperCase() : 'NO RESOLUTION'}
           </span>
         </div>
@@ -301,179 +374,3 @@ export function EoPanel({
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-    backgroundColor: '#0c1015',
-    border: '1px solid rgba(255, 255, 255, 0.08)',
-    borderRadius: '10px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
-    padding: '12px 14px',
-  },
-  headerRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  titleGroup: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  title: {
-    fontSize: '11px',
-    fontWeight: 700,
-    letterSpacing: '0.06em',
-    color: '#f8fafc',
-    fontFamily: 'ui-monospace, monospace',
-  },
-  stateBadge: {
-    fontSize: '9px',
-    fontWeight: 700,
-    padding: '2px 7px',
-    borderRadius: '4px',
-    border: '1px solid transparent',
-    letterSpacing: '0.04em',
-    fontFamily: 'ui-monospace, monospace',
-  },
-  controlsGroup: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-  },
-  channelBtn: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid rgba(255, 255, 255, 0.15)',
-    borderRadius: '4px',
-    padding: '3px 8px',
-    fontSize: '10px',
-    fontWeight: 700,
-    cursor: 'pointer',
-    fontFamily: 'ui-monospace, monospace',
-    transition: 'all 0.16s ease',
-  },
-  viewport: {
-    position: 'relative',
-    height: '110px',
-    borderRadius: '6px',
-    border: '1px solid rgba(255, 255, 255, 0.10)',
-    overflow: 'hidden',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  svgOverlay: {
-    position: 'absolute',
-    inset: 0,
-    width: '100%',
-    height: '100%',
-  },
-  hudOverlayTags: {
-    position: 'absolute',
-    bottom: '4px',
-    left: '8px',
-    right: '8px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: '8px',
-    fontFamily: 'ui-monospace, monospace',
-    fontWeight: 700,
-    pointerEvents: 'none',
-  },
-  actionRow: {
-    display: 'flex',
-    width: '100%',
-  },
-  btnLock: {
-    width: '100%',
-    background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
-    color: '#ffffff',
-    border: '1px solid rgba(52, 211, 153, 0.6)',
-    borderRadius: '6px',
-    padding: '8px 12px',
-    fontSize: '11.5px',
-    fontWeight: 700,
-    cursor: 'pointer',
-    fontFamily: 'ui-monospace, monospace',
-    boxShadow: '0 2px 10px rgba(16, 185, 129, 0.35)',
-    transition: 'all 0.16s ease',
-  },
-  btnRelease: {
-    width: '100%',
-    background: 'rgba(239, 68, 68, 0.12)',
-    color: '#f87171',
-    border: '1px solid rgba(239, 68, 68, 0.45)',
-    borderRadius: '6px',
-    padding: '8px 12px',
-    fontSize: '11.5px',
-    fontWeight: 700,
-    cursor: 'pointer',
-    fontFamily: 'ui-monospace, monospace',
-    transition: 'all 0.16s ease',
-  },
-  btnDisabled: {
-    width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    color: '#64748b',
-    border: '1px solid rgba(255, 255, 255, 0.06)',
-    borderRadius: '6px',
-    padding: '8px 12px',
-    fontSize: '11.5px',
-    fontWeight: 600,
-    cursor: 'not-allowed',
-    fontFamily: 'ui-monospace, monospace',
-  },
-  telemetryCard: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    border: '1px solid rgba(255, 255, 255, 0.05)',
-    borderRadius: '6px',
-    padding: '7px 9px',
-  },
-  resolutionHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    fontSize: '9px',
-    fontFamily: 'ui-monospace, monospace',
-  },
-  fieldLabel: {
-    color: '#64748b',
-    fontWeight: 600,
-    letterSpacing: '0.04em',
-  },
-  levelBadge: {
-    fontWeight: 800,
-    letterSpacing: '0.04em',
-  },
-  barTrack: {
-    width: '100%',
-    height: '4px',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderRadius: '2px',
-    overflow: 'hidden',
-  },
-  barFill: {
-    height: '100%',
-    borderRadius: '2px',
-    transition: 'width 0.2s ease',
-  },
-  hintRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: '9px',
-    fontFamily: 'ui-monospace, monospace',
-  },
-  hintLabel: {
-    color: '#64748b',
-  },
-  hintValue: {
-    color: '#f8fafc',
-    fontWeight: 700,
-  },
-};

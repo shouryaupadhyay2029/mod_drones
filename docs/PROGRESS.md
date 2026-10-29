@@ -310,3 +310,32 @@ Append a dated section after each future item. Include its commit hash(es), what
 
 
 
+
+## 2026-10-29 — Tactical Military Hardware Console Redesign
+
+- **Mil-Spec Console Chassis & Editorial Theme Harmonization**:
+  - Replaced generic, stuffed dark-blue web card containers with universal military-grade avionics rack enclosures (`.mil-panel` in `src/app/console/tactical-console.css`).
+  - Matched the website's luxury editorial military palette: Matte Avionics Slate (`#141311`), Obsidian Ink (`#181716`), Warm Terracotta (`#c2410c`), and Shaded Sand/Stone (`#ded7ca`).
+  - Stenciled mil-spec headers with operational LED status lamps (`.mil-led-green`, `.mil-led-amber`, `.mil-led-red`) and subsystem kickers (`// SYS.00` through `// SYS.04`).
+- **Tactile Hardware Pushbuttons & Keycaps**:
+  - Mechanical pushbuttons with physical 3D bevels, top highlight bevels, keycap depth shadows, and interactive `:active` depression:
+    - **RF Jammer Switch**: Tactile industrial amber/terracotta push-switch (`.mil-btn-jammer`) with hotkey keycap `[ J ]`.
+    - **Kinetic Gun Switch**: Deep crimson armed kinetic fire switch (`.mil-btn-gun`) with hotkey keycap `[ G ]`.
+    - **Acknowledge Switch**: Tactical charcoal push-switch with status LED (`.mil-btn-ack`) and hotkey keycap `[ A ]`.
+    - **Hold Fire Switch**: High-contrast warning amber tactile switch (`.mil-btn-hold`) and hotkey keycap `[ H ]`.
+    - **Classification Matrix**: Raised mechanical rocker keypad with raised keycap badges `[1]` through `[7]` and `[0]`.
+- **Target Designator Standby HUD**:
+  - Replaced uninformative empty state italic text with an authentic **Radar Target Designator Standby HUD** (`.mil-standby-box`) featuring a centered targeting crosshair reticle and a clear tactical prompt: `[TAB] / [N] DESIGNATE TARGET`.
+- **Optronic Sensor Turret (EO/IR)**:
+  - Segmented tactile channel rocker toggle (`[ TV OPTICAL ]` / `[ FLIR IR ]`), reticle HUD with corner brackets and crosshairs, thermal green FLIR palette, procedural vector silhouettes, and mechanical `LOCK TARGET [E]` / `RELEASE LOCK [E]` buttons.
+- **Defense Weapons Envelope & Ammo Rack**:
+  - Realistic 20-round magazine rack with 20 individual round pips (`.mil-ammo-pip`) visually displaying ready vs expended brass rounds and available 5-round bursts.
+- **Combat Air Picture Table & Hotkeys Bar**:
+  - Mil-spec table with sticky headers, range-ascending telemetry sort, and selected track styling preserving required visual cues.
+  - Reorganized the bottom hotkeys legend bar into categorized tactical groups (`TARGETING`, `ACTIONS`, `EFFECTORS`, `OPTRONICS`, `SIM`) with hardware keycaps.
+- **Verification**:
+  - `npm run lint`: clean pass.
+  - `npm run typecheck`: clean pass.
+  - `npm run typecheck:sim`: clean pass (0 DOM references in `src/sim`).
+  - `npm test`: 31 passed (31 files, 189 tests, 0 failures).
+  - `npm run build`: built in 3.06s, precache 18 entries, 1140.52 KiB (< 3 MB).

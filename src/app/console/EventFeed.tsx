@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { SimEvent } from '../../sim/index.js';
+import './tactical-console.css';
 
 export interface EventFeedProps {
   events: readonly SimEvent[];
@@ -17,7 +18,7 @@ function getEventColor(type: string): string {
     case 'TRACK_CONFIRMED':
       return '#34d399'; // Emerald
     case 'TRACK_LOST':
-      return '#64748b';
+      return '#8c8275';
     case 'ENGAGEMENT_STARTED':
       return '#38bdf8'; // Tactical Cyan
     case 'ENGAGEMENT_RESOLVED':
@@ -28,9 +29,9 @@ function getEventColor(type: string): string {
     case 'ENGAGEMENT_REJECTED':
       return '#fb7185'; // Soft Red
     case 'MISSION_END':
-      return '#94a3b8'; // Slate
+      return '#a89f91'; // Slate
     default:
-      return '#cbd5e1';
+      return '#d6cebf';
   }
 }
 
@@ -65,19 +66,29 @@ export function EventFeed({ events }: EventFeedProps): React.JSX.Element {
   }, [events]);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>MISSION EVENT LOG ({events.length})</div>
-      <div style={styles.list}>
+    <div className="mil-panel" style={{ minHeight: '180px' }}>
+      <div className="mil-header">
+        <div className="mil-header-left">
+          <span className="mil-led mil-led-green" />
+          <span className="mil-kicker">// SYS.04</span>
+          <span className="mil-title">MISSION EVENT LOG ({events.length})</span>
+        </div>
+        <span className="mil-tag mil-tag-neutral">STREAMING</span>
+      </div>
+
+      <div className="mil-teleprinter-list">
         {reversedEvents.length === 0 ? (
-          <div style={styles.empty}>No events logged yet.</div>
+          <div style={{ color: '#8c8275', fontSize: '10.5px', fontStyle: 'italic', padding: '14px 0', textAlign: 'center' }}>
+            Awaiting combat telemetry events...
+          </div>
         ) : (
           reversedEvents.map((evt, idx) => {
             const color = getEventColor(evt.type);
             return (
-              <div key={idx} style={styles.item}>
-                <span style={styles.time}>{formatClock(evt.tick)}</span>
-                <span style={{ ...styles.typeTag, color }}>[{evt.type}]</span>
-                <span style={styles.msg}>{formatEventMessage(evt)}</span>
+              <div key={idx} className="mil-teleprinter-item">
+                <span className="mil-teleprinter-time">{formatClock(evt.tick)}</span>
+                <span className="mil-teleprinter-tag" style={{ color }}>[{evt.type}]</span>
+                <span className="mil-teleprinter-msg">{formatEventMessage(evt)}</span>
               </div>
             );
           })
@@ -86,61 +97,3 @@ export function EventFeed({ events }: EventFeedProps): React.JSX.Element {
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    backgroundColor: '#0c1015',
-    border: '1px solid rgba(255, 255, 255, 0.08)',
-    borderRadius: '10px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
-    padding: '12px 14px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    fontFamily: 'ui-monospace, monospace',
-    height: '100%',
-    minHeight: '220px',
-  },
-  header: {
-    fontSize: '11px',
-    fontWeight: 700,
-    color: '#f8fafc',
-    letterSpacing: '0.06em',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-    paddingBottom: '8px',
-  },
-  list: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    overflowY: 'auto',
-    maxHeight: '260px',
-    fontSize: '11px',
-  },
-  empty: {
-    color: '#64748b',
-    fontSize: '11px',
-    fontStyle: 'italic',
-    padding: '14px 0',
-  },
-  item: {
-    display: 'flex',
-    alignItems: 'baseline',
-    gap: '8px',
-    lineHeight: '1.4',
-  },
-  time: {
-    color: '#64748b',
-    fontWeight: 600,
-    fontSize: '9.5px',
-  },
-  typeTag: {
-    fontWeight: 700,
-    fontSize: '10px',
-    whiteSpace: 'nowrap',
-    letterSpacing: '0.02em',
-  },
-  msg: {
-    color: '#cbd5e1',
-  },
-};
