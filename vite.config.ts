@@ -8,6 +8,11 @@ export default defineConfig({
     VitePWA({
       strategies: 'generateSW',
       registerType: 'autoUpdate',
+      injectRegister: 'script',
+      devOptions: {
+        enabled: true,
+        type: 'module',
+      },
       manifestFilename: 'manifest.json',
       includeAssets: [
         'favicon.svg',
@@ -15,8 +20,6 @@ export default defineConfig({
         'vajra-emblem.svg',
         'vajra-logo.png',
         'vajra-wordmark.png',
-        'contact-library/*.png',
-        'textures/*.png',
       ],
       manifest: {
         name: 'VAJRA // Counter-Drone Training Simulator',
@@ -32,11 +35,25 @@ export default defineConfig({
             src: '/vajra-emblem.png',
             sizes: '192x192',
             type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: '/vajra-emblem.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable',
           },
           {
             src: '/vajra-logo.png',
             sizes: '512x512',
             type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: '/vajra-logo.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
           },
           {
             src: '/vajra-emblem.svg',
@@ -47,8 +64,9 @@ export default defineConfig({
         ],
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,json,woff2}'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        globPatterns: ['**/*.{js,css,html,ico,webp,svg,woff2}', 'vajra-*.png'],
+        globIgnores: ['**/contact-library/**', '**/textures/**'],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/v1'),
@@ -62,6 +80,18 @@ export default defineConfig({
               },
               cacheableResponse: {
                 statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: ({ url }) =>
+              url.pathname.includes('/contact-library/') || url.pathname.includes('/textures/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'vajra-optional-assets-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
               },
             },
           },

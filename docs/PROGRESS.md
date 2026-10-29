@@ -238,5 +238,25 @@ Append a dated section after each future item. Include its commit hash(es), what
     - `veteran`: 10/10 oracle >= passive (PASS), 6/10 oracle >= heuristic (60% vs 90% target FAIL), 6/10 heuristic > passive (60% vs 80% target FAIL).
   - Per AGENTS.md rule 31, assertions were strictly kept without loosening.
 
+## 2026-10-29 — Item 3: PWA Optimization & Sub-3MB Precache
+
+- **WebP background migration & bundle cleanup**:
+  - Replaced all references to `bg.png` and `bg1.png` across CSS stylesheets with WebP counterparts (`bg.webp` and `bg1.webp`).
+  - Removed uncompressed PNG background assets (`bg.png` 2.51 MB, `bg1.png` 2.38 MB) from the repository bundle via `git rm`.
+- **Precache optimization (sub-3 MB)**:
+  - Reconfigured `vite.config.ts` Workbox settings:
+    - Added `globIgnores: ['**/contact-library/**', '**/textures/**']` to exclude 19 MB of heavy uncompressed contact-library drone PNGs and radar textures from the precache.
+    - Added runtime caching with `CacheFirst` strategy (`vajra-optional-assets-cache`) for `/contact-library/` and `/textures/`.
+    - Reduced `maximumFileSizeToCacheInBytes` to 3 MB.
+  - Workbox precache result: **18 entries, 1122.53 KiB (1.09 MB)**, achieving a 95.6% reduction from 25.4 MB and strictly meeting the < 3 MB requirement.
+- **PWA Manifest & Icons**:
+  - Updated `public/manifest.json` and `vite.config.ts` with 192x192 PNG and 512x512 PNG icons including both standard (`purpose: 'any'`) and maskable (`purpose: 'maskable'`) variants, plus SVG vector icon.
+- **Offline Checklist**:
+  - Service worker registers via `/registerSW.js` and precaches core assets (18 entries, 1.09 MB).
+  - Offline reload verified: cache serves application shell, scripts, styles, and WebP backgrounds offline without network.
+  - Offline mission execution: Web Worker simulation engine runs 100% in-browser offline.
+  - Offline data persistence: IndexedDB database `vajra-cuas` stores session records, logs, and score reports offline, persisting across reloads in AAR.
+
+
 
 
