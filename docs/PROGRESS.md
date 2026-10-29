@@ -215,4 +215,28 @@ Append a dated section after each future item. Include its commit hash(es), what
   - `tests/components.test.tsx`: 13/13 passed.
   - `tests/phase6b.test.tsx`: 5/5 passed.
 
+## 2026-10-29 — Item 2: Commander Ordering Calibration Targets
+
+- **Target assertions in `tests/targets/commander-order.test.ts`**:
+  - Asserted `oracle >= passive` on >= 90% of operator and veteran raids.
+  - Asserted `heuristic > passive` on >= 80% (and recruit `heuristic >= passive` on >= 80%).
+  - Asserted `oracle >= heuristic` on >= 90%.
+- **Runtime reduction (below 5 minutes)**:
+  - Reduced test suite runtime from ~8 minutes to 115.44s (1.9 minutes) by:
+    1. Cutting unused `missileHappyCommander` from policy evaluation loop (25% reduction).
+    2. Reducing sample from 30 seeds to 10 seeds (`seed = 1..10`), evaluating the exact same percentage thresholds (90% = 9/10, 80% = 8/10).
+- **Raw output results**:
+  - Tracker target: age-8 p90 speed error 6.07 m/s (<= 9.0 m/s PASS).
+  - Calibration Target 1a: 30/30 (100% >= 90% PASS).
+  - Calibration Target 1b: 28/30 (93.3% >= 90% PASS).
+  - Calibration Target 2: Elite oracle mean 94.2 (in [90, 98] PASS).
+  - Calibration Target 3: Reference means 100.0 / 85.9 / 35.0 / 7.7 (PASS).
+  - Calibration Target 4: Decoy correct-class 57/81 (70.4% >= 70% PASS).
+  - Commander order:
+    - `recruit`: 10/10 oracle >= passive, 10/10 oracle >= heuristic, 10/10 heuristic >= passive (PASS).
+    - `operator`: 9/10 oracle >= passive (PASS), 7/10 oracle >= heuristic (70% vs 90% target FAIL), 7/10 heuristic > passive (70% vs 80% target FAIL).
+    - `veteran`: 10/10 oracle >= passive (PASS), 6/10 oracle >= heuristic (60% vs 90% target FAIL), 6/10 heuristic > passive (60% vs 80% target FAIL).
+  - Per AGENTS.md rule 31, assertions were strictly kept without loosening.
+
+
 
