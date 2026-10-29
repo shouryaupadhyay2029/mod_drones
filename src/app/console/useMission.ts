@@ -53,7 +53,7 @@ export interface UseMissionReturn {
 export function useMission(initialSeed?: string): UseMissionReturn {
   const [phase, setPhase] = useState<MissionPhase>('setup');
   const [seed, setSeed] = useState<string>(initialSeed ?? 'alpha-omega-42');
-  const [scenarioId, setScenarioId] = useState<string>('dawn_intrusion');
+  const [scenarioId, setScenarioId] = useState<string>('dense_air_picture');
   const [speed, setSpeed] = useState<1 | 2 | 4>(1);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [autopilot, setAutopilot] = useState<boolean>(false);
@@ -67,7 +67,7 @@ export function useMission(initialSeed?: string): UseMissionReturn {
   const [storageStatus, setStorageStatus] = useState<string>('');
   const [forkContext, setForkContext] = useState<PendingForkLaunch | null>(null);
   const missionStartedAtRef = useRef<number>(0);
-  const scenarioIdRef = useRef<string>('dawn_intrusion');
+  const scenarioIdRef = useRef<string>('dense_air_picture');
   const savedReportHashRef = useRef<string>('');
   const activeOwnerRef = useRef<SessionOwner | undefined>(undefined);
   const activeForkRef = useRef<PendingForkLaunch | null>(null);

@@ -164,13 +164,19 @@ export function TopBar({
   const { isMuted, toggleMute } = useDroneAudio();
 
   const scTitle =
-    scenarioId === 'ridge_runner'
-      ? 'RIDGE RUNNER'
-      : scenarioId === 'city_edge_night'
-        ? 'CITY EDGE NIGHT'
-        : scenarioId === 'sandbox'
-          ? 'SANDBOX'
-          : 'DAWN INTRUSION';
+    scenarioId === 'dense_air_picture'
+      ? 'MULTI-THREAT AIRSPACE (13 TARGETS)'
+      : scenarioId === 'ridge_runner'
+        ? 'RIDGE RUNNER'
+        : scenarioId === 'city_edge_night'
+          ? 'CITY EDGE NIGHT'
+          : scenarioId === 'sandbox'
+            ? 'SANDBOX'
+            : scenarioId?.startsWith('proc:v1:')
+              ? `PROCEDURAL SWARM (${(scenarioId.split(':')[2] || 'OPERATOR').toUpperCase()})`
+              : scenarioId === 'dawn_intrusion'
+                ? 'DAWN INTRUSION (BASELINE 3)'
+                : 'MULTI-THREAT AIRSPACE';
 
   const envStr = environment
     ? `${environment.timeOfDay} · ${environment.weather} · Vis ${environment.visibilityKm}km · ${environment.terrainKind}`

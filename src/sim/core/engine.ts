@@ -179,6 +179,7 @@ export class Engine {
       this.scenarioId === 'dawn_intrusion' ||
       this.scenarioId === 'ridge_runner' ||
       this.scenarioId === 'city_edge_night' ||
+      this.scenarioId === 'dense_air_picture' ||
       this.scenarioId.startsWith('proc:v1:') ||
       this.scenarioId.startsWith('proc:unconstrained:');
 

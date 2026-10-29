@@ -3,6 +3,7 @@ import { createEnvironment, Environment } from '../model/environment.js';
 import { TerrainFeature } from '../model/terrain.js';
 import { buildCityEdgeNightSpawns, CITY_EDGE_NIGHT_ENV } from './cityEdgeNight.js';
 import { buildDawnIntrusionSpawns, ScenarioSpawnSchedule } from './dawnIntrusion.js';
+import { buildDenseAirPictureSpawns, DENSE_AIR_PICTURE_ENV } from './denseAirPicture.js';
 import {
   buildRidgeRunnerSpawns,
   RIDGE_RUNNER_ENV,
@@ -11,6 +12,7 @@ import {
 
 export * from './cityEdgeNight.js';
 export * from './dawnIntrusion.js';
+export * from './denseAirPicture.js';
 export * from './generator.js';
 export * from './capacity.js';
 export * from './ridgeRunner.js';
@@ -61,5 +63,14 @@ export const SCENARIOS: Record<string, ScenarioDef> = {
     environment: CITY_EDGE_NIGHT_ENV,
     durationLimitTicks: 4800,
     buildSpawns: buildCityEdgeNightSpawns,
+  },
+  dense_air_picture: {
+    id: 'dense_air_picture',
+    title: 'Multi-Threat Tactical Airspace',
+    description:
+      'High-density realistic operational airspace with 13 simultaneous air objects: multi-axis FPV kamikaze strikes, fixed-wing recon UAV, fiber-optic drones, civilian quadcopters, and avian clutter.',
+    environment: DENSE_AIR_PICTURE_ENV,
+    durationLimitTicks: 4800,
+    buildSpawns: buildDenseAirPictureSpawns,
   },
 };

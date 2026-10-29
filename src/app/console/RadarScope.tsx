@@ -262,39 +262,58 @@ export function RadarScope({
           </span>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            backgroundColor: 'rgba(15, 23, 42, 0.75)',
-            border: '1px solid rgba(255, 255, 255, 0.10)',
-            borderRadius: '6px',
-            padding: '4px 9px',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-          }}
-        >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span
             style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              backgroundColor: '#10b981',
-              boxShadow: '0 0 6px #10b981',
-            }}
-          />
-          <span
-            style={{
+              backgroundColor: 'rgba(15, 23, 42, 0.75)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: (view?.tracks.length || 0) > 3 ? '#34d399' : '#38bdf8',
+              borderRadius: '6px',
+              padding: '4px 9px',
               fontSize: '10px',
               fontFamily: 'ui-monospace, monospace',
-              color: 'rgba(226, 232, 240, 0.7)',
-              fontWeight: 600,
-              letterSpacing: '0.06em',
+              letterSpacing: '0.05em',
+              fontWeight: 700,
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
             }}
           >
-            20Hz PULSE-DOPPLER
+            ACTIVE TARGETS: {view?.tracks.length || 0}
           </span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              backgroundColor: 'rgba(15, 23, 42, 0.75)',
+              border: '1px solid rgba(255, 255, 255, 0.10)',
+              borderRadius: '6px',
+              padding: '4px 9px',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+            }}
+          >
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: '#10b981',
+                boxShadow: '0 0 6px #10b981',
+              }}
+            />
+            <span
+              style={{
+                fontSize: '10px',
+                fontFamily: 'ui-monospace, monospace',
+                color: 'rgba(226, 232, 240, 0.7)',
+                fontWeight: 600,
+                letterSpacing: '0.06em',
+              }}
+            >
+              20Hz PULSE-DOPPLER
+            </span>
+          </div>
         </div>
       </div>
 

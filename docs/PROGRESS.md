@@ -280,6 +280,31 @@ Append a dated section after each future item. Include its commit hash(es), what
   - `npm test`: 31 passed (31 files, 189 tests).
   - `npm run build`: built in 1.73s, precache 18 entries, 1127.60 KiB (< 3 MB).
 
+## 2026-10-29 — Realistic Multi-Threat Tactical Airspace & High-Density Radar Targets
+
+- **Multi-Threat Airspace Scenario (`dense_air_picture`)**:
+  - Created `src/sim/scenarios/denseAirPicture.ts` providing an operational high-density tactical air picture with **13 simultaneous and wave-staggered air objects**:
+    - 4 FPV Kamikaze Strike Drones across multi-axis ingress vectors (West, North, Northeast, South).
+    - 2 Fiber-Optic Guided Kamikaze Drones (non-RF, jam-resistant, requiring kinetic gun interception).
+    - 1 High-Altitude Fixed-Wing Reconnaissance UAV (loitering at 240 m altitude, emitting RF video).
+    - 2 Radar Decoys (electronic lures mimicking hostile strike profiles).
+    - 2 Commercial Quadcopters (civilian transit corridors north and south of asset, ROE-protected).
+    - 2 Avian/Wildlife Clutter Tracks (low-RCS wanderers near tree lines).
+  - Integrated into `SCENARIOS['dense_air_picture']` and enabled `isMissionScenario` in `src/sim/core/engine.ts`.
+- **Default Scenario & Mission Setup Upgrades**:
+  - Set `dense_air_picture` as the default featured scenario in `MissionSetup.tsx`, `useMission.ts`, and `ConsolePage.tsx`.
+  - Re-indexed scenario catalog to clearly distinguish between **Multi-Threat Tactical Airspace (13 Targets - High Density)**, **Procedural Saturation Swarms (8-16 Targets)**, and the **Dawn Intrusion (Tutorial Baseline - 3 Targets)**.
+- **Radar Scope & Telemetry Upgrades**:
+  - Added live active target counter badge (`ACTIVE TARGETS: N`) directly onto the Radar Scope header alongside pulse-doppler status.
+  - Updated `TopBar.tsx` scenario indicator to display `MULTI-THREAT AIRSPACE (13 TARGETS)`.
+- **Verification**:
+  - `npm run typecheck`: clean pass.
+  - `npm run typecheck:sim`: clean pass (0 DOM in `src/sim`).
+  - `npm run lint`: clean pass.
+  - `npm test`: 31 passed (31 files, 189 tests, preserving all benchmark regression hashes).
+  - `npm run build`: built in 2.55s, precache 18 entries, 1133.80 KiB (< 3 MB).
+
+
 
 
 

@@ -22,12 +22,20 @@ interface ScenarioOption {
 
 const SCENARIO_OPTIONS: ScenarioOption[] = [
   {
-    id: 'dawn_intrusion',
-    title: 'Dawn Intrusion',
-    subtitle: 'Standard Baseline Scenario',
+    id: 'dense_air_picture',
+    title: 'Multi-Threat Tactical Airspace',
+    subtitle: 'High-Density Realistic Air Picture (13 Targets)',
     description:
-      'Single hostile FPV ingress with civilian quadcopter transit and avian clutter in rural conditions.',
-    chips: ['Rural', 'Clear', 'Dusk', 'EW: None'],
+      'Full operational radar picture with 13 simultaneous air objects: multi-axis FPV kamikaze strikes, loitering recon UAV, jam-resistant fiber drones, civilian transit quadcopters, and avian clutter.',
+    chips: ['13 Targets', 'Multi-Axis Ingress', 'Fiber + FPV', 'Civilian Corridor', 'Rural Dusk'],
+  },
+  {
+    id: 'dawn_intrusion',
+    title: 'Dawn Intrusion (Tutorial Baseline)',
+    subtitle: 'Introductory 3-Target Baseline',
+    description:
+      'Single hostile FPV ingress with civilian quadcopter transit and avian clutter in rural conditions. Designed for initial controls familiarization.',
+    chips: ['3 Targets', 'Tutorial Baseline', 'Rural', 'Clear', 'Dusk'],
   },
   {
     id: 'ridge_runner',
@@ -59,7 +67,7 @@ function generateRandomSeed(): string {
 export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element {
   const scrollRootRef = useRef<HTMLDivElement | null>(null);
   useLenisScrollRoot(scrollRootRef);
-  const [selectedScenario, setSelectedScenario] = useState<string>('dawn_intrusion');
+  const [selectedScenario, setSelectedScenario] = useState<string>('dense_air_picture');
   const [proceduralTier, setProceduralTier] = useState<Tier>('operator');
   const [seedInput, setSeedInput] = useState<string>(() => generateRandomSeed());
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -201,7 +209,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
       const customEvent = e as CustomEvent<string | undefined>;
       if (
         customEvent.detail &&
-        ['dawn_intrusion', 'ridge_runner', 'city_edge_night', 'procedural'].includes(
+        ['dense_air_picture', 'dawn_intrusion', 'ridge_runner', 'city_edge_night', 'procedural'].includes(
           customEvent.detail
         )
       ) {
