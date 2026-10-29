@@ -124,20 +124,23 @@ body {
 .radar-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   min-height: 0;
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
 }
 
 .sidebar-section {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding-right: 2px;
+  padding-right: 4px;
   min-height: 0;
   height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .hotkeys-legend {

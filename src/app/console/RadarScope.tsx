@@ -185,8 +185,10 @@ export function RadarScope({
       style={{
         position: 'relative',
         width: '100%',
-        flex: 1,
-        minHeight: '260px',
+        height: '520px',
+        minHeight: '520px',
+        maxHeight: '520px',
+        flexShrink: 0,
         backgroundColor: '#070a0e',
         borderRadius: '10px',
         border: '1px solid rgba(255, 255, 255, 0.08)',

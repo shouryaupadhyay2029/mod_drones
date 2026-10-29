@@ -30,7 +30,7 @@ export function TrackTable({
         <span className="mil-tag mil-tag-confirmed">20Hz PULSE-DOPPLER</span>
       </div>
 
-      <div className="mil-table-wrapper" style={{ overflowY: 'auto', maxHeight: '180px' }}>
+      <div className="mil-table-wrapper" style={{ overflowY: 'auto', height: '175px' }}>
         <table className="mil-table">
           <thead>
             <tr>
