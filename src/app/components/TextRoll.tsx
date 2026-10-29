@@ -20,7 +20,7 @@ export function TextRoll({
   stagger = DEFAULT_STAGGER,
   duration = DEFAULT_DURATION,
 }: TextRollProps): React.JSX.Element {
-  const chars = children.split('');
+  const chars = Array.from(children);
   const len = chars.length;
 
   return (

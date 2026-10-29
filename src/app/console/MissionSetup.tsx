@@ -520,7 +520,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
                   onClick={handleRandomize}
                   style={styles.buttonRandom}
                 >
-                  🎲 <TextRoll stagger={0.02}>Random</TextRoll>
+                  <TextRoll stagger={0.02}>Randomize</TextRoll>
                 </button>
               </div>
               <span style={styles.hint}>

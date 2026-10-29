@@ -834,7 +834,7 @@ export function TopBar({
                 onClick={onToggleAutopilot}
                 style={autopilot ? styles.autopilotActive : styles.autopilotButton}
               >
-                <TextRoll center>{autopilot ? '🤖 AUTOPILOT: ON' : '🤖 AUTOPILOT: OFF'}</TextRoll>
+                <TextRoll center>{autopilot ? 'AUTOPILOT: ON' : 'AUTOPILOT: OFF'}</TextRoll>
               </button>
             </div>
           </div>

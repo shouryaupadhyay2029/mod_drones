@@ -246,7 +246,7 @@ export function DebriefScreen({
   const isMarginal = effectiveScoreV2.total >= 60 && !isPass;
 
   let verdictClass = 'debrief-verdict-banner verdict-failed';
-  let verdictIcon = '🔴';
+  let verdictIcon = '●';
   let verdictTitle = 'PERIMETER COMPROMISED // CRITICAL DEFENSE FAILURES';
   let verdictSummary =
     'Hostile drones penetrated the inner defense perimeter before neutralization, or significant ammunition was expended on non-threat clutter. Threat prioritization and classification discipline must be improved.';
@@ -255,7 +255,7 @@ export function DebriefScreen({
 
   if (roeBreached) {
     verdictClass = 'debrief-verdict-banner verdict-roe';
-    verdictIcon = '🟠';
+    verdictIcon = '●';
     verdictTitle = 'RULES OF ENGAGEMENT BREACH // SCORE CAPPED AT 60';
     verdictSummary =
       'Civilian airframe or non-hostile contact engaged with live effectors. Under standard military doctrine, ROE violations impose an immediate hard ceiling of 60 on mission score.';
@@ -263,7 +263,7 @@ export function DebriefScreen({
       'DOCTRINE DIRECTIVE: Low-speed blips (<25 m/s) with no RF emissions are civilian quadcopters or birds. Slew EO/IR optics to confirm target visual profile before issuing engagement commands.';
   } else if (isPass) {
     verdictClass = 'debrief-verdict-banner verdict-pass';
-    verdictIcon = '🟢';
+    verdictIcon = '●';
     verdictTitle = 'PERIMETER SECURED // EXCEPTIONAL DOCTRINE ADHERENCE';
     verdictSummary =
       'All incoming threats were designated, classified, and neutralized with high weapon economy. Defense assets remained fully intact with minimal collateral risk.';
@@ -271,7 +271,7 @@ export function DebriefScreen({
       'DOCTRINE DIRECTIVE: Excellent target acknowledgment and effector economy. Maintain early radar sweeps to maximize available reaction time against clustered swarm tactics.';
   } else if (isMarginal) {
     verdictClass = 'debrief-verdict-banner verdict-marginal';
-    verdictIcon = '🟡';
+    verdictIcon = '●';
     verdictTitle = 'MISSION ACCOMPLISHED // MARGINAL OPERATIONAL EFFICIENCY';
     verdictSummary =
       'Perimeter was defended, but delayed radar acknowledgment latency or sub-optimal weapon matching degraded overall tactical rating.';
@@ -643,7 +643,7 @@ export function DebriefScreen({
           </div>
           <div className={`debrief-verdict-banner ${score.total >= 85 ? 'verdict-pass' : score.total >= 60 ? 'verdict-marginal' : 'verdict-failed'}`}>
             <div className="debrief-verdict-status">
-              <span className="debrief-verdict-icon">{score.total >= 85 ? '🟢' : score.total >= 60 ? '🟡' : '🔴'}</span>
+              <span className="debrief-verdict-icon">●</span>
               <span className="debrief-verdict-title">
                 {score.total >= 85 ? 'EVALUATION PASSED (v1 HEURISTIC)' : score.total >= 60 ? 'MARGINAL EVALUATION (v1 HEURISTIC)' : 'EVALUATION FAILED (v1 HEURISTIC)'}
               </span>
@@ -865,7 +865,7 @@ export function DebriefScreen({
             onClick={onReplaySameSeed}
             className="debrief-btn-secondary"
           >
-            <TextRoll center stagger={0.02}>↺ Replay Same Seed</TextRoll>
+            <TextRoll center stagger={0.02}>Replay Same Seed</TextRoll>
           </button>
           <button
             id="btn-new-random-seed"
@@ -873,7 +873,7 @@ export function DebriefScreen({
             onClick={handleStartNewMission}
             className="debrief-btn-primary"
           >
-            <TextRoll center stagger={0.02}>🎲 New Random Seed</TextRoll>
+            <TextRoll center stagger={0.02}>New Random Seed</TextRoll>
           </button>
           <button
             id="btn-download-log"
@@ -881,7 +881,7 @@ export function DebriefScreen({
             onClick={handleDownloadLog}
             className="debrief-btn-download"
           >
-            <TextRoll center stagger={0.02}>⬇ Download Session Log (JSON)</TextRoll>
+            <TextRoll center stagger={0.02}>Download Session Log (JSON)</TextRoll>
           </button>
         </div>
       </div>
