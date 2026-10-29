@@ -63,8 +63,31 @@ npm install
 
 ### Available Scripts
 - `npm run dev`: Launch the Vite development server with the System Check page.
+- `npm run preview`: Serve the production build locally to test Service Worker and offline caching.
 - `npm run build`: Typecheck and produce the production Vite bundle.
 - `npm test`: Run all acceptance test suites via Vitest.
 - `npm run lint`: Run ESLint including determinism enforcement checks on `src/sim`.
 - `npm run typecheck`: Run full TypeScript checks.
 - `npm run typecheck:sim`: Typecheck `src/sim` strictly under `lib: ["ES2022"]` (no DOM).
+- `npm run test:targets`: Run calibration targets suite.
+- `npm run bench`: Run full benchmarking suite across bots, scenarios, and commander raids.
+
+---
+
+## Run offline / install as PWA
+
+VAJRA is designed as an offline-first Progressive Web Application (PWA).
+
+### Running Offline
+1. **Build and Preview**:
+   ```bash
+   npm run build
+   npm run preview
+   ```
+2. **First Load**: Open `http://localhost:5173/` in your browser. The Service Worker automatically precaches all application shell assets, scripts, stylesheets, and lightweight WebP backgrounds (~1.09 MB total).
+3. **Go Offline**: Toggle your browser or device into Offline mode (e.g. Chrome DevTools Network -> Offline, or disconnect internet).
+4. **Reload & Play**: Reload the page. The app loads instantly from cache. Missions execute inside local Web Workers, and all AAR session logs persist into local IndexedDB (`vajra-cuas`) without network connectivity.
+
+### Installing as PWA
+- In Chrome, Edge, or mobile browsers, click the **Install App** icon in the address bar or select **Install VAJRA** from the browser menu.
+- The app installs as a standalone desktop/mobile window with native framing, cream theme branding (`#ded7ca`), and custom maskable icons.

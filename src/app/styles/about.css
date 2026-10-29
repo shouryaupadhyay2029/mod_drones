@@ -667,7 +667,7 @@
   padding: 36px clamp(20px, 5vw, 76px);
   border: 1px solid rgba(45, 40, 35, 0.16);
   background-color: #eee9df;
-  background-image: url('../../../bg1.png');
+  background-image: url('../../../bg1.webp');
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;

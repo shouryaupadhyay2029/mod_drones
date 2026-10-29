@@ -257,6 +257,22 @@ Append a dated section after each future item. Include its commit hash(es), what
   - Offline mission execution: Web Worker simulation engine runs 100% in-browser offline.
   - Offline data persistence: IndexedDB database `vajra-cuas` stores session records, logs, and score reports offline, persisting across reloads in AAR.
 
+## 2026-10-29 — Item 4: Repo Hygiene, PWA Documentation & Benchmark Artifacts
+
+- **Repository Hygiene**:
+  - Deleted obsolete `docs/screenshots/test.png`.
+  - Staged and verified intended assets (`bg.webp`, `bg1.webp`, `CommanderBriefing.tsx`, `public/textures/*`, screenshots, `public/registerSW.js`, `public/sw.js`, `public/workbox-8553a241.js`).
+  - Added dedicated "Run offline / install as PWA" section to `README.md` with step-by-step instructions for offline testing, local previewing, and browser PWA installation.
+  - Updated benchmark artifact `docs/benchmarks/c3779da.txt` documenting Section 7 with `raid-1.2` scoring across 3 tiers × 4 commanders × 20 seeds.
+- **Verification Suite**:
+  - `npm test`: clean pass across all test files.
+  - `npm run lint`: clean pass.
+  - `npm run typecheck`: clean pass.
+  - `npm run typecheck:sim`: clean pass.
+  - `npm run build`: built in 2.68s, precache 18 entries, 1122.53 KiB (< 3 MB).
+  - `npm run test:targets`: raw output captured and reported.
+
+
 
 
 

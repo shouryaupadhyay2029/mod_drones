@@ -79,7 +79,7 @@ export function ConsolePage(): React.JSX.Element {
   });
 
   return (
-    <div className="console-layout">
+    <div className={`console-layout${phase === 'ended' ? ' is-debrief' : ''}`}>
       {/* Top Bar is always visible */}
       <TopBar
         tick={currentTick}

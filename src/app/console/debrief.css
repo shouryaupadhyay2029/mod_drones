@@ -1,0 +1,724 @@
+/* VAJRA Luxury Editorial Mission Debrief Styling */
+
+.debrief-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding: 32px clamp(20px, 5vw, 72px) 80px;
+  color: #1a1510;
+  background-color: var(--bg-primary, #ded7ca);
+  background-image: url('/textures/commander-grid.jpg');
+  background-repeat: repeat;
+  background-size: 1024px 640px;
+  background-attachment: fixed;
+  font-family: inherit;
+  position: relative;
+}
+
+.debrief-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(800px, 60vw);
+  height: 380px;
+  background-image: url('/textures/terrain-radar.png');
+  background-size: cover;
+  background-position: top right;
+  opacity: 0.28;
+  mix-blend-mode: multiply;
+  mask-image: radial-gradient(ellipse at 80% 25%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 74%);
+  -webkit-mask-image: radial-gradient(ellipse at 80% 25%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 74%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.debrief-shell {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header & Meta */
+.debrief-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(26, 21, 16, 0.15);
+}
+
+.debrief-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.debrief-pill {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(26, 21, 16, 0.06);
+  border: 1px solid rgba(26, 21, 16, 0.18);
+  color: #3d2f24;
+}
+
+.debrief-pill-accent {
+  background: rgba(204, 74, 0, 0.08);
+  border-color: rgba(204, 74, 0, 0.35);
+  color: #b33900;
+}
+
+.debrief-pill-tier {
+  background: rgba(30, 90, 150, 0.08);
+  border-color: rgba(30, 90, 150, 0.3);
+  color: #174873;
+}
+
+.debrief-title {
+  margin: 0;
+  font-size: clamp(24px, 3.5vw, 36px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #140f0a;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+/* Tabs & Controls */
+.debrief-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+}
+
+.debrief-tab-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(26, 21, 16, 0.05);
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(26, 21, 16, 0.12);
+}
+
+.debrief-tab-btn {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #5c4b3c;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.debrief-tab-btn.is-active {
+  background: #1a1510;
+  color: #ded7ca;
+  box-shadow: 0 2px 8px rgba(26, 21, 16, 0.2);
+}
+
+.debrief-tab-btn:hover:not(.is-active) {
+  color: #140f0a;
+  background: rgba(26, 21, 16, 0.08);
+}
+
+.debrief-replay-btn {
+  background: rgba(26, 21, 16, 0.04);
+  border: 1px solid rgba(26, 21, 16, 0.2);
+  color: #2b1f14;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.debrief-replay-btn:hover {
+  background: rgba(26, 21, 16, 0.09);
+  border-color: rgba(26, 21, 16, 0.4);
+}
+
+/* Score Showcase */
+.debrief-score-hero {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(26, 21, 16, 0.15);
+  border-radius: 8px;
+  padding: 24px 28px;
+  box-shadow: 0 4px 20px rgba(26, 21, 16, 0.04);
+}
+
+@media (max-width: 820px) {
+  .debrief-score-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.debrief-score-dial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-right: 24px;
+  border-right: 1px solid rgba(26, 21, 16, 0.12);
+  gap: 6px;
+}
+
+@media (max-width: 820px) {
+  .debrief-score-dial {
+    padding-right: 0;
+    padding-bottom: 20px;
+    border-right: none;
+    border-bottom: 1px solid rgba(26, 21, 16, 0.12);
+  }
+}
+
+.debrief-score-kicker {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #705e4d;
+}
+
+.debrief-score-number {
+  font-size: clamp(48px, 6vw, 68px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.debrief-score-max {
+  font-size: 18px;
+  font-weight: 600;
+  opacity: 0.55;
+}
+
+.debrief-grade-tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-top: 4px;
+}
+
+.debrief-grade-pass {
+  background: rgba(34, 139, 34, 0.12);
+  color: #1b6d1b;
+  border: 1px solid rgba(34, 139, 34, 0.35);
+}
+
+.debrief-grade-fail {
+  background: rgba(179, 32, 0, 0.1);
+  color: #a31a00;
+  border: 1px solid rgba(179, 32, 0, 0.35);
+}
+
+.debrief-grade-marginal {
+  background: rgba(184, 115, 0, 0.12);
+  color: #945300;
+  border: 1px solid rgba(184, 115, 0, 0.35);
+}
+
+.debrief-roe-cap {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b31b00;
+  background: rgba(179, 32, 0, 0.08);
+  border: 1px dashed rgba(179, 32, 0, 0.4);
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+/* Subscore Cards */
+.debrief-subscores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 14px;
+  align-content: center;
+}
+
+.debrief-subscore-item {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(26, 21, 16, 0.12);
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.debrief-subscore-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #705e4d;
+}
+
+.debrief-subscore-value {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: #140f0a;
+}
+
+.debrief-subscore-desc {
+  font-size: 10px;
+  color: #7a6a5b;
+  line-height: 1.25;
+}
+
+.debrief-subscore-bar {
+  height: 3px;
+  background: rgba(26, 21, 16, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.debrief-subscore-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Summary Grid for v1 */
+.debrief-summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  align-content: center;
+}
+
+.debrief-summary-metric {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(26, 21, 16, 0.12);
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.debrief-summary-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #705e4d;
+}
+
+.debrief-summary-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: #140f0a;
+}
+
+/* Section Blocks */
+.debrief-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.debrief-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.debrief-section-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #140f0a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.debrief-section-title::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #cc4a00;
+  border-radius: 1px;
+}
+
+.debrief-section-subtext {
+  font-size: 11px;
+  color: #7a6a5b;
+}
+
+/* Editorial Tables */
+.debrief-table-wrapper {
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(26, 21, 16, 0.14);
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(26, 21, 16, 0.02);
+}
+
+.debrief-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.debrief-table th {
+  padding: 10px 14px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #5c4b3c;
+  background: rgba(26, 21, 16, 0.04);
+  border-bottom: 1px solid rgba(26, 21, 16, 0.12);
+  white-space: nowrap;
+}
+
+.debrief-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(26, 21, 16, 0.07);
+  color: #2b1f14;
+  white-space: nowrap;
+}
+
+.debrief-table tr:last-child td {
+  border-bottom: none;
+}
+
+.debrief-table tr.is-clickable {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.debrief-table tr.is-clickable:hover {
+  background: rgba(26, 21, 16, 0.035);
+}
+
+.debrief-table tr.is-expanded {
+  background: rgba(26, 21, 16, 0.05);
+}
+
+/* Expanded Decision Path */
+.debrief-decision-box {
+  padding: 14px 18px;
+  background: rgba(26, 21, 16, 0.03);
+  border-top: 1px solid rgba(26, 21, 16, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.debrief-decision-title {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #140f0a;
+}
+
+.debrief-decision-nodes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.debrief-decision-node {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(26, 21, 16, 0.12);
+  border-radius: 4px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.debrief-node-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.debrief-node-question {
+  font-weight: 700;
+  color: #140f0a;
+  font-size: 12px;
+}
+
+.debrief-node-points {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.debrief-node-detail {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: #5c4b3c;
+}
+
+/* Penalties */
+.debrief-penalties-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.debrief-penalty-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(179, 32, 0, 0.05);
+  border: 1px solid rgba(179, 32, 0, 0.25);
+  border-radius: 4px;
+  padding: 10px 14px;
+}
+
+.debrief-penalty-badge {
+  background: #a31a00;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.debrief-penalty-reason {
+  font-size: 12px;
+  font-weight: 600;
+  color: #731200;
+}
+
+/* Effector Accounting */
+.debrief-effector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.debrief-effector-card {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(26, 21, 16, 0.12);
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.debrief-effector-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #705e4d;
+}
+
+.debrief-effector-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: #140f0a;
+}
+
+/* Reasons List */
+.debrief-reasons-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #382c20;
+}
+
+.debrief-notice-box {
+  background: rgba(26, 21, 16, 0.03);
+  border: 1px dashed rgba(26, 21, 16, 0.2);
+  border-radius: 4px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #635242;
+}
+
+/* Action Buttons Bar */
+.debrief-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-top: 24px;
+  margin-top: 12px;
+  border-top: 1px solid rgba(26, 21, 16, 0.15);
+  position: sticky;
+  bottom: 0;
+  background: rgba(223, 216, 203, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding-bottom: 12px;
+  z-index: 10;
+}
+
+.debrief-btn-primary {
+  background: #140f0a;
+  color: #ded7ca;
+  border: 1px solid #140f0a;
+  border-radius: 4px;
+  padding: 12px 24px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(20, 15, 10, 0.18);
+  transition: all 0.2s ease;
+}
+
+.debrief-btn-primary:hover {
+  background: #cc4a00;
+  border-color: #cc4a00;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.debrief-btn-secondary {
+  background: rgba(255, 255, 255, 0.8);
+  color: #140f0a;
+  border: 1px solid rgba(26, 21, 16, 0.25);
+  border-radius: 4px;
+  padding: 12px 22px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.debrief-btn-secondary:hover {
+  background: #fff;
+  border-color: rgba(26, 21, 16, 0.5);
+  transform: translateY(-1px);
+}
+
+.debrief-btn-download {
+  background: rgba(26, 21, 16, 0.05);
+  color: #3d2f24;
+  border: 1px solid rgba(26, 21, 16, 0.2);
+  border-radius: 4px;
+  padding: 12px 20px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.debrief-btn-download:hover {
+  background: rgba(26, 21, 16, 0.1);
+  border-color: rgba(26, 21, 16, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Unobservable contacts */
+.debrief-unobservable-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.debrief-unobservable-card {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(26, 21, 16, 0.12);
+  border-radius: 6px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+
+.debrief-actor-badge {
+  font-weight: 800;
+  color: #140f0a;
+}
+
+.debrief-class-badge {
+  color: #5c4b3c;
+  background: rgba(26, 21, 16, 0.06);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+.debrief-reason-text {
+  color: #a31a00;
+  font-weight: 600;
+}
+
+.debrief-note-text {
+  color: #7a6a5b;
+}
+
+.debrief-storage-status {
+  margin: 0;
+  color: #705e4d;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}

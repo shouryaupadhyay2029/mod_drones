@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "preview": "vite preview --port 5173",
     "build": "tsc && vite build",
     "test": "vitest run --exclude \"tests/targets/**\"",
     "test:targets": "vitest run tests/targets",
