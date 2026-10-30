@@ -133,26 +133,27 @@ export function CommanderSetup({ onLaunch }: CommanderSetupProps): React.JSX.Ele
 
       <section className="commander-controls-bar" aria-label="Simulation configuration">
         <div className="commander-control-field">
-          <label htmlFor="tier-select">TIER</label>
+          <label htmlFor="tier-select">THEATRE SCALE / TIER</label>
           <div className="commander-select-wrap">
             <select
               id="tier-select"
               value={tier}
               onChange={(e) => setTier(e.target.value as CommanderTier)}
             >
-              <option value="recruit">Recruit</option>
-              <option value="operator">Operator</option>
-              <option value="veteran">Veteran</option>
+              <option value="recruit">Recruit (2 Sites · Light Density)</option>
+              <option value="operator">Operator (3 Sites · Standard Raid)</option>
+              <option value="veteran">Veteran (3 Sites · Heavy EW Swarm)</option>
             </select>
           </div>
         </div>
         <div className="commander-control-field">
-          <label htmlFor="seed-input">SEED</label>
+          <label htmlFor="seed-input">THEATRE SEED</label>
           <div className="commander-input-wrap">
             <input
               id="seed-input"
               value={seed}
               onChange={(e) => setSeed(e.target.value)}
+              placeholder="e.g. commander-6b"
             />
           </div>
         </div>
@@ -163,7 +164,10 @@ export function CommanderSetup({ onLaunch }: CommanderSetupProps): React.JSX.Ele
             checked={autopilot}
             onChange={(e) => setAutopilot(e.target.checked)}
           />{' '}
-          AUTOPILOT <span className="commander-check-sub">(HEURISTIC COMMANDER)</span>
+          <span className="commander-check-body">
+            <strong>HEURISTIC AUTOPILOT</strong>
+            <span className="commander-check-sub">Algorithmic Resource & ROE Balancing</span>
+          </span>
         </label>
       </section>
 
@@ -286,43 +290,61 @@ export function CommanderSetup({ onLaunch }: CommanderSetupProps): React.JSX.Ele
         <div className="commander-section-header">
           <div className="commander-panel-title-wrap">
             <span className="commander-panel-stripe" aria-hidden="true" />
-            <h2>RESOURCE ALLOCATION</h2>
+            <h2>THEATRE RESOURCE ALLOCATION & DOCTRINE</h2>
           </div>
+          <span className="commander-header-tag">[LOGISTICS // DISPATCH MATRIX]</span>
         </div>
 
         <div className="commander-pool-kpis">
           <div className="commander-pool-kpi">
-            <span className="commander-kpi-label">GUN AMMUNITION POOL</span>
+            <div className="commander-kpi-top">
+              <span className="commander-kpi-badge">[ORD-35MM]</span>
+              <span className="commander-kpi-label">GUN AMMUNITION POOL</span>
+            </div>
             <div className="commander-kpi-num">
               <strong>{raid.totalPool.gunAmmo.toLocaleString()}</strong>
               <small>RDS</small>
             </div>
+            <div className="commander-kpi-bar" title={`Deployed: ${(raid.totalPool.gunAmmo - Math.floor(raid.totalPool.gunAmmo * reserveShare)).toLocaleString()} | Reserve: ${Math.floor(raid.totalPool.gunAmmo * reserveShare).toLocaleString()}`}>
+              <div className="kpi-bar-deployed" style={{ width: `${Math.max(4, (1 - reserveShare) * 100)}%` }} />
+              <div className="kpi-bar-reserve" style={{ width: `${Math.max(4, reserveShare * 100)}%` }} />
+            </div>
             <div className="commander-kpi-sub">
-              <span>Reserve: {Math.floor(raid.totalPool.gunAmmo * reserveShare).toLocaleString()}</span>
-              <span>Deployed: {(raid.totalPool.gunAmmo - Math.floor(raid.totalPool.gunAmmo * reserveShare)).toLocaleString()}</span>
+              <span className="kpi-sub-deployed">DEPLOYED: <b>{(raid.totalPool.gunAmmo - Math.floor(raid.totalPool.gunAmmo * reserveShare)).toLocaleString()}</b></span>
+              <span className="kpi-sub-reserve">RESERVE: <b>{Math.floor(raid.totalPool.gunAmmo * reserveShare).toLocaleString()}</b></span>
             </div>
           </div>
           <div className="commander-pool-kpi">
-            <span className="commander-kpi-label">INTERCEPTOR MISSILE POOL</span>
+            <div className="commander-kpi-top">
+              <span className="commander-kpi-badge">[SAM-INTERCEPT]</span>
+              <span className="commander-kpi-label">INTERCEPTOR MISSILE POOL</span>
+            </div>
             <div className="commander-kpi-num">
               <strong>{raid.totalPool.missiles}</strong>
               <small>MSL</small>
             </div>
+            <div className="commander-kpi-bar" title={`Deployed: ${raid.totalPool.missiles - Math.floor(raid.totalPool.missiles * reserveShare)} | Reserve: ${Math.floor(raid.totalPool.missiles * reserveShare)}`}>
+              <div className="kpi-bar-deployed" style={{ width: `${Math.max(4, (1 - reserveShare) * 100)}%` }} />
+              <div className="kpi-bar-reserve" style={{ width: `${Math.max(4, reserveShare * 100)}%` }} />
+            </div>
             <div className="commander-kpi-sub">
-              <span>Reserve: {Math.floor(raid.totalPool.missiles * reserveShare)}</span>
-              <span>Deployed: {raid.totalPool.missiles - Math.floor(raid.totalPool.missiles * reserveShare)}</span>
+              <span className="kpi-sub-deployed">DEPLOYED: <b>{raid.totalPool.missiles - Math.floor(raid.totalPool.missiles * reserveShare)}</b></span>
+              <span className="kpi-sub-reserve">RESERVE: <b>{Math.floor(raid.totalPool.missiles * reserveShare)}</b></span>
             </div>
           </div>
         </div>
 
         <div className="commander-reserve-control">
           <div className="commander-reserve-header">
-            <label htmlFor="central-reserve-slider">
-              <span>CENTRAL RESERVE COMMITMENT</span>
-              <strong>{Math.round(reserveShare * 100)}%</strong>
-            </label>
+            <div className="commander-reserve-label-wrap">
+              <span className="commander-reserve-tag">[HQ STOCK CONTINGENCY]</span>
+              <label htmlFor="central-reserve-slider">
+                <span>CENTRAL RESERVE COMMITMENT:</span>
+                <strong>{Math.round(reserveShare * 100)}%</strong>
+              </label>
+            </div>
             <span className="commander-reserve-meta">
-              Held back at HQ for emergency rush allocation
+              Held at Theatre HQ for emergency in-flight airlift retasking to beleaguered sites
             </span>
           </div>
           <div className="commander-reserve-slider-wrap">
@@ -335,31 +357,62 @@ export function CommanderSetup({ onLaunch }: CommanderSetupProps): React.JSX.Ele
               value={Math.round(reserveShare * 100)}
               onChange={(e) => setReserveShare(Number(e.target.value) / 100)}
             />
+            <div className="commander-slider-scale" aria-hidden="true">
+              <span>0% (NONE)</span>
+              <span>15%</span>
+              <span>30% (NOMINAL)</span>
+              <span>45%</span>
+              <span>60% (MAX RESERVE)</span>
+            </div>
           </div>
         </div>
 
         <p className="commander-alloc-footnote">
-          Each resource uses the same site weight split. Unallocated units remain in central reserve.
+          Allotted ammunition is distributed proportionally by sector weight. Unallocated units remain secured in Theatre HQ central reserve.
         </p>
 
         <div className="commander-alloc-table">
-          {raid.sites.map((site, i) => (
-            <div
-              className="commander-alloc-row"
-              key={site.id}
-              style={{ animationDelay: `${1.25 + i * 0.12}s` }}
-            >
-              <div className="alloc-col-id">
-                <b>{site.id}</b>
-              </div>
-              <div className="alloc-col-ammo">
-                <span>Gun {allocations('gunAmmo')[i]}</span>
-                <span className="alloc-ammo-sep">·</span>
-                <span>Missile {allocations('missiles')[i]}</span>
-              </div>
-              <div className="alloc-col-weight">
-                <label>
-                  <span>WEIGHT <strong>{Math.round((weights[i] ?? 1) * 100)}%</strong></span>
+          <div className="commander-alloc-thead" aria-hidden="true">
+            <span className="th-id">SECTOR SITE</span>
+            <span className="th-ammo">PRE-ALLOTTED STOCK</span>
+            <span className="th-weight">POOL SHARE WEIGHT</span>
+            <span className="th-roe">ROE DIRECTIVE</span>
+            <span className="th-auth">MISSILE AUTH</span>
+          </div>
+          {raid.sites.map((site, i) => {
+            const threatBand = (
+              intel.find((entry) => entry.siteId === site.id)?.threatBand ?? 'low'
+            ).toLowerCase();
+            return (
+              <div
+                className={`commander-alloc-row accent-${threatBand}`}
+                key={site.id}
+                style={{ animationDelay: `${1.25 + i * 0.12}s` }}
+              >
+                <div className="alloc-col-id">
+                  <div className="alloc-id-badge">
+                    <span className={`commander-threat-dot threat-${threatBand}`} />
+                    <b>{site.id}</b>
+                  </div>
+                  <span className="alloc-site-subname">{site.name}</span>
+                </div>
+                <div className="alloc-col-ammo">
+                  <div className="alloc-ammo-chip">
+                    <span className="chip-label">GUN</span>
+                    <strong className="chip-val">{allocations('gunAmmo')[i]}</strong>
+                    <small>RDS</small>
+                  </div>
+                  <div className="alloc-ammo-chip">
+                    <span className="chip-label">MSL</span>
+                    <strong className="chip-val">{allocations('missiles')[i]}</strong>
+                    <small>MSL</small>
+                  </div>
+                </div>
+                <div className="alloc-col-weight">
+                  <div className="alloc-weight-header">
+                    <span className="weight-label">DISTRIBUTION RATIO</span>
+                    <strong className="weight-val">{Math.round((weights[i] ?? 1) * 100)}%</strong>
+                  </div>
                   <input
                     aria-label={`${site.id} allocation weight`}
                     type="range"
@@ -374,52 +427,53 @@ export function CommanderSetup({ onLaunch }: CommanderSetupProps): React.JSX.Ele
                       })
                     }
                   />
-                </label>
+                </div>
+                <div className="alloc-col-roe">
+                  <label>
+                    <span>ROE DIRECTIVE</span>
+                    <select
+                      value={roeBySite[site.id] ?? roe}
+                      onChange={(e) =>
+                        setRoeBySite((current) => ({
+                          ...current,
+                          [site.id]: e.target.value as RoePosture,
+                        }))
+                      }
+                    >
+                      <option value="tight">Tight (Strict Confirm)</option>
+                      <option value="standard">Standard (Balanced)</option>
+                      <option value="free">Free (Autonomous)</option>
+                    </select>
+                  </label>
+                </div>
+                <div className="alloc-col-auth">
+                  <label>
+                    <span>MISSILE AUTHORITY</span>
+                    <select
+                      value={authBySite[site.id] ?? auth}
+                      onChange={(e) =>
+                        setAuthBySite((current) => ({
+                          ...current,
+                          [site.id]: e.target.value as MissileAuth,
+                        }))
+                      }
+                    >
+                      <option value="hold">Hold (Locked)</option>
+                      <option value="asset_threat">Asset Threat (Terminal)</option>
+                      <option value="free">Free (Full Air Defense)</option>
+                    </select>
+                  </label>
+                </div>
               </div>
-              <div className="alloc-col-roe">
-                <label>
-                  <span>ROE</span>
-                  <select
-                    value={roeBySite[site.id] ?? roe}
-                    onChange={(e) =>
-                      setRoeBySite((current) => ({
-                        ...current,
-                        [site.id]: e.target.value as RoePosture,
-                      }))
-                    }
-                  >
-                    <option value="tight">Tight</option>
-                    <option value="standard">Standard</option>
-                    <option value="free">Free</option>
-                  </select>
-                </label>
-              </div>
-              <div className="alloc-col-auth">
-                <label>
-                  <span>MISSILE AUTH</span>
-                  <select
-                    value={authBySite[site.id] ?? auth}
-                    onChange={(e) =>
-                      setAuthBySite((current) => ({
-                        ...current,
-                        [site.id]: e.target.value as MissileAuth,
-                      }))
-                    }
-                  >
-                    <option value="hold">Hold</option>
-                    <option value="asset_threat">Asset threat</option>
-                    <option value="free">Free</option>
-                  </select>
-                </label>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="commander-launch-wrap">
           <button className="commander-primary" onClick={launch}>
+            <span className="launch-beacon" aria-hidden="true" />
             <TextRoll center stagger={0.02}>
-              LAUNCH RAID
+              AUTHORIZE THEATRE DEFENSE // LAUNCH RAID ↗
             </TextRoll>
           </button>
         </div>
