@@ -23,65 +23,100 @@ export const CONTACT_REFERENCES: readonly ContactReference[] = [
   {
     id: 'bird',
     modelClass: 'bird',
-    label: 'Bird',
-    category: 'Biological contact',
-    summary: 'A small airborne return whose path may vary as it flaps, turns, or drifts with the wind.',
-    cues: ['Often a weak or fluctuating radar return', 'May show irregular changes in course or speed', 'No associated control-link signal is expected'],
-    caveat: 'A weak return or absent RF cue does not prove a contact is a bird. Wait for a stable track and compare several observations.',
+    label: 'Avian Biological',
+    category: 'Biological Contact (Non-Threat)',
+    summary: 'Biological airborne contact. Micro-RCS return with fluctuating flap-and-drift motion and zero RF emissions.',
+    cues: [
+      'Motion Dynamics: Low velocity (4–14 m/s), low altitude (10–150m MSL), meandering heading with wind drift or thermal soaring.',
+      'Radar & Doppler: Micro-RCS (~0.001 m²) with fluctuating track quality; micro-Doppler shows periodic wing-beat modulation.',
+      'RF Spectrum: Zero RF emission across all civilian and military bands; no control uplink or video downlink.',
+      'Effector Action: WEAPONS HOLD. RF Jammer is 0% effective; CIWS engagement expends ammunition and triggers doctrine penalty.',
+    ],
+    caveat: 'DO NOT ENGAGE. Confirm track stabilization over multiple sweeps. A weak return without RF can also mimic stealthy micro-drones; cross-reference speed (<15 m/s) and thermal profile (0.2) before ruling out threats.',
   },
   {
     id: 'commercial_quad',
     modelClass: 'commercial_quad',
-    label: 'Civilian quadcopter',
-    category: 'Multirotor aircraft',
-    summary: 'A small multirotor used for photography, inspection, recreation, or other civilian tasks.',
-    cues: ['May move slowly, hover, or change direction frequently', 'Can produce a small radar return', 'A telemetry signal may be present, absent, or difficult to associate'],
-    caveat: 'These cues describe movement and sensors, not intent. A civilian-looking profile cannot establish whether an activity is authorized.',
+    label: 'Civilian Quadcopter',
+    category: 'Commercial Multirotor (Non-Hostile)',
+    summary: 'Commercial rotary drone with active ISM telemetry. Characterized by hover-and-step motion and 100% RF jammer vulnerability.',
+    cues: [
+      'Motion Dynamics: Moderate speed (8–16 m/s), 40–120m MSL, stationary hovering, sharp orthogonal turns, and stepped altitude changes.',
+      'Radar & Doppler: Small RCS (~0.01 m²); pronounced high-RPM blade flash micro-Doppler from 4 multirotor blades.',
+      'RF Spectrum: Continuous 2.4 GHz / 5.8 GHz ISM telemetry link; non-encrypted commercial drone protocol handshakes.',
+      'Effector Action: SOFT-KILL PREFERRED. 100% vulnerable to Directional RF Jammer (triggers automated RTH/failsafe landing). Kinetic fire causes collateral penalty.',
+    ],
+    caveat: 'COLLATERAL RESTRICTION. Kinetic CIWS engagement of civilian quads violates ROE. Use Directional RF Jammer to disrupt control link and force failsafe return outside the defended perimeter.',
   },
   {
     id: 'fpv_kamikaze',
     modelClass: 'fpv_kamikaze',
-    label: 'Radio-linked FPV type',
-    category: 'Small multirotor profile',
-    summary: 'A fast, manually piloted multirotor profile represented in the simulator. Its radar appearance can overlap with other small aircraft.',
-    cues: ['May show sustained movement with abrupt course changes', 'Often represented by a small radar return', 'A video or control-link cue may appear, but can be noisy or unassociated'],
-    caveat: 'No single speed, turn, or RF observation identifies intent. Treat the class as an assessment with uncertainty, not a confirmed identity.',
+    label: 'Radio-Linked FPV Strike Drone',
+    category: 'Hostile Loitering Strike (Hostile)',
+    summary: 'High-speed racing multirotor on a direct attack dive. Features active RF video, switching to autonomous optical lock at 800m.',
+    cues: [
+      'Motion Dynamics: High velocity (25–35 m/s / up to 126 km/h), low altitude (20–80m AGL), direct high-closing-rate attack vector straight toward defended asset.',
+      'Radar & Doppler: Small RCS (~0.02 m²); steady Doppler return; rapid acceleration and sharp high-G terminal dive.',
+      'RF Spectrum: Active analog/digital video transmission (5.8 GHz) and RC uplink (868/915 MHz or 2.4 GHz).',
+      'Effector Action: DUAL-PHASE DEFENSE. Soft-kill RF Jammer effective beyond 800m. At <800m, target activates optical terminal lock (RF immune) — instant Kinetic CIWS hard-kill mandatory!',
+    ],
+    caveat: 'PRIORITY HOSTILE TARGET. Jam immediately beyond 800m to disrupt pilot control. If track breaches 800m without neutralization, RF Jammer is 0% effective: engage with 35mm Kinetic CIWS immediately.',
   },
   {
     id: 'fpv_fiber',
     modelClass: 'fpv_fiber',
-    label: 'RF-silent FPV type',
-    category: 'Small multirotor profile',
-    summary: 'A simulator class with a flight profile similar to other small multirotors and no modeled radio emission.',
-    cues: ['Radar motion can resemble other small multirotor contacts', 'No RF line may be associated with the track', 'EO/IR or continued track history may add context'],
-    caveat: 'RF silence alone cannot distinguish this class from a bird, a non-emitting aircraft, poor reception, or a sensor gap.',
+    label: 'Fiber-Optic Guided FPV Drone',
+    category: 'RF-Silent Guided Strike (Hostile)',
+    summary: 'Micro-fiber tethered strike drone. Zero RF signature and 100% immune to electronic warfare jamming; requires kinetic hard-kill.',
+    cues: [
+      'Motion Dynamics: High velocity (20–30 m/s), low altitude (20–80m AGL), terrain-hugging linear ingress tethered by spooled glass fiber.',
+      'Radar & Doppler: Small RCS (~0.02 m²); consistent multirotor Doppler return without corresponding RF emitter.',
+      'RF Spectrum: COMPLETE RF SILENCE. Zero radio emissions across entire spectrum; invisible to spectrum direction finders.',
+      'Effector Action: HARD-KILL ONLY. Directional RF Jammer is 0% effective at all ranges. Kinetic CIWS gun engagement is the only viable countermeasure.',
+    ],
+    caveat: 'EW IMMUNE THREAT. Do not waste jammer duty cycles or operator time attempting soft-kill. Designate as priority target for Kinetic CIWS airburst intercept immediately upon radar detection.',
   },
   {
     id: 'fixed_wing_recon',
     modelClass: 'fixed_wing_recon',
-    label: 'Fixed-wing UAV',
-    category: 'Fixed-wing aircraft',
-    summary: 'A powered aircraft profile that tends to maintain forward flight rather than hover.',
-    cues: ['Usually follows a more continuous course than a hovering multirotor', 'May present a steadier return over repeated radar updates', 'A control or telemetry cue may be available but is not guaranteed'],
-    caveat: 'A steady track does not by itself identify aircraft type or purpose. Compare the full track history and available independent sensor cues.',
+    label: 'Fixed-Wing Reconnaissance UAV',
+    category: 'Hostile Surveillance UAV (Hostile)',
+    summary: 'Standoff surveillance drone. Maintains constant forward airspeed and medium-altitude orbits while relaying targeting data.',
+    cues: [
+      'Motion Dynamics: Continuous forward airspeed (22–32 m/s), medium altitude (150–400m MSL), wide banking turns or fixed racetrack orbits.',
+      'Radar & Doppler: Medium RCS (~0.05 m²); continuous unbroken radar track; single-pusher propeller Doppler modulation.',
+      'RF Spectrum: Encrypted long-range telemetry link and digital downlink; occasional burst transmissions.',
+      'Effector Action: INTERCEPT BEFORE COORDINATE HANDOFF. Soft-kill RF Jammer effective within 1.5 km range. Kinetic CIWS hard-kill when closing within range.',
+    ],
+    caveat: 'STANDOFF THREAT. Fixed-wing drones spot assets and direct artillery/missiles from outside close-defense perimeters. Track heading: if orbiting asset perimeter, engage before surveillance data is relayed.',
   },
   {
     id: 'decoy_drone',
     modelClass: 'decoy_drone',
-    label: 'Decoy profile',
-    category: 'Simulator training class',
-    summary: 'A synthetic training contact designed to overlap with other aircraft cues and test whether the trainee avoids overconfidence.',
-    cues: ['May have a return that differs from a very small multirotor', 'Can move in a way that resembles an aircraft', 'May have no associated RF signal in the simulation'],
-    caveat: 'There is no universal “decoy signature.” In this simulator, use the class only when the accumulated evidence supports it; otherwise retain uncertainty.',
+    label: 'Decoy Drone / Radar Simulator',
+    category: 'Tactical Deception Bait (Non-Lethal)',
+    summary: 'Expendable radar-reflecting decoy designed to saturate air surveillance and bait operators into depleting kinetic CIWS rounds.',
+    cues: [
+      'Motion Dynamics: Sustained airspeed (20–30 m/s), low altitude (20–80m MSL), rigid straight or gentle zigzag flight path without evasive logic.',
+      'Radar & Doppler: Artificially elevated RCS (~0.05 m²) via corner reflector; lacks multirotor blade micro-Doppler signature.',
+      'RF Spectrum: Zero control link or simple fixed simulator pulse; no active sensor or payload emissions.',
+      'Effector Action: AMMUNITION CONSERVATION. Hold kinetic fire if primary threats are inbound. Verify thermal index (low ~0.3) before expending CIWS rounds.',
+    ],
+    caveat: 'TACTICAL DECEPTION. Decoys are deployed alongside lethal strike packages to draw fire away from weaponized FPVs. Cross-reference low thermal signature and track kinematics to avoid wasting CIWS capacity.',
   },
   {
     id: 'clutter',
     modelClass: 'clutter',
-    label: 'Radar clutter / false plot',
-    category: 'Radar artifact',
-    summary: 'A weak or transient radar plot may come from clutter, interference, a brief detection, or a real object.',
-    cues: ['May appear briefly or fail to form a consistent track', 'Position or motion estimates can fluctuate', 'Independent confirmation may be unavailable'],
-    caveat: 'A short-lived plot is not automatically clutter. Allow the track to develop and preserve an unknown assessment when evidence is insufficient.',
+    label: 'Radar Clutter / False Plot',
+    category: 'Environmental Artifact (False Plot)',
+    summary: 'Transient radar artifact from weather, terrain bounce, or foliage. Low track quality with erratic jitter and zero RF signal.',
+    cues: [
+      'Motion Dynamics: Near-zero or drifting velocity (0–6 m/s), ground elevation (0–50m), erratic spatial jump without aerodynamic continuity.',
+      'Radar & Doppler: Fluctuating micro-RCS (~0.005 m²); low track quality and frequent plot dropouts between antenna sweeps.',
+      'RF Spectrum: Zero RF emission; completely absent on electronic surveillance displays.',
+      'Effector Action: NO EFFECTOR ACTION. Weapons Safe / Hold Fire. Automatic track correlator will drop plot after repeated missed updates.',
+    ],
+    caveat: 'DO NOT ENGAGE GHOST TRACKS. Firing kinetic rounds or directing jammers at clutter wastes battery and reveals defender position. Allow track quality score to settle before taking action.',
   },
 ];
 
@@ -344,52 +379,52 @@ export function ContactReferencePage({ contact, onBack }: ContactReferencePagePr
           <>
             <div className="contact-editorial-copy" key={previewContact.id}>
               <p className="contact-editorial-lede">
-                <RevealText text={previewContact.summary} accentWords={['radar', 'RF', 'multirotor', 'return']} />
+                <RevealText text={previewContact.summary} accentWords={['radar', 'RF', 'multirotor', 'return', 'Biological', 'Hostile', 'strike', 'drone', 'clutter', 'immune', 'hard-kill', 'telemetry']} />
               </p>
 
               <section className="contact-copy-section">
-                <div className="contact-copy-label">WHAT THE TRAINEE MAY OBSERVE</div>
+                <div className="contact-copy-label">TACTICAL MOTION & SENSOR RECOGNITION FACTORS</div>
                 <div className="contact-copy-cues">
                   {previewContact.cues.map((cue, index) => (
-                    <p key={cue}><RevealText text={cue} accentWords={['radar', 'RF', 'track', 'course', 'speed']} phase={index} /></p>
+                    <p key={cue}><RevealText text={cue} accentWords={['Motion', 'Dynamics', 'Radar', 'Doppler', 'RF', 'Spectrum', 'Effector', 'Action', 'WEAPONS', 'HOLD', 'SOFT-KILL', 'HARD-KILL', 'DUAL-PHASE', 'track', 'course', 'speed', 'CIWS', 'Jammer', '800m', 'optical', 'lock']} phase={index} /></p>
                   ))}
                 </div>
               </section>
 
               <section className="contact-copy-section contact-copy-caution">
-                <div className="contact-copy-label">KEEP THE ASSESSMENT CAUTIOUS</div>
-                <p className="contact-copy-body"><RevealText text={previewContact.caveat} accentWords={['not', 'uncertainty', 'evidence', 'intent']} phase={2} /></p>
+                <div className="contact-copy-label">RULES OF ENGAGEMENT & THREAT DOCTRINE</div>
+                <p className="contact-copy-body"><RevealText text={previewContact.caveat} accentWords={['DO NOT ENGAGE', 'COLLATERAL RESTRICTION', 'PRIORITY HOSTILE TARGET', 'EW IMMUNE THREAT', 'STANDOFF THREAT', 'TACTICAL DECEPTION', 'DO NOT ENGAGE GHOST TRACKS', '800m', 'CIWS', 'Jammer', 'ROE', 'not', 'failsafe']} phase={2} /></p>
               </section>
 
               <section className="contact-copy-section">
-                <div className="contact-copy-label">SIMULATOR MODEL PROFILE / SIM DATA</div>
-                <p className="contact-copy-intro">Configured signature for this class in the current training model.</p>
+                <div className="contact-copy-label">TACTICAL SPECIFICATIONS & KINEMATICS MATRIX</div>
+                <p className="contact-copy-intro">Deterministic simulation parameters and baseline sensor benchmarks for this target class.</p>
                 <div className="contact-editorial-metrics">
-                  <div><span>SPEED BAND</span><strong><RevealText text={`${profile.speedRangeMps[0]}–${profile.speedRangeMps[1]} m/s`} phase={1} /></strong></div>
-                  <div><span>ALTITUDE BAND</span><strong><RevealText text={`${profile.altitudeBandM[0]}–${profile.altitudeBandM[1]} m MSL`} phase={2} /></strong></div>
-                  <div><span>NOMINAL RCS</span><strong><RevealText text={`${profile.rcsM2} m²`} phase={3} /></strong></div>
-                  <div><span>RF SIGNATURE</span><strong><RevealText text={profile.rfSignature.replace(/_/g, ' ')} accentWords={['telemetry', 'video', 'link']} phase={4} /></strong></div>
-                  <div><span>THERMAL INDEX</span><strong><RevealText text={`${profile.thermalSignature.toFixed(1)} / 1.0`} phase={5} /></strong></div>
-                  <div><span>MODELED RF CONTROL</span><strong><RevealText text={profile.rfControlled ? 'Yes' : 'No'} phase={6} /></strong></div>
+                  <div><span>SPEED ENVELOPE</span><strong><RevealText text={`${profile.speedRangeMps[0]}–${profile.speedRangeMps[1]} m/s (${Math.round(profile.speedRangeMps[0] * 3.6)}–${Math.round(profile.speedRangeMps[1] * 3.6)} km/h)`} phase={1} /></strong></div>
+                  <div><span>ALTITUDE ENVELOPE</span><strong><RevealText text={`${profile.altitudeBandM[0]}–${profile.altitudeBandM[1]} m MSL`} phase={2} /></strong></div>
+                  <div><span>NOMINAL RADAR RCS</span><strong><RevealText text={`${profile.rcsM2} m²`} phase={3} /></strong></div>
+                  <div><span>RF EMISSION SPECTRUM</span><strong><RevealText text={profile.rfSignature === 'none' ? 'NONE (RF SILENT)' : profile.rfSignature.replace(/_/g, ' ').toUpperCase()} accentWords={['telemetry', 'video', 'link', 'none', 'silent']} phase={4} /></strong></div>
+                  <div><span>THERMAL EMISSION INDEX</span><strong><RevealText text={`${profile.thermalSignature.toFixed(1)} / 1.0`} phase={5} /></strong></div>
+                  <div><span>THREAT CLASSIFICATION</span><strong><RevealText text={profile.hostile ? 'HOSTILE TARGET' : (previewContact.id === 'clutter' ? 'ENVIRONMENTAL ARTIFACT' : 'NEUTRAL / NON-LETHAL')} accentWords={['HOSTILE', 'TARGET']} phase={6} /></strong></div>
                 </div>
-                <p className="contact-copy-footnote"><RevealText text="These are class-generation parameters, not guaranteed live readings. The console reports estimated motion and an RCS bucket; radar noise, terrain, range, and environment can shift or obscure those observations." accentWords={['not', 'radar noise']} phase={3} /></p>
+                <p className="contact-copy-footnote"><RevealText text="Baseline parameters reflect target generation envelopes. Live sensor measurements are subject to distance path-loss, terrain masking, antenna elevation limits, and radar clutter." accentWords={['terrain masking', 'radar clutter']} phase={3} /></p>
               </section>
 
               <section className="contact-copy-section">
-                <div className="contact-copy-label">CONSOLE FIELD GUIDE</div>
+                <div className="contact-copy-label">CONSOLE RADAR INTERPRETATION MANUAL</div>
                 <dl className="contact-editorial-guide">
-                  <div><dt>SPEED / COURSE</dt><dd><RevealText text="Estimated motion magnitude and direction of travel. Values are withheld until the track has enough plots for a stable velocity estimate." accentWords={['track', 'stable']} /></dd></div>
-                  <div><dt>CLOSING RATE</dt><dd><RevealText text="Range-rate relative to the defended asset: negative means range is decreasing; positive means it is increasing." accentWords={['negative', 'positive']} phase={1} /></dd></div>
-                  <div><dt>ALTITUDE</dt><dd><RevealText text="Estimated height in metres above mean sea level (MSL), not height above the local terrain." accentWords={['MSL', 'not']} phase={3} /></dd></div>
-                  <div><dt>TURN RATE</dt><dd><RevealText text="Change in estimated course over time. Read it across several updates because smoothing and plot noise can distort a single value." accentWords={['course', 'plot noise']} phase={2} /></dd></div>
-                  <div><dt>RCS BUCKET / QUALITY</dt><dd><RevealText text="RCS is reported as a broad return-size bucket. Track quality summarizes continuity and measurement quality; it is not an identity probability." accentWords={['track quality', 'not']} phase={4} /></dd></div>
-                  <div><dt>RF / EO-IR</dt><dd><RevealText text="RF status describes whether a line or signature was associated with the track. EO/IR may provide a broad visual hint when the turret is locked and conditions permit." accentWords={['RF', 'EO/IR']} phase={5} /></dd></div>
+                  <div><dt>SPEED & VECTOR HEADING</dt><dd><RevealText text="Estimated true airspeed and heading. Requires 3 antenna sweeps to stabilize and filter Doppler plot noise." accentWords={['track', 'stable']} /></dd></div>
+                  <div><dt>CLOSING RATE (RANGE-RATE)</dt><dd><RevealText text="Direct rate of closure against defended asset: negative indicates inbound attack; positive indicates outbound flight." accentWords={['negative', 'positive']} phase={1} /></dd></div>
+                  <div><dt>ALTITUDE (ESTIMATED MSL)</dt><dd><RevealText text="Barometric height above sea level. Targets below 80m AGL exploit terrain masking and contour valleys." accentWords={['MSL', 'terrain']} phase={3} /></dd></div>
+                  <div><dt>TURN RATE & ACCELERATION</dt><dd><RevealText text="Heading change per second. Racing multirotors display abrupt >45° course changes; fixed wings display banked turns <15°." accentWords={['course', 'turn']} phase={2} /></dd></div>
+                  <div><dt>RCS BUCKET & MICRO-DOPPLER</dt><dd><RevealText text="Return magnitude classification. Micro-Doppler peaks indicate rotating propellers, whereas flat returns indicate fixed-wing or clutter." accentWords={['Micro', 'Small', 'Medium']} phase={4} /></dd></div>
+                  <div><dt>RF INTERCEPT & EO/IR LOCK</dt><dd><RevealText text="Signals intelligence detects active video/RC links. EO/IR optical turret provides visual confirmation when line-of-sight permits." accentWords={['RF', 'EO/IR']} phase={5} /></dd></div>
                 </dl>
               </section>
 
               <aside className="contact-copy-field-note">
-                <div className="contact-copy-label">READING A TRACK</div>
-                <p><RevealText text="Compare a stable track history with the modeled profile, then cross-check available sensors. A matching parameter is only one piece of evidence; conflicting or incomplete evidence should remain uncertain. These profiles are generic simulator data, not real-world aircraft specifications." accentWords={['stable track', 'evidence', 'uncertain']} phase={2} /></p>
+                <div className="contact-copy-label">TRAINEE DECISION PROCEDURE</div>
+                <p><RevealText text="1. Track Assessment: Verify speed and altitude envelope against known threat profiles. 2. Spectrum Correlation: Cross-reference RF link status. 3. Range Verification: If an FPV closes within 800m, optical lock renders RF Jammers ineffective—switch immediately to Kinetic CIWS hard-kill. 4. ROE Compliance: Never engage civilian or biological contacts with kinetic munitions." accentWords={['800m', 'Kinetic CIWS', 'RF Jammer', 'ROE', 'optical lock']} phase={2} /></p>
               </aside>
             </div>
             <button className="contact-reference-done" type="button" onClick={onBack}>BACK TO CONSOLE</button>

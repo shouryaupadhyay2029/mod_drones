@@ -376,10 +376,11 @@ export function TopBar({
                   </div>
                   <NavMiniAsciiPreview modelType="radar" />
                   <div>
-                    <h4 className="mega-preview-title">Read the whole track</h4>
+                    <h4 className="mega-preview-title">Operator Field Manual</h4>
                     <p className="mega-preview-text">
-                      Compare motion, return quality, and independent sensor cues. No single plot
-                      or signature confirms an object’s identity or intent.
+                      Cross-reference motion kinematics, radar RCS, and RF link signatures.
+                      Adhere strictly to ROE: engage soft-kill early, and switch to Kinetic CIWS
+                      when hostile FPV tracks breach 800m.
                     </p>
                   </div>
                   <button
