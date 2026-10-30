@@ -1,5 +1,6 @@
 import { TraineeTrack, TraineeView } from '../../../sim/index.js';
 import { polarToPixel, RangeRing, ringRadii } from './geometry.js';
+import { getTerrainTexture } from './terrainTextures.js';
 
 export interface ScopeDrawOptions {
   scaleM: number;
@@ -7,6 +8,7 @@ export interface ScopeDrawOptions {
   selectedTrackId: number | null;
   hoveredTrackId?: number | null;
   trailHistory: Map<number, Array<{ x: number; y: number; z: number }>>;
+  scenarioId?: string;
 }
 
 export function getAssessedColor(assessedClass?: string): string {
@@ -75,6 +77,43 @@ export function drawScope(
   ctx.arc(centerX, centerY, radiusPx, 0, Math.PI * 2);
   ctx.fillStyle = bgGrad;
   ctx.fill();
+
+  // Tactical Environment Satellite Reconnaissance Underlay
+  const terrainImg = getTerrainTexture(options.scenarioId, view?.environment?.terrainKind);
+  if (terrainImg) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radiusPx, 0, Math.PI * 2);
+    ctx.clip();
+
+    const cropSize = Math.min(terrainImg.naturalWidth, terrainImg.naturalHeight);
+    const sx = (terrainImg.naturalWidth - cropSize) / 2;
+    const sy = (terrainImg.naturalHeight - cropSize) / 2;
+    const destSize = radiusPx * 2;
+
+    ctx.globalAlpha = 0.52;
+    ctx.drawImage(
+      terrainImg,
+      sx,
+      sy,
+      cropSize,
+      cropSize,
+      centerX - radiusPx,
+      centerY - radiusPx,
+      destSize,
+      destSize
+    );
+
+    // Deep peripheral vignette to smoothly blend satellite edges into CRT bezel
+    const overlayGrad = ctx.createRadialGradient(centerX, centerY, radiusPx * 0.45, centerX, centerY, radiusPx);
+    overlayGrad.addColorStop(0, 'rgba(8, 14, 21, 0.12)');
+    overlayGrad.addColorStop(0.78, 'rgba(6, 11, 17, 0.58)');
+    overlayGrad.addColorStop(1, 'rgba(4, 7, 10, 0.94)');
+
+    ctx.fillStyle = overlayGrad;
+    ctx.fillRect(centerX - radiusPx, centerY - radiusPx, destSize, destSize);
+    ctx.restore();
+  }
 
   // Subtle outer instrument bezel rings
   ctx.beginPath();

@@ -8,6 +8,14 @@ export interface RadarScopeProps {
   trailHistory: Map<number, Array<{ x: number; y: number; z: number }>>;
   selectedTrackId: number | null;
   onSelectTrack: (trackId: number | null) => void;
+  scenarioId?: string;
+}
+
+function getEnvBadge(scenarioId?: string, terrainKind?: string): string {
+  if (scenarioId === 'ridge_runner' || terrainKind === 'hilly') return 'RIDGE MASKING';
+  if (scenarioId === 'city_edge_night' || terrainKind === 'urban') return 'URBAN CLUTTER';
+  if (scenarioId === 'dense_air_picture' || scenarioId?.includes('swarm')) return 'AIRBASE SECTOR';
+  return 'RURAL SECTOR';
 }
 
 export function RadarScope({
@@ -15,6 +23,7 @@ export function RadarScope({
   trailHistory,
   selectedTrackId,
   onSelectTrack,
+  scenarioId,
 }: RadarScopeProps): React.JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -36,6 +45,9 @@ export function RadarScope({
 
   const showEffectorRingsRef = useRef<boolean>(showEffectorRings);
   showEffectorRingsRef.current = showEffectorRings;
+
+  const scenarioIdRef = useRef<string | undefined>(scenarioId);
+  scenarioIdRef.current = scenarioId;
 
   const hoveredTrackIdRef = useRef<number | null>(null);
 
@@ -69,6 +81,7 @@ export function RadarScope({
             selectedTrackId: selectedTrackIdRef.current,
             hoveredTrackId: hoveredTrackIdRef.current,
             trailHistory: trailHistoryRef.current,
+            scenarioId: scenarioIdRef.current,
           });
           ctx.restore();
         }
@@ -261,6 +274,36 @@ export function RadarScope({
             }}
           >
             SCALE: {scaleM / 1000} km <span style={{ opacity: 0.5 }}>(scroll to zoom)</span>
+          </span>
+
+          <span
+            style={{
+              backgroundColor: 'rgba(15, 23, 42, 0.75)',
+              border: '1px solid rgba(56, 189, 248, 0.22)',
+              color: '#38bdf8',
+              borderRadius: '6px',
+              padding: '4px 9px',
+              fontSize: '10px',
+              fontFamily: 'ui-monospace, monospace',
+              letterSpacing: '0.05em',
+              fontWeight: 700,
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}
+          >
+            <span
+              style={{
+                width: '5px',
+                height: '5px',
+                borderRadius: '50%',
+                backgroundColor: '#38bdf8',
+                boxShadow: '0 0 5px #38bdf8',
+              }}
+            />
+            TERRAIN: {getEnvBadge(scenarioId, view?.environment?.terrainKind)}
           </span>
         </div>
 

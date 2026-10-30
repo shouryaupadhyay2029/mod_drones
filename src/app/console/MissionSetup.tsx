@@ -206,14 +206,15 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
 
   useEffect(() => {
     const handleOpen = (e: Event) => {
-      const customEvent = e as CustomEvent<string | undefined>;
+      const customEvent = e as CustomEvent<string | { scenarioId?: string } | undefined>;
+      const scId = typeof customEvent.detail === 'string' ? customEvent.detail : customEvent.detail?.scenarioId;
       if (
-        customEvent.detail &&
+        scId &&
         ['dense_air_picture', 'dawn_intrusion', 'ridge_runner', 'city_edge_night', 'procedural'].includes(
-          customEvent.detail
+          scId
         )
       ) {
-        setSelectedScenario(customEvent.detail);
+        setSelectedScenario(scId);
       }
       setIsModalOpen(true);
     };
@@ -328,6 +329,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
               return (
                 <div
                   key={sc.id}
+                  id={`scenario-card-${sc.id}`}
                   className={`briefing-scenario-card${isSelected ? ' is-selected' : ''}`}
                   onClick={() => setSelectedScenario(sc.id)}
                   style={{

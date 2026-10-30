@@ -111,6 +111,7 @@ export function ConsolePage(): React.JSX.Element {
               trailHistory={trailHistory}
               selectedTrackId={selectedTrackId}
               onSelectTrack={selectTrack}
+              scenarioId={scenarioId}
             />
 
             <TrackTable
