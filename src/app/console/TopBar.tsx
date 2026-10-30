@@ -287,14 +287,6 @@ export function TopBar({
 
   return (
     <header style={styles.headerRoot} className={`console-header${isScrolled ? ' is-scrolled' : ''}`}>
-      {/* Dimmed backdrop overlay when dropdown is active to prevent overlap trapping */}
-      {activeDropdown && (
-        <div
-          className="mega-dropdown-backdrop"
-          onClick={handleCloseDropdown}
-          aria-hidden="true"
-        />
-      )}
       {/* Luxury Integrated Navigation Bar — Part of the page background */}
       <nav ref={navRef} style={styles.mainNav} className="console-main-nav">
         {/* Left: Brand Identity */}
