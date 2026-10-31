@@ -11,17 +11,66 @@ interface CommanderTeletypeBannerProps {
   tier: CommanderTier;
 }
 
+interface DirectiveItem {
+  id: string;
+  tag: string;
+  title: string;
+  badge: string;
+  prose: string;
+}
+
+const DIRECTIVE_ITEMS: DirectiveItem[] = [
+  {
+    id: 'scope',
+    tag: 'THEATRE SCOPE',
+    title: 'Strategic Air Defence Command',
+    badge: 'NOT A TRIGGER CONSOLE',
+    prose: 'Unlike the tactical trainee console, you do not shoot individual guns here. You command multi-site ammunition logistics, emergency HQ reserves, and weapon release authority across all defended airbases.',
+  },
+  {
+    id: 'intel',
+    tag: 'STEP 01 // INTEL',
+    title: 'Identify High-Value & High-Threat Sectors',
+    badge: 'PRESERVE ASSET SCORE',
+    prose: 'Check the radar map below. Each site has an Asset Value (e.g. 186V vs 97V) and Threat Level. Prioritize defending high-value assets under high threat to avoid heavy AAR penalty deductions.',
+  },
+  {
+    id: 'logistics',
+    tag: 'STEP 02 // LOGISTICS',
+    title: 'Allot Stock & Hold HQ Central Reserve',
+    badge: '15–30% RESERVE RECOMMENDED',
+    prose: 'The munition pool is finite. Use the slider to hold a Central Reserve at HQ. Munitions kept in reserve can be dispatched mid-raid via emergency in-flight airlift to reinforce sites that run empty.',
+  },
+  {
+    id: 'roe',
+    tag: 'STEP 03 // DOCTRINE',
+    title: 'Enforce ROE & Cost-Exchange Ratio (CER)',
+    badge: 'AVOID MISSILE WASTE',
+    prose: 'Set Firing Postures (Tight/Standard/Free) and Missile Authority. Keep Missile Auth on "Asset Threat" to prevent burning expensive SAM interceptors on cheap $500 decoys, protecting your CER score.',
+  },
+  {
+    id: 'comms',
+    tag: 'STEP 04 // DDIL',
+    title: 'Survive Contested Microwave Data-Links',
+    badge: 'DENIED / DEGRADED COMMS',
+    prose: 'Commands travel via inter-site microwave data-links. If hostile EW jamming severs a link, in-flight orders are dropped. Establish robust baseline doctrine BEFORE clicking Launch.',
+  },
+];
+
 export function CommanderTeletypeBanner({ raid, tier }: CommanderTeletypeBannerProps): React.JSX.Element {
   const [lines, setLines] = useState<string[]>([]);
   const [currentTyped, setCurrentTyped] = useState('');
   const [isDone, setIsDone] = useState(false);
+  const [showFullManual, setShowFullManual] = useState(true);
+  const [activeCardId, setActiveCardId] = useState<string>('scope');
 
   const messages = useMemo(() => [
-    `[SEC-NET // AUTH-01] AIR-GAPPED C2 DEFENSE GRID SYNCHRONIZED (GRID 43R-TH) ... OK`,
-    `[MICROWAVE DATA-LINK] RADAR & EW SENSORS LINKED: ${raid.sites.length} SITES (${raid.sites.map((s) => `${s.id.toUpperCase()}: ${s.valueUnits}V`).join(' · ')})`,
-    `[THEATRE LOGISTICS] ORDNANCE ALLOCATION: ${raid.totalPool.gunAmmo} RDS 35MM CIWS // ${raid.totalPool.missiles} SAM INTERCEPTORS [TIER: ${tier.toUpperCase()}]`,
-    `[DOCTRINE DIRECTIVE] ALLOCATE FORWARD MUNITION SHARES & ROE ENGAGEMENT POLICY BEFORE RAID LAUNCH.`,
-  ], [raid, tier]);
+    `[THEATRE C2 SCOPE] You are commanding integrated air defense across ${raid.sites.length} sites (${raid.sites.map((s) => `${s.id.toUpperCase()}: ${s.valueUnits}V`).join(' · ')}) on Tier: ${tier.toUpperCase()}. Mission: maximum asset survival at minimal munition cost.`,
+    `[INSTRUCTION 01 // INTEL] Inspect site asset values and threat bands. Allocate heavier distribution weights toward high-value sectors facing High Threat.`,
+    `[INSTRUCTION 02 // LOGISTICS] Theatre stock is finite (${raid.totalPool.gunAmmo} rds 35mm / ${raid.totalPool.missiles} SAMs). Hold 15–30% in Central Reserve for emergency in-flight airlift reinforcement.`,
+    `[INSTRUCTION 03 // ROE & CER] Set local firing rules. Restrict SAMs to 'Asset Threat' to protect your Cost-Exchange Ratio (CER) from cheap drone decoys.`,
+    `[INSTRUCTION 04 // DDIL COMMS] Microwave data-links degrade under EW jamming. In-flight orders will drop if links go offline—set sound doctrine before launch.`,
+  ], [raid]);
 
   useEffect(() => {
     setLines([]);
@@ -63,18 +112,27 @@ export function CommanderTeletypeBanner({ raid, tier }: CommanderTeletypeBannerP
   }, [messages]);
 
   return (
-    <section className="commander-teletype-banner" aria-label="Tactical system telemetry">
+    <section className="commander-teletype-banner" aria-label="Commander operational instructions">
       <div className="teletype-header">
         <div className="teletype-status">
           <span className={`teletype-dot ${isDone ? 'is-active' : 'is-syncing'}`} />
-          <span className="teletype-title">TACTICAL C2 TELEMETRY // SECURE TELETYPE FEED</span>
+          <span className="teletype-title">THEATRE C2 OPERATIONAL DIRECTIVE // PRE-RAID INSTRUCTIONS</span>
         </div>
         <div className="teletype-meta">
+          <button
+            type="button"
+            className="teletype-action-btn"
+            onClick={() => setShowFullManual((v) => !v)}
+          >
+            {showFullManual ? 'HIDE SOP CARDS ▲' : 'VIEW SOP CARDS ▼'}
+          </button>
           <span className="teletype-badge">MIL-STD-2525D</span>
           <span className="teletype-badge">AIR-GAPPED</span>
           <span className="teletype-code">GRID 43R-TH</span>
         </div>
       </div>
+
+      {/* Real-time Teletype Stream */}
       <div className="teletype-terminal">
         {lines.map((line, idx) => (
           <div key={idx} className="teletype-line">
@@ -92,11 +150,42 @@ export function CommanderTeletypeBanner({ raid, tier }: CommanderTeletypeBannerP
         {isDone && (
           <div className="teletype-line is-ready">
             <span className="teletype-prefix">&gt;</span>
-            <span className="teletype-ready-text">[SYSTEM READY // STANDBY FOR PRE-RAID ALLOCATION DISPATCH]</span>
+            <span className="teletype-ready-text">[DIRECTIVE SYNCHRONIZED // REVIEW SOP MATRIX BELOW PRIOR TO RAID AUTHORIZATION]</span>
             <span className="teletype-cursor blink">_</span>
           </div>
         )}
       </div>
+
+      {/* Structured Military SOP Instruction Cards */}
+      {showFullManual && (
+        <div className="teletype-sop-grid" role="region" aria-label="Standard operating procedures">
+          {DIRECTIVE_ITEMS.map((item) => {
+            const isSelected = activeCardId === item.id;
+            return (
+              <div
+                key={item.id}
+                className={`sop-card${isSelected ? ' is-selected' : ''}`}
+                onClick={() => setActiveCardId(item.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setActiveCardId(item.id);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+              >
+                <div className="sop-card-top">
+                  <span className="sop-card-tag">{item.tag}</span>
+                  <span className="sop-card-badge">{item.badge}</span>
+                </div>
+                <h4 className="sop-card-title">{item.title}</h4>
+                <p className="sop-card-prose">{item.prose}</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
