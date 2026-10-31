@@ -257,11 +257,64 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
 
         <div className="commander-map commander-live-map" aria-label="Live tactical theatre map">
           <div className="commander-map-terrain-overlay" aria-hidden="true" />
-          <div className="commander-map-rings" aria-hidden="true" />
-          <div className="commander-map-center-cross" aria-hidden="true" />
-          <div className="commander-map-sweep-beam" aria-hidden="true" />
 
-          {/* Military Microwave Inter-Site Data Links */}
+          {/* Tactical MGRS Coordinate Grid (Replaces arbitrary rings & central sweep) */}
+          <svg className="commander-map-tactical-grid" aria-hidden="true">
+            <defs>
+              <pattern id="mgrs-grid-pattern" width="70" height="70" patternUnits="userSpaceOnUse">
+                <path d="M 70 0 L 0 0 0 70" fill="none" stroke="rgba(45, 40, 35, 0.16)" strokeWidth="1" strokeDasharray="3,4" />
+                <circle cx="70" cy="70" r="1.5" fill="rgba(45, 40, 35, 0.35)" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#mgrs-grid-pattern)" />
+          </svg>
+
+          {/* Perimeter Coordinate Ticks */}
+          <div className="theatre-grid-ticks-top" aria-hidden="true">
+            <span>GR 43R-TH 10</span>
+            <span>GR 43R-TH 20</span>
+            <span>GR 43R-TH 30</span>
+            <span>GR 43R-TH 40</span>
+            <span>GR 43R-TH 50</span>
+          </div>
+          <div className="theatre-grid-ticks-left" aria-hidden="true">
+            <span>34°16'N</span>
+            <span>34°14'N</span>
+            <span>34°12'N</span>
+            <span>34°10'N</span>
+          </div>
+
+          {/* Military True North Compass Rose */}
+          <div className="theatre-compass-rose" aria-hidden="true" title="Grid North Alignment">
+            <span className="compass-icon">▲</span>
+            <span className="compass-text">N · 000°</span>
+          </div>
+
+          {/* Tactical Scale Ruler */}
+          <div className="theatre-scale-ruler" aria-hidden="true" title="Ground Distance Scale">
+            <div className="scale-segments">
+              <span className="scale-seg-fill" />
+              <span className="scale-seg-open" />
+            </div>
+            <div className="scale-labels">
+              <span>0</span>
+              <span>3 KM</span>
+              <span>6 KM</span>
+            </div>
+          </div>
+
+          {/* Sector Boundary Markers */}
+          <div className="theatre-sector-zone zone-west" aria-hidden="true">
+            <span className="sector-tag">SECTOR 01 // WEST FLANK</span>
+          </div>
+          <div className="theatre-sector-zone zone-center" aria-hidden="true">
+            <span className="sector-tag">SECTOR 02 // CENTRAL PASS</span>
+          </div>
+          <div className="theatre-sector-zone zone-east" aria-hidden="true">
+            <span className="sector-tag">SECTOR 03 // EAST RIDGE</span>
+          </div>
+
+          {/* Military Microwave Inter-Site Data Links with Status Telemetry */}
           <svg className="commander-map-datalinks" aria-hidden="true">
             {view.sites.map((s, idx) => {
               if (idx === 0) return null;
@@ -276,16 +329,27 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
               const isDegraded = s.linkStatus === 'degraded' || prevSite.linkStatus === 'degraded';
               const isOffline = s.linkStatus === 'offline' || prevSite.linkStatus === 'offline';
               const linkStatus = isOffline ? 'broken' : isDegraded ? 'degraded' : 'nominal';
+              const midX = (x1 + x2) / 2;
+              const midY = (y1 + y2) / 2;
 
               return (
-                <line
-                  key={`datalink-${prevSite.siteId}-${s.siteId}`}
-                  x1={`${x1}%`}
-                  y1={`${y1}%`}
-                  x2={`${x2}%`}
-                  y2={`${y2}%`}
-                  className={`datalink-beam link-${linkStatus}`}
-                />
+                <g key={`datalink-${prevSite.siteId}-${s.siteId}`}>
+                  <line
+                    x1={`${x1}%`}
+                    y1={`${y1}%`}
+                    x2={`${x2}%`}
+                    y2={`${y2}%`}
+                    className={`datalink-beam link-${linkStatus}`}
+                  />
+                  <text
+                    x={`${midX}%`}
+                    y={`${midY - 2.5}%`}
+                    className={`datalink-label label-${linkStatus}`}
+                    textAnchor="middle"
+                  >
+                    {linkStatus === 'broken' ? 'LINK SEVERED (EW)' : linkStatus === 'degraded' ? 'MW-LINK DEGRADED' : 'MW-LINK NOMINAL'}
+                  </text>
+                </g>
               );
             })}
           </svg>
@@ -307,12 +371,18 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                   className={`commander-site-dome ${hasTracks ? 'has-inbound' : ''}`}
                   style={{ left: `${siteX}%`, top: `${siteY}%` }}
                 >
-                  <div className="site-dome-ring ring-outer" title="Radar Horizon: 6,000 m" />
-                  <div className="site-dome-ring ring-inner" title="CIWS Kinetic Envelope: 1,200 m" />
+                  {/* Dynamic Sector Radar Sweep (synchronized with 20Hz sim) */}
                   <div
-                    className="site-dome-sweep"
+                    className="site-local-radar-sweep"
                     style={{ transform: `rotate(${site.operatorView.radarSweepDeg}deg)` }}
+                    aria-hidden="true"
                   />
+                  <div className="site-dome-ring ring-outer" title="Radar Horizon: 6,000 m">
+                    <span className="dome-ring-label label-outer">RADAR 6.0km</span>
+                  </div>
+                  <div className="site-dome-ring ring-inner" title="CIWS Kinetic Envelope: 1,200 m">
+                    <span className="dome-ring-label label-inner">CIWS 1.2km</span>
+                  </div>
                 </div>
 
                 {/* Live Hostile Drone Blips with Range & Trajectory Vector */}
@@ -322,13 +392,20 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                   const droneLeft = `calc(${siteX}% + ${dx}px)`;
                   const droneTop = `calc(${siteY}% + ${dy}px)`;
                   const isTrackInspected = inspectedTrack?.trackId === track.trackId;
+                  const heading = track.bearingDeg ?? 0;
+                  const speed = track.speedMps ?? 0;
+                  const courseRad = (heading * Math.PI) / 180;
+                  const vecLen = Math.min(22, Math.max(10, speed * 0.7));
+                  const vecX = Math.sin(courseRad) * vecLen;
+                  const vecY = -Math.cos(courseRad) * vecLen;
+                  const trackCallsign = `${site.siteId}-T${track.trackId}`;
 
                   return (
                     <div
                       key={`drone-${site.siteId}-${track.trackId}`}
                       className={`commander-map-drone ${track.terminal_lock ? 'is-locked' : ''} ${isTrackInspected ? 'is-inspected' : ''}`}
                       style={{ left: droneLeft, top: droneTop }}
-                      title={`Target T${track.trackId} · Range: ${Math.round(track.rangeM)}m · Alt: ${Math.round(track.altitudeM)}m`}
+                      title={`${trackCallsign} · Range: ${Math.round(track.rangeM)}m · Alt: ${Math.round(track.altitudeM)}m`}
                       onClick={() => {
                         const spd = Math.round(track.speedMps ?? 0);
                         setInspectedTrack({
@@ -358,13 +435,31 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                         });
                       }}
                     >
+                      {/* Inbound Approach Line to targeted base */}
                       <svg className="drone-vector-line" aria-hidden="true">
                         <line x1="0" y1="0" x2={-dx} y2={-dy} />
                       </svg>
+
+                      {/* Forward Velocity Vector (Course Predictor) */}
+                      <svg className="drone-course-vector" aria-hidden="true">
+                        <line x1="0" y1="0" x2={vecX} y2={vecY} />
+                        <circle cx={vecX} cy={vecY} r="2.2" />
+                      </svg>
+
+                      {/* Tactical Selection Reticle Corner Brackets when inspected */}
+                      {isTrackInspected && (
+                        <div className="target-bracket-reticle" aria-hidden="true">
+                          <span className="bracket-corner tl" />
+                          <span className="bracket-corner tr" />
+                          <span className="bracket-corner bl" />
+                          <span className="bracket-corner br" />
+                        </div>
+                      )}
+
                       <span className="drone-threat-symbol">◆</span>
                       <div className="drone-hud-tag">
-                        <b>T{track.trackId}</b>
-                        <small>{Math.round(track.rangeM)}m</small>
+                        <b>{trackCallsign}</b>
+                        <small>{(track.rangeM / 1000).toFixed(1)}km · {Math.round(track.altitudeM)}m</small>
                         {track.terminal_lock && <span className="drone-lock-pill">OPTICAL LOCK</span>}
                       </div>
                     </div>
@@ -385,7 +480,7 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                       </svg>
                       <div className="tracer-muzzle-ring" />
                       <span className="tracer-stream-badge" style={{ left: `${tdx * 0.5}px`, top: `${tdy * 0.5}px` }}>
-                        35MM CIWS ENGAGING T{targetTrack.trackId}
+                        35MM CIWS ENGAGING {site.siteId}-T{targetTrack.trackId}
                       </span>
                     </div>
                   );
@@ -409,7 +504,7 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                   );
                 })()}
 
-                {/* Site Node Beacon Anchor (Tactical, Compact & Non-Overlapping) */}
+                {/* Site Node Beacon Anchor (Tactical, High-Contrast Bastion) */}
                 <div
                   className={`commander-live-site-node accent-${threatBand} status-${site.status}`}
                   style={{ left: `${siteX}%`, top: `${siteY}%` }}
@@ -423,16 +518,42 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                   >
                     <span className="site-beacon-id">{site.siteId}</span>
                   </button>
-                  <div className="site-micro-tag" onClick={() => setSelected(site.siteId)} title="Inspect Sector Radar Scope">
-                    <span className={`tag-stat ${hasTracks ? 'is-threat' : 'is-clear'}`}>
-                      {hasTracks ? `▲ ${site.operatorView.tracks.length}` : '●'}
-                    </span>
-                    <span className="tag-dmg">{site.damagePercent}%</span>
+
+                  <div
+                    className="site-bunker-plate"
+                    onClick={() => setSelected(site.siteId)}
+                    title="Click to Inspect Sector Radar PPI Scope"
+                  >
+                    <div className="bunker-plate-row">
+                      <span className="bunker-name">{plan?.name ? plan.name.replace('Training Site ', 'S') : site.siteId}</span>
+                      <span className="bunker-val">{plan?.valueUnits ?? 100}V</span>
+                    </div>
+                    <div className="bunker-plate-status">
+                      <span className={`bunker-stat ${hasTracks ? 'is-threat' : 'is-clear'}`}>
+                        {hasTracks ? `▲ ${site.operatorView.tracks.length} INBOUND` : '● SECURE'}
+                      </span>
+                      <span className="bunker-dmg">{site.damagePercent}% DMG</span>
+                    </div>
+                    <div className="bunker-plate-ammo">
+                      <span>GUN: {site.inventory.gunAmmo}</span>
+                      <span>MSL: {site.inventory.missiles}</span>
+                    </div>
                   </div>
                 </div>
               </React.Fragment>
             );
           })}
+
+          {/* Tactical Map Symbology Legend Bar */}
+          <div className="theatre-map-legend-bar" aria-label="Map symbology legend">
+            <span className="legend-chip"><span className="legend-dot dot-site">●</span> SITES ({view.sites.length})</span>
+            <span className="legend-chip"><span className="legend-dot dot-threat">◆</span> INBOUND BLIPS ({totalInbound})</span>
+            <span className="legend-chip"><span className="legend-dot dot-radar">○</span> RADAR 6.0km</span>
+            <span className="legend-chip"><span className="legend-dot dot-ciws">○</span> CIWS 1.2km</span>
+            <span className="legend-chip"><span className="legend-dot dot-mw">┈┈</span> MW DATA-LINK</span>
+            <span className="legend-sep">|</span>
+            <span className="legend-hint">CLICK ANY CONTACT (◆ S#-T#) FOR REAL-TIME SENSOR FUSION &amp; ROE GUIDANCE</span>
+          </div>
 
           {/* Pending Reserve Transfers across the map with animated cargo flight vector */}
           {view.pendingTransfers.map((transfer, i) => (
@@ -447,7 +568,7 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
               <div className="dossier-card">
                 <div className="dossier-title-bar">
                   <span className="dossier-sym">◆</span>
-                  <span className="dossier-id">TARGET T{inspectedTrack.trackId} // TACTICAL DOSSIER</span>
+                  <span className="dossier-id">CONTACT {inspectedTrack.siteId}-T{inspectedTrack.trackId} // SENSOR FUSION DOSSIER</span>
                   <span className={`dossier-threat-level ${inspectedTrack.isLocked ? 'is-critical' : 'is-hostile'}`}>
                     {inspectedTrack.isLocked ? 'CRITICAL THREAT' : 'AIRSPACE INTRUDER'}
                   </span>
@@ -467,7 +588,7 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                     <b>{inspectedTrack.speed} m/s</b>
                   </div>
                   <div className="dossier-data-cell">
-                    <small>TARGET SECTOR</small>
+                    <small>DEFENSE SECTOR</small>
                     <b>SITE {inspectedTrack.siteId}</b>
                   </div>
                   <div className="dossier-data-cell full">
@@ -495,10 +616,10 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                 </div>
               </div>
             ) : (
-              <div className="dossier-standby">
+              <div className="dossier-standby-pill">
                 <span className="dossier-crosshair">⌖</span>
                 <span className="dossier-prompt">
-                  HOVER OR CLICK ANY HOSTILE BLIP (◆ T#) ON THE RADAR MAP FOR REAL-TIME SENSOR FUSION &amp; ENGAGEMENT DOCTRINE
+                  CLICK HOSTILE BLIP (◆ S#-T#) FOR REAL-TIME SENSOR FUSION &amp; ROE GUIDANCE
                 </span>
               </div>
             )}
