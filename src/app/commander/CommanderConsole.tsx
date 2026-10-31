@@ -317,8 +317,8 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
 
                 {/* Live Hostile Drone Blips with Range & Trajectory Vector */}
                 {site.operatorView.tracks.map((track) => {
-                  const dx = (track.estimatedPosition.x / 6000) * 85;
-                  const dy = (-track.estimatedPosition.y / 6000) * 85;
+                  const dx = (track.estimatedPosition.x / 6000) * 120;
+                  const dy = (-track.estimatedPosition.y / 6000) * 120;
                   const droneLeft = `calc(${siteX}% + ${dx}px)`;
                   const droneTop = `calc(${siteY}% + ${dy}px)`;
                   const isTrackInspected = inspectedTrack?.trackId === track.trackId;
@@ -375,8 +375,8 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                 {isFiring && (() => {
                   const targetTrack = [...site.operatorView.tracks].sort((a, b) => a.rangeM - b.rangeM)[0];
                   if (!targetTrack) return null;
-                  const tdx = (targetTrack.estimatedPosition.x / 6000) * 85;
-                  const tdy = (-targetTrack.estimatedPosition.y / 6000) * 85;
+                  const tdx = (targetTrack.estimatedPosition.x / 6000) * 120;
+                  const tdy = (-targetTrack.estimatedPosition.y / 6000) * 120;
                   return (
                     <div className="commander-ciws-tracer-layer" style={{ left: `${siteX}%`, top: `${siteY}%` }}>
                       <svg className="tracer-line-svg" aria-hidden="true">
@@ -409,7 +409,7 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                   );
                 })()}
 
-                {/* Site Node HUD Anchor */}
+                {/* Site Node Beacon Anchor (Tactical, Compact & Non-Overlapping) */}
                 <div
                   className={`commander-live-site-node accent-${threatBand} status-${site.status}`}
                   style={{ left: `${siteX}%`, top: `${siteY}%` }}
@@ -417,25 +417,18 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                   <div className="site-node-ping" />
                   <button
                     type="button"
-                    className="site-node-card-btn"
+                    className="site-beacon-btn"
                     onClick={() => setSelected(site.siteId)}
-                    title="Click to inspect live radar PPI scope"
+                    title={`Click to inspect ${site.siteId} live radar PPI scope`}
                   >
-                    <div className="site-card-top">
-                      <span className={`site-status-dot status-${site.status}`} />
-                      <b>{site.siteId}</b>
-                      <small className="site-link-badge">
-                        {site.linkStatus === 'nominal' ? 'LIVE' : site.linkStatus === 'degraded' ? `${(site.latencyTicks / 20).toFixed(1)}s` : 'OFFLINE'}
-                      </small>
-                    </div>
-                    <div className="site-card-body">
-                      <span className={`site-threat-metric ${hasTracks ? 'is-hostile' : 'is-clear'}`}>
-                        {hasTracks ? `▲ ${site.operatorView.tracks.length} INBOUND` : '● AIRSPACE CLEAR'}
-                      </span>
-                      <span className="site-damage-metric">DMG: {site.damagePercent}%</span>
-                    </div>
-                    <span className="site-card-cta">INSPECT RADAR ↗</span>
+                    <span className="site-beacon-id">{site.siteId}</span>
                   </button>
+                  <div className="site-micro-tag" onClick={() => setSelected(site.siteId)} title="Inspect Sector Radar Scope">
+                    <span className={`tag-stat ${hasTracks ? 'is-threat' : 'is-clear'}`}>
+                      {hasTracks ? `▲ ${site.operatorView.tracks.length}` : '●'}
+                    </span>
+                    <span className="tag-dmg">{site.damagePercent}%</span>
+                  </div>
                 </div>
               </React.Fragment>
             );

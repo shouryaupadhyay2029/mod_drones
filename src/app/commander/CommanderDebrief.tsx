@@ -1,5 +1,6 @@
 import React from 'react';
 import { RaidScoreReport, CommanderLog, RaidPlan } from '../../sim/index.js';
+import { CommanderSplitTitle } from './CommanderPage.js';
 
 const CAUSE_LABELS: Record<string, string> = {
   misallocated_inventory: 'Inventory was left at a safer site while this site needed it',
@@ -28,141 +29,342 @@ export function CommanderDebrief({
   report,
   raid,
   log,
+  onRestart,
 }: {
   report: RaidScoreReport;
   raid: RaidPlan;
   log: CommanderLog;
+  onRestart?: () => void;
 }): React.JSX.Element {
   const dropped = report.droppedCommands ?? [];
+  const gradeKey = (report.grade || 'unsatisfactory').toLowerCase();
+
+  const totalDestroyed = report.sites.reduce((acc, s) => acc + s.attackerCostDestroyed, 0);
+  const avgDamage = Math.round(report.sites.reduce((acc, s) => acc + s.damagePercent, 0) / Math.max(1, report.sites.length));
 
   return (
     <main className="commander-page commander-debrief">
-      <header className="commander-heading">
-        <p className="commander-kicker">
-          VAJRA / COMMAND STAFF / RAID COMPLETE{' '}
-          <span className="commander-meta-badge">AFTER-ACTION LEDGER</span>
-        </p>
-        <h1>
-          {report.total} <small>/ 100</small>
-        </h1>
-        <strong className="commander-grade">{report.grade}</strong>
+      {/* Editorial Tactical Debrief Header */}
+      <header className="commander-heading debrief-hero-heading">
+        <div className="commander-heading-left">
+          <p className="commander-kicker">
+            VAJRA <span className="kicker-sep">/</span> COMMAND STAFF <span className="kicker-sep">/</span> RAID COMPLETE{' '}
+            <span className="commander-meta-badge">AFTER-ACTION LEDGER</span>
+          </p>
+          <h1 aria-label="After action review">
+            <CommanderSplitTitle text="After Action Review" />
+          </h1>
+          <p className="commander-subtitle">
+            Tactical air defense audit // Deterministic doctrine evaluation &amp; cost-exchange analysis.
+          </p>
+        </div>
+        <div className="debrief-score-hero">
+          <div className="debrief-hero-meter">
+            <span className="debrief-hero-num">{report.total}</span>
+            <span className="debrief-hero-denom">/ 100</span>
+          </div>
+          <div className={`debrief-grade-badge grade-${gradeKey}`}>
+            <span className="grade-icon">★</span>
+            <strong className="commander-grade">{report.grade.toUpperCase()}</strong>
+          </div>
+        </div>
       </header>
 
-      <section className="commander-score-grid">
-        {Object.entries(report.subscores).map(([key, value], idx) => (
-          <article
-            className="commander-panel vj-card-cascade"
-            key={key}
-            style={{ '--card-index': idx } as React.CSSProperties}
-          >
-            <h2>{SUBSCORE_LABELS[key] ?? key.replace(/([A-Z])/g, ' $1')}</h2>
-            <strong>{value}</strong>
-            <div className="commander-health">
-              <i style={{ width: `${value}%` }} />
-            </div>
-          </article>
-        ))}
+      {/* Meta Telemetry Ribbon */}
+      <div className="debrief-meta-ribbon">
+        <div className="meta-ribbon-item">
+          <span>THEATRE SECTOR SEED</span>
+          <b>{raid.id}</b>
+        </div>
+        <div className="meta-ribbon-sep" />
+        <div className="meta-ribbon-item">
+          <span>DEFENDED SITES</span>
+          <b>{raid.sites.length} SECTORS</b>
+        </div>
+        <div className="meta-ribbon-sep" />
+        <div className="meta-ribbon-item">
+          <span>ATTACKER DRONES DESTROYED</span>
+          <b className="stat-green">{totalDestroyed} TARGETS</b>
+        </div>
+        <div className="meta-ribbon-sep" />
+        <div className="meta-ribbon-item">
+          <span>AVERAGE SECTOR DAMAGE</span>
+          <b className={avgDamage === 0 ? 'stat-green' : 'stat-amber'}>{avgDamage}%</b>
+        </div>
+        <div className="meta-ribbon-sep" />
+        <div className="meta-ribbon-item">
+          <span>EVALUATION ENGINE</span>
+          <b>20Hz DETERMINISTIC DOCTRINE V2</b>
+        </div>
+      </div>
+
+      {/* 5-Dimension Doctrine Scoring Matrix */}
+      <section className="commander-score-grid" aria-label="Tactical evaluation subscores">
+        {Object.entries(report.subscores).map(([key, value], idx) => {
+          const isFull = value >= 95;
+          const isMedium = value >= 70 && value < 95;
+          return (
+            <article
+              className={`commander-panel debrief-subscore-card vj-card-cascade ${isFull ? 'score-high' : isMedium ? 'score-mid' : 'score-low'}`}
+              key={key}
+              style={{ '--card-index': idx } as React.CSSProperties}
+            >
+              <div className="subscore-card-top">
+                <h2>{SUBSCORE_LABELS[key] ?? key.replace(/([A-Z])/g, ' $1')}</h2>
+                <span className="subscore-weight-badge">
+                  {key === 'assetPreservation' ? '45%' : key === 'costExchange' ? '25%' : '10%'}
+                </span>
+              </div>
+              <div className="subscore-val-row">
+                <strong className="subscore-number">{value}</strong>
+                <span className="subscore-scale">/ 100</span>
+              </div>
+              <div className="commander-health debrief-meter">
+                <i style={{ width: `${value}%` }} />
+              </div>
+              <div className="subscore-status-tag">
+                {value >= 90 ? '● OPTIMAL RETENTION' : value >= 70 ? '◐ ACCEPTABLE DISCIPLINE' : '▲ DOCTRINE ATTRITION'}
+              </div>
+            </article>
+          );
+        })}
       </section>
 
+      {/* Cost-Exchange Economic Ledger */}
       <section
-        className="commander-panel vj-card-cascade"
+        className="commander-panel debrief-ledger-panel vj-card-cascade"
         style={{ '--card-index': 5 } as React.CSSProperties}
       >
-        <h2>Cost-exchange ledger · {report.scoreVersion}</h2>
-        <div className="commander-ledger">
-          <span>
-            Attacker cost destroyed <b>{report.costLedger.attackerDestroyed}</b>
-          </span>
-          <span>
-            Damage prevented <b>{report.costLedger.preventedDamageUnits}</b>
-          </span>
-          <span>
-            Defender spent <b>{report.costLedger.defenderSpent}</b>
-          </span>
-          <span>
-            Avoidable missile spend <b>{report.costLedger.avoidableSpend ?? 0}</b>
-          </span>
-          <span>
-            Gun / jammer / missile{' '}
-            <b>
-              {report.costLedger.defenderSpendByEffector.gun} /{' '}
-              {report.costLedger.defenderSpendByEffector.jammer} /{' '}
-              {report.costLedger.defenderSpendByEffector.missile}
-            </b>
-          </span>
-          <span>
-            Cost-exchange ratio (CER, info) <b>{report.costLedger.cer}</b>
-          </span>
-          <span>
-            Comms Resilience <b>{report.subscores.commsResilience}</b>
-          </span>
+        <div className="debrief-panel-header">
+          <div className="panel-title-wrap">
+            <span className="panel-stripe" aria-hidden="true" />
+            <h2>Cost-exchange ledger · {report.scoreVersion}</h2>
+          </div>
+          <span className="panel-meta-tag">ECONOMIC ASYMMETRY ANALYSIS</span>
         </div>
-        <p>
-          Decision causes:{' '}
-          {report.decisionCauses.map((cause) => CAUSE_LABELS[cause] ?? cause).join('; ') ||
-            'none recorded'}
-        </p>
-        <p className="commander-dropped-narrative">
-          Dropped commands (DDIL):{' '}
-          {dropped.length > 0
-            ? dropped
-                .map((cmd) => `T+${cmd.tick} ${cmd.type} to ${cmd.siteId ?? 'site'} (${cmd.reason})`)
-                .join('; ')
-            : 'none — all dispatched commands reached online or degraded links'}
-        </p>
+
+        <div className="commander-ledger debrief-ledger-grid">
+          <div className="ledger-card-item">
+            <small>ATTACKER VALUE NEUTRALIZED</small>
+            <span>
+              Attacker cost destroyed <b>{report.costLedger.attackerDestroyed}</b>
+            </span>
+          </div>
+          <div className="ledger-card-item">
+            <small>INFRASTRUCTURE PRESERVED</small>
+            <span>
+              Damage prevented <b>{report.costLedger.preventedDamageUnits}</b>
+            </span>
+          </div>
+          <div className="ledger-card-item">
+            <small>DEFENDER MUNITIONS EXPENDED</small>
+            <span>
+              Defender spent <b>{report.costLedger.defenderSpent}</b>
+            </span>
+          </div>
+          <div className="ledger-card-item">
+            <small>WASTED / OVERKILL EXPENDITURE</small>
+            <span>
+              Avoidable missile spend <b>{report.costLedger.avoidableSpend ?? 0}</b>
+            </span>
+          </div>
+          <div className="ledger-card-item">
+            <small>EFFECTOR DISCHARGE RATIO</small>
+            <span>
+              Gun / jammer / missile{' '}
+              <b>
+                {report.costLedger.defenderSpendByEffector.gun} /{' '}
+                {report.costLedger.defenderSpendByEffector.jammer} /{' '}
+                {report.costLedger.defenderSpendByEffector.missile}
+              </b>
+            </span>
+          </div>
+          <div className="ledger-card-item highlight-cer">
+            <small>COST-EXCHANGE RATIO</small>
+            <span>
+              Cost-exchange ratio (CER, info) <b>{report.costLedger.cer}</b>
+            </span>
+          </div>
+          <div className="ledger-card-item highlight-comms">
+            <small>NETWORK DDIL RESILIENCE</small>
+            <span>
+              Comms Resilience <b>{report.subscores.commsResilience}</b>
+            </span>
+          </div>
+        </div>
+
+        {/* Doctrine Decision Causes Analysis */}
+        <div className="debrief-causes-block">
+          <div className="causes-title">
+            <span>DOCTRINE DECISION CAUSES</span>
+          </div>
+          <div className="causes-content">
+            <p>
+              Decision causes:{' '}
+              {report.decisionCauses.map((cause) => CAUSE_LABELS[cause] ?? cause).join('; ') ||
+                'none recorded — zero doctrine anomalies or misallocations'}
+            </p>
+          </div>
+        </div>
+
+        {/* DDIL Comms Degradation & Dropped Commands */}
+        <div className="debrief-dropped-block">
+          <div className="dropped-title">
+            <span>RADIO LINK RESILIENCE &amp; DDIL LOG</span>
+          </div>
+          <p className="commander-dropped-narrative">
+            Dropped commands (DDIL):{' '}
+            {dropped.length > 0
+              ? dropped
+                  .map((cmd) => `T+${cmd.tick} ${cmd.type} to ${cmd.siteId ?? 'site'} (${cmd.reason})`)
+                  .join('; ')
+              : 'none — all dispatched commands reached online or degraded links'}
+          </p>
+        </div>
       </section>
 
+      {/* Sector Outpost Performance Summaries */}
       <section
-        className="commander-panel vj-card-cascade"
+        className="commander-panel debrief-sites-panel vj-card-cascade"
         style={{ '--card-index': 6 } as React.CSSProperties}
       >
-        <h2>Site summaries</h2>
-        {report.sites.map((site) => (
-          <details key={site.siteId}>
-            <summary>
-              {raid.sites.find((s) => s.id === site.siteId)?.name ?? site.siteId} ·{' '}
-              {site.damagePercent}% damage · {site.attackerCostDestroyed} destroyed
-            </summary>
-            <p>
-              Contact score {site.scoreSessionV2.total} · Grade {site.scoreSessionV2.grade}
-            </p>
-            <p>
-              Detection {site.scoreSessionV2.subscores.detection} · Classification{' '}
-              {site.scoreSessionV2.subscores.classification} · Engagement{' '}
-              {site.scoreSessionV2.subscores.engagement} · Discipline{' '}
-              {site.scoreSessionV2.subscores.discipline}
-            </p>
-            <p>
-              Penalties:{' '}
-              {site.scoreSessionV2.penalties
-                .map((penalty) => `${penalty.reason} (${penalty.points})`)
-                .join('; ') || 'none'}
-            </p>
-            <p>
-              Causes: {site.causes.map((cause) => CAUSE_LABELS[cause] ?? cause).join('; ') || 'none'}
-            </p>
-          </details>
-        ))}
+        <div className="debrief-panel-header">
+          <div className="panel-title-wrap">
+            <span className="panel-stripe" aria-hidden="true" />
+            <h2>Site summaries</h2>
+          </div>
+          <span className="panel-meta-tag">{report.sites.length} SECTORS AUDITED</span>
+        </div>
+
+        <div className="debrief-sites-grid">
+          {report.sites.map((site) => {
+            const sitePlan = raid.sites.find((s) => s.id === site.siteId);
+            const siteName = sitePlan?.name ?? site.siteId;
+            const isUndamaged = site.damagePercent === 0;
+
+            return (
+              <details className="debrief-site-card" key={site.siteId} open>
+                <summary className="debrief-site-summary-bar">
+                  <div className="site-summary-left">
+                    <span className="site-summary-bullet">◆</span>
+                    <b>{siteName}</b>
+                    <span className="site-summary-val">{sitePlan?.valueUnits ?? 100} ASSET VALUE</span>
+                  </div>
+                  <div className="site-summary-right">
+                    <span className={`site-dmg-badge ${isUndamaged ? 'dmg-clean' : 'dmg-hit'}`}>
+                      {site.damagePercent}% damage
+                    </span>
+                    <span className="site-kill-badge">
+                      {site.attackerCostDestroyed} destroyed
+                    </span>
+                  </div>
+                </summary>
+
+                <div className="debrief-site-body">
+                  <div className="site-score-banner">
+                    <span>SECTOR CONTACT SCORE:</span>
+                    <strong>{site.scoreSessionV2.total} / 100</strong>
+                    <span className={`site-grade-pill grade-${(site.scoreSessionV2.grade || 'proficient').toLowerCase()}`}>
+                      GRADE: {site.scoreSessionV2.grade}
+                    </span>
+                  </div>
+
+                  <div className="site-metrics-grid">
+                    <div className="site-metric-cell">
+                      <small>DETECTION</small>
+                      <b>{site.scoreSessionV2.subscores.detection}%</b>
+                      <div className="mini-meter"><i style={{ width: `${site.scoreSessionV2.subscores.detection}%` }} /></div>
+                    </div>
+                    <div className="site-metric-cell">
+                      <small>CLASSIFICATION</small>
+                      <b>{site.scoreSessionV2.subscores.classification}%</b>
+                      <div className="mini-meter"><i style={{ width: `${site.scoreSessionV2.subscores.classification}%` }} /></div>
+                    </div>
+                    <div className="site-metric-cell">
+                      <small>ENGAGEMENT</small>
+                      <b>{site.scoreSessionV2.subscores.engagement}%</b>
+                      <div className="mini-meter"><i style={{ width: `${site.scoreSessionV2.subscores.engagement}%` }} /></div>
+                    </div>
+                    <div className="site-metric-cell">
+                      <small>DISCIPLINE</small>
+                      <b>{site.scoreSessionV2.subscores.discipline}%</b>
+                      <div className="mini-meter"><i style={{ width: `${site.scoreSessionV2.subscores.discipline}%` }} /></div>
+                    </div>
+                  </div>
+
+                  <div className="site-notes-row">
+                    <div className="site-note-item">
+                      <span>PENALTIES:</span>
+                      <p>
+                        Penalties:{' '}
+                        {site.scoreSessionV2.penalties
+                          .map((penalty) => `${penalty.reason} (${penalty.points})`)
+                          .join('; ') || 'none'}
+                      </p>
+                    </div>
+                    <div className="site-note-item">
+                      <span>CAUSES:</span>
+                      <p>
+                        Causes: {site.causes.map((cause) => CAUSE_LABELS[cause] ?? cause).join('; ') || 'none'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </details>
+            );
+          })}
+        </div>
       </section>
 
+      {/* Commander Command Dispatch Timeline */}
       <section
-        className="commander-panel vj-card-cascade"
+        className="commander-panel debrief-timeline-panel vj-card-cascade"
         style={{ '--card-index': 7 } as React.CSSProperties}
       >
-        <h2>Commander command timeline</h2>
-        {log.commands.map((command, i) => (
-          <p key={`${command.tick}-${i}`}>
-            T+{command.tick}: {command.type} {command.siteId ?? JSON.stringify(command.payload)}
-            {command.rejected
-              ? ` [DROPPED: ${command.reason ?? 'Link offline'}]`
-              : command.deliveryTick !== undefined &&
-                command.deliveryTick !== null &&
-                command.deliveryTick > command.tick
-              ? ` [Delivered T+${command.deliveryTick}]`
-              : ''}
-          </p>
-        ))}
+        <div className="debrief-panel-header">
+          <div className="panel-title-wrap">
+            <span className="panel-stripe" aria-hidden="true" />
+            <h2>Commander command timeline</h2>
+          </div>
+          <span className="panel-meta-tag">{log.commands.length} DIRECTIVES ISSUED</span>
+        </div>
+
+        <div className="debrief-timeline-list">
+          {log.commands.length === 0 ? (
+            <p className="timeline-empty">No dynamic commands were dispatched during this mission engagement.</p>
+          ) : (
+            log.commands.map((command, i) => (
+              <div className="debrief-timeline-row" key={`${command.tick}-${i}`}>
+                <span className="timeline-tick">T+{String(Math.floor(command.tick / 1200)).padStart(2, '0')}:{String(Math.floor((command.tick % 1200) / 20)).padStart(2, '0')}</span>
+                <span className="timeline-cmd">
+                  T+{command.tick}: {command.type} {command.siteId ?? JSON.stringify(command.payload)}
+                </span>
+                <span className="timeline-status">
+                  {command.rejected
+                    ? ` [DROPPED: ${command.reason ?? 'Link offline'}]`
+                    : command.deliveryTick !== undefined &&
+                      command.deliveryTick !== null &&
+                      command.deliveryTick > command.tick
+                    ? ` [Delivered T+${command.deliveryTick}]`
+                    : ' [Instantaneous]'}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
       </section>
+
+      {/* Interactive Action Controls */}
+      <div className="debrief-actions-bar">
+        {onRestart && (
+          <button type="button" className="debrief-btn-primary" onClick={onRestart}>
+            ↺ RE-LAUNCH THEATRE PLANNING
+          </button>
+        )}
+        <a className="debrief-btn-secondary" href="#/">
+          RETURN TO TRAINEE CONSOLE ↗
+        </a>
+      </div>
     </main>
   );
 }

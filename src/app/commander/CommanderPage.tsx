@@ -111,7 +111,15 @@ export function CommanderPage(): React.JSX.Element {
         {!session || !raid ? (
           <CommanderSetup onLaunch={start} />
         ) : report ? (
-          <CommanderDebrief report={report} raid={raid} log={session.getSessionLog()} />
+          <CommanderDebrief
+            report={report}
+            raid={raid}
+            log={session.getSessionLog()}
+            onRestart={() => {
+              setSession(null);
+              setRaid(null);
+            }}
+          />
         ) : (
           <CommanderConsole
             session={session}
