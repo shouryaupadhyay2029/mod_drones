@@ -1,9 +1,104 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { CommanderCommand, CommanderTier, MissileAuth, RaidPlan, RoePosture, generateRaid, intelBrief } from '../../sim/index.js';
 import { TextRoll } from '../components/TextRoll.js';
 
 export interface CommanderSetupProps {
   onLaunch: (raid: RaidPlan, commands: CommanderCommand[], autopilot: boolean) => void;
+}
+
+interface CommanderTeletypeBannerProps {
+  raid: RaidPlan;
+  tier: CommanderTier;
+}
+
+export function CommanderTeletypeBanner({ raid, tier }: CommanderTeletypeBannerProps): React.JSX.Element {
+  const [lines, setLines] = useState<string[]>([]);
+  const [currentTyped, setCurrentTyped] = useState('');
+  const [isDone, setIsDone] = useState(false);
+
+  const messages = useMemo(() => [
+    `[SEC-NET // AUTH-01] AIR-GAPPED C2 DEFENSE GRID SYNCHRONIZED (GRID 43R-TH) ... OK`,
+    `[MICROWAVE DATA-LINK] RADAR & EW SENSORS LINKED: ${raid.sites.length} SITES (${raid.sites.map((s) => `${s.id.toUpperCase()}: ${s.valueUnits}V`).join(' · ')})`,
+    `[THEATRE LOGISTICS] ORDNANCE ALLOCATION: ${raid.totalPool.gunAmmo} RDS 35MM CIWS // ${raid.totalPool.missiles} SAM INTERCEPTORS [TIER: ${tier.toUpperCase()}]`,
+    `[DOCTRINE DIRECTIVE] ALLOCATE FORWARD MUNITION SHARES & ROE ENGAGEMENT POLICY BEFORE RAID LAUNCH.`,
+  ], [raid, tier]);
+
+  useEffect(() => {
+    setLines([]);
+    setCurrentTyped('');
+    setIsDone(false);
+
+    let charIdx = 0;
+    let lineIdx = 0;
+    let timer: number | null = null;
+
+    const typeNextChar = (): void => {
+      const target = messages[lineIdx];
+      if (!target) {
+        setIsDone(true);
+        return;
+      }
+
+      if (charIdx < target.length) {
+        charIdx += Math.min(2, target.length - charIdx);
+        setCurrentTyped(target.slice(0, charIdx));
+        timer = window.setTimeout(typeNextChar, 14);
+      } else {
+        setLines((prev) => [...prev, target]);
+        lineIdx++;
+        charIdx = 0;
+        setCurrentTyped('');
+        if (lineIdx < messages.length) {
+          timer = window.setTimeout(typeNextChar, 90);
+        } else {
+          setIsDone(true);
+        }
+      }
+    };
+
+    timer = window.setTimeout(typeNextChar, 150);
+    return () => {
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [messages]);
+
+  return (
+    <section className="commander-teletype-banner" aria-label="Tactical system telemetry">
+      <div className="teletype-header">
+        <div className="teletype-status">
+          <span className={`teletype-dot ${isDone ? 'is-active' : 'is-syncing'}`} />
+          <span className="teletype-title">TACTICAL C2 TELEMETRY // SECURE TELETYPE FEED</span>
+        </div>
+        <div className="teletype-meta">
+          <span className="teletype-badge">MIL-STD-2525D</span>
+          <span className="teletype-badge">AIR-GAPPED</span>
+          <span className="teletype-code">GRID 43R-TH</span>
+        </div>
+      </div>
+      <div className="teletype-terminal">
+        {lines.map((line, idx) => (
+          <div key={idx} className="teletype-line">
+            <span className="teletype-prefix">&gt;</span>
+            <span className="teletype-text">{line}</span>
+          </div>
+        ))}
+        {!isDone && (
+          <div className="teletype-line is-typing">
+            <span className="teletype-prefix">&gt;</span>
+            <span className="teletype-text">{currentTyped}</span>
+            <span className="teletype-cursor">█</span>
+          </div>
+        )}
+        {isDone && (
+          <div className="teletype-line is-ready">
+            <span className="teletype-prefix">&gt;</span>
+            <span className="teletype-ready-text">[SYSTEM READY // STANDBY FOR PRE-RAID ALLOCATION DISPATCH]</span>
+            <span className="teletype-cursor blink">_</span>
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
 
 export function buildCommanderSetupCommands(
@@ -123,6 +218,8 @@ export function CommanderSetup({ onLaunch }: CommanderSetupProps): React.JSX.Ele
           </div>
         </div>
       </header>
+
+      <CommanderTeletypeBanner raid={raid} tier={tier} />
 
       <section className="commander-controls-bar" aria-label="Simulation configuration">
         <div className="commander-control-field">

@@ -3736,6 +3736,131 @@
   text-shadow: 0 0 12px #fbbf24;
 }
 
+/* ==========================================================================
+   Tactical C2 Telemetry Teletype Banner
+   Military-grade monospace teleprinter stream
+   ========================================================================== */
+
+.commander-teletype-banner {
+  background: #141311;
+  border: 1px solid rgba(168, 51, 34, 0.4);
+  border-left: 3px solid #a83322;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Roboto Mono', monospace;
+}
+
+.teletype-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 8px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.teletype-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.teletype-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #55b355;
+  box-shadow: 0 0 8px rgba(85, 179, 85, 0.8);
+}
+
+.teletype-dot.is-syncing {
+  background: #d4a036;
+  box-shadow: 0 0 8px rgba(212, 160, 54, 0.8);
+  animation: teletype-pulse 1s infinite alternate;
+}
+
+@keyframes teletype-pulse {
+  from { opacity: 0.4; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1.15); }
+}
+
+.teletype-title {
+  color: #cfc8be;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.teletype-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #8c857b;
+}
+
+.teletype-badge {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: 10px;
+  color: #b0a99f;
+}
+
+.teletype-code {
+  color: #a83322;
+  font-weight: 700;
+}
+
+.teletype-terminal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #d8d2c7;
+}
+
+.teletype-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.teletype-prefix {
+  color: #a83322;
+  font-weight: 800;
+  user-select: none;
+}
+
+.teletype-text {
+  color: #ece6dc;
+  letter-spacing: 0.02em;
+}
+
+.teletype-ready-text {
+  color: #62b362;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.teletype-cursor {
+  color: #d4a036;
+  font-weight: 900;
+  display: inline-block;
+  margin-left: 2px;
+}
+
+.teletype-cursor.blink {
+  animation: teletype-blink 1s step-start infinite;
+}
+
+@keyframes teletype-blink {
+  50% { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cmd-brief-rise {
     opacity: 1;
@@ -3893,7 +4018,6 @@
     transform: translateY(0) scale(1);
   }
 }
-
 
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
