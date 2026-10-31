@@ -97,15 +97,6 @@ export function CommanderPage(): React.JSX.Element {
 
   return (
     <div className="commander-scroll-root" ref={scrollRootRef} data-scroll-root="">
-      <div className="vj-stair-transition" aria-hidden="true">
-        {Array.from({ length: 8 }, (_, i) => (
-          <span
-            className="vj-stair-panel"
-            key={i}
-            style={{ '--stair-index': i } as React.CSSProperties}
-          />
-        ))}
-      </div>
       <div className="commander-shell" data-lenis-content="">
         <CommanderNav />
         {!session || !raid ? (

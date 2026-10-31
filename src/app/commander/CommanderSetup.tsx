@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { CommanderCommand, CommanderTier, MissileAuth, RaidPlan, RoePosture, generateRaid, intelBrief } from '../../sim/index.js';
 import { TextRoll } from '../components/TextRoll.js';
-import { CommanderBriefing } from './CommanderBriefing.js';
 
 export interface CommanderSetupProps {
   onLaunch: (raid: RaidPlan, commands: CommanderCommand[], autopilot: boolean) => void;
@@ -67,7 +66,6 @@ export function CommanderSetup({ onLaunch }: CommanderSetupProps): React.JSX.Ele
   const auth: MissileAuth = 'asset_threat';
   const [roeBySite, setRoeBySite] = useState<Record<string, RoePosture>>({});
   const [authBySite, setAuthBySite] = useState<Record<string, MissileAuth>>({});
-  const [showBriefing, setShowBriefing] = useState(true);
 
   const allocations = (key: 'gunAmmo' | 'missiles'): number[] => {
     const pool = raid.totalPool[key];
@@ -103,19 +101,14 @@ export function CommanderSetup({ onLaunch }: CommanderSetupProps): React.JSX.Ele
 
   return (
     <main className="commander-page commander-setup">
-      {showBriefing && <CommanderBriefing onClose={() => setShowBriefing(false)} />}
       <header className="commander-heading">
         <div className="commander-heading-left">
           <p className="commander-kicker">
             VAJRA <span className="kicker-sep">/</span> COMMAND STAFF <span className="kicker-sep">/</span> PRE-RAID
           </p>
           <h1 className="commander-title-stack" aria-label="Commander planning">
-            <span className="commander-title-line-mask">
-              <span className="commander-title-main anim-title-main">Commander</span>
-            </span>
-            <span className="commander-title-line-mask">
-              <span className="commander-title-sub anim-title-sub">planning</span>
-            </span>
+            <span className="commander-title-main">Commander</span>
+            <span className="commander-title-sub">planning</span>
           </h1>
           <p className="commander-subtitle">
             <span className="commander-bullet">•</span> Allocate the training pool across the{' '}
