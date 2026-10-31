@@ -2792,6 +2792,344 @@
   margin-left: 4px;
 }
 
+/* ==========================================================================
+   Military-Grade C2 Microwave Data Links & Kinetic/RF Effector Visuals
+   ========================================================================== */
+
+.commander-map-datalinks {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.datalink-beam {
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+  animation: cmd-datalink-flow 1.5s linear infinite;
+}
+
+.datalink-beam.link-nominal {
+  stroke: rgba(56, 189, 248, 0.45);
+}
+
+.datalink-beam.link-degraded {
+  stroke: rgba(245, 158, 11, 0.55);
+  stroke-dasharray: 4 6;
+  animation-duration: 3s;
+}
+
+.datalink-beam.link-broken {
+  stroke: rgba(239, 68, 68, 0.4);
+  stroke-dasharray: 2 8;
+  animation: none;
+}
+
+@keyframes cmd-datalink-flow {
+  from { stroke-dashoffset: 20; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* Kinetic CIWS Tracer Stream */
+.commander-ciws-tracer-layer {
+  position: absolute;
+  pointer-events: none;
+  z-index: 8;
+}
+
+.tracer-line-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+}
+
+.tracer-stream-line {
+  stroke: #fbbf24;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 8 6;
+  filter: drop-shadow(0 0 6px #f59e0b);
+  animation: cmd-tracer-stream 0.15s linear infinite;
+}
+
+@keyframes cmd-tracer-stream {
+  from { stroke-dashoffset: 28; }
+  to { stroke-dashoffset: 0; }
+}
+
+.tracer-impact-flash {
+  fill: #ef4444;
+  filter: drop-shadow(0 0 8px #ef4444);
+  animation: cmd-tracer-flash 0.12s ease infinite alternate;
+}
+
+.tracer-muzzle-ring {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0) 75%);
+  animation: cmd-tracer-flash 0.1s ease infinite alternate;
+}
+
+.tracer-stream-badge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 1px 6px;
+  background: rgba(245, 158, 11, 0.95);
+  color: #181716;
+  font: 900 8.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+}
+
+/* Directional RF Jammer Wavefield */
+.commander-rf-jammer-layer {
+  position: absolute;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.jammer-wavefield {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 180px;
+  height: 180px;
+  margin-top: -90px;
+  margin-left: -90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jammer-arc {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(59, 130, 246, 0.65);
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  animation: cmd-jammer-expand 1.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.jammer-arc.arc-1 { width: 60px; height: 60px; animation-delay: 0s; }
+.jammer-arc.arc-2 { width: 110px; height: 110px; animation-delay: 0.35s; }
+.jammer-arc.arc-3 { width: 160px; height: 160px; animation-delay: 0.7s; }
+
+/* Interactive Tactical Target Dossier */
+.commander-dossier-panel {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  max-width: 440px;
+  width: calc(100% - 24px);
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.dossier-card {
+  background: rgba(20, 18, 16, 0.94);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-left: 3px solid #ef4444;
+  border-radius: 6px;
+  padding: 10px 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  animation: cmd-fade-up 0.2s ease both;
+}
+
+.dossier-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 6px;
+}
+
+.dossier-sym {
+  color: #ef4444;
+  font-size: 13px;
+}
+
+.dossier-id {
+  font: 800 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: #fffaf4;
+  letter-spacing: 0.08em;
+}
+
+.dossier-threat-level {
+  margin-left: auto;
+  font: 800 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  padding: 1px 6px;
+  border-radius: 2px;
+}
+
+.dossier-threat-level.is-critical {
+  background: #ef4444;
+  color: #fff;
+  animation: cmd-drone-pulse 0.8s ease infinite;
+}
+
+.dossier-threat-level.is-hostile {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.dossier-close-btn {
+  background: transparent;
+  border: none;
+  color: #847f77;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 4px;
+}
+
+.dossier-close-btn:hover {
+  color: #fffaf4;
+}
+
+.dossier-data-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  font: 700 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.dossier-data-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dossier-data-cell.full {
+  grid-column: span 2;
+}
+
+.dossier-data-cell small {
+  color: #847f77;
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+}
+
+.dossier-data-cell b {
+  color: #f7f3ec;
+  font-size: 11px;
+}
+
+.dossier-data-cell b.threat-class {
+  color: #fbbf24;
+  letter-spacing: 0.04em;
+}
+
+.dossier-data-cell b.is-urgent {
+  color: #ef4444;
+  font-weight: 800;
+}
+
+.dossier-data-cell b.is-nominal {
+  color: #38bdf8;
+}
+
+.dossier-standby {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(20, 18, 16, 0.78);
+  backdrop-filter: blur(6px);
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  padding: 6px 12px;
+  font: 700 9.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: #847f77;
+  letter-spacing: 0.05em;
+}
+
+.dossier-crosshair {
+  color: #d18d48;
+  font-size: 13px;
+}
+
+.theatre-readout-inbound {
+  color: #ef4444;
+  font-weight: 800;
+}
+
+.theatre-readout-dmg {
+  color: #d18d48;
+  font-weight: 700;
+}
+
+/* Effector Readiness Status Strip in Site Cards */
+.commander-effector-strip {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0 12px 0;
+}
+
+.effector-indicator {
+  flex: 1;
+  padding: 5px 6px;
+  background: #ede8dc;
+  border: 1px solid rgba(24, 23, 22, 0.16);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font: 700 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.effector-indicator .eff-code {
+  color: #726c62;
+  font-size: 8.5px;
+  letter-spacing: 0.05em;
+}
+
+.effector-indicator .eff-state {
+  font-weight: 900;
+  font-size: 9.5px;
+}
+
+.effector-indicator.is-ready .eff-state { color: #526f0f; }
+.effector-indicator.is-firing {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: #f59e0b;
+}
+.effector-indicator.is-firing .eff-state {
+  color: #d97706;
+  animation: cmd-badge-flash 0.3s ease infinite alternate;
+}
+.effector-indicator.is-jamming {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: #3b82f6;
+}
+.effector-indicator.is-jamming .eff-state {
+  color: #2563eb;
+  animation: cmd-badge-flash 0.4s ease infinite alternate;
+}
+.effector-indicator.is-standby .eff-state { color: #726c62; }
+.effector-indicator.is-armed .eff-state { color: #526f0f; }
+.effector-indicator.is-depleted .eff-state,
+.effector-indicator.is-empty .eff-state { color: #b91c1c; opacity: 0.65; }
+
+.commander-map-drone.is-inspected .drone-threat-symbol {
+  color: #fbbf24;
+  transform: scale(1.4);
+  text-shadow: 0 0 12px #fbbf24;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cmd-brief-rise {
     opacity: 1;
@@ -2950,695 +3288,6 @@
   }
 }
 
-/* ==========================================================================
-   Live Theatre Tactical Radar, Inbound Threats & Military C2 Modal Styles
-   ========================================================================== */
-
-.commander-time-clock {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  padding: 6px 14px;
-  background: rgba(168, 51, 34, 0.09);
-  border: 1px solid rgba(168, 51, 34, 0.28);
-  border-radius: 5px;
-}
-
-.commander-time-clock .clock-label {
-  font: 800 9.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #726c62;
-  letter-spacing: 0.12em;
-}
-
-.commander-time-clock strong {
-  font: 900 16px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #a83322;
-  letter-spacing: 0.05em;
-  padding: 0 !important;
-  background: transparent !important;
-  border: none !important;
-}
-
-.commander-speed-group {
-  display: flex;
-  gap: 4px;
-}
-
-.commander-speed-btn {
-  padding: 6px 12px !important;
-  font: 800 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-  border: 1px solid rgba(24, 23, 22, 0.2) !important;
-  border-radius: 4px !important;
-  background: #ebe5d9 !important;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.commander-speed-btn.is-active {
-  background: #181716 !important;
-  color: #fffaf4 !important;
-  border-color: #181716 !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
-}
-
-.commander-pause-btn {
-  padding: 6px 14px !important;
-  font: 800 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-  border-radius: 4px !important;
-  border: 1px solid rgba(24, 23, 22, 0.22) !important;
-  background: #ebe5d9 !important;
-  cursor: pointer;
-}
-
-.commander-autopilot-btn {
-  display: inline-flex !important;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px !important;
-  font: 800 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-  border-radius: 4px !important;
-  border: 1px solid rgba(24, 23, 22, 0.22) !important;
-  background: #ebe5d9 !important;
-  cursor: pointer;
-}
-
-.commander-autopilot-btn .autopilot-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #726c62;
-}
-
-.commander-autopilot-btn.is-active {
-  background: #181716 !important;
-  color: #fffaf4 !important;
-  border-color: #181716 !important;
-}
-
-.commander-autopilot-btn.is-active .autopilot-dot {
-  background: #526f0f;
-  box-shadow: 0 0 6px #526f0f;
-}
-
-/* Tactical Site Radar Bubble & Inbound Drones on Live Map */
-.commander-site-dome {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  width: 170px;
-  height: 170px;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.site-dome-ring.ring-outer {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 1px dashed rgba(82, 111, 15, 0.35);
-}
-
-.commander-site-dome.has-inbound .site-dome-ring.ring-outer {
-  border-color: rgba(168, 51, 34, 0.55);
-  animation: cmd-beacon-pulse 1.8s ease infinite;
-}
-
-.site-dome-ring.ring-inner {
-  position: absolute;
-  inset: 40px;
-  border-radius: 50%;
-  border: 1px solid rgba(45, 40, 35, 0.14);
-}
-
-.site-dome-sweep {
-  position: absolute;
-  top: 0;
-  left: 84px;
-  width: 2px;
-  height: 85px;
-  transform-origin: bottom center;
-  background: linear-gradient(180deg, rgba(82, 111, 15, 0.8), transparent);
-}
-
-.commander-map-drone {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  pointer-events: auto;
-}
-
-.drone-threat-symbol {
-  color: #ef4444;
-  font-size: 13px;
-  line-height: 1;
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
-  animation: cmd-drone-pulse 1s ease infinite;
-}
-
-@keyframes cmd-drone-pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.25); opacity: 0.6; }
-}
-
-.drone-vector-line {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  overflow: visible;
-  width: 1px;
-  height: 1px;
-  pointer-events: none;
-}
-
-.drone-vector-line line {
-  stroke: rgba(239, 68, 68, 0.55);
-  stroke-width: 1.5;
-  stroke-dasharray: 4,3;
-}
-
-.drone-hud-tag {
-  padding: 2px 6px;
-  background: rgba(20, 18, 16, 0.92);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(239, 68, 68, 0.45);
-  border-radius: 4px;
-  color: #fff;
-  font: 800 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-}
-
-.drone-hud-tag b {
-  color: #ff6b6b;
-}
-
-.drone-hud-tag small {
-  color: #e2e8f0;
-  font-size: 8px;
-}
-
-.drone-lock-pill {
-  padding: 1px 4px;
-  border-radius: 3px;
-  background: #dc2626;
-  color: #fff;
-  font-size: 7px;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  animation: cmd-beacon-pulse 0.7s ease infinite;
-}
-
-/* Tracer & Jammer Map Visuals */
-.commander-tracer-burst {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  z-index: 6;
-  pointer-events: none;
-}
-
-.tracer-flash {
-  display: block;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.95) 0%, rgba(239, 68, 68, 0.6) 45%, transparent 70%);
-  animation: cmd-beacon-pulse 0.25s infinite;
-}
-
-.tracer-tag {
-  position: absolute;
-  top: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-  font: 800 8px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #facc15;
-  background: rgba(0, 0, 0, 0.9);
-  padding: 1px 5px;
-  border-radius: 3px;
-  white-space: nowrap;
-  border: 1px solid rgba(250, 204, 21, 0.4);
-}
-
-.commander-jammer-cone {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  z-index: 6;
-  pointer-events: none;
-}
-
-.jammer-wave {
-  display: block;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 2px solid rgba(245, 158, 11, 0.85);
-  animation: cmd-sonar-echo 1.2s ease infinite;
-}
-
-.jammer-tag {
-  position: absolute;
-  bottom: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-  font: 800 8px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #f59e0b;
-  background: rgba(0, 0, 0, 0.9);
-  padding: 1px 5px;
-  border-radius: 3px;
-  white-space: nowrap;
-  border: 1px solid rgba(245, 158, 11, 0.4);
-}
-
-/* Tactical Site Node on Map */
-.commander-live-site-node {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-}
-
-.site-node-card-btn {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 4px !important;
-  padding: 8px 12px !important;
-  background: rgba(255, 255, 255, 0.94) !important;
-  backdrop-filter: blur(8px) !important;
-  border: 1px solid rgba(24, 23, 22, 0.22) !important;
-  border-radius: 6px !important;
-  box-shadow: 0 6px 18px rgba(24, 23, 22, 0.12) !important;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.site-node-card-btn:hover {
-  transform: translateY(-2px) !important;
-  border-color: #a83322 !important;
-  box-shadow: 0 10px 24px rgba(24, 23, 22, 0.22) !important;
-  background: #ffffff !important;
-}
-
-.site-card-top {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font: 900 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #181716;
-}
-
-.site-status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
-.site-status-dot.status-green { background: #526f0f; }
-.site-status-dot.status-amber { background: #b46512; }
-.site-status-dot.status-red { background: #a83322; }
-
-.site-link-badge {
-  font: 800 8px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  padding: 1px 5px;
-  border-radius: 3px;
-  background: rgba(24, 23, 22, 0.08);
-  color: #58544e;
-  margin-left: auto;
-}
-
-.site-card-body {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font: 700 9.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-
-.site-threat-metric.is-hostile {
-  color: #dc2626;
-  font-weight: 800;
-}
-
-.site-threat-metric.is-clear {
-  color: #526f0f;
-}
-
-.site-damage-metric {
-  color: #726c62;
-}
-
-.site-card-cta {
-  display: block;
-  margin-top: 4px;
-  font: 800 8.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #a83322;
-  letter-spacing: 0.08em;
-  text-align: center;
-  border-top: 1px solid rgba(24, 23, 22, 0.08);
-  padding-top: 4px;
-}
-
-/* Combat Event Ticker */
-.commander-combat-ticker {
-  margin-top: 14px;
-  padding: 12px 16px;
-  background: rgba(20, 18, 16, 0.95);
-  border: 1px solid rgba(24, 23, 22, 0.85);
-  border-radius: 6px;
-  color: #f4eee3;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-}
-
-.ticker-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font: 800 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #ffd480;
-  letter-spacing: 0.14em;
-  margin-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  padding-bottom: 6px;
-}
-
-.ticker-pulse {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #ffd480;
-  box-shadow: 0 0 6px #ffd480;
-  animation: cmd-beacon-pulse 1.2s infinite;
-}
-
-.ticker-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 110px;
-  overflow-y: auto;
-}
-
-.ticker-item {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  font: 700 10.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  line-height: 1.4;
-}
-
-.ticker-time {
-  color: #847f77;
-  font-size: 9.5px;
-  flex-shrink: 0;
-}
-
-.ticker-item.type-detect .ticker-text { color: #f59e0b; }
-.ticker-item.type-ciws .ticker-text { color: #38bdf8; }
-.ticker-item.type-kill .ticker-text { color: #4ade80; font-weight: 800; }
-.ticker-item.type-warn .ticker-text { color: #ef4444; font-weight: 800; }
-.ticker-item.type-info .ticker-text { color: #cbd5e1; }
-
-/* Tactile Rack-Mounted Sector Cards */
-.commander-site-stats-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 10px 0 6px;
-}
-
-.commander-threat-chip {
-  padding: 3px 8px;
-  border-radius: 4px;
-  font: 800 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  letter-spacing: 0.08em;
-}
-
-.commander-threat-chip.is-danger {
-  background: rgba(220, 38, 38, 0.12);
-  color: #dc2626;
-  border: 1px solid rgba(220, 38, 38, 0.28);
-}
-
-.commander-threat-chip.is-secure {
-  background: rgba(82, 111, 15, 0.1);
-  color: #526f0f;
-  border: 1px solid rgba(82, 111, 15, 0.24);
-}
-
-.commander-damage-readout {
-  font: 800 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #58544e;
-}
-
-.commander-damage-readout b {
-  color: #181716;
-}
-
-.commander-card-ammo-chips {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin: 10px 0;
-}
-
-.card-ammo-chip {
-  padding: 7px 10px;
-  background: #ede6d8;
-  border: 1px solid rgba(24, 23, 22, 0.16);
-  border-radius: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.card-ammo-chip .chip-tag {
-  font: 800 8px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #726c62;
-  letter-spacing: 0.06em;
-}
-
-.card-ammo-chip .chip-num {
-  font: 900 15px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #181716;
-}
-
-.card-ammo-chip small {
-  font: 700 8.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #a83322;
-}
-
-.card-ammo-chip.reserve-chip {
-  background: #e3ded5;
-}
-
-.commander-latest-engagement {
-  margin: 6px 0 12px;
-  font: 700 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #635e56;
-}
-
-.commander-latest-engagement b {
-  color: #a83322;
-  margin-left: 4px;
-}
-
-.commander-card-controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin: 10px 0;
-}
-
-.commander-card-controls label {
-  font: 800 8.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  letter-spacing: 0.1em;
-  color: #58544e;
-  text-transform: uppercase;
-}
-
-.commander-card-controls select {
-  width: 100%;
-  padding: 6px 24px 6px 8px;
-  font: 700 10.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  border: 1px solid rgba(24, 23, 22, 0.22);
-  border-radius: 4px;
-  background: #ede7db url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23181716' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 8px center;
-  color: #181716;
-  cursor: pointer;
-}
-
-.commander-card-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.card-action-btn {
-  padding: 7px 10px !important;
-  font: 800 9.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-  border-radius: 4px !important;
-  border: 1px solid rgba(24, 23, 22, 0.22) !important;
-  background: #ebe5d9 !important;
-  color: #181716 !important;
-  cursor: pointer;
-  text-align: center;
-}
-
-.card-inspect-btn {
-  grid-column: 1 / -1;
-  padding: 9px 12px !important;
-  background: #181716 !important;
-  color: #fffaf4 !important;
-  border: 1px solid #181716 !important;
-  border-radius: 4px !important;
-  font: 800 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-  letter-spacing: 0.1em !important;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s ease;
-}
-
-.card-inspect-btn:hover {
-  background: #a83322 !important;
-  border-color: #a83322 !important;
-}
-
-/* Plan Position Indicator (PPI) Radar Scope Modal */
-.commander-radar-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
-}
-
-.commander-radar-modal-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(14, 13, 12, 0.78);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.commander-radar-modal-dialog {
-  position: relative;
-  z-index: 1;
-  width: min(860px, 95vw);
-  max-height: 94vh;
-  background: #141312;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 10px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
-  color: #fffaf4;
-}
-
-.radar-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 18px;
-  background: #1c1a18;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  gap: 12px;
-}
-
-.radar-modal-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.radar-modal-title h3 {
-  margin: 0;
-  font: 800 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #fffaf4;
-  letter-spacing: 0.08em;
-}
-
-.radar-live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 8px #22c55e;
-}
-
-.radar-modal-badge {
-  font: 700 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #ffd480;
-  background: rgba(255, 212, 128, 0.12);
-  padding: 2px 7px;
-  border-radius: 3px;
-  letter-spacing: 0.06em;
-}
-
-.radar-modal-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.radar-switch-btn {
-  padding: 5px 10px !important;
-  font: 800 9.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 4px !important;
-  background: transparent !important;
-  color: #e2e8f0 !important;
-  cursor: pointer;
-  letter-spacing: 0.05em;
-}
-
-.radar-switch-btn.is-active {
-  background: #a83322 !important;
-  border-color: #a83322 !important;
-  color: #fff !important;
-}
-
-.radar-modal-close {
-  padding: 5px 12px !important;
-  font: 800 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-  background: #29241f !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
-  border-radius: 4px !important;
-  color: #fff !important;
-  cursor: pointer;
-}
-
-.radar-modal-canvas-wrap {
-  height: 520px;
-  position: relative;
-  background: #0a0908;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.radar-modal-footer {
-  display: flex;
-  justify-content: space-around;
-  padding: 12px 18px;
-  background: #1c1a18;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  font: 700 10.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: #847f77;
-}
-
-.radar-footer-stat b {
-  color: #fffaf4;
-  margin-left: 4px;
-}
 
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {

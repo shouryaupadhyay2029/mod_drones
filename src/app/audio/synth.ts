@@ -109,7 +109,7 @@ export function playRadarBlip(): void {
 
 /**
  * Aggressive alternating square wave pulse (400 Hz / 520 Hz, 200 ms)
- * for inbound hostile/FPV tracks crossing < 1500 m.
+ * for inbound hostile/FPV tracks crossing < 1500 m or terminal optical dive.
  */
 export function playWarning(): void {
   if (isMutedState) return;
@@ -139,6 +139,97 @@ export function playWarning(): void {
     osc.stop(now + durationSec);
   } catch {
     // Ignore audio context state errors in non-interactive environments
+  }
+}
+
+/**
+ * Rapid 3-round kinetic burst (sawtooth burst, 110ms)
+ * simulating 35mm GDF twin-cannon anti-air tracer discharge.
+ */
+export function playCiwsBurst(): void {
+  if (isMutedState) return;
+  const ctx = getOrCreateAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    for (let i = 0; i < 3; i++) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(140 - i * 15, now + i * 0.035);
+
+      gain.gain.setValueAtTime(0.2, now + i * 0.035);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.035 + 0.03);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now + i * 0.035);
+      osc.stop(now + i * 0.035 + 0.03);
+    }
+  } catch {
+    // Ignore audio context state errors
+  }
+}
+
+/**
+ * Directional RF Electronic Warfare Jammer sweep (frequency modulation 900-1400Hz).
+ */
+export function playJammer(): void {
+  if (isMutedState) return;
+  const ctx = getOrCreateAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(900, now);
+    osc.frequency.linearRampToValueAtTime(1450, now + 0.15);
+
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.18);
+  } catch {
+    // Ignore audio context state errors
+  }
+}
+
+/**
+ * Surface-to-Air Interceptor launch whoosh.
+ */
+export function playMissileLaunch(): void {
+  if (isMutedState) return;
+  const ctx = getOrCreateAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(260, now);
+    osc.frequency.exponentialRampToValueAtTime(70, now + 0.28);
+
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.3);
+  } catch {
+    // Ignore audio context state errors
   }
 }
 

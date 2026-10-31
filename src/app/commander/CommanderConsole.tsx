@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CommanderCommand, CommanderSession, CommanderSiteView, CommanderView, MissileAuth, RoePosture, heuristicCommander } from '../../sim/index.js';
 import { RadarScope } from '../console/RadarScope.js';
 import { CommanderSplitTitle } from './CommanderPage.js';
+import { playCiwsBurst, playJammer, playRadarBlip, playWarning } from '../audio/synth.js';
 
 export interface CommanderConsoleProps {
   session: CommanderSession;
@@ -15,6 +16,18 @@ interface CombatLogEntry {
   time: string;
   text: string;
   type: 'detect' | 'ciws' | 'jam' | 'kill' | 'warn' | 'info';
+}
+
+interface InspectedTrackInfo {
+  trackId: number;
+  siteId: string;
+  rangeM: number;
+  altM: number;
+  speed: number;
+  bearing: number;
+  assessedClass: string | null;
+  rfSignature: string | null;
+  isLocked: boolean;
 }
 
 function renderLinkBadge(site: CommanderSiteView): React.JSX.Element {
@@ -49,12 +62,15 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
   // Tactical Radar & Combat Telemetry State
   const [trailHistory] = useState(() => new Map<number, Array<{ x: number; y: number; z: number }>>());
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
+  const [inspectedTrack, setInspectedTrack] = useState<InspectedTrackInfo | null>(null);
   const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([
     { id: 'init', time: '00:00', text: 'THEATRE C2 DEFENSE GRID SYNCHRONIZED // RADAR SURVEILLANCE ACTIVE', type: 'info' },
   ]);
 
   const prevTracksRef = useRef<Set<number>>(new Set());
   const prevEngagementRef = useRef<Record<string, string | undefined>>({});
+  const prevFiringRef = useRef<Record<string, boolean>>({});
+  const prevJammingRef = useRef<Record<string, boolean>>({});
 
   const raidSites = session.raid.sites;
   const minX = Math.min(...raidSites.map((s) => s.mapPosKm.x));
@@ -74,6 +90,24 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
 
     // Accumulate combat log & track history
     for (const site of nextView.sites) {
+      const isFiring = site.operatorView.effectors.gun.busyUntilTick > nextView.tick;
+      const isJamming = site.operatorView.effectors.jammer.busyUntilTick > nextView.tick;
+
+      // Audio triggers on effector transitions
+      if (isFiring && !prevFiringRef.current[site.siteId]) {
+        prevFiringRef.current[site.siteId] = true;
+        playCiwsBurst();
+      } else if (!isFiring) {
+        prevFiringRef.current[site.siteId] = false;
+      }
+
+      if (isJamming && !prevJammingRef.current[site.siteId]) {
+        prevJammingRef.current[site.siteId] = true;
+        playJammer();
+      } else if (!isJamming) {
+        prevJammingRef.current[site.siteId] = false;
+      }
+
       // 1. Trail history and new threat acquisition
       for (const track of site.operatorView.tracks) {
         const history = trailHistory.get(track.trackId) ?? [];
@@ -83,6 +117,7 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
 
         if (!prevTracksRef.current.has(track.trackId)) {
           prevTracksRef.current.add(track.trackId);
+          playRadarBlip();
           setCombatLog((prev) => [
             ...prev.slice(-14),
             {
@@ -98,6 +133,7 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
         if (track.terminal_lock) {
           const lockKey = `${track.trackId}-lock`;
           if (!prevTracksRef.current.has(Number(lockKey))) {
+            playWarning();
             setCombatLog((prev) => [
               ...prev.slice(-14),
               {
@@ -145,8 +181,13 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
 
   const selectedSite = selected ? view.sites.find((s) => s.siteId === selected) : null;
 
+  // Aggregate theatre telemetry
+  const totalInbound = view.sites.reduce((acc, s) => acc + s.operatorView.tracks.length, 0);
+  const avgDamage = Math.round(view.sites.reduce((acc, s) => acc + s.damagePercent, 0) / Math.max(1, view.sites.length));
+
   return (
     <main className="commander-page commander-live-console">
+      {/* Tactical C2 Cockpit Header */}
       <header className="commander-heading">
         <div className="commander-heading-left">
           <p className="commander-kicker">
@@ -202,12 +243,14 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
         <div className="commander-section-header">
           <div className="commander-panel-title-wrap">
             <span className="commander-panel-stripe" aria-hidden="true" />
-            <h2>THEATRE RADAR TELEMETRY & TACTICAL TRACKING</h2>
+            <h2>THEATRE RADAR TELEMETRY &amp; TACTICAL TRACKING</h2>
           </div>
           <div className="commander-panel-radar-meta">
             <span>GRID 43R-TH</span>
             <span className="commander-meta-sep">|</span>
-            <span>AIRSPACE MONITORING</span>
+            <span className="theatre-readout-inbound">{totalInbound} ACTIVE THREATS</span>
+            <span className="commander-meta-sep">|</span>
+            <span className="theatre-readout-dmg">AVG DMG: {avgDamage}%</span>
             <span className="commander-radar-dot" aria-hidden="true" />
           </div>
         </div>
@@ -217,6 +260,35 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
           <div className="commander-map-rings" aria-hidden="true" />
           <div className="commander-map-center-cross" aria-hidden="true" />
           <div className="commander-map-sweep-beam" aria-hidden="true" />
+
+          {/* Military Microwave Inter-Site Data Links */}
+          <svg className="commander-map-datalinks" aria-hidden="true">
+            {view.sites.map((s, idx) => {
+              if (idx === 0) return null;
+              const prevSite = view.sites[idx - 1];
+              if (!prevSite) return null;
+              const prevPlan = raidSites.find((p) => p.id === prevSite.siteId);
+              const currPlan = raidSites.find((p) => p.id === s.siteId);
+              const x1 = prevPlan ? (maxX === minX ? 35 : 20 + ((prevPlan.mapPosKm.x - minX) / (maxX - minX)) * 60) : 35;
+              const y1 = prevPlan ? (maxY === minY ? 45 : 22 + ((prevPlan.mapPosKm.y - minY) / (maxY - minY)) * 54) : 45;
+              const x2 = currPlan ? (maxX === minX ? 65 : 20 + ((currPlan.mapPosKm.x - minX) / (maxX - minX)) * 60) : 65;
+              const y2 = currPlan ? (maxY === minY ? 45 : 22 + ((currPlan.mapPosKm.y - minY) / (maxY - minY)) * 54) : 45;
+              const isDegraded = s.linkStatus === 'degraded' || prevSite.linkStatus === 'degraded';
+              const isOffline = s.linkStatus === 'offline' || prevSite.linkStatus === 'offline';
+              const linkStatus = isOffline ? 'broken' : isDegraded ? 'degraded' : 'nominal';
+
+              return (
+                <line
+                  key={`datalink-${prevSite.siteId}-${s.siteId}`}
+                  x1={`${x1}%`}
+                  y1={`${y1}%`}
+                  x2={`${x2}%`}
+                  y2={`${y2}%`}
+                  className={`datalink-beam link-${linkStatus}`}
+                />
+              );
+            })}
+          </svg>
 
           {/* Render each site and its live drone radar tracks */}
           {view.sites.map((site) => {
@@ -230,13 +302,13 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
 
             return (
               <React.Fragment key={site.siteId}>
-                {/* Tactical Radar Detection Bubble */}
+                {/* Tactical Radar Detection Bubble with Range Horizon Rings */}
                 <div
                   className={`commander-site-dome ${hasTracks ? 'has-inbound' : ''}`}
                   style={{ left: `${siteX}%`, top: `${siteY}%` }}
                 >
-                  <div className="site-dome-ring ring-outer" />
-                  <div className="site-dome-ring ring-inner" />
+                  <div className="site-dome-ring ring-outer" title="Radar Horizon: 6,000 m" />
+                  <div className="site-dome-ring ring-inner" title="CIWS Kinetic Envelope: 1,200 m" />
                   <div
                     className="site-dome-sweep"
                     style={{ transform: `rotate(${site.operatorView.radarSweepDeg}deg)` }}
@@ -249,13 +321,42 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                   const dy = (-track.estimatedPosition.y / 6000) * 85;
                   const droneLeft = `calc(${siteX}% + ${dx}px)`;
                   const droneTop = `calc(${siteY}% + ${dy}px)`;
+                  const isTrackInspected = inspectedTrack?.trackId === track.trackId;
 
                   return (
                     <div
                       key={`drone-${site.siteId}-${track.trackId}`}
-                      className={`commander-map-drone ${track.terminal_lock ? 'is-locked' : ''}`}
+                      className={`commander-map-drone ${track.terminal_lock ? 'is-locked' : ''} ${isTrackInspected ? 'is-inspected' : ''}`}
                       style={{ left: droneLeft, top: droneTop }}
                       title={`Target T${track.trackId} · Range: ${Math.round(track.rangeM)}m · Alt: ${Math.round(track.altitudeM)}m`}
+                      onClick={() => {
+                        const spd = Math.round(track.speedMps ?? 0);
+                        setInspectedTrack({
+                          trackId: track.trackId,
+                          siteId: site.siteId,
+                          rangeM: Math.round(track.rangeM),
+                          altM: Math.round(track.altitudeM),
+                          speed: spd,
+                          bearing: Math.round(track.bearingDeg),
+                          assessedClass: track.assessedClass ?? null,
+                          rfSignature: track.rfSignature ?? (track.rfStatus ? String(track.rfStatus) : null),
+                          isLocked: Boolean(track.terminal_lock),
+                        });
+                      }}
+                      onMouseEnter={() => {
+                        const spd = Math.round(track.speedMps ?? 0);
+                        setInspectedTrack({
+                          trackId: track.trackId,
+                          siteId: site.siteId,
+                          rangeM: Math.round(track.rangeM),
+                          altM: Math.round(track.altitudeM),
+                          speed: spd,
+                          bearing: Math.round(track.bearingDeg),
+                          assessedClass: track.assessedClass ?? null,
+                          rfSignature: track.rfSignature ?? (track.rfStatus ? String(track.rfStatus) : null),
+                          isLocked: Boolean(track.terminal_lock),
+                        });
+                      }}
                     >
                       <svg className="drone-vector-line" aria-hidden="true">
                         <line x1="0" y1="0" x2={-dx} y2={-dy} />
@@ -270,19 +371,43 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                   );
                 })}
 
-                {/* Gun Tracer & Jammer Cone Visuals */}
-                {isFiring && (
-                  <div className="commander-tracer-burst" style={{ left: `${siteX}%`, top: `${siteY}%` }}>
-                    <span className="tracer-flash" />
-                    <span className="tracer-tag">35MM CIWS FIRING</span>
-                  </div>
-                )}
-                {isJamming && (
-                  <div className="commander-jammer-cone" style={{ left: `${siteX}%`, top: `${siteY}%` }}>
-                    <span className="jammer-wave" />
-                    <span className="jammer-tag">RF JAMMER ACTIVE</span>
-                  </div>
-                )}
+                {/* Kinetic CIWS Tracer Stream directed at active threat */}
+                {isFiring && (() => {
+                  const targetTrack = [...site.operatorView.tracks].sort((a, b) => a.rangeM - b.rangeM)[0];
+                  if (!targetTrack) return null;
+                  const tdx = (targetTrack.estimatedPosition.x / 6000) * 85;
+                  const tdy = (-targetTrack.estimatedPosition.y / 6000) * 85;
+                  return (
+                    <div className="commander-ciws-tracer-layer" style={{ left: `${siteX}%`, top: `${siteY}%` }}>
+                      <svg className="tracer-line-svg" aria-hidden="true">
+                        <line x1="0" y1="0" x2={tdx} y2={tdy} className="tracer-stream-line" />
+                        <circle cx={tdx} cy={tdy} r="5" className="tracer-impact-flash" />
+                      </svg>
+                      <div className="tracer-muzzle-ring" />
+                      <span className="tracer-stream-badge" style={{ left: `${tdx * 0.5}px`, top: `${tdy * 0.5}px` }}>
+                        35MM CIWS ENGAGING T{targetTrack.trackId}
+                      </span>
+                    </div>
+                  );
+                })()}
+
+                {/* Directional RF Electronic Countermeasure Jamming Conical Wave */}
+                {isJamming && (() => {
+                  const targetTrack = site.operatorView.tracks[0];
+                  const rotDeg = targetTrack
+                    ? (Math.atan2(targetTrack.estimatedPosition.x, -targetTrack.estimatedPosition.y) * 180) / Math.PI
+                    : site.operatorView.radarSweepDeg;
+                  return (
+                    <div className="commander-rf-jammer-layer" style={{ left: `${siteX}%`, top: `${siteY}%` }}>
+                      <div className="jammer-wavefield" style={{ transform: `rotate(${rotDeg}deg)` }}>
+                        <div className="jammer-arc arc-1" />
+                        <div className="jammer-arc arc-2" />
+                        <div className="jammer-arc arc-3" />
+                      </div>
+                      <span className="jammer-active-badge">RF JAMMING ACTIVE // 2.4/5.8GHz</span>
+                    </div>
+                  );
+                })()}
 
                 {/* Site Node HUD Anchor */}
                 <div
@@ -316,12 +441,75 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
             );
           })}
 
-          {/* Pending Reserve Transfers across the map */}
+          {/* Pending Reserve Transfers across the map with animated cargo flight vector */}
           {view.pendingTransfers.map((transfer, i) => (
             <div key={`${transfer.toSiteId}-${transfer.item}-${i}`} className="commander-transfer" style={{ left: `${20 + i * 15}%` }}>
               <span className="transfer-icon">✈</span> DISPATCHING {transfer.item === 'gunAmmo' ? 'GUN AMMO' : 'MISSILE'} TO <b>{transfer.toSiteId}</b> · ETA {Math.max(0, transfer.dueTick - view.tick)}t
             </div>
           ))}
+
+          {/* Interactive Tactical Target Dossier Overlay on Map */}
+          <div className="commander-dossier-panel" aria-label="Target telemetry dossier">
+            {inspectedTrack ? (
+              <div className="dossier-card">
+                <div className="dossier-title-bar">
+                  <span className="dossier-sym">◆</span>
+                  <span className="dossier-id">TARGET T{inspectedTrack.trackId} // TACTICAL DOSSIER</span>
+                  <span className={`dossier-threat-level ${inspectedTrack.isLocked ? 'is-critical' : 'is-hostile'}`}>
+                    {inspectedTrack.isLocked ? 'CRITICAL THREAT' : 'AIRSPACE INTRUDER'}
+                  </span>
+                  <button type="button" className="dossier-close-btn" onClick={() => setInspectedTrack(null)}>✕</button>
+                </div>
+                <div className="dossier-data-grid">
+                  <div className="dossier-data-cell">
+                    <small>RANGE / BEARING</small>
+                    <b>{inspectedTrack.rangeM} m · {inspectedTrack.bearing}°</b>
+                  </div>
+                  <div className="dossier-data-cell">
+                    <small>ALTITUDE AGL</small>
+                    <b>{inspectedTrack.altM} m</b>
+                  </div>
+                  <div className="dossier-data-cell">
+                    <small>VELOCITY</small>
+                    <b>{inspectedTrack.speed} m/s</b>
+                  </div>
+                  <div className="dossier-data-cell">
+                    <small>TARGET SECTOR</small>
+                    <b>SITE {inspectedTrack.siteId}</b>
+                  </div>
+                  <div className="dossier-data-cell full">
+                    <small>CLASSIFICATION</small>
+                    <b className="threat-class">
+                      {inspectedTrack.assessedClass ? inspectedTrack.assessedClass.replace(/_/g, ' ').toUpperCase() : 'ANALYZING DOPPLER SIGNATURE'}
+                    </b>
+                  </div>
+                  <div className="dossier-data-cell full">
+                    <small>RF DATALINK / SENSOR FUSION</small>
+                    <b>{inspectedTrack.rfSignature && inspectedTrack.rfSignature !== 'none'
+                      ? `${inspectedTrack.rfSignature.replace(/_/g, ' ').toUpperCase()} (DETECTED)`
+                      : 'NO RF EMISSION · JAM-RESISTANT / FIBER-OPTIC'}</b>
+                  </div>
+                  <div className="dossier-data-cell full">
+                    <small>ENGAGEMENT DIRECTIVE</small>
+                    <b className={inspectedTrack.isLocked ? 'is-urgent' : 'is-nominal'}>
+                      {inspectedTrack.isLocked
+                        ? '⚠ TERMINAL OPTICAL DIVE IN PROGRESS — RF Jammer Ineffective, Authorize 35mm CIWS Kinetic Intercept!'
+                        : inspectedTrack.assessedClass === 'avian'
+                        ? '● BIOLOGICAL NON-HOSTILE — Hold fire to conserve ammunition'
+                        : '▲ HOSTILE VECTOR CLOSING — Deploy RF Directional Jammer or Standby for CIWS Envelope'}
+                    </b>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="dossier-standby">
+                <span className="dossier-crosshair">⌖</span>
+                <span className="dossier-prompt">
+                  HOVER OR CLICK ANY HOSTILE BLIP (◆ T#) ON THE RADAR MAP FOR REAL-TIME SENSOR FUSION &amp; ENGAGEMENT DOCTRINE
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Real-Time Combat Event Ticker */}
@@ -365,6 +553,8 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
       <section className="commander-site-grid" aria-label="Site operations">
         {view.sites.map((site, idx) => {
           const isOffline = site.linkStatus === 'offline';
+          const isFiring = site.operatorView.effectors.gun.busyUntilTick > view.tick;
+          const isJamming = site.operatorView.effectors.jammer.busyUntilTick > view.tick;
           const sitePending = view.pendingCommands.filter((cmd) => cmd.siteId === site.siteId);
           const lastContactSeconds = (site.dataAgeTicks / 20).toFixed(1);
           const hasInbound = site.operatorView.tracks.length > 0;
@@ -390,9 +580,25 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
               {isOffline && <p className="commander-last-contact">Last contact: {lastContactSeconds} seconds ago</p>}
               {site.linkStatus === 'degraded' && (
                 <p className="commander-latency-warning">
-                  Telemetry & command latency: {(site.latencyTicks / 20).toFixed(1)}s ({site.latencyTicks} ticks)
+                  Telemetry &amp; command latency: {(site.latencyTicks / 20).toFixed(1)}s ({site.latencyTicks} ticks)
                 </p>
               )}
+
+              {/* Effector Readiness Status Strip */}
+              <div className="commander-effector-strip">
+                <div className={`effector-indicator ${isFiring ? 'is-firing' : site.inventory.gunAmmo > 0 ? 'is-ready' : 'is-depleted'}`}>
+                  <span className="eff-code">GDF-005 35MM</span>
+                  <span className="eff-state">{isFiring ? 'BURST FIRING' : site.inventory.gunAmmo > 0 ? 'READY' : 'EMPTY'}</span>
+                </div>
+                <div className={`effector-indicator ${isJamming ? 'is-jamming' : 'is-standby'}`}>
+                  <span className="eff-code">DIR-RF JAMMER</span>
+                  <span className="eff-state">{isJamming ? 'ACTIVE EMISSION' : 'STANDBY'}</span>
+                </div>
+                <div className={`effector-indicator ${site.inventory.missiles > 0 ? 'is-armed' : 'is-empty'}`}>
+                  <span className="eff-code">SAM INTERCEPTOR</span>
+                  <span className="eff-state">{site.inventory.missiles > 0 ? `${site.inventory.missiles} ARMED` : 'EMPTY'}</span>
+                </div>
+              </div>
 
               {/* Damage & Threat Overview */}
               <div className="commander-site-stats-row">
