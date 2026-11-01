@@ -686,16 +686,16 @@ export function DroneAsciiSimulation({
 
       // Flank translation & scale:
       // Desktop: drifts 34-38.5vw right, shrinks to 0.35x
-      // Mobile: drifts 14vw right, shrinks gently to 0.72x so it remains clearly visible ("not too big, not too small")
+      // Mobile: drifts 15vw right, descends to 36vh (clear below text) and scales to 0.58x to prevent overlapping words
       const section4Shift = Math.min(1.0, Math.max(0, (sP - 0.45) / 0.15));
       const targetTransX = isMobile
-        ? escortPhase * (isTinyMobile ? 14 : 18)
+        ? escortPhase * (isTinyMobile ? 15 : 18)
         : escortPhase * (34 + section4Shift * 4.5);
       const targetTransY = isMobile
-        ? escortPhase * (28 + sP * 4)
+        ? escortPhase * (36 + sP * 2)
         : escortPhase * (29 + sP * 4);
       const droneScale = isMobile
-        ? 1.0 - escortPhase * 0.28 // Mobile: 1.0 -> 0.72 ("not too big, not too small")
+        ? 1.0 - escortPhase * 0.42 // Mobile: 1.0 -> 0.58 (clears text, perfectly proportioned)
         : 1.0 - escortPhase * 0.65; // Desktop: 1.0 -> 0.35
 
       // Dynamic flying bob & aerodynamic bank wobble while moving
@@ -782,11 +782,11 @@ export function DroneAsciiSimulation({
 
       const allPoints = [...computedBasePoints, ...dynamicProps];
 
-      // Sized to ensure 3D rotation and ducted guards never touch the boundary
-      const cols = isTinyMobile ? 54 : isMobile ? 66 : 156;
-      const rows = isTinyMobile ? 36 : isMobile ? 42 : 58;
-      const scaleX = isTinyMobile ? 24 : isMobile ? 36 : 92;
-      const scaleY = isTinyMobile ? 12 : isMobile ? 18 : 44;
+      // Sized prominently in hero without cutting edges (safe margin at all 3D rotation angles)
+      const cols = isTinyMobile ? 58 : isMobile ? 66 : 156;
+      const rows = isTinyMobile ? 38 : isMobile ? 42 : 58;
+      const scaleX = isTinyMobile ? 27 : isMobile ? 36 : 92;
+      const scaleY = isTinyMobile ? 13.5 : isMobile ? 18 : 44;
       const buffer: string[] = new Array(cols * rows).fill(' ');
       const zBuffer: number[] = new Array(cols * rows).fill(-Infinity);
 

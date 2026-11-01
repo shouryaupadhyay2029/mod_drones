@@ -920,10 +920,10 @@ a:hover .text-roll-char-bottom,
   .mobile-hud-title {
     margin: 0;
     font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: clamp(32px, 8.5vw, 42px);
-    letter-spacing: 0.08em;
+    font-size: clamp(36px, 10vw, 48px);
+    letter-spacing: 0.12em;
     line-height: 1;
-    color: #181716;
+    color: #b14d28;
   }
 
   .mobile-hud-accent {

@@ -82,6 +82,12 @@
   gap: 36px;
 }
 
+@media (max-width: 768px) {
+  .vj-manifesto-inner {
+    padding-bottom: 110px;
+  }
+}
+
 .vj-manifesto-text {
   margin: 0;
   max-width: 980px;

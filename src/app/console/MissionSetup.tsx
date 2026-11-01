@@ -278,10 +278,10 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
       {/* 2. Scroll Spacer for the Hero view with clean title and drone framing */}
       <div className="mission-hero-backdrop" style={styles.heroScrollSpacer}>
         <div className="mobile-hero-hud">
-          {/* Top Title: PROJECT VAJRA */}
+          {/* Top Title: VAJRA */}
           <div className="mobile-hud-top anim-curved-slide anim-delay-1">
             <h1 className="mobile-hud-title">
-              PROJECT <span className="mobile-hud-accent">VAJRA</span>
+              <span className="mobile-hud-accent">VAJRA</span>
             </h1>
           </div>
 
