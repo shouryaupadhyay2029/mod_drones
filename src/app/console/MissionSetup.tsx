@@ -275,11 +275,56 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
         <DroneHeroSection />
       </div>
 
-      {/* 2. Scroll Spacer for the Hero view so page starts at the top */}
+      {/* 2. Scroll Spacer for the Hero view with Mobile Tactical HUD */}
       <div className="mission-hero-backdrop" style={styles.heroScrollSpacer}>
-        <div className="vj-scroll-cue" aria-hidden="true">
-          <span>SCROLL</span>
-          <i />
+        <div className="mobile-hero-hud">
+          {/* Top HUD: Tactical System Identity & Readiness */}
+          <div className="mobile-hud-top anim-curved-slide anim-delay-1">
+            <div className="mobile-hud-badge">
+              <span className="mobile-hud-dot" />
+              <span>DEFENSE MATRIX // C-UAS POINT DEFENSE</span>
+            </div>
+            <h1 className="mobile-hud-title">
+              PROJECT <span className="mobile-hud-accent">VAJRA</span>
+            </h1>
+            <p className="mobile-hud-subtitle">AUTONOMOUS COUNTER-DRONE SIMULATOR</p>
+            <div className="mobile-hud-telemetry">
+              <span className="mobile-tel-pill">20Hz SCAN</span>
+              <span className="mobile-tel-pill">PULSE-DOPPLER</span>
+              <span className="mobile-tel-pill">DDIL SECURE</span>
+            </div>
+          </div>
+
+          {/* Reserved Center Stage for the 3D rotating Drone */}
+          <div className="mobile-drone-stage-spacer" aria-hidden="true" />
+
+          {/* Bottom HUD: Launch Mission, Commander Radar, and Field Manual Cues */}
+          <div className="mobile-hud-bottom anim-curved-slide anim-delay-3">
+            <div className="mobile-hud-card">
+              <div className="mobile-card-header">
+                <span className="mobile-card-label">TACTICAL DISPATCH</span>
+                <span className="mobile-card-status">SYSTEM READY</span>
+              </div>
+              <div className="mobile-hud-actions">
+                <button
+                  type="button"
+                  className="mobile-btn-launch"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  <span className="mobile-btn-pulse" />
+                  ▶ LAUNCH AIR DEFENSE MISSION
+                </button>
+                <a href="#/commander" className="mobile-btn-commander">
+                  ⚡ THEATRE COMMANDER RADAR
+                </a>
+              </div>
+            </div>
+
+            <div className="vj-scroll-cue" aria-hidden="true">
+              <span>FIELD MANUAL & DOCTRINE</span>
+              <i />
+            </div>
+          </div>
         </div>
       </div>
 

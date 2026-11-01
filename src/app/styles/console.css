@@ -855,11 +855,22 @@ a:hover .text-roll-char-bottom,
   }
 }
 
-/* Mobile 3D ASCII Drone Scaling & Layout */
+/* ==========================================================================
+   Mobile Tactical Hero Cockpit (Balanced Professional Layout & Drone Framing)
+   ========================================================================== */
+
+.mobile-hero-hud {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .hero-drone-layer {
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
     opacity: 1 !important;
     pointer-events: none !important;
+    z-index: 5 !important;
   }
 
   .ascii-sim-wrapper {
@@ -871,17 +882,231 @@ a:hover .text-roll-char-bottom,
   }
 
   .drone-ascii-pre {
+    font-size: 9.5px !important;
+    line-height: 9.5px !important;
+    letter-spacing: 0.2px !important;
     white-space: pre !important;
     word-break: normal !important;
     overflow-wrap: normal !important;
     margin: 0 auto !important;
   }
-}
 
-@media (max-width: 360px) {
-  .drone-ascii-pre {
-    transform: scale(min(1, calc((100vw - 12px) / 320))) !important;
-    transform-origin: center center !important;
+  .mobile-hero-hud {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 15;
+    width: 100%;
+    height: 100%;
+    min-height: calc(100vh - 68px);
+    box-sizing: border-box;
+    padding: 16px 16px 18px 16px;
+    pointer-events: none;
+  }
+
+  /* Top HUD */
+  .mobile-hud-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    pointer-events: auto;
+    width: 100%;
+    max-width: 360px;
+  }
+
+  .mobile-hud-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #635e57;
+    background: rgba(45, 40, 35, 0.06);
+    border: 1px solid rgba(45, 40, 35, 0.16);
+    padding: 3px 10px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .mobile-hud-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #526f0f;
+    box-shadow: 0 0 6px #526f0f;
+    display: inline-block;
+  }
+
+  .mobile-hud-title {
+    margin: 0 0 3px 0;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    font-size: clamp(28px, 7.5vw, 36px);
+    letter-spacing: 0.05em;
+    line-height: 1;
+    color: #181716;
+  }
+
+  .mobile-hud-accent {
+    color: #b14d28;
+  }
+
+  .mobile-hud-subtitle {
+    margin: 0 0 8px 0;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #78746c;
+    text-transform: uppercase;
+  }
+
+  .mobile-hud-telemetry {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .mobile-tel-pill {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #58544e;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(45, 40, 35, 0.14);
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  /* Center Stage Spacer for the 3D rotating Drone */
+  .mobile-drone-stage-spacer {
+    flex: 1;
+    min-height: 200px;
+    width: 100%;
+  }
+
+  /* Bottom HUD */
+  .mobile-hud-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 360px;
+    pointer-events: auto;
+    gap: 10px;
+  }
+
+  .mobile-hud-card {
+    width: 100%;
+    background: rgba(244, 239, 230, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(45, 40, 35, 0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 8px 24px rgba(24, 23, 22, 0.08);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mobile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    color: #78746c;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed rgba(45, 40, 35, 0.18);
+  }
+
+  .mobile-card-status {
+    color: #526f0f;
+    font-weight: 700;
+  }
+
+  .mobile-hud-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .mobile-btn-launch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: #181716;
+    color: #f7f2e8;
+    border: 1px solid #181716;
+    border-radius: 6px;
+    padding: 11px 14px;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(24, 23, 22, 0.22);
+    transition: all 0.16s ease;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .mobile-btn-launch:active {
+    transform: scale(0.98);
+    background-color: #2b2825;
+  }
+
+  .mobile-btn-pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #d35623;
+    box-shadow: 0 0 6px #d35623;
+    display: inline-block;
+  }
+
+  .mobile-btn-commander {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background-color: rgba(255, 255, 255, 0.6);
+    color: #b14d28;
+    border: 1px solid rgba(177, 77, 40, 0.35);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.16s ease;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .mobile-btn-commander:active {
+    transform: scale(0.98);
+    background-color: rgba(177, 77, 40, 0.1);
+  }
+
+  .mobile-hud-bottom .vj-scroll-cue {
+    position: static;
+    transform: none;
+    margin-top: 2px;
   }
 }
 
