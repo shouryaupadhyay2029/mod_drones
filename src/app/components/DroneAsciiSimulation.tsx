@@ -679,14 +679,24 @@ export function DroneAsciiSimulation({
       const cb = Math.round(5   + footerEnter * (26  - 5));   // 5   → 26
       const droneColor = `rgb(${cr},${cg},${cb})`;
 
-      // Flank translation:
-      // Hero: 0vw, 0vh
-      // Escort mode: drifts to right flank (34vw), and in Section 4 (sP > 0.45) glides further to the right margin (38.5vw)
-      // to comfortably clear the operational manual cards and avoid any overlap!
+      // Responsive Grid & Sizing: Adaptive for mobile vs desktop screens
+      const contW = containerRef.current?.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1200);
+      const isMobile = contW <= 768;
+      const isTinyMobile = contW <= 430;
+
+      // Flank translation & scale:
+      // Desktop: drifts 34-38.5vw right, shrinks to 0.35x
+      // Mobile: drifts 14vw right, shrinks gently to 0.72x so it remains clearly visible ("not too big, not too small")
       const section4Shift = Math.min(1.0, Math.max(0, (sP - 0.45) / 0.15));
-      const targetTransX = escortPhase * (34 + section4Shift * 4.5); // vw: 34vw in S2/S3 -> 38.5vw in S4
-      const targetTransY = escortPhase * (29 + sP * 4); // vh: positioned at the level of the scroll cue (~29-33vh)
-      const droneScale = 1.0 - escortPhase * 0.65; // 1.0 -> 0.35 scale
+      const targetTransX = isMobile
+        ? escortPhase * (isTinyMobile ? 14 : 18)
+        : escortPhase * (34 + section4Shift * 4.5);
+      const targetTransY = isMobile
+        ? escortPhase * (28 + sP * 4)
+        : escortPhase * (29 + sP * 4);
+      const droneScale = isMobile
+        ? 1.0 - escortPhase * 0.28 // Mobile: 1.0 -> 0.72 ("not too big, not too small")
+        : 1.0 - escortPhase * 0.65; // Desktop: 1.0 -> 0.35
 
       // Dynamic flying bob & aerodynamic bank wobble while moving
       const flightWobble = Math.sin(currentTime * 0.0035) * (escortPhase > 0.2 ? 5 : 3);
@@ -772,15 +782,11 @@ export function DroneAsciiSimulation({
 
       const allPoints = [...computedBasePoints, ...dynamicProps];
 
-      // Responsive Grid Dimensions: Adaptive for mobile vs desktop screens
-      const contW = containerRef.current?.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1200);
-      const isMobile = contW <= 768;
-      const isTinyMobile = contW <= 430;
-
-      const cols = isTinyMobile ? 52 : isMobile ? 64 : 156;
-      const rows = isTinyMobile ? 34 : isMobile ? 40 : 58;
-      const scaleX = isTinyMobile ? 21 : isMobile ? 32 : 92;
-      const scaleY = isTinyMobile ? 10.5 : isMobile ? 16 : 44;
+      // Sized to ensure 3D rotation and ducted guards never touch the boundary
+      const cols = isTinyMobile ? 54 : isMobile ? 66 : 156;
+      const rows = isTinyMobile ? 36 : isMobile ? 42 : 58;
+      const scaleX = isTinyMobile ? 24 : isMobile ? 36 : 92;
+      const scaleY = isTinyMobile ? 12 : isMobile ? 18 : 44;
       const buffer: string[] = new Array(cols * rows).fill(' ');
       const zBuffer: number[] = new Array(cols * rows).fill(-Infinity);
 
