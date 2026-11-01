@@ -882,9 +882,12 @@
   }
 
   .contact-bird-ascii-stage pre {
-    transform: scale(min(0.78, calc((100vw - 32px) / 460))) !important;
-    transform-origin: center center !important;
+    font-size: 8.5px !important;
+    line-height: 8.5px !important;
+    letter-spacing: 0.2px !important;
     white-space: pre !important;
+    margin: 0 auto !important;
+    transform-origin: center center !important;
   }
 
   /* High-end editorial typography */

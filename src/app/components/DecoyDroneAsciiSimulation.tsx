@@ -334,9 +334,15 @@ export function DecoyDroneAsciiSimulation({
       const targetBank = Math.max(-0.45, Math.min(0.45, naturalBank - scrollDelta * 0.0003));
       bankRef.current += (targetBank - bankRef.current) * 0.12;
 
-      const targetTransX = escortPhase * 36;
-      const targetTransY = escortPhase * 10;
-      const decoyScale = 1.0 - escortPhase * 0.56;
+      const contW = containerRef.current?.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1200);
+      const isMobile = contW <= 768;
+      const isTinyMobile = contW <= 430;
+
+      const targetTransX = isMobile ? 0 : escortPhase * 36;
+      const targetTransY = isMobile ? 0 : escortPhase * 10;
+      const decoyScale = isMobile
+        ? (isTinyMobile ? 0.92 : 0.98)
+        : 1.0 - escortPhase * 0.56;
       const hoverBob = Math.sin(currentTime * 0.0026) * 0.045;
 
       if (preRef.current) {
@@ -416,14 +422,14 @@ export function DecoyDroneAsciiSimulation({
       const allPoints = [...computedBasePoints, ...dynamicPoints];
 
       // --- NON-CLIPPING GRID, CAMERA & Z-BUFFER RENDERING ---
-      const cols = 180;
-      const rows = 64;
+      const cols = isTinyMobile ? 60 : isMobile ? 70 : 180;
+      const rows = isTinyMobile ? 34 : isMobile ? 38 : 64;
       const buffer: string[] = new Array(cols * rows).fill(' ');
       const zBuffer: number[] = new Array(cols * rows).fill(-Infinity);
 
       const distance = 4.6;
-      const scaleX = 96;
-      const scaleY = 46;
+      const scaleX = isTinyMobile ? 30 : isMobile ? 36 : 96;
+      const scaleY = isTinyMobile ? 15 : isMobile ? 18 : 46;
       const pitch = pitchRef.current + hoverBob;
       const yaw = yawRef.current;
       const bank = bankRef.current;
@@ -521,7 +527,7 @@ export function DecoyDroneAsciiSimulation({
         position: 'relative',
         width: '100%',
         height: '100%',
-        minHeight: '420px',
+        minHeight: '220px',
         backgroundColor: 'transparent',
         overflow: 'visible',
         display: 'flex',

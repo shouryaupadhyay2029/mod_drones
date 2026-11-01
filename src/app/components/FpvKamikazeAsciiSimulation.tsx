@@ -323,11 +323,15 @@ export function FpvKamikazeAsciiSimulation({ scrollRootRef }: FpvKamikazeAsciiSi
       const cosR = Math.cos(roll);
       const sinR = Math.sin(roll);
 
-      const cols = 180;
-      const rows = 64;
+      const contW = containerRef.current?.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1200);
+      const isMobile = contW <= 768;
+      const isTinyMobile = contW <= 430;
+
+      const cols = isTinyMobile ? 60 : isMobile ? 70 : 180;
+      const rows = isTinyMobile ? 34 : isMobile ? 38 : 64;
       const distance = 4.5;
-      const scaleX = 98;
-      const scaleY = 46;
+      const scaleX = isTinyMobile ? 31 : isMobile ? 37 : 98;
+      const scaleY = isTinyMobile ? 15 : isMobile ? 18 : 46;
 
       const buffer: string[][] = Array.from({ length: rows }, () => Array(cols).fill(' '));
       const zBuffer: number[][] = Array.from({ length: rows }, () => Array(cols).fill(-Infinity));
@@ -529,10 +533,14 @@ export function FpvKamikazeAsciiSimulation({ scrollRootRef }: FpvKamikazeAsciiSi
     };
   }, [scrollRootRef]);
 
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
+  const isTinyMobile = typeof window !== 'undefined' ? window.innerWidth <= 430 : false;
   const escortPhase = Math.min(1, Math.max(0, scrollProgress / 0.06));
-  const targetTransX = escortPhase * 36;
-  const targetTransY = escortPhase * 10;
-  const fpvScale = 1.0 - escortPhase * 0.56;
+  const targetTransX = isMobile ? 0 : escortPhase * 36;
+  const targetTransY = isMobile ? 0 : escortPhase * 10;
+  const fpvScale = isMobile
+    ? (isTinyMobile ? 0.92 : 0.98)
+    : 1.0 - escortPhase * 0.56;
   const hoverBob = Math.sin(performance.now() * 0.003) * 0.5;
 
   return (
@@ -540,7 +548,7 @@ export function FpvKamikazeAsciiSimulation({ scrollRootRef }: FpvKamikazeAsciiSi
       ref={containerRef}
       className="contact-bird-ascii-wrapper"
       style={{
-        minHeight: '420px',
+        minHeight: isMobile ? '220px' : '420px',
         overflow: 'visible',
         pointerEvents: 'none',
         transform: `translate3d(calc(${targetTransX}vw + 0px), calc(${targetTransY}vh + ${hoverBob * 18}px), 0) scale(${fpvScale.toFixed(3)})`,
