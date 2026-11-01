@@ -855,163 +855,33 @@ a:hover .text-roll-char-bottom,
   }
 }
 
-/* Desktop vs Mobile Hero Content Layer */
-.vj-hero-content-layer {
-  display: none;
-}
-
+/* Mobile 3D ASCII Drone Scaling & Layout */
 @media (max-width: 900px) {
   .hero-drone-layer {
-    opacity: 0.30 !important;
+    opacity: 1 !important;
     pointer-events: none !important;
   }
 
   .ascii-sim-wrapper {
     overflow: hidden !important;
     width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
-  .ascii-sim-wrapper pre {
-    transform: scale(min(0.85, calc((100vw - 20px) / 1060))) !important;
-    transform-origin: center center !important;
+  .drone-ascii-pre {
     white-space: pre !important;
     word-break: normal !important;
     overflow-wrap: normal !important;
     margin: 0 auto !important;
-    max-width: 100vw !important;
   }
+}
 
-  .vj-hero-content-layer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    position: relative;
-    z-index: 15;
-    padding: 24px 16px 60px 16px;
-    max-width: 520px;
-    margin: 0 auto;
-    height: 100%;
-    min-height: calc(100vh - 68px);
-    box-sizing: border-box;
-  }
-
-  .vj-hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: #b14d28;
-    background: rgba(177, 77, 40, 0.08);
-    border: 1px solid rgba(177, 77, 40, 0.22);
-    padding: 4px 10px;
-    border-radius: 20px;
-    margin-bottom: 12px;
-    text-transform: uppercase;
-  }
-
-  .vj-hero-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: #526f0f;
-    box-shadow: 0 0 6px #526f0f;
-    display: inline-block;
-  }
-
-  .vj-hero-title {
-    margin: 0 0 6px 0;
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: clamp(34px, 8.5vw, 48px);
-    letter-spacing: 0.05em;
-    line-height: 1;
-    color: #181716;
-  }
-
-  .vj-hero-title .title-accent {
-    color: #b14d28;
-  }
-
-  .vj-hero-subtitle {
-    margin: 0 0 12px 0;
-    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: #635e57;
-    text-transform: uppercase;
-  }
-
-  .vj-hero-lead {
-    margin: 0 0 20px 0;
-    font-size: 13px;
-    line-height: 1.5;
-    color: #3d3935;
-    max-width: 420px;
-  }
-
-  .vj-hero-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-    max-width: 320px;
-  }
-
-  .vj-btn-hero-launch {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background-color: #181716;
-    color: #f7f2e8;
-    border: 1px solid #181716;
-    border-radius: 8px;
-    padding: 13px 18px;
-    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(24, 23, 22, 0.25);
-    transition: all 0.18s ease;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .vj-btn-hero-launch:active {
-    transform: scale(0.98);
-    background-color: #2b2825;
-  }
-
-  .vj-btn-hero-commander {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background-color: rgba(244, 239, 230, 0.7);
-    color: #b14d28;
-    border: 1.5px solid rgba(177, 77, 40, 0.4);
-    border-radius: 8px;
-    padding: 11px 16px;
-    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-    font-size: 11.5px;
-    font-weight: 800;
-    letter-spacing: 0.05em;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.18s ease;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .vj-btn-hero-commander:active {
-    transform: scale(0.98);
-    background-color: rgba(177, 77, 40, 0.12);
+@media (max-width: 360px) {
+  .drone-ascii-pre {
+    transform: scale(min(1, calc((100vw - 12px) / 320))) !important;
+    transform-origin: center center !important;
   }
 }
 

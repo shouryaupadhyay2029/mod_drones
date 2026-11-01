@@ -772,9 +772,15 @@ export function DroneAsciiSimulation({
 
       const allPoints = [...computedBasePoints, ...dynamicProps];
 
-      // Expanded Grid Dimensions: Full Widescreen Tactical Hero Display
-      const cols = 156;
-      const rows = 58;
+      // Responsive Grid Dimensions: Adaptive for mobile vs desktop screens
+      const contW = containerRef.current?.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1200);
+      const isMobile = contW <= 768;
+      const isTinyMobile = contW <= 430;
+
+      const cols = isTinyMobile ? 48 : isMobile ? 64 : 156;
+      const rows = isTinyMobile ? 38 : isMobile ? 44 : 58;
+      const scaleX = isTinyMobile ? 42 : isMobile ? 54 : 92;
+      const scaleY = isTinyMobile ? 21 : isMobile ? 27 : 44;
       const buffer: string[] = new Array(cols * rows).fill(' ');
       const zBuffer: number[] = new Array(cols * rows).fill(-Infinity);
 
@@ -789,8 +795,6 @@ export function DroneAsciiSimulation({
 
       // Camera projection parameters scaled for wide full-screen presence
       const distance = 3.0;
-      const scaleX = 92;
-      const scaleY = 44;
 
       // 1. Calculate projected coordinates of the 4 rotor hubs for leader lines
       const projectedRotors: Array<{ screenX: number; screenY: number }> = [];
@@ -1330,6 +1334,7 @@ export function DroneAsciiSimulation({
       {/* ASCII Output Display — Pixel-aligned Monospace Canvas */}
       <pre
         ref={preRef}
+        className="drone-ascii-pre"
         style={{
           display: 'inline-block',
           width: 'fit-content',
