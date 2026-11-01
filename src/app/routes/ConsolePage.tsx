@@ -180,6 +180,7 @@ export function ConsolePage(): React.JSX.Element {
                 }
               }
               selectedTrackId={selectedTrackId}
+              track={tracks.find((t) => t.trackId === (view?.eo.lockedTrackId ?? selectedTrackId)) || selectedTrack}
               timeOfDay={view?.environment.timeOfDay}
               weather={view?.environment.weather}
               onLock={lockEoTrack}

@@ -604,3 +604,130 @@
   color: #181716;
   font-weight: 600;
 }
+
+/* ── FLIR EO/IR Targeting Turret & Thermal Camera System ──────────────────── */
+.flir-viewport {
+  position: relative;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: background-color 0.25s ease, height 0.25s ease;
+}
+
+.flir-viewport::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, transparent 40%, rgba(0, 0, 0, 0.45) 100%);
+  z-index: 4;
+}
+
+.flir-viewport::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  z-index: 5;
+  opacity: 0.65;
+}
+
+@keyframes flir-heat-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 3px currentColor) brightness(1);
+    opacity: 0.9;
+  }
+  50% {
+    filter: drop-shadow(0 0 8px currentColor) brightness(1.35);
+    opacity: 1;
+  }
+}
+
+.flir-hot-motor {
+  animation: flir-heat-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes flir-prop-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.flir-spinning-prop {
+  animation: flir-prop-spin 0.08s linear infinite;
+  transform-origin: center center;
+}
+
+/* FLIR PiP Pop-out / Full-Screen Theater Modal */
+.flir-pip-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(10, 9, 8, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: flir-fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.flir-pip-dialog {
+  position: relative;
+  width: min(840px, 95vw);
+  max-height: 92vh;
+  background: #0d1217;
+  border: 1px solid rgba(74, 222, 128, 0.45);
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75), 0 0 32px rgba(74, 222, 128, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.flir-pip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: #131920;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+
+.flir-pip-close {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f7f3eb;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.flir-pip-close:hover {
+  background: rgba(239, 68, 68, 0.4);
+  border-color: #ef4444;
+  color: #fff;
+}
+
+@keyframes flir-fade-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
