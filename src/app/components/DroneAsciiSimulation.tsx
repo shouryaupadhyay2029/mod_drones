@@ -777,10 +777,10 @@ export function DroneAsciiSimulation({
       const isMobile = contW <= 768;
       const isTinyMobile = contW <= 430;
 
-      const cols = isTinyMobile ? 44 : isMobile ? 60 : 156;
-      const rows = isTinyMobile ? 32 : isMobile ? 40 : 58;
-      const scaleX = isTinyMobile ? 30 : isMobile ? 46 : 92;
-      const scaleY = isTinyMobile ? 15 : isMobile ? 23 : 44;
+      const cols = isTinyMobile ? 52 : isMobile ? 64 : 156;
+      const rows = isTinyMobile ? 34 : isMobile ? 40 : 58;
+      const scaleX = isTinyMobile ? 21 : isMobile ? 32 : 92;
+      const scaleY = isTinyMobile ? 10.5 : isMobile ? 16 : 44;
       const buffer: string[] = new Array(cols * rows).fill(' ');
       const zBuffer: number[] = new Array(cols * rows).fill(-Infinity);
 
