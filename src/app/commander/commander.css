@@ -4402,3 +4402,211 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   Commander Debrief Synchronized Flight Review
+   ========================================================================== */
+
+.debrief-replay-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 18px 0 24px;
+  flex-wrap: wrap;
+}
+
+.debrief-replay-btn {
+  background: #f7f3ec;
+  border: 1px solid rgba(45, 40, 35, 0.3);
+  color: #181716;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+  padding: 9px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(24, 23, 22, 0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.debrief-replay-btn:hover {
+  background: #ffffff;
+  border-color: #a83322;
+  color: #a83322;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(168, 51, 34, 0.15);
+}
+
+.debrief-replay-hint {
+  font: 700 9.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.08em;
+  color: #736e65;
+  text-transform: uppercase;
+}
+
+.commander-flight-review-panel {
+  margin-bottom: 28px;
+  padding: 20px 24px 28px;
+  background: #ede6d8;
+  border: 1px solid rgba(45, 40, 35, 0.22);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(45, 40, 35, 0.08);
+  animation: cmd-fade-up 0.35s ease both;
+}
+
+.flight-review-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(45, 40, 35, 0.16);
+  margin-bottom: 18px;
+}
+
+.flight-review-title-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.flight-review-stripe {
+  width: 4px;
+  height: 38px;
+  background: #a83322;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.flight-review-title-wrap h2 {
+  font: 800 15px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.06em;
+  color: #181716;
+  margin: 0;
+}
+
+.flight-review-sub {
+  font: 600 10.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: #645f57;
+  margin: 4px 0 0;
+}
+
+.commander-replay-sector-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.replay-sector-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: rgba(244, 238, 227, 0.7);
+  border: 1px solid rgba(45, 40, 35, 0.22);
+  color: #454035;
+  font: 700 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.replay-sector-tab:hover {
+  background: #ffffff;
+  border-color: #181716;
+  color: #181716;
+}
+
+.replay-sector-tab.is-active {
+  background: #181716;
+  border-color: #181716;
+  color: #f4eee3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.sector-tab-dot {
+  font-size: 8px;
+}
+
+.replay-sector-tab.is-clean .sector-tab-dot { color: #526f0f; }
+.replay-sector-tab.has-damage .sector-tab-dot { color: #ef4444; }
+
+.sector-tab-id {
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+
+.sector-tab-val {
+  color: #d97706;
+  font-weight: 800;
+  font-size: 9px;
+}
+
+.replay-sector-tab.is-active .sector-tab-val {
+  color: #fbbf24;
+}
+
+.sector-tab-badge {
+  font-size: 8px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: 800;
+}
+
+.badge-dmg {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.replay-sector-tab.is-active .badge-dmg {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.badge-ok {
+  background: rgba(82, 111, 15, 0.12);
+  color: #4e660e;
+}
+
+.replay-sector-tab.is-active .badge-ok {
+  background: #526f0f;
+  color: #ffffff;
+}
+
+.commander-replay-body {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.site-action-row {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(45, 40, 35, 0.15);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.site-replay-btn {
+  background: rgba(24, 23, 22, 0.06);
+  border: 1px solid rgba(45, 40, 35, 0.2);
+  color: #181716;
+  font: 800 9.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.site-replay-btn:hover {
+  background: #181716;
+  border-color: #181716;
+  color: #f4eee3;
+}

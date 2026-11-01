@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { CommanderCommand, CommanderSession, RaidPlan, commanderReport } from '../../sim/index.js';
+import { CommanderCommand, CommanderSession, RaidPlan, SessionLog, commanderReport } from '../../sim/index.js';
 import { TextRoll } from '../components/TextRoll.js';
 import { useLenisScrollRoot } from '../hooks/useLenisScrollRoot.js';
 import { saveSetting } from '../storage/db.js';
@@ -70,6 +70,18 @@ export function CommanderPage(): React.JSX.Element {
   const [, setRevision] = useState(0);
   const report = useMemo(() => (session?.isComplete() ? commanderReport(session) : null), [session, session?.tick]);
 
+  const siteSessionLogs = useMemo<Record<string, SessionLog>>(() => {
+    if (!session || !raid) return {};
+    const logs: Record<string, SessionLog> = {};
+    for (const site of raid.sites) {
+      const eng = session.engineForReport(site.id);
+      if (eng) {
+        logs[site.id] = eng.getSessionLog();
+      }
+    }
+    return logs;
+  }, [session, raid, report]);
+
   const start = (plan: RaidPlan, commands: CommanderCommand[], useAutopilot: boolean): void => {
     const active = new CommanderSession(plan);
     active.step(commands);
@@ -106,6 +118,7 @@ export function CommanderPage(): React.JSX.Element {
             report={report}
             raid={raid}
             log={session.getSessionLog()}
+            siteSessionLogs={siteSessionLogs}
             onRestart={() => {
               setSession(null);
               setRaid(null);

@@ -1,5 +1,6 @@
-import React from 'react';
-import { RaidScoreReport, CommanderLog, RaidPlan } from '../../sim/index.js';
+import React, { useState } from 'react';
+import { RaidScoreReport, CommanderLog, RaidPlan, SessionLog } from '../../sim/index.js';
+import { SessionReplay } from '../aar/SessionReplay.js';
 import { CommanderSplitTitle } from './CommanderPage.js';
 
 const CAUSE_LABELS: Record<string, string> = {
@@ -29,18 +30,26 @@ export function CommanderDebrief({
   report,
   raid,
   log,
+  siteSessionLogs,
   onRestart,
 }: {
   report: RaidScoreReport;
   raid: RaidPlan;
   log: CommanderLog;
+  siteSessionLogs?: Record<string, SessionLog>;
   onRestart?: () => void;
 }): React.JSX.Element {
+  const [showSessionReplay, setShowSessionReplay] = useState(false);
+  const [selectedReplaySite, setSelectedReplaySite] = useState<string>(raid.sites[0]?.id ?? 'S1');
+
   const dropped = report.droppedCommands ?? [];
   const gradeKey = (report.grade || 'unsatisfactory').toLowerCase();
 
   const totalDestroyed = report.sites.reduce((acc, s) => acc + s.attackerCostDestroyed, 0);
   const avgDamage = Math.round(report.sites.reduce((acc, s) => acc + s.damagePercent, 0) / Math.max(1, report.sites.length));
+
+  const activeSiteReport = report.sites.find((s) => s.siteId === selectedReplaySite) ?? report.sites[0];
+  const activeSiteLog = siteSessionLogs?.[selectedReplaySite];
 
   return (
     <main className="commander-page commander-debrief">
@@ -97,6 +106,72 @@ export function CommanderDebrief({
           <b>20Hz DETERMINISTIC DOCTRINE V2</b>
         </div>
       </div>
+
+      {/* Flight Review Toggle Bar */}
+      <div className="debrief-replay-bar">
+        <button
+          type="button"
+          className="debrief-replay-btn"
+          onClick={() => setShowSessionReplay((v) => !v)}
+        >
+          {showSessionReplay ? '✕ CLOSE FLIGHT REVIEW' : '▶ OPEN SYNCHRONIZED FLIGHT REVIEW'}
+        </button>
+        <span className="debrief-replay-hint">
+          {showSessionReplay
+            ? `INSPECTING AIRSPACE RECONSTRUCTION // SECTOR ${selectedReplaySite} (GROUND TRUTH VS RADAR SCOPE)`
+            : 'RECONSTRUCT 20HZ DETERMINISTIC FLIGHT PATHS & MULTI-TARGET SENSOR INTERCEPTS'}
+        </span>
+      </div>
+
+      {/* Synchronized Flight Review Panel (if open) */}
+      {showSessionReplay && activeSiteLog && activeSiteReport && (
+        <section className="commander-panel commander-flight-review-panel" aria-label="Synchronized flight review">
+          <div className="flight-review-header">
+            <div className="flight-review-title-wrap">
+              <span className="flight-review-stripe" aria-hidden="true" />
+              <div>
+                <h2>SYNCHRONIZED AIRSPACE RECONSTRUCTION // SECTOR {selectedReplaySite}</h2>
+                <p className="flight-review-sub">Ground Truth vs Trainee Radar Scope · Multi-Target Kinematic Replay</p>
+              </div>
+            </div>
+
+            {/* Sector Selector Tabs */}
+            <div className="commander-replay-sector-tabs" role="tablist" aria-label="Select sector to review">
+              {raid.sites.map((s) => {
+                const sReport = report.sites.find((r) => r.siteId === s.id);
+                const hasDmg = (sReport?.damagePercent ?? 0) > 0;
+                const isSelected = selectedReplaySite === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={isSelected}
+                    className={`replay-sector-tab ${isSelected ? 'is-active' : ''} ${hasDmg ? 'has-damage' : 'is-clean'}`}
+                    onClick={() => setSelectedReplaySite(s.id)}
+                  >
+                    <span className="sector-tab-dot">{hasDmg ? '▲' : '●'}</span>
+                    <span className="sector-tab-id">{s.id}</span>
+                    <span className="sector-tab-name">{s.name.replace('Training Site ', 'SECTOR ')}</span>
+                    <span className="sector-tab-val">{s.valueUnits}V</span>
+                    <span className={`sector-tab-badge ${hasDmg ? 'badge-dmg' : 'badge-ok'}`}>
+                      {sReport?.damagePercent ?? 0}% DMG
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="commander-replay-body">
+            <SessionReplay
+              sessionLog={activeSiteLog}
+              report={activeSiteReport.scoreSessionV2}
+              title={`SECTOR ${selectedReplaySite} // AIRSPACE RECONSTRUCTION`}
+            />
+          </div>
+        </section>
+      )}
 
       {/* 5-Dimension Doctrine Scoring Matrix */}
       <section className="commander-score-grid" aria-label="Tactical evaluation subscores">
@@ -308,6 +383,21 @@ export function CommanderDebrief({
                         Causes: {site.causes.map((cause) => CAUSE_LABELS[cause] ?? cause).join('; ') || 'none'}
                       </p>
                     </div>
+                  </div>
+
+                  <div className="site-action-row">
+                    <button
+                      type="button"
+                      className="site-replay-btn"
+                      onClick={() => {
+                        setSelectedReplaySite(site.siteId);
+                        setShowSessionReplay(true);
+                        const target = document.querySelector('.commander-flight-review-panel') || document.querySelector('.debrief-replay-bar');
+                        target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }}
+                    >
+                      ▶ REPLAY SECTOR {site.siteId} FLIGHT REVIEW
+                    </button>
                   </div>
                 </div>
               </details>
