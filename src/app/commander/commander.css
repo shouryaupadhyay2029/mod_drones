@@ -2390,6 +2390,19 @@
     flex-wrap: wrap;
     font-size: 10px;
   }
+
+  .commander-site-dockets {
+    grid-template-columns: 1fr;
+  }
+
+  .commander-alloc-thead {
+    display: none;
+  }
+
+  .commander-alloc-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }
 
 /* Officer preview stage (Step 1 preview) */

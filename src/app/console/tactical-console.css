@@ -209,6 +209,12 @@
   gap: 7px;
 }
 
+@media (max-width: 768px) {
+  .mil-cues-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .mil-cue-card {
   background: #f7f3eb;
   border: 1px solid rgba(45, 40, 35, 0.12);
