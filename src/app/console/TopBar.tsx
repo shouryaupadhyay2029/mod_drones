@@ -308,11 +308,11 @@ export function TopBar({
         </div>
 
         {/* Center: Luxury Mega-Menu Nav Items */}
-        <div style={styles.navCenter}>
+        <div style={styles.navCenter} className="nav-center-group">
           <a href="#/commander" className="nav-mega-btn" style={{ ...styles.navDirectLink, color: '#b14d28' }}>COMMANDER</a>
           {/* Tab 1: Contact deck */}
           <div
-            className="nav-mega-item anim-curved-slide anim-delay-2"
+            className="nav-mega-item nav-item-contacts anim-curved-slide anim-delay-2"
             onMouseEnter={() => handleDropdownEnter('contacts')}
             onMouseLeave={handleDropdownLeave}
           >
@@ -394,11 +394,11 @@ export function TopBar({
             </div>
           </div>
 
-          <span className="nav-top-divider" style={styles.navDivider}>|</span>
+          <span className="nav-top-divider nav-item-secondary" style={styles.navDivider}>|</span>
 
           {/* Tab 2: Defense Systems */}
           <div
-            className="nav-mega-item anim-curved-slide anim-delay-3"
+            className="nav-mega-item nav-item-secondary anim-curved-slide anim-delay-3"
             onMouseEnter={() => handleDropdownEnter('systems')}
             onMouseLeave={handleDropdownLeave}
           >
@@ -534,12 +534,12 @@ export function TopBar({
             </div>
           </div>
 
-          <span className="nav-top-divider" style={styles.navDivider}>|</span>
-          <span style={styles.brandName} className="anim-curved-slide anim-delay-3">VAJRA</span>
+          <span className="nav-top-divider nav-item-secondary" style={styles.navDivider}>|</span>
+          <span style={styles.brandName} className="nav-item-secondary anim-curved-slide anim-delay-3">VAJRA</span>
 
           {/* Tab 3: Threat Intel */}
           <div
-            className="nav-mega-item anim-curved-slide anim-delay-4"
+            className="nav-mega-item nav-item-secondary anim-curved-slide anim-delay-4"
             onMouseEnter={() => handleDropdownEnter('intel')}
             onMouseLeave={handleDropdownLeave}
           >
@@ -681,16 +681,16 @@ export function TopBar({
             </div>
           </div>
 
-          <span className="nav-top-divider" style={styles.navDivider}>|</span>
+          <span className="nav-top-divider nav-item-secondary" style={styles.navDivider}>|</span>
 
           {/* Tab 4: Diagnostics Direct Link */}
-          <div className="nav-mega-item anim-curved-slide anim-delay-5">
+          <div className="nav-mega-item nav-item-secondary anim-curved-slide anim-delay-5">
             <a href="#/check" style={styles.navDirectLink}>
               <span>Diagnostics</span>
               <span style={{ fontSize: '10px', color: '#d4ff3f' }}>↗</span>
             </a>
           </div>
-          <div className="nav-mega-item anim-curved-slide anim-delay-5">
+          <div className="nav-mega-item nav-item-secondary anim-curved-slide anim-delay-5">
             <a href="#/aar" style={styles.navDirectLink} aria-label="Open after action review dashboard">
               <span>AAR</span>
               <span style={{ fontSize: '10px', color: '#d4ff3f' }}>↗</span>
@@ -699,7 +699,7 @@ export function TopBar({
         </div>
 
         {/* Right: Audio toggle + Setup Launch Button */}
-        <div style={styles.navRight}>
+        <div style={styles.navRight} className="nav-right-cluster">
           {/* Audio toggle — always visible, muted by default (browser autoplay policy) */}
           <button
             onClick={toggleMute}
@@ -728,16 +728,26 @@ export function TopBar({
             {isMuted ? <IconMute /> : <IconVolume />}
           </button>
           {phase === 'setup' && (
-            <div style={styles.setupNavRight} className="anim-curved-slide anim-delay-5">
+            <>
+              <div style={styles.setupNavRight} className="setup-nav-desktop anim-curved-slide anim-delay-5">
+                <button
+                  id="btn-nav-launch-mission"
+                  className="nav-launch-cta-transparent"
+                  onClick={() => openBriefingModal()}
+                  title="Launch Mission Simulator"
+                >
+                  <TextRoll center stagger={0.02}>LAUNCH MISSION</TextRoll>
+                </button>
+              </div>
               <button
-                id="btn-nav-launch-mission"
-                className="nav-launch-cta-transparent"
+                type="button"
+                className="nav-mobile-launch-pill"
                 onClick={() => openBriefingModal()}
-                title="Launch Mission Simulator"
+                title="Launch Air Defense Mission"
               >
-                <TextRoll center stagger={0.02}>LAUNCH MISSION</TextRoll>
+                ▶ LAUNCH
               </button>
-            </div>
+            </>
           )}
         </div>
       </nav>

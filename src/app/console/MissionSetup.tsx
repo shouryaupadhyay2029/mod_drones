@@ -275,8 +275,35 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
         <DroneHeroSection />
       </div>
 
-      {/* 2. Scroll Spacer for the Hero view so page starts at the top */}
+      {/* 2. Scroll Spacer for the Hero view with Mobile Tactical Launch Card */}
       <div className="mission-hero-backdrop" style={styles.heroScrollSpacer}>
+        <div className="vj-hero-content-layer">
+          <div className="vj-hero-badge">
+            <span className="vj-hero-dot" />
+            <span>01 // SOVEREIGN C-UAS TACTICAL TRAINER</span>
+          </div>
+          <h1 className="vj-hero-title">
+            PROJECT <span className="title-accent">VAJRA</span>
+          </h1>
+          <p className="vj-hero-subtitle">AUTONOMOUS COUNTER-DRONE SIMULATOR</p>
+          <p className="vj-hero-lead">
+            20 Hz deterministic air defense platform simulating Pulse-Doppler radar degradation,
+            passive RF direction finding, and contested multi-site DDIL command.
+          </p>
+          <div className="vj-hero-actions">
+            <button
+              type="button"
+              className="vj-btn-hero-launch"
+              onClick={() => setIsModalOpen(true)}
+            >
+              ▶ LAUNCH AIR DEFENSE MISSION
+            </button>
+            <a href="#/commander" className="vj-btn-hero-commander">
+              ⚡ THEATRE COMMANDER
+            </a>
+          </div>
+        </div>
+
         <div className="vj-scroll-cue" aria-hidden="true">
           <span>SCROLL</span>
           <i />
