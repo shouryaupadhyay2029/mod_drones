@@ -689,13 +689,13 @@ export function DroneAsciiSimulation({
       // Mobile: drifts 15vw right, descends to 36vh (clear below text) and scales to 0.58x to prevent overlapping words
       const section4Shift = Math.min(1.0, Math.max(0, (sP - 0.45) / 0.15));
       const targetTransX = isMobile
-        ? escortPhase * (isTinyMobile ? 15 : 18)
+        ? escortPhase * (isTinyMobile ? 22 : 24)
         : escortPhase * (34 + section4Shift * 4.5);
       const targetTransY = isMobile
-        ? escortPhase * (36 + sP * 2)
+        ? escortPhase * (43 + sP * 3)
         : escortPhase * (29 + sP * 4);
       const droneScale = isMobile
-        ? 1.0 - escortPhase * 0.42 // Mobile: 1.0 -> 0.58 (clears text, perfectly proportioned)
+        ? 1.0 - escortPhase * 0.56 // Mobile: 1.0 -> 0.44 (clears text, perfectly proportioned)
         : 1.0 - escortPhase * 0.65; // Desktop: 1.0 -> 0.35
 
       // Dynamic flying bob & aerodynamic bank wobble while moving
