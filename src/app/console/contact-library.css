@@ -141,13 +141,16 @@
   position: fixed;
   z-index: 20;
   display: grid;
-  width: 96px;
-  height: 96px;
+  width: 36px;
+  height: 36px;
   place-items: center;
   border-radius: 50%;
   color: #fff;
-  background: #ff2938;
-  box-shadow: 0 12px 32px rgba(42, 10, 10, 0.25);
+  background: rgba(255, 41, 56, 0.9);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 16px rgba(255, 41, 56, 0.45);
   transform: translate(-50%, -50%);
   animation: contact-cursor-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: left, top;
@@ -155,12 +158,25 @@
 }
 
 .contact-hover-cursor svg {
-  width: 26px;
-  height: 26px;
+  width: 16px;
+  height: 16px;
   stroke: currentColor;
   stroke-width: 3.2;
   stroke-linecap: square;
   stroke-linejoin: miter;
+}
+
+@media (hover: none), (pointer: coarse), (max-width: 768px) {
+  .contact-hover-cursor {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .contact-object-thumb {
+    cursor: pointer !important;
+  }
 }
 
 @keyframes contact-cursor-in {

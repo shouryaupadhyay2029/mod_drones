@@ -219,6 +219,15 @@ export function ContactReferencePage({ contact, onBack }: ContactReferencePagePr
   };
 
   const moveHoverCursor = (event: React.MouseEvent<HTMLElement>, snap = false): void => {
+    if (typeof window !== 'undefined') {
+      const isTouchOrCoarse =
+        window.innerWidth <= 768 ||
+        window.matchMedia('(hover: none), (pointer: coarse)').matches;
+      if (isTouchOrCoarse) {
+        if (cursorVisible) setCursorVisible(false);
+        return;
+      }
+    }
     const overCard = (event.target as HTMLElement).closest('[data-contact-id]');
     if (!overCard && !cursorRef.current) return;
     const target = { x: event.clientX, y: event.clientY };
