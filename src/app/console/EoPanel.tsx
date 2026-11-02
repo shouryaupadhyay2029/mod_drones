@@ -32,6 +32,7 @@ export function EoPanel({
 
   const isLocked = eo.state === 'locked';
   const isSlewing = eo.state === 'slewing';
+  const isTracking = isLocked || selectedTrackId !== null;
   const isNight = timeOfDay === 'night';
   const isTv = eo.channel === 'tv';
   const isNightTv = isTv && isNight;
@@ -39,45 +40,45 @@ export function EoPanel({
   // Active palette configuration
   const activePalette: FlirPalette = isTv ? 'tv' : palette === 'tv' ? 'whot' : palette;
 
-  // Color schemes based on military FLIR thermal standards:
-  // WHOT (White-Hot): Cold dark slate terrain, bright glowing white targets
-  // BHOT (Black-Hot): Light grey thermal terrain, dark silhouette with hot core
-  // NVG: Phosphor green night-vision matrix
-  // TV: Grayscale daylight electro-optical
+  // Military FLIR palettes:
+  // WHOT (White-Hot): Cold slate background, glowing white airframe & hot nacelles
+  // BHOT (Black-Hot): Light thermal background, dark airframe with white-hot motor exhausts
+  // NVG: High-contrast military night-vision phosphor green matrix
+  // TV: Grayscale daylight electro-optical camera
   let viewportBg = '#0c1015';
   let reticleColor = 'rgba(74, 222, 128, 0.45)';
   let silhouetteColor = '#ffffff';
-  let hotSpotColor = '#ff6b35';
+  let hotSpotColor = '#ff5522';
   let hudTextColor = '#4ade80';
 
   if (activePalette === 'whot') {
     viewportBg = '#0a0d11';
     reticleColor = 'rgba(74, 222, 128, 0.55)';
     silhouetteColor = '#ffffff';
-    hotSpotColor = '#ffeedd';
+    hotSpotColor = '#ffffff';
     hudTextColor = '#4ade80';
   } else if (activePalette === 'bhot') {
     viewportBg = '#a8b0b8';
-    reticleColor = 'rgba(20, 24, 28, 0.65)';
+    reticleColor = 'rgba(20, 24, 28, 0.7)';
     silhouetteColor = '#181b20';
     hotSpotColor = '#ffffff';
     hudTextColor = '#111418';
   } else if (activePalette === 'nvg') {
     viewportBg = '#061309';
-    reticleColor = 'rgba(52, 211, 153, 0.6)';
+    reticleColor = 'rgba(52, 211, 153, 0.65)';
     silhouetteColor = '#a7f3d0';
     hotSpotColor = '#ffffff';
     hudTextColor = '#34d399';
   } else {
     // TV mode
     viewportBg = isNightTv ? '#050505' : timeOfDay === 'dusk' ? '#141416' : '#1c1f24';
-    reticleColor = isNightTv ? 'rgba(100, 116, 139, 0.3)' : 'rgba(203, 179, 232, 0.55)';
+    reticleColor = isNightTv ? 'rgba(100, 116, 139, 0.3)' : 'rgba(203, 179, 232, 0.6)';
     silhouetteColor = isNightTv ? '#1e2228' : '#f8fafc';
     hotSpotColor = '#ef4444';
     hudTextColor = isNightTv ? '#64748b' : '#cbb3e8';
   }
 
-  // Telemetry values derived from track (or realistic fallback)
+  // Telemetry values derived from track (or realistic defaults)
   const rangeM = track?.rangeM ?? (isLocked ? 1240 : 0);
   const altM = track?.altitudeM ?? (isLocked ? 75 : 0);
   const brgDeg = track?.bearingDeg ?? (isLocked ? 48 : 0);
@@ -86,9 +87,17 @@ export function EoPanel({
   const isEngaged = track?.engagementStatus === 'engaged';
   const isDropped = track?.state === 'dropped';
 
-  // Degradation blur based on simulation quality score
-  const blurPx = Math.max(0, (1 - eo.quality) * 8);
-  const opacity = Math.max(0.2, eo.quality);
+  // Resolution and atmospheric blur factor
+  // High quality -> 0px blur; Low quality or distant detect -> subtle realistic optical blur
+  const baseBlur = eo.level === 'identify' ? 0 : eo.level === 'recognize' ? 1 : Math.max(1.5, (1 - eo.quality) * 6);
+  const blurPx = baseBlur;
+  const opacity = Math.max(0.35, eo.quality || 0.6);
+
+  // Guarantee that an object model ALWAYS resolves, even at long ranges or before full sensor classification!
+  const effectiveHint: string =
+    (eo.hint && eo.hint !== 'object' ? eo.hint : null) ||
+    (track?.assessedClass && track.assessedClass !== 'unknown' ? track.assessedClass : null) ||
+    (speedMps > 45 ? 'fixed_wing_recon' : 'commercial_quad');
 
   const cyclePalette = () => {
     if (isTv) {
@@ -110,11 +119,21 @@ export function EoPanel({
     else setZoom(1.0);
   };
 
-  // Render the SVG thermal canvas
+  // Render the SVG thermal targeting viewfinder
   const renderTurretCanvas = (width: number, height: number, isExpanded = false) => {
     const cx = width / 2;
     const cy = height / 2;
-    const modelScale = (isExpanded ? 1.6 : 1.0) * zoom;
+
+    // Real-world optical angular scaling:
+    // Drones at 2,000m look like distant heat contacts (~0.45x).
+    // As they approach (1200m -> 600m -> 200m), they physically grow in the viewfinder!
+    const effectiveRange = Math.max(200, rangeM || 1400);
+    const distanceFactor = Math.max(0.42, Math.min(2.2, 1200 / effectiveRange));
+    const modelScale = distanceFactor * zoom * (isExpanded ? 1.6 : 1.05);
+
+    // Target tracking box dimensions scaled to the object
+    const boxW = Math.max(26, Math.min(width * 0.75, 42 * modelScale));
+    const boxH = Math.max(22, Math.min(height * 0.75, 36 * modelScale));
 
     return (
       <svg
@@ -134,11 +153,11 @@ export function EoPanel({
         </defs>
 
         {/* 1. Compass Azimuth Ribbon at top */}
-        <g stroke={reticleColor} strokeWidth="1" opacity="0.6">
-          <line x1={cx - 100} y1="16" x2={cx + 100} y2="16" />
+        <g stroke={reticleColor} strokeWidth="1" opacity="0.65">
+          <line x1={cx - 110} y1="16" x2={cx + 110} y2="16" />
           <line x1={cx - 80} y1="16" x2={cx - 80} y2="11" />
           <line x1={cx - 40} y1="16" x2={cx - 40} y2="13" />
-          <line x1={cx} y1="16" x2={cx} y2="8" strokeWidth="2" stroke={hudTextColor} />
+          <line x1={cx} y1="16" x2={cx} y2="7" strokeWidth="2" stroke={hudTextColor} />
           <line x1={cx + 40} y1="16" x2={cx + 40} y2="13" />
           <line x1={cx + 80} y1="16" x2={cx + 80} y2="11" />
           <text
@@ -155,7 +174,7 @@ export function EoPanel({
         </g>
 
         {/* 2. Pitch Ladder on Left Edge */}
-        <g stroke={reticleColor} strokeWidth="1" opacity="0.5">
+        <g stroke={reticleColor} strokeWidth="1" opacity="0.55">
           <line x1="28" y1={cy - 30} x2="38" y2={cy - 30} />
           <text x="24" y={cy - 28} fill={reticleColor} fontSize="7" fontFamily="monospace" textAnchor="end">+10</text>
           <line x1="24" y1={cy} x2="42" y2={cy} strokeWidth="1.5" stroke={hudTextColor} />
@@ -164,24 +183,47 @@ export function EoPanel({
           <text x="24" y={cy + 33} fill={reticleColor} fontSize="7" fontFamily="monospace" textAnchor="end">-10</text>
         </g>
 
-        {/* 3. Corner Stadiametric Brackets */}
+        {/* 3. Outer Corner Stadiametric Brackets */}
         <path d="M 16 28 L 16 16 L 32 16" stroke={reticleColor} strokeWidth="1.5" fill="none" />
         <path d={`M ${width - 16} 28 L ${width - 16} 16 L ${width - 32} 16`} stroke={reticleColor} strokeWidth="1.5" fill="none" />
         <path d={`M 16 ${height - 28} L 16 ${height - 16} L 32 ${height - 16}`} stroke={reticleColor} strokeWidth="1.5" fill="none" />
         <path d={`M ${width - 16} ${height - 28} L ${width - 16} ${height - 16} L ${width - 32} ${height - 16}`} stroke={reticleColor} strokeWidth="1.5" fill="none" />
 
-        {/* 4. Center Tactical Reticle */}
+        {/* 4. Center Tactical Reticle & Crosshairs */}
         <g stroke={reticleColor} strokeWidth="1">
-          <line x1={cx} y1={cy - 24} x2={cx} y2={cy - 8} />
-          <line x1={cx} y1={cy + 8} x2={cx} y2={cy + 24} />
-          <line x1={cx - 30} y1={cy} x2={cx - 10} y2={cy} />
-          <line x1={cx + 10} y1={cy} x2={cx + 30} y2={cy} />
+          <line x1={cx} y1={cy - 26} x2={cx} y2={cy - 10} />
+          <line x1={cx} y1={cy + 10} x2={cx} y2={cy + 26} />
+          <line x1={cx - 32} y1={cy} x2={cx - 12} y2={cy} />
+          <line x1={cx + 12} y1={cy} x2={cx + 32} y2={cy} />
           <circle cx={cx} cy={cy} r="14" stroke={reticleColor} strokeWidth="0.8" strokeDasharray="3 3" fill="none" />
-          <circle cx={cx} cy={cy} r="2" fill={hudTextColor} />
+          <circle cx={cx} cy={cy} r="1.5" fill={hudTextColor} />
         </g>
 
-        {/* 5. Dynamic Thermal Target Rendering */}
-        {isLocked && eo.hint && !isNightTv && (
+        {/* 5. Dynamic Object Tracking Gate & Stadiametric Lock Box */}
+        {isTracking && !isNightTv && (
+          <g stroke={isLocked ? hudTextColor : 'rgba(251, 191, 36, 0.6)'} strokeWidth="1.2" fill="none">
+            {/* Dynamic Bounding Box Brackets */}
+            <path d={`M ${cx - boxW / 2} ${cy - boxH / 2 + 8} L ${cx - boxW / 2} ${cy - boxH / 2} L ${cx - boxW / 2 + 8} ${cy - boxH / 2}`} />
+            <path d={`M ${cx + boxW / 2 - 8} ${cy - boxH / 2} L ${cx + boxW / 2} ${cy - boxH / 2} L ${cx + boxW / 2} ${cy - boxH / 2 + 8}`} />
+            <path d={`M ${cx - boxW / 2} ${cy + boxH / 2 - 8} L ${cx - boxW / 2} ${cy + boxH / 2} L ${cx - boxW / 2 + 8} ${cy + boxH / 2}`} />
+            <path d={`M ${cx + boxW / 2 - 8} ${cy + boxH / 2} L ${cx + boxW / 2} ${cy + boxH / 2} L ${cx + boxW / 2} ${cy + boxH / 2 - 8}`} />
+
+            {/* Target ID and Range Tag on Gate */}
+            <text
+              x={cx - boxW / 2}
+              y={cy - boxH / 2 - 4}
+              fill={isLocked ? hudTextColor : '#fbbf24'}
+              fontSize="7"
+              fontFamily="monospace"
+              fontWeight="bold"
+            >
+              {isLocked ? `AUTO-TRK [T${eo.lockedTrackId ?? selectedTrackId}]` : `SLEW [T${selectedTrackId}]`}
+            </text>
+          </g>
+        )}
+
+        {/* 6. Dynamic Thermal Target Rendering (Visible Whenever Locked or Selected!) */}
+        {isTracking && !isNightTv && (
           <g
             style={{
               filter: blurPx > 0 ? `blur(${blurPx.toFixed(1)}px)` : undefined,
@@ -202,10 +244,10 @@ export function EoPanel({
                 </text>
               </g>
             ) : (
-              /* Live Flying Target with Spinning Rotors & Hotspots */
+              /* Live Flying Target with Dynamic Distance Scaling, Spinning Rotors & Hotspots */
               <g transform={`translate(${cx}, ${cy}) scale(${modelScale})`}>
-                {/* Quadcopter / Multirotor Target */}
-                {(eo.hint === 'commercial_quad' || eo.hint === 'multirotor') && (
+                {/* A. Quadcopter / Commercial Multirotor Target */}
+                {(effectiveHint === 'commercial_quad' || effectiveHint === 'multirotor') && (
                   <g fill={silhouetteColor} stroke={silhouetteColor}>
                     {/* Fuselage Core */}
                     <rect x="-10" y="-10" width="20" height="20" rx="4" />
@@ -225,15 +267,15 @@ export function EoPanel({
                     <circle cx="26" cy="26" r="3.5" fill={hotSpotColor} className="flir-hot-motor" />
 
                     {/* 4 High-Speed Spinning Rotor Heat Discs */}
-                    <ellipse cx="-26" cy="-26" rx="14" ry="4.5" fill="none" strokeWidth="1.2" strokeOpacity="0.6" className="flir-spinning-prop" />
-                    <ellipse cx="26" cy="-26" rx="14" ry="4.5" fill="none" strokeWidth="1.2" strokeOpacity="0.6" className="flir-spinning-prop" />
-                    <ellipse cx="-26" cy="26" rx="14" ry="4.5" fill="none" strokeWidth="1.2" strokeOpacity="0.6" className="flir-spinning-prop" />
-                    <ellipse cx="26" cy="26" rx="14" ry="4.5" fill="none" strokeWidth="1.2" strokeOpacity="0.6" className="flir-spinning-prop" />
+                    <ellipse cx="-26" cy="-26" rx="14" ry="4.5" fill="none" strokeWidth="1.2" strokeOpacity="0.65" className="flir-spinning-prop" />
+                    <ellipse cx="26" cy="-26" rx="14" ry="4.5" fill="none" strokeWidth="1.2" strokeOpacity="0.65" className="flir-spinning-prop" />
+                    <ellipse cx="-26" cy="26" rx="14" ry="4.5" fill="none" strokeWidth="1.2" strokeOpacity="0.65" className="flir-spinning-prop" />
+                    <ellipse cx="26" cy="26" rx="14" ry="4.5" fill="none" strokeWidth="1.2" strokeOpacity="0.65" className="flir-spinning-prop" />
                   </g>
                 )}
 
-                {/* FPV Kamikaze / Fiber Attack Drone */}
-                {(eo.hint === 'fpv_kamikaze' || eo.hint === 'fpv_fiber') && (
+                {/* B. FPV Kamikaze / Fiber Attack Drone */}
+                {(effectiveHint === 'fpv_kamikaze' || effectiveHint === 'fpv_fiber') && (
                   <g fill={silhouetteColor} stroke={silhouetteColor}>
                     {/* Warhead Nose Cone (Red/Heat Alert) */}
                     <circle cx="0" cy="-14" r="3.5" fill="#ef4444" />
@@ -247,27 +289,32 @@ export function EoPanel({
                     <line x1="5" y1="8" x2="22" y2="18" strokeWidth="2.2" />
 
                     {/* High-RPM Racing Prop Discs */}
-                    <ellipse cx="-22" cy="-18" rx="8" ry="3" fill="none" strokeWidth="1" strokeOpacity="0.7" className="flir-spinning-prop" />
-                    <ellipse cx="22" cy="-18" rx="8" ry="3" fill="none" strokeWidth="1" strokeOpacity="0.7" className="flir-spinning-prop" />
-                    <ellipse cx="-22" cy="18" rx="8" ry="3" fill="none" strokeWidth="1" strokeOpacity="0.7" className="flir-spinning-prop" />
-                    <ellipse cx="22" cy="18" rx="8" ry="3" fill="none" strokeWidth="1" strokeOpacity="0.7" className="flir-spinning-prop" />
+                    <ellipse cx="-22" cy="-18" rx="8" ry="3" fill="none" strokeWidth="1" strokeOpacity="0.75" className="flir-spinning-prop" />
+                    <ellipse cx="22" cy="-18" rx="8" ry="3" fill="none" strokeWidth="1" strokeOpacity="0.75" className="flir-spinning-prop" />
+                    <ellipse cx="-22" cy="18" rx="8" ry="3" fill="none" strokeWidth="1" strokeOpacity="0.75" className="flir-spinning-prop" />
+                    <ellipse cx="22" cy="18" rx="8" ry="3" fill="none" strokeWidth="1" strokeOpacity="0.75" className="flir-spinning-prop" />
+
+                    {/* Trailing Optical Fiber / Antenna Wire */}
+                    {effectiveHint === 'fpv_fiber' && (
+                      <path d="M 0 12 Q 4 24 -2 38 Q 6 52 0 68" stroke="#38bdf8" strokeWidth="0.8" fill="none" opacity="0.8" />
+                    )}
                   </g>
                 )}
 
-                {/* Fixed-Wing / Decoy Drone */}
-                {(eo.hint === 'fixed_wing_recon' || eo.hint === 'fixed_wing' || eo.hint === 'decoy_drone') && (
+                {/* C. Fixed-Wing / Decoy Recon Drone */}
+                {(effectiveHint === 'fixed_wing_recon' || effectiveHint === 'fixed_wing' || effectiveHint === 'decoy_drone') && (
                   <g fill={silhouetteColor} stroke={silhouetteColor}>
                     <ellipse cx="0" cy="0" rx="5" ry="28" />
                     <polygon points="-52,-2 -48,5 0,0 48,5 52,-2 0,-7" />
                     <polygon points="-16,20 -12,24 0,18 12,24 16,20 0,16" />
                     {/* Rear Engine Nozzle Thermal Heat Plume */}
                     <circle cx="0" cy="28" r="4.5" fill={hotSpotColor} className="flir-hot-motor" />
-                    <ellipse cx="0" cy="34" rx="3" ry="7" fill={hotSpotColor} opacity="0.6" filter="url(#flir-glow)" />
+                    <ellipse cx="0" cy="34" rx="3" ry="7" fill={hotSpotColor} opacity="0.65" filter="url(#flir-glow)" />
                   </g>
                 )}
 
-                {/* Biological Contact (Flock of Birds) */}
-                {eo.hint === 'bird' && (
+                {/* D. Biological Contact (Flock of Birds) */}
+                {effectiveHint === 'bird' && (
                   <g fill={silhouetteColor} stroke={silhouetteColor}>
                     <ellipse cx="0" cy="0" rx="4.5" ry="12" />
                     <path d="M 0 -2 Q -24 -20 -42 -9 Q -24 -4 0 2 Q 24 -4 42 -9 Q 24 -20 0 -2" />
@@ -281,7 +328,7 @@ export function EoPanel({
           </g>
         )}
 
-        {/* 6. Night TV High-Noise Alert */}
+        {/* 7. Night TV High-Noise Warning */}
         {isNightTv && (
           <text
             x={cx}
@@ -296,16 +343,16 @@ export function EoPanel({
           </text>
         )}
 
-        {/* 7. Live Telemetry HUD Overlays */}
+        {/* 8. Live Telemetry HUD Overlays */}
         {/* Top-Left: Sensor Status */}
         <text x="14" y="32" fill={hudTextColor} fontSize="8" fontFamily="monospace" fontWeight="bold">
           CAM 02 // {activePalette.toUpperCase()}
         </text>
         <text x="14" y="42" fill="rgba(255,255,255,0.6)" fontSize="7" fontFamily="monospace">
-          {eo.state.toUpperCase()} {isLocked ? `[TRK-${eo.lockedTrackId}]` : ''}
+          {eo.state.toUpperCase()} {isTracking ? `[TRK-${eo.lockedTrackId ?? selectedTrackId}]` : '[STANDBY]'}
         </text>
 
-        {/* Top-Right: Zoom & Rate */}
+        {/* Top-Right: Zoom & Atmosphere */}
         <text x={width - 14} y="32" fill={hudTextColor} fontSize="8" fontFamily="monospace" textAnchor="end" fontWeight="bold">
           MAG: {zoom.toFixed(1)}X
         </text>
@@ -313,7 +360,7 @@ export function EoPanel({
           ATMOS: {weather.toUpperCase()}
         </text>
 
-        {/* Bottom-Left: Target Dynamics */}
+        {/* Bottom-Left: Target Altitude & Real-time Range */}
         <text x="14" y={height - 24} fill="rgba(255,255,255,0.85)" fontSize="8" fontFamily="monospace">
           ALT: {altM > 0 ? `${Math.round(altM)}m MSL` : '--'}
         </text>
@@ -521,7 +568,7 @@ export function EoPanel({
             style={{
               height: '100%',
               borderRadius: '2px',
-              width: `${Math.round(eo.quality * 100)}%`,
+              width: `${Math.round(Math.max(0.15, eo.quality) * 100)}%`,
               backgroundColor:
                 eo.level === 'identify'
                   ? '#34d399'
@@ -539,7 +586,7 @@ export function EoPanel({
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
           <span className="mil-cue-label">SENSOR HINT:</span>
           <span style={{ color: '#181716', fontWeight: 800 }}>
-            {eo.hint ? eo.hint.replace(/_/g, ' ').toUpperCase() : 'NO RESOLUTION'}
+            {effectiveHint.replace(/_/g, ' ').toUpperCase()}
           </span>
         </div>
       </div>
@@ -607,12 +654,12 @@ export function EoPanel({
             <div
               className="flir-viewport"
               style={{
-                height: '420px',
+                height: '460px',
                 backgroundColor: viewportBg,
                 borderRadius: '0 0 11px 11px',
               }}
             >
-              {renderTurretCanvas(680, 420, true)}
+              {renderTurretCanvas(780, 460, true)}
             </div>
           </div>
         </div>
