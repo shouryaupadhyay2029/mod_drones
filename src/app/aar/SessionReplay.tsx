@@ -36,7 +36,7 @@ function eventLabel(event: { type: string; payload: Record<string, unknown> }): 
   return `${event.type.replaceAll('_', ' ')} ${String(id)}`.trim();
 }
 
-function formatClassLabel(classId: string): string {
+export function formatClassLabel(classId: string): string {
   switch (classId) {
     case 'fpv_kamikaze':
       return 'FPV Kamikaze Strike';
@@ -57,6 +57,232 @@ function formatClassLabel(classId: string): string {
   }
 }
 
+export interface ContactActionSummary {
+  finalState: 'neutralized' | 'impacted' | 'left_area' | 'active';
+  assessedClass: string | null;
+  effectorUsed: 'gun' | 'jammer' | 'missile' | 'multiple' | 'none';
+  actionShort: string;
+  explanation: string;
+  tone: 'good' | 'warn' | 'bad';
+}
+
+export function summarizeContactAction(params: {
+  actorId: number;
+  classId: string;
+  currentOrFinalState?: 'neutralized' | 'impacted' | 'left_area' | 'active';
+  reportContact?: ScoreReportV2['perContact'][number];
+  tracks?: ReplayFrame['tracks'];
+  events?: ReplayFrame['events'];
+}): ContactActionSummary {
+  const { actorId, classId, currentOrFinalState, reportContact, tracks = [], events = [] } = params;
+  const actorTracks = tracks.filter((t) => t.actorId === actorId);
+  const assessedFromTrack =
+    actorTracks.find((t) => t.assessedClass && t.assessedClass !== 'unknown')?.assessedClass ??
+    reportContact?.assessedClass ??
+    null;
+
+  const engageEvents = events.filter(
+    (e) =>
+      e.type === 'ENGAGEMENT_STARTED' &&
+      (e.payload?.actorId === actorId || actorTracks.some((t) => t.trackId === e.payload?.trackId))
+  );
+  const noEffectEvents = events.filter(
+    (e) =>
+      (e.type === 'NO_EFFECT' ||
+        (e.type === 'ENGAGEMENT_RESOLVED' && e.payload?.result === 'no_effect')) &&
+      (e.payload?.actorId === actorId || actorTracks.some((t) => t.trackId === e.payload?.trackId))
+  );
+
+  const effectorSet = new Set<string>();
+  for (const ev of engageEvents) {
+    if (typeof ev.payload?.effector === 'string') {
+      effectorSet.add(ev.payload.effector);
+    }
+  }
+
+  const fitNode = reportContact?.decisionPath.find((n) => n.id === 'effector_fit');
+  const roeNode = reportContact?.decisionPath.find((n) => n.id === 'rules_of_engagement');
+  const outcomeNode = reportContact?.decisionPath.find((n) => n.id === 'outcome');
+
+  if (effectorSet.size === 0 && fitNode?.answer?.startsWith('Engaged with ')) {
+    const eff = fitNode.answer.replace('Engaged with ', '').trim().toLowerCase();
+    if (eff === 'gun' || eff === 'jammer' || eff === 'missile') {
+      effectorSet.add(eff);
+    }
+  }
+
+  let effectorUsed: ContactActionSummary['effectorUsed'] = 'none';
+  if (effectorSet.size > 1) {
+    effectorUsed = 'multiple';
+  } else if (effectorSet.has('jammer')) {
+    effectorUsed = 'jammer';
+  } else if (effectorSet.has('gun')) {
+    effectorUsed = 'gun';
+  } else if (effectorSet.has('missile')) {
+    effectorUsed = 'missile';
+  } else if (roeNode?.cause === 'engaged_neutral') {
+    effectorUsed = 'gun';
+  }
+
+  let finalState: ContactActionSummary['finalState'] = currentOrFinalState ?? 'left_area';
+  if (!currentOrFinalState || currentOrFinalState === 'active') {
+    if (outcomeNode?.answer?.startsWith('Neutralised')) {
+      finalState = 'neutralized';
+    } else if (outcomeNode?.answer === 'Reached asset') {
+      finalState = 'impacted';
+    } else if (roeNode?.cause === 'engaged_neutral') {
+      finalState = 'neutralized';
+    }
+  }
+
+  const isHostile =
+    classId === 'fpv_kamikaze' || classId === 'fpv_fiber' || classId === 'fixed_wing_recon';
+  const isDecoy = classId === 'decoy_drone';
+
+  const weaponText =
+    effectorUsed === 'jammer'
+      ? 'Jammed Signal'
+      : effectorUsed === 'gun'
+        ? 'Shot (30mm Gun)'
+        : effectorUsed === 'missile'
+          ? 'Fired Missile'
+          : effectorUsed === 'multiple'
+            ? 'Jammed + Shot Gun'
+            : isHostile
+              ? 'No Action Taken'
+              : 'Held Fire';
+
+  if (isDecoy) {
+    if (effectorUsed !== 'none') {
+      return {
+        finalState,
+        assessedClass: assessedFromTrack,
+        effectorUsed,
+        actionShort: weaponText,
+        explanation:
+          effectorUsed === 'jammer'
+            ? 'Mistake: Used jammer on a fake decoy drone'
+            : effectorUsed === 'missile'
+              ? 'Mistake: Wasted missile on a fake decoy drone'
+              : 'Mistake: Fired shots at a fake decoy drone (wasted ammo)',
+        tone: 'bad',
+      };
+    }
+    return {
+      finalState,
+      assessedClass: assessedFromTrack,
+      effectorUsed: 'none',
+      actionShort: 'Held Fire',
+      explanation: 'Correct: Ignored decoy lure & saved ammunition',
+      tone: 'good',
+    };
+  }
+
+  if (!isHostile) {
+    const targetName =
+      classId === 'bird' ? 'bird' : classId === 'commercial_quad' ? 'civilian drone' : 'clutter';
+    if (effectorUsed !== 'none') {
+      return {
+        finalState,
+        assessedClass: assessedFromTrack,
+        effectorUsed,
+        actionShort: weaponText,
+        explanation:
+          effectorUsed === 'jammer'
+            ? `ROE Mistake: Jammed a non-hostile ${targetName}`
+            : `ROE Mistake: Fired shots at a non-hostile ${targetName}`,
+        tone: 'bad',
+      };
+    }
+    return {
+      finalState,
+      assessedClass: assessedFromTrack,
+      effectorUsed: 'none',
+      actionShort: 'Held Fire',
+      explanation: `Correct: Held fire on non-hostile ${targetName}`,
+      tone: 'good',
+    };
+  }
+
+  if (finalState === 'neutralized') {
+    const firedUnclassified = fitNode?.cause === 'engaged_unclassified';
+    if (effectorUsed === 'jammer') {
+      return {
+        finalState,
+        assessedClass: assessedFromTrack,
+        effectorUsed,
+        actionShort: weaponText,
+        explanation: firedUnclassified
+          ? 'Jammed signal & stopped threat (but engaged before classifying)'
+          : 'Correct: Jammed control signal & stopped threat',
+        tone: firedUnclassified ? 'warn' : 'good',
+      };
+    }
+    if (effectorUsed === 'missile') {
+      return {
+        finalState,
+        assessedClass: assessedFromTrack,
+        effectorUsed,
+        actionShort: weaponText,
+        explanation: 'Threat destroyed, but missile was high-cost overkill',
+        tone: 'warn',
+      };
+    }
+    return {
+      finalState,
+      assessedClass: assessedFromTrack,
+      effectorUsed,
+      actionShort: weaponText,
+      explanation: firedUnclassified
+        ? 'Shot down threat (but fired before classifying target)'
+        : classId === 'fpv_fiber'
+          ? 'Correct: Shot down wire-guided FPV with 30mm Gun'
+          : 'Correct: Shot down hostile threat before impact',
+      tone: firedUnclassified ? 'warn' : 'good',
+    };
+  }
+
+  if (effectorUsed === 'none') {
+    return {
+      finalState,
+      assessedClass: assessedFromTrack,
+      effectorUsed: 'none',
+      actionShort: 'No Action Taken',
+      explanation:
+        finalState === 'impacted'
+          ? 'Mistake: Base never shot or jammed — threat hit base'
+          : 'Mistake: Hostile drone passed without being engaged',
+      tone: 'bad',
+    };
+  }
+
+  if (
+    effectorUsed === 'jammer' &&
+    (classId === 'fpv_fiber' || noEffectEvents.length > 0 || fitNode?.cause === 'wrong_effector')
+  ) {
+    return {
+      finalState,
+      assessedClass: assessedFromTrack,
+      effectorUsed,
+      actionShort: 'Jammed Signal (No Effect)',
+      explanation: 'Mistake: Wire-guided/RF-immune drone cannot be jammed (use Gun)',
+      tone: 'bad',
+    };
+  }
+
+  return {
+    finalState,
+    assessedClass: assessedFromTrack,
+    effectorUsed,
+    actionShort: `${weaponText} (Missed)`,
+    explanation:
+      finalState === 'impacted'
+        ? `Mistake: ${effectorUsed === 'jammer' ? 'Jammed' : 'Fired'} too late or missed — threat hit base`
+        : `Mistake: ${effectorUsed === 'jammer' ? 'Jammer' : 'Shots'} failed to stop hostile threat`,
+    tone: 'bad',
+  };
+}
+
 export function SessionReplay({
   sessionLog,
   report,
@@ -71,6 +297,29 @@ export function SessionReplay({
   comparisonLog?: SessionLog;
 }): React.JSX.Element {
   const replay = useMemo(() => createReplay(sessionLog), [sessionLog]);
+  const finalFrame = useMemo(() => {
+    const end = replay.seek(replay.totalTicks);
+    replay.seek(0);
+    return end;
+  }, [replay]);
+  const contactSummaryById = useMemo(() => {
+    const map = new Map<number, ContactActionSummary>();
+    for (const actor of finalFrame.actors) {
+      const reportContact = report.perContact.find((c) => c.actorId === actor.id);
+      map.set(
+        actor.id,
+        summarizeContactAction({
+          actorId: actor.id,
+          classId: actor.classId,
+          currentOrFinalState: actor.state,
+          reportContact,
+          tracks: finalFrame.tracks,
+          events: finalFrame.events,
+        })
+      );
+    }
+    return map;
+  }, [finalFrame, report]);
   const comparisonReplay = useMemo(() => (comparisonLog ? createReplay(comparisonLog) : null), [comparisonLog]);
   const moments = useMemo(() => keyMoments(report, sessionLog), [report, sessionLog]);
   const terrainGrid = useMemo(() => replay.terrainGrid(250), [replay]);
@@ -583,14 +832,21 @@ export function SessionReplay({
 
         const stateColor = actor.state === 'neutralized' ? '#4ade80' : actor.state === 'impacted' ? '#f87171' : '#38bdf8';
         context.fillStyle = stateColor;
-        context.fillText(`STATUS: ${actor.state.toUpperCase()}`, tagX + 5, tagY + 34);
+        context.fillText(
+          `STATUS: ${actor.state.toUpperCase()}${contactSummaryById.get(actor.id) ? ` · ${contactSummaryById.get(actor.id)!.actionShort.toUpperCase()}` : ''}`,
+          tagX + 5,
+          tagY + 34
+        );
       }
     }
 
     // G. Active Effector Engagements (Jammer Beam / Kinetic Cannon Bursts)
     for (const event of frame.events) {
       if (event.type === 'ENGAGEMENT_STARTED' && event.tick <= frame.tick && frame.tick <= event.tick + 60) {
-        const actor = frame.actors.find((item) => item.id === event.payload.actorId);
+        const targetActorId =
+          event.payload.actorId ??
+          finalFrame.tracks.find((t) => t.trackId === event.payload.trackId)?.actorId;
+        const actor = frame.actors.find((item) => item.id === targetActorId);
         if (actor) {
           const targetScreen = point(actor.pos);
           const isJammer = event.payload.effector === 'jammer';
@@ -617,7 +873,10 @@ export function SessionReplay({
 
       // Detonation / Hit / Breach Markers
       if (['ENGAGEMENT_RESOLVED', 'ASSET_HIT'].includes(event.type) && Math.abs(event.tick - frame.tick) < 30) {
-        const actor = frame.actors.find((item) => item.id === event.payload.actorId);
+        const targetActorId =
+          event.payload.actorId ??
+          finalFrame.tracks.find((t) => t.trackId === event.payload.trackId)?.actorId;
+        const actor = frame.actors.find((item) => item.id === targetActorId);
         const pos = actor?.pos ?? (event.type === 'ASSET_HIT' ? { x: 0, y: 0 } : null);
         if (pos) {
           const s = point(pos);
@@ -969,6 +1228,12 @@ export function SessionReplay({
                   const isSelected = selectedActorId === actor.id;
                   const isHostile = actor.role === 'hostile';
                   const track = frame.tracks.find((t) => t.actorId === actor.id);
+                  const summary = contactSummaryById.get(actor.id);
+                  const displayState = frame.tick === 0 && !playing && summary ? summary.finalState : actor.state;
+                  const effectiveAssessed =
+                    (track?.assessedClass && track.assessedClass !== 'unknown' ? track.assessedClass : null) ??
+                    summary?.assessedClass ??
+                    null;
 
                   return (
                     <div
@@ -986,19 +1251,36 @@ export function SessionReplay({
                           {formatClassLabel(actor.classId)}
                         </span>
                         <span
-                          className={`contact-status-badge status-${actor.state}`}
+                          className={`contact-status-badge status-${displayState}`}
                         >
-                          {actor.state.toUpperCase()}
+                          {displayState.replace('_', ' ').toUpperCase()}
                         </span>
                       </div>
 
+                      {summary && (
+                        <div className={`contact-action-row tone-${summary.tone}`}>
+                          <span className="contact-action-pill">
+                            {summary.effectorUsed === 'jammer'
+                              ? '⚡ '
+                              : summary.effectorUsed === 'gun' || summary.effectorUsed === 'multiple'
+                                ? '💥 '
+                                : summary.effectorUsed === 'missile'
+                                  ? '🚀 '
+                                  : summary.tone === 'good'
+                                    ? '✋ '
+                                    : '⚠️ '}
+                            {summary.actionShort}
+                          </span>
+                          <span className="contact-action-note">{summary.explanation}</span>
+                        </div>
+                      )}
                       <div className="contact-telemetry-row">
                         <span>RNG: {rangeM}m</span>
                         <span>ALT: {Math.round(actor.pos.z)}m</span>
                         <span>
                           EVAL:{' '}
-                          <b style={{ color: track?.assessedClass === actor.classId ? '#15803d' : '#b91c1c' }}>
-                            {track?.assessedClass ? track.assessedClass.toUpperCase() : 'UNASSESSED'}
+                          <b style={{ color: effectiveAssessed === actor.classId ? '#15803d' : '#b91c1c' }}>
+                            {effectiveAssessed ? effectiveAssessed.toUpperCase() : 'UNASSESSED'}
                           </b>
                         </span>
                       </div>

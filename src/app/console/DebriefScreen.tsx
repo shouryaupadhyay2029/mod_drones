@@ -11,7 +11,7 @@ import {
   TraineeEnvironmentView,
 } from '../../sim/index.js';
 import { TextRoll } from '../components/TextRoll.js';
-import { SessionReplay } from '../aar/SessionReplay.js';
+import { SessionReplay, summarizeContactAction } from '../aar/SessionReplay.js';
 import './debrief.css';
 
 function groupPenalties(penalties: Array<{ reason: string; points: number }>): Array<{ reason: string; count: number; total: number }> {
@@ -691,6 +691,7 @@ export function DebriefScreen({
                   <tr>
                     <th>ACTOR</th>
                     <th>TARGET CLASS</th>
+                    <th>BASE ACTION &amp; OUTCOME</th>
                     <th>OBSERVABLE</th>
                     <th>D (DETECT)</th>
                     <th>C (CLASS)</th>
@@ -705,6 +706,17 @@ export function DebriefScreen({
                       c.classId === 'fpv_kamikaze' ||
                       c.classId === 'fpv_fiber' ||
                       c.classId === 'fixed_wing_recon';
+                    const actionSummary = summarizeContactAction({
+                      actorId: c.actorId,
+                      classId: c.classId,
+                      reportContact: c,
+                    });
+                    const toneColor =
+                      actionSummary.tone === 'good'
+                        ? '#1b6d1b'
+                        : actionSummary.tone === 'warn'
+                          ? '#945300'
+                          : '#a31a00';
 
                     return (
                       <React.Fragment key={c.actorId}>
@@ -724,6 +736,16 @@ export function DebriefScreen({
                             }}
                           >
                             {c.classId.toUpperCase()}
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <strong style={{ color: toneColor, fontSize: '10.5px' }}>
+                                {actionSummary.actionShort} · {actionSummary.finalState.replace('_', ' ').toUpperCase()}
+                              </strong>
+                              <span style={{ color: '#58544e', fontSize: '9.5px' }}>
+                                {actionSummary.explanation}
+                              </span>
+                            </div>
                           </td>
                           <td>
                             <span className={`debrief-pill ${c.observable ? 'debrief-pill-accent' : ''}`}>
@@ -746,7 +768,7 @@ export function DebriefScreen({
                         {/* Expanded Decision Path */}
                         {isExpanded && (
                           <tr>
-                            <td colSpan={7} style={{ padding: 0 }}>
+                            <td colSpan={8} style={{ padding: 0 }}>
                               <div className="debrief-decision-box">
                                 <h4 className="debrief-decision-title">
                                   Decision Tree Trace — Actor #{c.actorId} ({c.classId.toUpperCase()})

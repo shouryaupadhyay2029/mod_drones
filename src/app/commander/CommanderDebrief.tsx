@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { RaidScoreReport, CommanderLog, RaidPlan, SessionLog } from '../../sim/index.js';
-import { SessionReplay } from '../aar/SessionReplay.js';
+import { SessionReplay, summarizeContactAction, formatClassLabel } from '../aar/SessionReplay.js';
 import { CommanderSplitTitle } from './CommanderPage.js';
 
 const CAUSE_LABELS: Record<string, string> = {
@@ -384,6 +384,90 @@ export function CommanderDebrief({
                       </p>
                     </div>
                   </div>
+
+                  {site.scoreSessionV2.perContact.length > 0 && (
+                    <div
+                      style={{
+                        marginTop: '10px',
+                        padding: '8px 10px',
+                        background: 'rgba(24, 23, 22, 0.035)',
+                        border: '1px solid rgba(45, 40, 35, 0.14)',
+                        borderRadius: '5px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '9px',
+                          fontWeight: 800,
+                          fontFamily: 'monospace',
+                          letterSpacing: '0.08em',
+                          color: '#58544e',
+                          marginBottom: '6px',
+                        }}
+                      >
+                        SITE ACTION BY CONTACT (THREAT VS DECOY / NEUTRAL):
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {site.scoreSessionV2.perContact.map((contact) => {
+                          const summary = summarizeContactAction({
+                            actorId: contact.actorId,
+                            classId: contact.classId,
+                            reportContact: contact,
+                          });
+                          const statusBadgeColor =
+                            summary.finalState === 'neutralized'
+                              ? '#15803d'
+                              : summary.finalState === 'impacted'
+                                ? '#b91c1c'
+                                : '#475569';
+                          const toneColor =
+                            summary.tone === 'good'
+                              ? '#166534'
+                              : summary.tone === 'warn'
+                                ? '#92400e'
+                                : '#991b1b';
+
+                          return (
+                            <div
+                              key={contact.actorId}
+                              style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontSize: '10px',
+                                fontFamily: 'monospace',
+                                padding: '4px 6px',
+                                background: '#ffffff',
+                                borderRadius: '3px',
+                                borderLeft: `3px solid ${toneColor}`,
+                              }}
+                            >
+                              <strong style={{ color: '#181716', minWidth: '155px' }}>
+                                T{contact.actorId} · {formatClassLabel(contact.classId)}
+                              </strong>
+                              <span
+                                style={{
+                                  fontSize: '8.5px',
+                                  fontWeight: 800,
+                                  color: statusBadgeColor,
+                                  background: 'rgba(0,0,0,0.04)',
+                                  padding: '1px 5px',
+                                  borderRadius: '2px',
+                                }}
+                              >
+                                {summary.finalState.replace('_', ' ').toUpperCase()}
+                              </span>
+                              <span style={{ fontWeight: 800, color: toneColor }}>
+                                [{summary.actionShort}]
+                              </span>
+                              <span style={{ color: '#3f3b36' }}>{summary.explanation}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="site-action-row">
                     <button
