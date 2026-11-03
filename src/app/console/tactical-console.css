@@ -664,7 +664,19 @@
 }
 
 .flir-spinning-prop {
-  animation: flir-prop-spin 0.08s linear infinite;
+  animation: flir-prop-spin 0.12s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center center;
+}
+
+@keyframes flir-wing-beat {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  50% { transform: scaleY(0.68) translateY(2px); }
+}
+
+.flir-wing-flap {
+  animation: flir-wing-beat 0.55s ease-in-out infinite;
+  transform-box: fill-box;
   transform-origin: center center;
 }
 

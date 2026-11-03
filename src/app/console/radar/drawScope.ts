@@ -21,8 +21,11 @@ export function getAssessedColor(assessedClass?: string): string {
   if (assessedClass === 'commercial_quad') {
     return '#f59e0b'; // Tactical amber for civilian drones
   }
-  if (assessedClass === 'fpv_kamikaze' || assessedClass === 'fixed_wing_recon') {
+  if (assessedClass === 'fpv_kamikaze' || assessedClass === 'fixed_wing_recon' || assessedClass === 'fpv_fiber') {
     return '#ef4444'; // Tactical Crimson for hostile UAV/FPVs
+  }
+  if (assessedClass === 'decoy_drone') {
+    return '#eab308'; // Warning amber for decoy drone
   }
   if (assessedClass === 'clutter') {
     return '#64748b'; // Muted slate for terrain/weather clutter
@@ -38,13 +41,82 @@ export function getAssessedAbbr(assessedClass?: string): string {
       return 'QUAD';
     case 'fpv_kamikaze':
       return 'FPV';
+    case 'fpv_fiber':
+      return 'F-FPV';
     case 'fixed_wing_recon':
       return 'UAV';
+    case 'decoy_drone':
+      return 'DECOY';
     case 'clutter':
       return 'CLUT';
     default:
       return '';
   }
+}
+
+export function inferScopeAirframe(track: TraineeTrack): string {
+  if (track.assessedClass && track.assessedClass !== 'unknown') {
+    return track.assessedClass;
+  }
+  const speed = track.speedMps ?? 0;
+  const alt = track.altitudeM ?? 0;
+  const rcs = track.rcsBucket;
+  const rfSig = track.rfSignature;
+  const rfStat = track.rfStatus;
+  const isTerminal = track.terminal_lock === true;
+  const closingRate = track.closingRateMps ?? 0;
+
+  const bearingToAsset = (track.bearingDeg + 180) % 360;
+  let headingError =
+    track.courseDeg !== undefined ? Math.abs(track.courseDeg - bearingToAsset) : 180;
+  if (headingError > 180) headingError = 360 - headingError;
+
+  // 1. Clutter: very low quality & non-moving
+  if (track.quality < 0.25 && (!track.velocityValid || speed < 5)) {
+    return 'clutter';
+  }
+
+  // 2. Avian Biological: tiny RCS (<0.005 m²) is exclusively biological in threat library
+  if (rcs === 'tiny') {
+    return 'bird';
+  }
+
+  // 3. Medium RCS (0.05 m²): Fixed-Wing Recon (high alt / C2 link) vs Decoy Drone (low alt, RF silent)
+  if (rcs === 'medium') {
+    if (alt >= 135 || rfSig === 'long_range_link') {
+      return 'fixed_wing_recon';
+    }
+    return 'decoy_drone';
+  }
+
+  // 4. Small RCS (0.01 - 0.02 m²): FPV Fiber vs FPV Kamikaze vs Commercial Quad
+  if (isTerminal) {
+    return 'fpv_fiber';
+  }
+  if (rfSig === 'wideband_video') {
+    return 'fpv_kamikaze';
+  }
+  if (rfSig === 'telemetry_link') {
+    return 'commercial_quad';
+  }
+  if (rfSig === 'long_range_link') {
+    return 'fixed_wing_recon';
+  }
+
+  // Inbound high-speed or direct attack vector
+  if (
+    speed >= 19 ||
+    closingRate <= -14 ||
+    (track.velocityValid && headingError <= 35 && closingRate <= -5) ||
+    (!track.velocityValid && alt <= 72)
+  ) {
+    if (rfStat === 'silent') {
+      return 'fpv_fiber';
+    }
+    return 'fpv_kamikaze';
+  }
+
+  return 'commercial_quad';
 }
 
 export function drawScope(
@@ -413,6 +485,46 @@ export function drawScope(
     }
   }
 
+  // Draw Tactical Airframe Symbology Legend in bottom-left corner
+  if (width >= 340 && height >= 340) {
+    ctx.save();
+    const legX = 12;
+    const legY = height - 92;
+    const legW = 112;
+    const legH = 80;
+
+    ctx.fillStyle = 'rgba(7, 11, 17, 0.82)';
+    ctx.fillRect(legX, legY, legW, legH);
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.22)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(legX, legY, legW, legH);
+
+    ctx.font = 'bold 7.5px ui-monospace, monospace';
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('RADAR SYMBOLOGY', legX + 7, legY + 10);
+
+    const items: Array<{ sym: string; label: string; col: string }> = [
+      { sym: '▲', label: 'FPV / FIBER', col: '#ef4444' },
+      { sym: '✣', label: 'QUADROTOR', col: '#f59e0b' },
+      { sym: '✈', label: 'FIXED-WING', col: '#ef4444' },
+      { sym: '◈', label: 'DECOY LURE', col: '#eab308' },
+      { sym: '⌒', label: 'AVIAN BIO', col: '#94a3b8' },
+    ];
+
+    items.forEach((it, idx) => {
+      const iy = legY + 23 + idx * 12;
+      ctx.fillStyle = it.col;
+      ctx.font = 'bold 9px ui-monospace, monospace';
+      ctx.fillText(it.sym, legX + 8, iy);
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = 'bold 7.5px ui-monospace, monospace';
+      ctx.fillText(it.label, legX + 22, iy);
+    });
+    ctx.restore();
+  }
+
   ctx.restore();
 }
 
@@ -432,7 +544,12 @@ function drawTrack(
   );
 
   const isTerminalLocked = track.terminal_lock === true;
-  const color = isTerminalLocked ? '#ef4444' : getAssessedColor(track.assessedClass);
+  const airframe = inferScopeAirframe(track);
+  const effectiveClass =
+    track.assessedClass && track.assessedClass !== 'unknown'
+      ? track.assessedClass
+      : airframe;
+  const color = isTerminalLocked ? '#ef4444' : getAssessedColor(effectiveClass);
   const isSelected = options.selectedTrackId === track.trackId;
 
   // 1. Trail: last 6 plots fading
@@ -466,9 +583,11 @@ function drawTrack(
     const vectorLenM = Math.min(3000, track.speedMps * 10);
     const velRPx = (vectorLenM / options.scaleM) * radiusPx;
     const courseRad = (track.courseDeg * Math.PI) / 180;
+    const dx = Math.sin(courseRad);
+    const dy = -Math.cos(courseRad);
     const vEnd = {
-      x: plotPx.x + velRPx * Math.sin(courseRad),
-      y: plotPx.y - velRPx * Math.cos(courseRad),
+      x: plotPx.x + velRPx * dx,
+      y: plotPx.y + velRPx * dy,
     };
     ctx.beginPath();
     ctx.moveTo(plotPx.x, plotPx.y);
@@ -476,31 +595,181 @@ function drawTrack(
     ctx.strokeStyle = color;
     ctx.lineWidth = 1.4;
     ctx.stroke();
+
+    // NATO speed pips (perpendicular ticks every 10 m/s along vector)
+    const perpX = -dy;
+    const perpY = dx;
+    const pipIntervalM = 10 * 10; // 10 m/s * 10s = 100m world distance
+    const pipIntervalPx = (pipIntervalM / options.scaleM) * radiusPx;
+    if (pipIntervalPx >= 5) {
+      const numPips = Math.min(4, Math.floor(track.speedMps / 10));
+      ctx.lineWidth = 1.2;
+      for (let p = 1; p <= numPips; p++) {
+        const px = plotPx.x + dx * (p * pipIntervalPx);
+        const py = plotPx.y + dy * (p * pipIntervalPx);
+        const pipHalf = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(px - perpX * pipHalf, py - perpY * pipHalf);
+        ctx.lineTo(px + perpX * pipHalf, py + perpY * pipHalf);
+        ctx.stroke();
+      }
+    }
   }
 
-  // 3. Track Symbol by Lifecycle
-  // Tentative: hollow circle
-  // Confirmed: filled diamond
+  // 3. Differentiated Tactical Symbology by Airframe Class & Lifecycle
   ctx.save();
   ctx.strokeStyle = color;
   ctx.fillStyle = color;
   ctx.lineWidth = 1.8;
 
+  const rcsBase = track.rcsBucket === 'tiny' ? 6.0 : track.rcsBucket === 'medium' ? 9.0 : 7.5;
+
   if (track.state === 'tentative') {
+    // Tentative track: Dashed acquisition ring around the airframe glyph
+    ctx.save();
     ctx.beginPath();
-    ctx.arc(plotPx.x, plotPx.y, 5, 0, Math.PI * 2);
+    ctx.setLineDash([2.5, 2.5]);
+    ctx.arc(plotPx.x, plotPx.y, rcsBase * 1.55, 0, Math.PI * 2);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.1;
+    ctx.globalAlpha = 0.65;
+    ctx.stroke();
+    ctx.restore();
+    ctx.globalAlpha = 0.85;
+  }
+
+  if (airframe === 'commercial_quad') {
+    // Tactical Rotary-Wing Symbology: Central flight controller box with 4 radial rotor arms & motor hubs
+    const s = rcsBase * 0.7;
+    ctx.strokeRect(plotPx.x - s / 2, plotPx.y - s / 2, s, s);
+    ctx.fillRect(plotPx.x - s / 2 + 1, plotPx.y - s / 2 + 1, s - 2, s - 2);
+
+    const armDist = rcsBase * 1.3;
+    const angles = [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4, (7 * Math.PI) / 4];
+    for (const a of angles) {
+      const mx = plotPx.x + Math.cos(a) * armDist;
+      const my = plotPx.y + Math.sin(a) * armDist;
+      ctx.beginPath();
+      ctx.moveTo(plotPx.x, plotPx.y);
+      ctx.lineTo(mx, my);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(mx, my, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (airframe === 'fpv_kamikaze' || airframe === 'fpv_fiber') {
+    // Hostile Strike Drone: High-aspect tactical attack wedge / chevron facing heading
+    const rotRad = track.courseDeg !== undefined ? (track.courseDeg * Math.PI) / 180 : 0;
+    ctx.save();
+    ctx.translate(plotPx.x, plotPx.y);
+    ctx.rotate(rotRad);
+
+    const h = rcsBase * 1.5;
+    const w = rcsBase * 1.25;
+    ctx.beginPath();
+    ctx.moveTo(0, -h); // Front attack nose
+    ctx.lineTo(w, h * 0.7); // Right wingtip
+    ctx.lineTo(0, h * 0.2); // Inner notch
+    ctx.lineTo(-w, h * 0.7); // Left wingtip
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    if (airframe === 'fpv_fiber') {
+      // Trailing fiber optic tether indicator
+      ctx.beginPath();
+      ctx.moveTo(0, h * 0.4);
+      ctx.lineTo(0, h * 1.5);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, h * 1.7, 1.3, 0, Math.PI * 2);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fill();
+    }
+    ctx.restore();
+  } else if (airframe === 'fixed_wing_recon' || airframe === 'decoy_drone') {
+    // Fixed-Wing Recon / Decoy: Tactical swept-wing aircraft silhouette facing heading
+    const rotRad = track.courseDeg !== undefined ? (track.courseDeg * Math.PI) / 180 : 0;
+    ctx.save();
+    ctx.translate(plotPx.x, plotPx.y);
+    ctx.rotate(rotRad);
+
+    const fLen = rcsBase * 1.4;
+    const span = rcsBase * 1.6;
+    // Fuselage
+    ctx.beginPath();
+    ctx.moveTo(0, -fLen);
+    ctx.lineTo(0, fLen * 0.85);
+    ctx.lineWidth = 2.0;
+    ctx.stroke();
+
+    // Swept Wings
+    ctx.beginPath();
+    ctx.moveTo(-span, fLen * 0.15);
+    ctx.lineTo(0, -fLen * 0.25);
+    ctx.lineTo(span, fLen * 0.15);
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    // Tailplane
+    ctx.beginPath();
+    ctx.moveTo(-span * 0.45, fLen * 0.75);
+    ctx.lineTo(span * 0.45, fLen * 0.75);
+    ctx.stroke();
+
+    if (airframe === 'decoy_drone') {
+      // Dotted radar reflector halo around decoy
+      ctx.beginPath();
+      ctx.arc(0, 0, rcsBase * 1.25, 0, Math.PI * 2);
+      ctx.setLineDash([2, 2]);
+      ctx.strokeStyle = '#eab308';
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  } else if (airframe === 'bird') {
+    // Avian Biological: Smooth double-arc flapping wings
+    const rotRad = track.courseDeg !== undefined ? (track.courseDeg * Math.PI) / 180 : 0;
+    ctx.save();
+    ctx.translate(plotPx.x, plotPx.y);
+    ctx.rotate(rotRad);
+    const bSpan = rcsBase * 1.35;
+    ctx.beginPath();
+    ctx.moveTo(-bSpan, 0);
+    ctx.quadraticCurveTo(-bSpan * 0.5, -rcsBase * 0.9, 0, 0);
+    ctx.quadraticCurveTo(bSpan * 0.5, -rcsBase * 0.9, bSpan, 0);
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 1.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  } else if (airframe === 'clutter') {
+    // Radar Clutter: Diffuse 4-cross tick
+    const cSize = 4;
+    ctx.beginPath();
+    ctx.moveTo(plotPx.x - cSize, plotPx.y - cSize);
+    ctx.lineTo(plotPx.x + cSize, plotPx.y + cSize);
+    ctx.moveTo(plotPx.x + cSize, plotPx.y - cSize);
+    ctx.lineTo(plotPx.x - cSize, plotPx.y + cSize);
     ctx.stroke();
   } else {
-    // Confirmed diamond
-    const dSize = 6;
+    // Unclassified Confirmed Contact: Standard tactical NATO diamond
+    const dSize = rcsBase;
     ctx.beginPath();
     ctx.moveTo(plotPx.x, plotPx.y - dSize);
     ctx.lineTo(plotPx.x + dSize, plotPx.y);
     ctx.lineTo(plotPx.x, plotPx.y + dSize);
     ctx.lineTo(plotPx.x - dSize, plotPx.y);
     ctx.closePath();
-    ctx.fill();
     ctx.stroke();
+    // Inner center dot
+    ctx.beginPath();
+    ctx.arc(plotPx.x, plotPx.y, 1.5, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   // 4. Selection Targeting Reticle: High-Precision Tactical Corners
@@ -574,8 +843,9 @@ function drawTrack(
   const showLabel = isSelected || isHovered || isUnackedConfirmed;
 
   if (showLabel) {
-    const abbr = getAssessedAbbr(track.assessedClass);
-    const label = abbr ? `T${track.trackId} [${abbr}]` : `T${track.trackId}`;
+    const assessedAbbr = getAssessedAbbr(track.assessedClass);
+    const inferredAbbr = assessedAbbr || (airframe !== 'unknown' ? getAssessedAbbr(airframe) : '');
+    const label = inferredAbbr ? `T${track.trackId} [${inferredAbbr}]` : `T${track.trackId}`;
 
     ctx.save();
     ctx.font = 'bold 9.5px ui-monospace, monospace';

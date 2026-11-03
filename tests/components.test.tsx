@@ -2,7 +2,9 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { DebriefScreen } from '../src/app/console/DebriefScreen.js';
+import { EoPanel, inferThreatAirframe } from '../src/app/console/EoPanel.js';
 import { MissionSetup } from '../src/app/console/MissionSetup.js';
+import { inferScopeAirframe } from '../src/app/console/radar/drawScope.js';
 import { TopBar } from '../src/app/console/TopBar.js';
 import { TrackDetail } from '../src/app/console/TrackDetail.js';
 import { TrackTable } from '../src/app/console/TrackTable.js';
@@ -373,6 +375,102 @@ describe('Console UI Components & Logic Verification', () => {
       const birdOpt = CLASSIFICATION_OPTIONS.find((o) => o.id === 'bird');
       expect(birdOpt).toBeDefined();
       expect(birdOpt?.label).toBe('Bird');
+    });
+
+    it('differentiates all 6 airframe classes in radar and FLIR camera without collapsing to commercial_quad', () => {
+      const birdTrack: TraineeTrack = {
+        ...fixtureTracks[2]!,
+        rcsBucket: 'tiny',
+        altitudeM: 92,
+        speedMps: 9,
+        rfStatus: 'unknown',
+      };
+      const quadTrack: TraineeTrack = {
+        ...fixtureTracks[1]!,
+        assessedClass: undefined,
+        rcsBucket: 'small',
+        altitudeM: 95,
+        speedMps: 12,
+        closingRateMps: -2,
+        rfSignature: 'telemetry_link',
+      };
+      const fpvTrack: TraineeTrack = {
+        ...fixtureTracks[0]!,
+        assessedClass: undefined,
+        rcsBucket: 'small',
+        altitudeM: 55,
+        speedMps: 29,
+        closingRateMps: -28,
+        rfSignature: 'wideband_video',
+      };
+      const fiberTrack: TraineeTrack = {
+        ...fixtureTracks[0]!,
+        assessedClass: undefined,
+        rcsBucket: 'small',
+        altitudeM: 48,
+        speedMps: 25,
+        closingRateMps: -24,
+        rfStatus: 'silent',
+      };
+      const reconTrack: TraineeTrack = {
+        ...fixtureTracks[0]!,
+        assessedClass: undefined,
+        rcsBucket: 'medium',
+        altitudeM: 220,
+        speedMps: 26,
+      };
+      const decoyTrack: TraineeTrack = {
+        ...fixtureTracks[0]!,
+        assessedClass: undefined,
+        rcsBucket: 'medium',
+        altitudeM: 60,
+        speedMps: 24,
+        rfStatus: 'silent',
+      };
+
+      expect(inferThreatAirframe(birdTrack, 'object')).toBe('bird');
+      expect(inferScopeAirframe(birdTrack)).toBe('bird');
+
+      expect(inferThreatAirframe(quadTrack, 'object')).toBe('commercial_quad');
+      expect(inferScopeAirframe(quadTrack)).toBe('commercial_quad');
+
+      expect(inferThreatAirframe(fpvTrack, 'object')).toBe('fpv_kamikaze');
+      expect(inferScopeAirframe(fpvTrack)).toBe('fpv_kamikaze');
+
+      expect(inferThreatAirframe(fiberTrack, 'object')).toBe('fpv_fiber');
+      expect(inferScopeAirframe(fiberTrack)).toBe('fpv_fiber');
+
+      expect(inferThreatAirframe(reconTrack, 'object')).toBe('fixed_wing_recon');
+      expect(inferScopeAirframe(reconTrack)).toBe('fixed_wing_recon');
+
+      expect(inferThreatAirframe(decoyTrack, 'object')).toBe('decoy_drone');
+      expect(inferScopeAirframe(decoyTrack)).toBe('decoy_drone');
+
+      // Verify EoPanel renders distinct signature banners for each track even when eo.hint is 'object'
+      const birdHtml = renderToStaticMarkup(
+        <EoPanel
+          eo={{ state: 'idle', channel: 'ir', level: 'none', hint: 'object', quality: 0 }}
+          selectedTrackId={3}
+          track={birdTrack}
+          onLock={() => {}}
+          onRelease={() => {}}
+          onToggleChannel={() => {}}
+        />
+      );
+      expect(birdHtml).toContain('SIG: AVIAN BIOLOGICAL [FLAPPING]');
+      expect(birdHtml).toContain('flir-wing-flap');
+
+      const fpvHtml = renderToStaticMarkup(
+        <EoPanel
+          eo={{ state: 'idle', channel: 'ir', level: 'none', hint: 'object', quality: 0 }}
+          selectedTrackId={1}
+          track={fpvTrack}
+          onLock={() => {}}
+          onRelease={() => {}}
+          onToggleChannel={() => {}}
+        />
+      );
+      expect(fpvHtml).toContain('SIG: FPV STRIKE DRONE [PG-7 WARHEAD]');
     });
   });
 });

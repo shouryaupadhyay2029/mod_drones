@@ -16,6 +16,88 @@ export interface EoPanelProps {
 export type FlirPalette = 'whot' | 'bhot' | 'nvg' | 'tv';
 export type ZoomLevel = 1.0 | 2.5 | 5.0;
 
+export function inferThreatAirframe(
+  track?: TraineeTrack | null,
+  eoHint?: string
+): string {
+  if (eoHint && eoHint !== 'object') {
+    if (eoHint === 'multirotor') {
+      if (track?.terminal_lock || track?.rfStatus === 'silent') return 'fpv_fiber';
+      if (track?.speedMps && track.speedMps >= 19) return 'fpv_kamikaze';
+      return 'commercial_quad';
+    }
+    if (eoHint === 'fixed_wing') {
+      return track && track.altitudeM < 135 ? 'decoy_drone' : 'fixed_wing_recon';
+    }
+    return eoHint;
+  }
+
+  if (track?.assessedClass && track.assessedClass !== 'unknown') {
+    return track.assessedClass;
+  }
+
+  if (!track) return 'commercial_quad';
+
+  const speed = track.speedMps ?? 0;
+  const alt = track.altitudeM ?? 0;
+  const rcs = track.rcsBucket;
+  const rfSig = track.rfSignature;
+  const rfStat = track.rfStatus;
+  const isTerminal = track.terminal_lock === true;
+  const closingRate = track.closingRateMps ?? 0;
+
+  const bearingToAsset = (track.bearingDeg + 180) % 360;
+  let headingError =
+    track.courseDeg !== undefined ? Math.abs(track.courseDeg - bearingToAsset) : 180;
+  if (headingError > 180) headingError = 360 - headingError;
+
+  // 1. Clutter
+  if (track.quality < 0.25 && (!track.velocityValid || speed < 5)) {
+    return 'clutter';
+  }
+
+  // 2. Avian Biological: tiny RCS (<0.005 m²) is exclusively bird in threat library
+  if (rcs === 'tiny') {
+    return 'bird';
+  }
+
+  // 3. Medium RCS (0.05 m²): Fixed-Wing Recon (high alt / C2 link) vs Decoy Drone (low alt)
+  if (rcs === 'medium') {
+    if (alt >= 135 || rfSig === 'long_range_link') {
+      return 'fixed_wing_recon';
+    }
+    return 'decoy_drone';
+  }
+
+  // 4. Small RCS (0.01 - 0.02 m²): FPV Fiber vs FPV Kamikaze vs Commercial Quad
+  if (isTerminal) {
+    return 'fpv_fiber';
+  }
+  if (rfSig === 'wideband_video') {
+    return 'fpv_kamikaze';
+  }
+  if (rfSig === 'telemetry_link') {
+    return 'commercial_quad';
+  }
+  if (rfSig === 'long_range_link') {
+    return 'fixed_wing_recon';
+  }
+
+  if (
+    speed >= 19 ||
+    closingRate <= -14 ||
+    (track.velocityValid && headingError <= 35 && closingRate <= -5) ||
+    (!track.velocityValid && alt <= 72)
+  ) {
+    if (rfStat === 'silent') {
+      return 'fpv_fiber';
+    }
+    return 'fpv_kamikaze';
+  }
+
+  return 'commercial_quad';
+}
+
 export function EoPanel({
   eo,
   selectedTrackId,
@@ -87,17 +169,29 @@ export function EoPanel({
   const isEngaged = track?.engagementStatus === 'engaged';
   const isDropped = track?.state === 'dropped';
 
-  // Resolution and atmospheric blur factor
-  // High quality -> 0px blur; Low quality or distant detect -> subtle realistic optical blur
-  const baseBlur = eo.level === 'identify' ? 0 : eo.level === 'recognize' ? 1 : Math.max(1.5, (1 - eo.quality) * 6);
+  // Resolution and atmospheric blur factor:
+  // Keep silhouette sharp enough to visually distinguish airframe geometry even at long range!
+  const baseBlur = eo.level === 'identify' ? 0 : eo.level === 'recognize' ? 0.25 : 0.6;
   const blurPx = baseBlur;
-  const opacity = Math.max(0.35, eo.quality || 0.6);
+  const opacity = Math.max(0.84, eo.quality || 0.88);
 
-  // Guarantee that an object model ALWAYS resolves, even at long ranges or before full sensor classification!
-  const effectiveHint: string =
-    (eo.hint && eo.hint !== 'object' ? eo.hint : null) ||
-    (track?.assessedClass && track.assessedClass !== 'unknown' ? track.assessedClass : null) ||
-    (speedMps > 45 ? 'fixed_wing_recon' : 'commercial_quad');
+  // Multi-sensor threat classification inference (differentiates FPVs, Quads, Fixed-Wings, Birds, Decoys)
+  const effectiveHint: string = inferThreatAirframe(track, eo.hint);
+
+  const signatureBanner =
+    effectiveHint === 'bird'
+      ? 'SIG: AVIAN BIOLOGICAL [FLAPPING]'
+      : effectiveHint === 'fpv_fiber'
+      ? 'SIG: FIBER-OPTIC FPV [WIRE-GUIDED]'
+      : effectiveHint === 'fpv_kamikaze'
+      ? 'SIG: FPV STRIKE DRONE [PG-7 WARHEAD]'
+      : effectiveHint === 'fixed_wing_recon' || effectiveHint === 'fixed_wing'
+      ? 'SIG: FIXED-WING RECON UAV [PUSHER]'
+      : effectiveHint === 'decoy_drone'
+      ? 'SIG: DELTA DECOY LURE [RADAR FLARE]'
+      : effectiveHint === 'clutter'
+      ? 'SIG: ATMOSPHERIC / GROUND CLUTTER'
+      : 'SIG: CIVILIAN QUADCOPTER [4-ROTOR]';
 
   const cyclePalette = () => {
     if (isTv) {
@@ -219,6 +313,25 @@ export function EoPanel({
             >
               {isLocked ? `AUTO-TRK [T${eo.lockedTrackId ?? selectedTrackId}]` : `SLEW [T${selectedTrackId}]`}
             </text>
+
+            {/* Airframe Signature Classification Readout Below Tracking Box */}
+            <text
+              x={cx}
+              y={cy + boxH / 2 + 10}
+              fill={
+                effectiveHint === 'fpv_kamikaze' || effectiveHint === 'fpv_fiber' || effectiveHint === 'fixed_wing_recon'
+                  ? '#f87171'
+                  : effectiveHint === 'bird'
+                  ? '#94a3b8'
+                  : hudTextColor
+              }
+              fontSize={isExpanded ? '8.5' : '6.8'}
+              fontFamily="monospace"
+              textAnchor="middle"
+              fontWeight="bold"
+            >
+              {signatureBanner}
+            </text>
           </g>
         )}
 
@@ -226,7 +339,7 @@ export function EoPanel({
         {isTracking && !isNightTv && (
           <g
             style={{
-              filter: blurPx > 0 ? `blur(${blurPx.toFixed(1)}px)` : undefined,
+              filter: blurPx > 0 ? `blur(${blurPx.toFixed(2)}px)` : undefined,
               opacity,
             }}
           >
@@ -244,83 +357,144 @@ export function EoPanel({
                 </text>
               </g>
             ) : (
-              /* Live Flying Target with Dynamic Distance Scaling, Spinning Rotors & Hotspots */
+              /* Live Flying Target with Differentiated 3D Perspective Airframe Geometry */
               <g transform={`translate(${cx}, ${cy}) scale(${modelScale})`}>
-                {/* A. Quadcopter / Commercial Multirotor Target */}
+                {/* A. Civilian Commercial Quadcopter (DJI Mavic / Matrice Perspective Profile) */}
                 {(effectiveHint === 'commercial_quad' || effectiveHint === 'multirotor') && (
                   <g fill={silhouetteColor} stroke={silhouetteColor}>
-                    {/* Fuselage Core */}
-                    <rect x="-10" y="-10" width="20" height="20" rx="4" />
-                    {/* Center Battery Thermal Hotspot */}
-                    <circle cx="0" cy="0" r="4.5" fill={hotSpotColor} className="flir-hot-motor" />
-
-                    {/* Carbon Frame Arms */}
-                    <line x1="-8" y1="-8" x2="-26" y2="-26" strokeWidth="2.5" />
-                    <line x1="8" y1="-8" x2="26" y2="-26" strokeWidth="2.5" />
-                    <line x1="-8" y1="8" x2="-26" y2="26" strokeWidth="2.5" />
-                    <line x1="8" y1="8" x2="26" y2="26" strokeWidth="2.5" />
-
-                    {/* 4 Motor Nacelles with Intense Heat Radiation */}
-                    <circle cx="-26" cy="-26" r="3.5" fill={hotSpotColor} className="flir-hot-motor" />
-                    <circle cx="26" cy="-26" r="3.5" fill={hotSpotColor} className="flir-hot-motor" />
-                    <circle cx="-26" cy="26" r="3.5" fill={hotSpotColor} className="flir-hot-motor" />
-                    <circle cx="26" cy="26" r="3.5" fill={hotSpotColor} className="flir-hot-motor" />
-
-                    {/* 4 High-Speed Spinning Rotor Heat Discs */}
-                    <ellipse cx="-26" cy="-26" rx="14" ry="4.5" fill="none" strokeWidth="1.2" strokeOpacity="0.65" className="flir-spinning-prop" />
-                    <ellipse cx="26" cy="-26" rx="14" ry="4.5" fill="none" strokeWidth="1.2" strokeOpacity="0.65" className="flir-spinning-prop" />
-                    <ellipse cx="-26" cy="26" rx="14" ry="4.5" fill="none" strokeWidth="1.2" strokeOpacity="0.65" className="flir-spinning-prop" />
-                    <ellipse cx="26" cy="26" rx="14" ry="4.5" fill="none" strokeWidth="1.2" strokeOpacity="0.65" className="flir-spinning-prop" />
+                    {/* Landing Skids */}
+                    <path d="M -11 8 L -14 16 M 11 8 L 14 16 M -17 16 L -9 16 M 9 16 L 17 16" strokeWidth="1.5" fill="none" opacity="0.85" />
+                    {/* 4 Outstretched Carbon Boom Arms */}
+                    <line x1="-7" y1="-4" x2="-28" y2="-16" strokeWidth="2.6" />
+                    <line x1="7" y1="-4" x2="28" y2="-16" strokeWidth="2.6" />
+                    <line x1="-7" y1="4" x2="-24" y2="12" strokeWidth="2.4" />
+                    <line x1="7" y1="4" x2="24" y2="12" strokeWidth="2.4" />
+                    {/* Central Avionics Fuselage Shell */}
+                    <polygon points="0,-10 11,-4 9,8 -9,8 -11,-4" />
+                    {/* Underslung 3-Axis Camera Gimbal Pod */}
+                    <circle cx="0" cy="6" r="4" fill={viewportBg} stroke={silhouetteColor} strokeWidth="1.4" />
+                    <circle cx="0" cy="6" r="1.6" fill="#38bdf8" />
+                    {/* Internal Battery Thermal Core */}
+                    <ellipse cx="0" cy="-2" rx="5" ry="3.5" fill={hotSpotColor} className="flir-hot-motor" />
+                    {/* 4 Brushless Motor Stator Bells (Thermal Hotspots) */}
+                    <circle cx="-28" cy="-16" r="3.2" fill={hotSpotColor} className="flir-hot-motor" />
+                    <circle cx="28" cy="-16" r="3.2" fill={hotSpotColor} className="flir-hot-motor" />
+                    <circle cx="-24" cy="12" r="3" fill={hotSpotColor} className="flir-hot-motor" />
+                    <circle cx="24" cy="12" r="3" fill={hotSpotColor} className="flir-hot-motor" />
+                    {/* 4 Spinning Rotor Discs */}
+                    <ellipse cx="-28" cy="-18" rx="13" ry="3.8" fill="none" strokeWidth="1.3" strokeOpacity="0.75" className="flir-spinning-prop" />
+                    <ellipse cx="28" cy="-18" rx="13" ry="3.8" fill="none" strokeWidth="1.3" strokeOpacity="0.75" className="flir-spinning-prop" />
+                    <ellipse cx="-24" cy="10" rx="11" ry="3.2" fill="none" strokeWidth="1.2" strokeOpacity="0.7" className="flir-spinning-prop" />
+                    <ellipse cx="24" cy="10" rx="11" ry="3.2" fill="none" strokeWidth="1.2" strokeOpacity="0.7" className="flir-spinning-prop" />
                   </g>
                 )}
 
-                {/* B. FPV Kamikaze / Fiber Attack Drone */}
+                {/* B. Hostile FPV Strike Drone / Fiber-Optic Attack Drone (Forward-Pitched Attack Posture + RPG Warhead) */}
                 {(effectiveHint === 'fpv_kamikaze' || effectiveHint === 'fpv_fiber') && (
                   <g fill={silhouetteColor} stroke={silhouetteColor}>
-                    {/* Warhead Nose Cone (Red/Heat Alert) */}
-                    <circle cx="0" cy="-14" r="3.5" fill="#ef4444" />
-                    <rect x="-7" y="-12" width="14" height="24" rx="2" />
-                    {/* Hot Battery Core */}
-                    <rect x="-4" y="-4" width="8" height="12" fill={hotSpotColor} className="flir-hot-motor" />
+                    {/* Rear VTX Cloverleaf & ELRS Dipole Antennae */}
+                    <line x1="0" y1="10" x2="0" y2="22" strokeWidth="1.3" />
+                    <circle cx="0" cy="23" r="2.2" fill="none" strokeWidth="1.1" />
+                    <line x1="-8" y1="18" x2="8" y2="18" strokeWidth="1" />
 
-                    <line x1="-5" y1="-6" x2="-22" y2="-18" strokeWidth="2.2" />
-                    <line x1="5" y1="-6" x2="22" y2="-18" strokeWidth="2.2" />
-                    <line x1="-5" y1="8" x2="-22" y2="18" strokeWidth="2.2" />
-                    <line x1="5" y1="8" x2="22" y2="18" strokeWidth="2.2" />
+                    {/* Swept X-Frame Carbon Racing Arms */}
+                    <line x1="-5" y1="-5" x2="-24" y2="-19" strokeWidth="2.8" />
+                    <line x1="5" y1="-5" x2="24" y2="-19" strokeWidth="2.8" />
+                    <line x1="-5" y1="6" x2="-22" y2="15" strokeWidth="2.5" />
+                    <line x1="5" y1="6" x2="22" y2="15" strokeWidth="2.5" />
 
-                    {/* High-RPM Racing Prop Discs */}
-                    <ellipse cx="-22" cy="-18" rx="8" ry="3" fill="none" strokeWidth="1" strokeOpacity="0.75" className="flir-spinning-prop" />
-                    <ellipse cx="22" cy="-18" rx="8" ry="3" fill="none" strokeWidth="1" strokeOpacity="0.75" className="flir-spinning-prop" />
-                    <ellipse cx="-22" cy="18" rx="8" ry="3" fill="none" strokeWidth="1" strokeOpacity="0.75" className="flir-spinning-prop" />
-                    <ellipse cx="22" cy="18" rx="8" ry="3" fill="none" strokeWidth="1" strokeOpacity="0.75" className="flir-spinning-prop" />
+                    {/* Top-Mounted Strapped 6S LiPo Battery Brick (High Thermal Output) */}
+                    <rect x="-5.5" y="-5" width="11" height="14" rx="2" fill={hotSpotColor} className="flir-hot-motor" />
 
-                    {/* Trailing Optical Fiber / Antenna Wire */}
+                    {/* Conical PG-7V Shaped-Charge RPG Warhead Strapped to Nose */}
+                    <polygon points="0,-24 7,-12 5,-2 -5,-2 -7,-12" fill={silhouetteColor} stroke="#ef4444" strokeWidth="1" />
+                    {/* Piezo Impact Fuze Probe Extending Forward */}
+                    <line x1="0" y1="-24" x2="0" y2="-32" stroke="#ef4444" strokeWidth="1.8" />
+                    <circle cx="0" cy="-32" r="2.2" fill="#ef4444" filter="url(#flir-glow)" />
+
+                    {/* 4 High-RPM Racing Motors & Tri-Blade Prop Discs */}
+                    <circle cx="-24" cy="-19" r="3" fill="#ef4444" className="flir-hot-motor" />
+                    <circle cx="24" cy="-19" r="3" fill="#ef4444" className="flir-hot-motor" />
+                    <circle cx="-22" cy="15" r="2.8" fill="#ef4444" className="flir-hot-motor" />
+                    <circle cx="22" cy="15" r="2.8" fill="#ef4444" className="flir-hot-motor" />
+                    <ellipse cx="-24" cy="-19" rx="9.5" ry="3.2" fill="none" strokeWidth="1.3" strokeOpacity="0.85" className="flir-spinning-prop" />
+                    <ellipse cx="24" cy="-19" rx="9.5" ry="3.2" fill="none" strokeWidth="1.3" strokeOpacity="0.85" className="flir-spinning-prop" />
+                    <ellipse cx="-22" cy="15" rx="9" ry="3" fill="none" strokeWidth="1.3" strokeOpacity="0.85" className="flir-spinning-prop" />
+                    <ellipse cx="22" cy="15" rx="9" ry="3" fill="none" strokeWidth="1.3" strokeOpacity="0.85" className="flir-spinning-prop" />
+
+                    {/* Underslung Fiber-Optic Bobbin Canister & Trailing Glass Filament */}
                     {effectiveHint === 'fpv_fiber' && (
-                      <path d="M 0 12 Q 4 24 -2 38 Q 6 52 0 68" stroke="#38bdf8" strokeWidth="0.8" fill="none" opacity="0.8" />
+                      <g>
+                        <rect x="-4.5" y="8" width="9" height="11" rx="2" fill="#0ea5e9" stroke="#38bdf8" strokeWidth="1" />
+                        <path d="M 0 19 Q 6 30 -4 42 Q 7 54 -2 68" stroke="#38bdf8" strokeWidth="1.3" strokeDasharray="3 1.5" fill="none" />
+                      </g>
                     )}
                   </g>
                 )}
 
-                {/* C. Fixed-Wing / Decoy Recon Drone */}
-                {(effectiveHint === 'fixed_wing_recon' || effectiveHint === 'fixed_wing' || effectiveHint === 'decoy_drone') && (
+                {/* C. Fixed-Wing Reconnaissance UAV (Orlan-10 / Supercam High-Aspect Aircraft Silhouette) */}
+                {(effectiveHint === 'fixed_wing_recon' || effectiveHint === 'fixed_wing') && (
                   <g fill={silhouetteColor} stroke={silhouetteColor}>
-                    <ellipse cx="0" cy="0" rx="5" ry="28" />
-                    <polygon points="-52,-2 -48,5 0,0 48,5 52,-2 0,-7" />
-                    <polygon points="-16,20 -12,24 0,18 12,24 16,20 0,16" />
-                    {/* Rear Engine Nozzle Thermal Heat Plume */}
-                    <circle cx="0" cy="28" r="4.5" fill={hotSpotColor} className="flir-hot-motor" />
-                    <ellipse cx="0" cy="34" rx="3" ry="7" fill={hotSpotColor} opacity="0.65" filter="url(#flir-glow)" />
+                    {/* High-Aspect Straight Tapered Reconnaissance Wings + Wingtip Winglets */}
+                    <polygon points="-56,-1 -52,6 0,2 52,6 56,-1 0,-6" />
+                    <line x1="-56" y1="-5" x2="-54" y2="8" strokeWidth="2.2" />
+                    <line x1="56" y1="-5" x2="54" y2="8" strokeWidth="2.2" />
+                    {/* Aerodynamic Fuselage Body */}
+                    <ellipse cx="0" cy="1" rx="5.5" ry="27" />
+                    {/* Rear V-Tail / Horizontal Stabilizer Empennage */}
+                    <polygon points="-19,21 -15,26 0,19 15,26 19,21 0,15" />
+                    {/* Belly Gyro-Stabilized EO/IR Gimbal Ball */}
+                    <circle cx="0" cy="-12" r="3.8" fill={viewportBg} stroke={reticleColor} strokeWidth="1.4" />
+                    <circle cx="0" cy="-12" r="1.5" fill="#38bdf8" />
+                    {/* Nose Tractor Propeller Blur */}
+                    <ellipse cx="0" cy="-27" rx="11" ry="2.2" fill="none" strokeWidth="1.2" className="flir-spinning-prop" />
+                    {/* Rear Internal-Combustion Engine Thermal Exhaust Plume */}
+                    <circle cx="0" cy="27" r="4.5" fill={hotSpotColor} className="flir-hot-motor" />
+                    <ellipse cx="0" cy="34" rx="3.5" ry="8" fill={hotSpotColor} opacity="0.75" filter="url(#flir-glow)" />
                   </g>
                 )}
 
-                {/* D. Biological Contact (Flock of Birds) */}
-                {effectiveHint === 'bird' && (
+                {/* C2. Decoy Drone (Cropped-Delta Flying Wing with Luneburg Radar Lens & Pyrotechnic Flare) */}
+                {effectiveHint === 'decoy_drone' && (
                   <g fill={silhouetteColor} stroke={silhouetteColor}>
-                    <ellipse cx="0" cy="0" rx="4.5" ry="12" />
-                    <path d="M 0 -2 Q -24 -20 -42 -9 Q -24 -4 0 2 Q 24 -4 42 -9 Q 24 -20 0 -2" />
-                    <polygon points="-3,12 0,20 3,12" />
-                    {/* Warm Biological Core */}
-                    <ellipse cx="0" cy="1" rx="3" ry="6" fill={hotSpotColor} opacity="0.6" />
+                    {/* Cropped Delta Flying-Wing Planform */}
+                    <polygon points="0,-26 32,14 26,18 0,11 -26,18 -32,14" />
+                    {/* Wingtip Vertical Stabilizer Fins */}
+                    <line x1="-30" y1="8" x2="-30" y2="20" strokeWidth="2.4" />
+                    <line x1="30" y1="8" x2="30" y2="20" strokeWidth="2.4" />
+                    {/* Internal Luneburg Radar-Augmenting Sphere */}
+                    <circle cx="0" cy="-4" r="6.5" fill="none" stroke="#eab308" strokeWidth="1.3" strokeDasharray="2 2" />
+                    <line x1="-6" y1="-4" x2="6" y2="-4" stroke="#eab308" strokeWidth="1" />
+                    <line x1="0" y1="-10" x2="0" y2="2" stroke="#eab308" strokeWidth="1" />
+                    {/* Blazing Rear Pyrotechnic IR Decoy Flare */}
+                    <circle cx="0" cy="14" r="6" fill="#eab308" filter="url(#flir-glow)" className="flir-hot-motor" />
+                    <circle cx="0" cy="14" r="3" fill="#ffffff" />
+                  </g>
+                )}
+
+                {/* D. Avian Biological Contact (Living Raptor / Waterfowl with Articulated Flapping Wings) */}
+                {effectiveHint === 'bird' && (
+                  <g fill={silhouetteColor} stroke={silhouetteColor} className="flir-wing-flap">
+                    {/* Curved Swept Avian Wings with Primary Feather Tips */}
+                    <path d="M 0 -5 C -14 -22 -32 -18 -46 -6 C -34 -2 -18 -1 0 4 C 18 -1 34 -2 46 -6 C 32 -18 14 -22 0 -5 Z" />
+                    {/* Avian Head, Beak & Streamlined Torso */}
+                    <polygon points="0,-19 -2.5,-13 2.5,-13" />
+                    <ellipse cx="0" cy="-2" rx="5" ry="12" />
+                    {/* Fanned Tail Feathers */}
+                    <polygon points="-3,9 -7,21 0,18 7,21 3,9" />
+                    {/* Warm Biological Pectoral/Thorax Heat Core */}
+                    <ellipse cx="0" cy="-3" rx="3.2" ry="6.5" fill={hotSpotColor} opacity="0.8" filter="url(#flir-glow)" />
+                  </g>
+                )}
+
+                {/* E. Clutter / Environmental False Return */}
+                {effectiveHint === 'clutter' && (
+                  <g fill={silhouetteColor} stroke={silhouetteColor} opacity="0.65">
+                    <circle cx="-6" cy="-4" r="3" />
+                    <circle cx="5" cy="-2" r="4" />
+                    <circle cx="-2" cy="5" r="3.5" />
+                    <circle cx="4" cy="6" r="2" />
+                    <path d="M -12 2 Q 0 -6 12 4" strokeWidth="1.2" fill="none" strokeDasharray="2 2" />
                   </g>
                 )}
               </g>
@@ -398,7 +572,7 @@ export function EoPanel({
             }`}
             style={{ backgroundColor: !isLocked && !isSlewing ? '#8c8275' : undefined }}
           />
-          <span className="mil-kicker">// SYS.02</span>
+          <span className="mil-kicker">// {eo.channel === 'ir' ? 'FLIR THERMAL IR' : 'DAYLIGHT TV'}</span>
           <span className="mil-title">FLIR / EO-IR TURRET</span>
         </div>
 
