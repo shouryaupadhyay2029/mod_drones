@@ -489,9 +489,9 @@ export function drawScope(
   if (width >= 340 && height >= 340) {
     ctx.save();
     const legX = 12;
-    const legY = height - 92;
-    const legW = 112;
-    const legH = 80;
+    const legY = height - 104;
+    const legW = 114;
+    const legH = 92;
 
     ctx.fillStyle = 'rgba(7, 11, 17, 0.82)';
     ctx.fillRect(legX, legY, legW, legH);
@@ -506,6 +506,7 @@ export function drawScope(
     ctx.fillText('RADAR SYMBOLOGY', legX + 7, legY + 10);
 
     const items: Array<{ sym: string; label: string; col: string }> = [
+      { sym: '◇', label: 'UNK BOGEY', col: '#e2e8f0' },
       { sym: '▲', label: 'FPV / FIBER', col: '#ef4444' },
       { sym: '✣', label: 'QUADROTOR', col: '#f59e0b' },
       { sym: '✈', label: 'FIXED-WING', col: '#ef4444' },
@@ -545,12 +546,13 @@ function drawTrack(
   );
 
   const isTerminalLocked = track.terminal_lock === true;
-  const airframe = inferScopeAirframe(track);
-  const effectiveClass =
+  // Only display classified airframe symbology & color AFTER the trainee has assessed the track!
+  // Before assessment, contacts remain unidentified radar blips ('unknown') so identity is never spoiled.
+  const airframe =
     track.assessedClass && track.assessedClass !== 'unknown'
       ? track.assessedClass
-      : airframe;
-  const color = isTerminalLocked ? '#ef4444' : getAssessedColor(effectiveClass);
+      : 'unknown';
+  const color = isTerminalLocked ? '#ef4444' : getAssessedColor(airframe);
   const isSelected = options.selectedTrackId === track.trackId;
 
   // 1. Trail: last 6 plots fading with connected phosphor afterglow path
@@ -915,8 +917,7 @@ function drawTrack(
 
   if (showLabel) {
     const assessedAbbr = getAssessedAbbr(track.assessedClass);
-    const inferredAbbr = assessedAbbr || (airframe !== 'unknown' ? getAssessedAbbr(airframe) : '');
-    const label = inferredAbbr ? `T${track.trackId} [${inferredAbbr}]` : `T${track.trackId}`;
+    const label = assessedAbbr ? `T${track.trackId} [${assessedAbbr}]` : `T${track.trackId}`;
 
     ctx.save();
     ctx.font = 'bold 9.5px ui-monospace, monospace';

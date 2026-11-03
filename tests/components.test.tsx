@@ -446,7 +446,7 @@ describe('Console UI Components & Logic Verification', () => {
       expect(inferThreatAirframe(decoyTrack, 'object')).toBe('decoy_drone');
       expect(inferScopeAirframe(decoyTrack)).toBe('decoy_drone');
 
-      // Verify EoPanel renders distinct signature banners for each track even when eo.hint is 'object'
+      // Verify EoPanel renders distinct visual silhouettes without leaking text spoilers when unlocked/at long range
       const birdHtml = renderToStaticMarkup(
         <EoPanel
           eo={{ state: 'idle', channel: 'ir', level: 'none', hint: 'object', quality: 0 }}
@@ -457,8 +457,9 @@ describe('Console UI Components & Logic Verification', () => {
           onToggleChannel={() => {}}
         />
       );
-      expect(birdHtml).toContain('SIG: AVIAN BIOLOGICAL [FLAPPING]');
       expect(birdHtml).toContain('flir-wing-flap');
+      expect(birdHtml).toContain('LOCK [E] TO ANALYZE');
+      expect(birdHtml).not.toContain('AVIAN BIOLOGICAL');
 
       const fpvHtml = renderToStaticMarkup(
         <EoPanel
@@ -470,7 +471,8 @@ describe('Console UI Components & Logic Verification', () => {
           onToggleChannel={() => {}}
         />
       );
-      expect(fpvHtml).toContain('SIG: FPV STRIKE DRONE [PG-7 WARHEAD]');
+      expect(fpvHtml).toContain('LOCK [E] TO ANALYZE');
+      expect(fpvHtml).not.toContain('FPV STRIKE DRONE');
     });
   });
 });

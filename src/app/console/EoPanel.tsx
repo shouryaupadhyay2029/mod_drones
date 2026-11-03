@@ -175,23 +175,9 @@ export function EoPanel({
   const blurPx = baseBlur;
   const opacity = Math.max(0.84, eo.quality || 0.88);
 
-  // Multi-sensor threat classification inference (differentiates FPVs, Quads, Fixed-Wings, Birds, Decoys)
+  // Multi-sensor visual airframe geometry (renders the silent visual silhouette in the camera when zoomed/close,
+  // without printing any text spoilers so the trainee must visually identify the contact themselves!)
   const effectiveHint: string = inferThreatAirframe(track, eo.hint);
-
-  const signatureBanner =
-    effectiveHint === 'bird'
-      ? 'SIG: AVIAN BIOLOGICAL [FLAPPING]'
-      : effectiveHint === 'fpv_fiber'
-      ? 'SIG: FIBER-OPTIC FPV [WIRE-GUIDED]'
-      : effectiveHint === 'fpv_kamikaze'
-      ? 'SIG: FPV STRIKE DRONE [PG-7 WARHEAD]'
-      : effectiveHint === 'fixed_wing_recon' || effectiveHint === 'fixed_wing'
-      ? 'SIG: FIXED-WING RECON UAV [PUSHER]'
-      : effectiveHint === 'decoy_drone'
-      ? 'SIG: DELTA DECOY LURE [RADAR FLARE]'
-      : effectiveHint === 'clutter'
-      ? 'SIG: ATMOSPHERIC / GROUND CLUTTER'
-      : 'SIG: CIVILIAN QUADCOPTER [4-ROTOR]';
 
   const cyclePalette = () => {
     if (isTv) {
@@ -220,8 +206,8 @@ export function EoPanel({
     const idPrefix = isExpanded ? 'pip-' : 'main-';
 
     // Real-world optical angular scaling & distance progression:
-    // At long range (>1500m at 1x), object appears as a pulsing thermal point-light / faded glowing dot
-    // that progressively resolves into a full 3D airframe silhouette as it closes in on the base (or when zoomed)!
+    // At long range (>1250m optical range at 1.0x), object appears as a pulsing thermal point-light / faded glowing dot
+    // so identity is visually hidden at long range until it closes in on the base OR the trainee zooms in (2.5X / 5.0X)!
     const effectiveRange = Math.max(180, rangeM || 1400);
     const opticalRangeM = effectiveRange / zoom;
 
@@ -229,10 +215,14 @@ export function EoPanel({
     const modelScale = distanceFactor * zoom * (isExpanded ? 1.55 : 1.02);
 
     // Progressive optical transition:
-    // beaconIntensity: high at long range (bright thermal dot / faded light bloom), fades as airframe resolves close-in
-    // silhouetteReveal: faint inside the bright dot at 2km+, crisp 1.0 as it approaches <1100m or under zoom
-    const beaconIntensity = Math.max(0.18, Math.min(1.0, (opticalRangeM - 450) / 1450));
-    const silhouetteReveal = Math.max(0.42, Math.min(1.0, 1.38 - opticalRangeM / 2400));
+    // beaconIntensity: 1.0 at long range (bright thermal dot / faded light bloom), fades as airframe resolves close-in
+    // silhouetteReveal: hidden inside the bright dot at >1650m (0.08), emerges smoothly as target approaches <1200m or under 2.5X/5.0X zoom
+    const beaconIntensity = Math.max(0.15, Math.min(1.0, (opticalRangeM - 450) / 1150));
+    const silhouetteReveal = Math.max(0.08, Math.min(1.0, (1750 - opticalRangeM) / 850));
+    const opticalGateBanner =
+      opticalRangeM > 1250
+        ? 'OPTICAL: POINT-SOURCE // ZOOM [2.5X/5X] TO RESOLVE'
+        : 'OPTICAL: VISUAL SILHOUETTE // OPERATOR ID REQUIRED';
 
     // Camera elevation angle & horizon placement (tilts with target altitude & range)
     const elevDeg = (Math.atan2(altM || 75, effectiveRange) * 180) / Math.PI;
@@ -382,23 +372,17 @@ export function EoPanel({
               {isLocked ? `AUTO-TRK [T${eo.lockedTrackId ?? selectedTrackId}]` : `SLEW [T${selectedTrackId}]`}
             </text>
 
-            {/* Airframe Signature Classification Readout Below Tracking Box */}
+            {/* Optical Resolution Gate Status Below Tracking Box (No Identity Spoilers) */}
             <text
               x={cx}
               y={cy + boxH / 2 + 10}
-              fill={
-                effectiveHint === 'fpv_kamikaze' || effectiveHint === 'fpv_fiber' || effectiveHint === 'fixed_wing_recon'
-                  ? '#f87171'
-                  : effectiveHint === 'bird'
-                  ? '#94a3b8'
-                  : hudTextColor
-              }
+              fill={opticalRangeM > 1250 ? '#fbbf24' : hudTextColor}
               fontSize={isExpanded ? '8.5' : '6.8'}
               fontFamily="monospace"
               textAnchor="middle"
               fontWeight="bold"
             >
-              {signatureBanner}
+              {opticalGateBanner}
             </text>
           </g>
         )}
@@ -889,11 +873,15 @@ export function EoPanel({
           />
         </div>
 
-        {/* Classification Hint Text */}
+        {/* Classification Hint Text (Never spoils identity at long range or when unlocked) */}
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
           <span className="mil-cue-label">SENSOR HINT:</span>
           <span style={{ color: '#181716', fontWeight: 800 }}>
-            {effectiveHint.replace(/_/g, ' ').toUpperCase()}
+            {isLocked && eo.hint && eo.hint !== 'object'
+              ? eo.hint.replace(/_/g, ' ').toUpperCase()
+              : isLocked
+              ? 'UNRESOLVED BLOB'
+              : 'LOCK [E] TO ANALYZE'}
           </span>
         </div>
       </div>
