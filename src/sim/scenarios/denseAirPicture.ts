@@ -57,10 +57,11 @@ export function buildDenseAirPictureSpawns(scenarioRng: Rng): ScenarioSpawnSched
   const fpv1Rad = fpv1Bearing * DEG_TO_RAD;
   const fpv1Pos = vec3(4100 * dSin(fpv1Rad), 4100 * dCos(fpv1Rad), 65);
 
-  // 7. Decoy 1 (Radar Lure West): t ~ 35s (700 ticks), bearing ~ 295 deg, range 4300m
+  // 7. Decoy 1 (Radar Lure West): t ~ 35s (700 ticks), bearing ~ 295 deg, range 4300m, tangential perimeter pass
   const decoy1Bearing = 295 + (scenarioRng.next() - 0.5) * 10;
   const decoy1Rad = decoy1Bearing * DEG_TO_RAD;
   const decoy1Pos = vec3(4300 * dSin(decoy1Rad), 4300 * dCos(decoy1Rad), 70);
+  const decoy1End = vec3(-750, -1800, 70);
 
   // 8. FPV Kamikaze 2 (Flank Ingress - North): t ~ 45s (900 ticks), bearing ~ 350 deg, range 4200m
   const fpv2Bearing = 350 + (scenarioRng.next() - 0.5) * 15;
@@ -72,10 +73,11 @@ export function buildDenseAirPictureSpawns(scenarioRng: Rng): ScenarioSpawnSched
   const fiber1Rad = fiber1Bearing * DEG_TO_RAD;
   const fiber1Pos = vec3(3800 * dSin(fiber1Rad), 3800 * dCos(fiber1Rad), 55);
 
-  // 10. Decoy 2 (Electronic Decoy - Northeast): t ~ 65s (1300 ticks), bearing ~ 45 deg, range 3900m
+  // 10. Decoy 2 (Electronic Decoy - Northeast): t ~ 65s (1300 ticks), bearing ~ 45 deg, range 3900m, tangential perimeter pass
   const decoy2Bearing = 45 + (scenarioRng.next() - 0.5) * 15;
   const decoy2Rad = decoy2Bearing * DEG_TO_RAD;
   const decoy2Pos = vec3(3900 * dSin(decoy2Rad), 3900 * dCos(decoy2Rad), 75);
+  const decoy2End = vec3(-2100, 950, 75);
 
   // 11. FPV Kamikaze 3 (Wave 2 - Northeast): t ~ 75s (1500 ticks), bearing ~ 65 deg, range 4400m
   const fpv3Bearing = 65 + (scenarioRng.next() - 0.5) * 15;
@@ -145,8 +147,9 @@ export function buildDenseAirPictureSpawns(scenarioRng: Rng): ScenarioSpawnSched
       tick: 700,
       classId: 'decoy_drone',
       pos: decoy1Pos,
-      behaviourType: 'ingress_direct',
-      speed: 30,
+      behaviourType: 'transit',
+      speed: 28,
+      transitWaypointB: decoy1End,
       role: 'decoy',
     },
     {
@@ -169,8 +172,9 @@ export function buildDenseAirPictureSpawns(scenarioRng: Rng): ScenarioSpawnSched
       tick: 1300,
       classId: 'decoy_drone',
       pos: decoy2Pos,
-      behaviourType: 'ingress_direct',
-      speed: 29,
+      behaviourType: 'transit',
+      speed: 27,
+      transitWaypointB: decoy2End,
       role: 'decoy',
     },
     {

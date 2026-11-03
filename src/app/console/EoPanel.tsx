@@ -20,23 +20,15 @@ export function inferThreatAirframe(
   track?: TraineeTrack | null,
   eoHint?: string
 ): string {
-  if (eoHint && eoHint !== 'object') {
-    if (eoHint === 'multirotor') {
-      if (track?.terminal_lock || track?.rfStatus === 'silent') return 'fpv_fiber';
-      if (track?.speedMps && track.speedMps >= 19) return 'fpv_kamikaze';
-      return 'commercial_quad';
+  // When no track telemetry is passed (e.g., standalone EO unit tests), fall back to eoHint
+  if (!track) {
+    if (eoHint && eoHint !== 'object') {
+      if (eoHint === 'multirotor') return 'commercial_quad';
+      if (eoHint === 'fixed_wing') return 'fixed_wing_recon';
+      return eoHint;
     }
-    if (eoHint === 'fixed_wing') {
-      return track && track.altitudeM < 135 ? 'decoy_drone' : 'fixed_wing_recon';
-    }
-    return eoHint;
+    return 'commercial_quad';
   }
-
-  if (track?.assessedClass && track.assessedClass !== 'unknown') {
-    return track.assessedClass;
-  }
-
-  if (!track) return 'commercial_quad';
 
   const speed = track.speedMps ?? 0;
   const alt = track.altitudeM ?? 0;
@@ -61,7 +53,7 @@ export function inferThreatAirframe(
     return 'bird';
   }
 
-  // 3. Medium RCS (0.05 m²): Fixed-Wing Recon (high alt / C2 link) vs Decoy Drone (low alt)
+  // 3. Medium RCS (0.05 m²): Fixed-Wing Recon (high alt 150-400m / C2 link) vs Decoy Drone (low alt 20-80m + silent)
   if (rcs === 'medium') {
     if (alt >= 135 || rfSig === 'long_range_link') {
       return 'fixed_wing_recon';
@@ -93,6 +85,10 @@ export function inferThreatAirframe(
       return 'fpv_fiber';
     }
     return 'fpv_kamikaze';
+  }
+
+  if (eoHint === 'fpv_fiber' || eoHint === 'fpv_kamikaze' || eoHint === 'commercial_quad') {
+    return eoHint;
   }
 
   return 'commercial_quad';
@@ -215,12 +211,16 @@ export function EoPanel({
     const modelScale = distanceFactor * zoom * (isExpanded ? 1.55 : 1.02);
 
     // Progressive optical transition:
-    // beaconIntensity: 1.0 at long range (bright thermal dot / faded light bloom), fades as airframe resolves close-in
-    // silhouetteReveal: hidden inside the bright dot at >1650m (0.08), emerges smoothly as target approaches <1200m or under 2.5X/5.0X zoom
-    const beaconIntensity = Math.max(0.15, Math.min(1.0, (opticalRangeM - 450) / 1150));
-    const silhouetteReveal = Math.max(0.08, Math.min(1.0, (1750 - opticalRangeM) / 850));
+    // At 1.0X wide FOV, distant targets (>1400m) appear as a bright thermal point-light / faded dot that resolves as it closes in.
+    // Switching to narrow telescope zoom (2.5X / 5.0X) immediately resolves the airframe silhouette (4 rotors + RPG nose vs. straight wings vs. delta-wing + Luneburg ball) even at long range!
+    const zoomRevealFloor = zoom === 5.0 ? 1.0 : zoom === 2.5 ? 0.86 : 0.12;
+    const beaconIntensity =
+      zoom >= 2.5
+        ? Math.max(0.12, Math.min(0.42, (opticalRangeM - 350) / 1450))
+        : Math.max(0.15, Math.min(1.0, (opticalRangeM - 450) / 1150));
+    const silhouetteReveal = Math.max(zoomRevealFloor, Math.min(1.0, (1850 - opticalRangeM) / 850));
     const opticalGateBanner =
-      opticalRangeM > 1250
+      zoom === 1.0 && opticalRangeM > 1250
         ? 'OPTICAL: POINT-SOURCE // ZOOM [2.5X/5X] TO RESOLVE'
         : 'OPTICAL: VISUAL SILHOUETTE // OPERATOR ID REQUIRED';
 

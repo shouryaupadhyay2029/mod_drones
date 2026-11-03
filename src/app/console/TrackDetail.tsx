@@ -31,6 +31,7 @@ export function TrackDetail({
   onHoldFire,
 }: TrackDetailProps): React.JSX.Element {
   const [jamWarningTriggered, setJamWarningTriggered] = React.useState(false);
+  const [showIdGuide, setShowIdGuide] = React.useState(false);
   if (!track) {
     return (
       <div className="mil-panel">
@@ -137,6 +138,27 @@ export function TrackDetail({
           >
             {track.velocityValid && track.closingRateMps !== undefined ? `${Math.round(track.closingRateMps)} m/s` : '—'}
           </span>
+          {track.velocityValid && track.closingRateMps !== undefined && (
+            <span
+              style={{
+                fontSize: '8.5px',
+                fontWeight: 800,
+                letterSpacing: '0.04em',
+                color:
+                  track.closingRateMps <= -12
+                    ? '#dc2626'
+                    : track.closingRateMps < -3
+                    ? '#d97706'
+                    : '#15803d',
+              }}
+            >
+              {track.closingRateMps <= -12
+                ? 'DIRECT DIVE'
+                : track.closingRateMps < -3
+                ? 'APPROACHING'
+                : 'LATERAL / ORBIT'}
+            </span>
+          )}
         </div>
         <div className="mil-cue-card">
           <span className="mil-cue-label">TURN RATE</span>
@@ -147,10 +169,39 @@ export function TrackDetail({
         <div className="mil-cue-card">
           <span className="mil-cue-label">ALTITUDE</span>
           <span className="mil-cue-value">{Math.round(track.altitudeM)} m</span>
+          <span
+            style={{
+              fontSize: '8.5px',
+              fontWeight: 800,
+              letterSpacing: '0.04em',
+              color: track.altitudeM >= 135 ? '#0284c7' : '#57534e',
+            }}
+          >
+            {track.altitudeM >= 135 ? 'HIGH (150-400m)' : 'LOW (20-120m)'}
+          </span>
         </div>
         <div className="mil-cue-card">
           <span className="mil-cue-label">RCS</span>
           <span className="mil-cue-value">{track.rcsBucket.toUpperCase()}</span>
+          <span
+            style={{
+              fontSize: '8.5px',
+              fontWeight: 800,
+              letterSpacing: '0.04em',
+              color:
+                track.rcsBucket === 'medium'
+                  ? '#b45309'
+                  : track.rcsBucket === 'small'
+                  ? '#475569'
+                  : '#15803d',
+            }}
+          >
+            {track.rcsBucket === 'medium'
+              ? '0.05m² (UAV/DECOY)'
+              : track.rcsBucket === 'small'
+              ? '0.02m² (FPV/QUAD)'
+              : '0.001m² (BIO)'}
+          </span>
         </div>
         <div className="mil-cue-card">
           <span className="mil-cue-label">QUALITY</span>
@@ -166,12 +217,12 @@ export function TrackDetail({
               fontSize: '11px',
               color:
                 track.rfStatus === 'emitting'
-                  ? '#38bdf8'
+                  ? '#0284c7'
                   : track.rfStatus === 'ambiguous'
-                  ? '#f59e0b'
+                  ? '#d97706'
                   : track.rfStatus === 'silent'
-                  ? '#8c8275'
-                  : '#cbd5e1',
+                  ? '#57534e'
+                  : '#64748b',
             }}
           >
             {track.rfSignature
@@ -181,6 +232,17 @@ export function TrackDetail({
               : track.rfStatus === 'silent'
               ? 'SILENT'
               : 'UNKNOWN'}
+          </span>
+          <span style={{ fontSize: '8.5px', fontWeight: 800, letterSpacing: '0.04em', color: '#78716c' }}>
+            {track.rfSignature === 'wideband_video'
+              ? 'FPV VIDEO LINK'
+              : track.rfSignature === 'long_range_link'
+              ? 'RECON C2 LINK'
+              : track.rfSignature === 'telemetry_link'
+              ? 'CIV QUAD TLM'
+              : track.rfStatus === 'silent'
+              ? 'NO RF (DECOY/FIBER/BIO)'
+              : 'SCANNING'}
           </span>
         </div>
       </div>
@@ -228,8 +290,72 @@ export function TrackDetail({
           <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#58544e', letterSpacing: '0.08em' }}>
             CLASSIFICATION MATRIX
           </span>
-          <span style={{ fontSize: '9px', color: '#787268' }}>[HOTKEYS 1-7, 0]</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              type="button"
+              onClick={() => setShowIdGuide((prev) => !prev)}
+              style={{
+                background: showIdGuide ? '#c2410c' : '#262421',
+                color: '#ffffff',
+                border: '1px solid #c2410c',
+                borderRadius: '3px',
+                padding: '2px 6px',
+                fontSize: '8.5px',
+                fontWeight: 800,
+                letterSpacing: '0.06em',
+                cursor: 'pointer',
+              }}
+              title="Toggle Threat vs. Decoy Sensor Identification Specifications"
+            >
+              {showIdGuide ? 'HIDE ID SPECS' : '? ID SPECS'}
+            </button>
+            <span style={{ fontSize: '9px', color: '#787268' }}>[1-7, 0]</span>
+          </div>
         </div>
+        {showIdGuide && (
+          <div
+            style={{
+              background: '#141311',
+              color: '#e7e5e4',
+              border: '1px solid #44403c',
+              borderRadius: '4px',
+              padding: '7px 8px',
+              fontSize: '9px',
+              lineHeight: 1.4,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '5px',
+            }}
+          >
+            <div style={{ fontWeight: 800, color: '#fb923c', letterSpacing: '0.05em', fontSize: '9px' }}>
+              SENSOR ID SPECIFICATIONS (THREAT VS. DECOY)
+            </div>
+            <div>
+              <strong style={{ color: '#f87171' }}>[1] FPV KAMIKAZE (JAM / GUN):</strong> Direct Dive (-20 to -35 m/s) ·{' '}
+              <code>RCS: SMALL</code> · Low (20-80m) · <code>RF: VIDEO</code> · FLIR: 4 rotors + pointed RPG nose
+            </div>
+            <div>
+              <strong style={{ color: '#ef4444' }}>[6] FIBER FPV (GUN ONLY - JAM IMMUNE):</strong> Direct Dive (-20 to -30 m/s) ·{' '}
+              <code>RCS: SMALL</code> · Low (20-80m) · <code>RF: SILENT</code> · FLIR: 4 rotors + RPG nose + trailing wire
+            </div>
+            <div>
+              <strong style={{ color: '#fbbf24' }}>[3] RECON UAV (JAM / GUN):</strong> High-Alt Transit (22-32 m/s) ·{' '}
+              <code>RCS: MEDIUM</code> · High (150-400m) · <code>RF: LONG RANGE C2</code> · FLIR: Straight wings + nose prop
+            </div>
+            <div>
+              <strong style={{ color: '#38bdf8' }}>[7] FAKE DECOY LURE (HOLD FIRE!):</strong> Perimeter Pass / Lure ·{' '}
+              <code>RCS: MEDIUM</code> (fake reflector) · Low (20-80m) · <code>RF: SILENT</code> · FLIR: Triangle delta-wing + radar ball + tail flare
+            </div>
+            <div>
+              <strong style={{ color: '#a3e635' }}>[2] COMMERCIAL QUAD (HOLD FIRE!):</strong> Slow Lateral (8-16 m/s) ·{' '}
+              <code>RCS: SMALL</code> · 40-120m · <code>RF: TELEMETRY</code> · FLIR: X-frame + landing skids
+            </div>
+            <div>
+              <strong style={{ color: '#94a3b8' }}>[4] BIRD (HOLD FIRE!):</strong> Erratic Wander (4-14 m/s) ·{' '}
+              <code>RCS: TINY</code> · <code>RF: SILENT</code> · FLIR: Flapping wings
+            </div>
+          </div>
+        )}
         <div className="mil-classify-grid">
           {CLASSIFICATION_OPTIONS.map((opt: ClassificationOption, idx: number) => {
             const isAssessed = track.assessedClass === opt.id;
