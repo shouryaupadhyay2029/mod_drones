@@ -415,7 +415,7 @@ export function drawScope(
       const track = view.tracks[i];
       if (!track || track.state === 'dropped') continue;
 
-      drawTrack(ctx, track, center, options, radiusPx);
+      drawTrack(ctx, track, center, options, radiusPx, view.radarSweepDeg);
     }
   }
 
@@ -533,7 +533,8 @@ function drawTrack(
   track: TraineeTrack,
   center: { x: number; y: number },
   options: ScopeDrawOptions,
-  radiusPx: number
+  radiusPx: number,
+  radarSweepDeg?: number
 ): void {
   const plotPx = polarToPixel(
     track.rangeM,
@@ -552,25 +553,62 @@ function drawTrack(
   const color = isTerminalLocked ? '#ef4444' : getAssessedColor(effectiveClass);
   const isSelected = options.selectedTrackId === track.trackId;
 
-  // 1. Trail: last 6 plots fading
+  // 1. Trail: last 6 plots fading with connected phosphor afterglow path
   const history = options.trailHistory.get(track.trackId);
   if (history && history.length > 1) {
+    let prevHPx: { x: number; y: number } | null = null;
     for (let h = 0; h < history.length - 1; h++) {
       const pos = history[h];
       if (!pos) continue;
-      const alpha = ((h + 1) / history.length) * 0.45;
+      const alpha = ((h + 1) / history.length) * 0.5;
       const hDist = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
       let hDeg = (Math.atan2(pos.x, pos.y) * 180) / Math.PI;
       if (hDeg < 0) hDeg += 360;
 
       const hPx = polarToPixel(hDist, hDeg, center, options.scaleM, radiusPx);
+      if (prevHPx) {
+        ctx.beginPath();
+        ctx.moveTo(prevHPx.x, prevHPx.y);
+        ctx.lineTo(hPx.x, hPx.y);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.1;
+        ctx.globalAlpha = alpha * 0.65;
+        ctx.stroke();
+      }
+      prevHPx = hPx;
+
+      // Soft outer phosphor trail bloom
       ctx.beginPath();
-      ctx.arc(hPx.x, hPx.y, 2.5, 0, Math.PI * 2);
+      ctx.arc(hPx.x, hPx.y, 4.8, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.globalAlpha = alpha * 0.22;
+      ctx.fill();
+
+      // Core fading trail dot
+      ctx.beginPath();
+      ctx.arc(hPx.x, hPx.y, 2.3, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.globalAlpha = alpha;
       ctx.fill();
     }
     ctx.globalAlpha = 1.0;
+  }
+
+  // 1b. Inbound Base Approach Corridor Line for fast-closing threats
+  if (
+    track.closingRateMps !== undefined &&
+    track.closingRateMps < -10 &&
+    airframe !== 'bird'
+  ) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.setLineDash([2, 5]);
+    ctx.moveTo(plotPx.x, plotPx.y);
+    ctx.lineTo(center.x, center.y);
+    ctx.strokeStyle = isSelected ? 'rgba(239, 68, 68, 0.35)' : 'rgba(239, 68, 68, 0.16)';
+    ctx.lineWidth = isSelected ? 1.2 : 0.9;
+    ctx.stroke();
+    ctx.restore();
   }
 
   // 2. Velocity vector: length = speed * 10 s (capped at 3 km), along estimated courseDeg
@@ -616,13 +654,46 @@ function drawTrack(
     }
   }
 
-  // 3. Differentiated Tactical Symbology by Airframe Class & Lifecycle
+  // 3. Differentiated Tactical Symbology + "Army Movie" Phosphor Blip Bloom
   ctx.save();
   ctx.strokeStyle = color;
   ctx.fillStyle = color;
   ctx.lineWidth = 1.8;
 
   const rcsBase = track.rcsBucket === 'tiny' ? 6.0 : track.rcsBucket === 'medium' ? 9.0 : 7.5;
+
+  // Compute sweep-beam phosphor excitation ("radar ping flash" when sweep passes target bearing)
+  let sweepFlash = 0.35;
+  if (radarSweepDeg !== undefined) {
+    const behindDeg = (radarSweepDeg - track.bearingDeg + 360) % 360;
+    if (behindDeg <= 65) {
+      sweepFlash = 0.35 + (1 - behindDeg / 65) * 0.65;
+    }
+  }
+
+  // Luminous radial phosphor blip halo behind every radar contact ("faded glowing dot / bright radar light")
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(plotPx.x, plotPx.y, rcsBase * 2.3, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.globalAlpha = 0.16 * sweepFlash;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(plotPx.x, plotPx.y, rcsBase * 1.25, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.globalAlpha = 0.28 * sweepFlash;
+  ctx.fill();
+
+  // Intense white-hot phosphor center point when freshly painted by the radar sweep
+  if (sweepFlash > 0.65) {
+    ctx.beginPath();
+    ctx.arc(plotPx.x, plotPx.y, 2.2, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = (sweepFlash - 0.5) * 1.1;
+    ctx.fill();
+  }
+  ctx.restore();
 
   if (track.state === 'tentative') {
     // Tentative track: Dashed acquisition ring around the airframe glyph

@@ -217,13 +217,38 @@ export function EoPanel({
   const renderTurretCanvas = (width: number, height: number, isExpanded = false) => {
     const cx = width / 2;
     const cy = height / 2;
+    const idPrefix = isExpanded ? 'pip-' : 'main-';
 
-    // Real-world optical angular scaling:
-    // Drones at 2,000m look like distant heat contacts (~0.45x).
-    // As they approach (1200m -> 600m -> 200m), they physically grow in the viewfinder!
-    const effectiveRange = Math.max(200, rangeM || 1400);
-    const distanceFactor = Math.max(0.42, Math.min(2.2, 1200 / effectiveRange));
-    const modelScale = distanceFactor * zoom * (isExpanded ? 1.6 : 1.05);
+    // Real-world optical angular scaling & distance progression:
+    // At long range (>1500m at 1x), object appears as a pulsing thermal point-light / faded glowing dot
+    // that progressively resolves into a full 3D airframe silhouette as it closes in on the base (or when zoomed)!
+    const effectiveRange = Math.max(180, rangeM || 1400);
+    const opticalRangeM = effectiveRange / zoom;
+
+    const distanceFactor = Math.max(0.34, Math.min(2.35, 1150 / effectiveRange));
+    const modelScale = distanceFactor * zoom * (isExpanded ? 1.55 : 1.02);
+
+    // Progressive optical transition:
+    // beaconIntensity: high at long range (bright thermal dot / faded light bloom), fades as airframe resolves close-in
+    // silhouetteReveal: faint inside the bright dot at 2km+, crisp 1.0 as it approaches <1100m or under zoom
+    const beaconIntensity = Math.max(0.18, Math.min(1.0, (opticalRangeM - 450) / 1450));
+    const silhouetteReveal = Math.max(0.42, Math.min(1.0, 1.38 - opticalRangeM / 2400));
+
+    // Camera elevation angle & horizon placement (tilts with target altitude & range)
+    const elevDeg = (Math.atan2(altM || 75, effectiveRange) * 180) / Math.PI;
+    const horizonY = Math.min(
+      height - 28,
+      Math.max(height * 0.5, cy + Math.min(22, elevDeg * 2.2) + (isExpanded ? 28 : 14))
+    );
+    const ridgeOffsetX = -((Math.round(brgDeg) * 3) % 120);
+
+    // Base approach progress (0 = at 4000m outer ring, 1 = at 0m defended base)
+    const approachProgress = Math.max(0, Math.min(1, 1 - effectiveRange / 4000));
+    const isClosingIn = closingRate < -2;
+    const ttiSeconds =
+      isClosingIn && Math.abs(closingRate) > 1
+        ? Math.max(1, Math.round(effectiveRange / Math.abs(closingRate)))
+        : null;
 
     // Target tracking box dimensions scaled to the object
     const boxW = Math.max(26, Math.min(width * 0.75, 42 * modelScale));
@@ -240,11 +265,54 @@ export function EoPanel({
         }}
       >
         <defs>
-          <filter id="flir-glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+          <filter id={`${idPrefix}flir-glow`} x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3.2" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
+          <radialGradient id={`${idPrefix}flir-beacon-grad`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+            <stop offset="30%" stopColor={hotSpotColor} stopOpacity="0.85" />
+            <stop offset="65%" stopColor={hudTextColor} stopOpacity="0.28" />
+            <stop offset="100%" stopColor={hudTextColor} stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id={`${idPrefix}flir-sky-grad`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor={viewportBg} stopOpacity="1" />
+            <stop
+              offset="100%"
+              stopColor={activePalette === 'bhot' ? '#cfd6de' : activePalette === 'nvg' ? '#0d2614' : '#161d26'}
+              stopOpacity="0.85"
+            />
+          </linearGradient>
         </defs>
+
+        {/* 0. Real-World 3D Optical Sky, Panning Mountain Ridge & Perspective Terrain Grid */}
+        {!isNightTv && (
+          <g>
+            {/* Sky & Atmospheric Horizon Glow */}
+            <rect x="0" y="0" width={width} height={horizonY} fill={`url(#${idPrefix}flir-sky-grad)`} />
+            {/* Distant Panning Mountain Ridge Silhouette */}
+            <path
+              d={`M ${ridgeOffsetX - 60} ${horizonY} L ${ridgeOffsetX} ${horizonY - 14} L ${ridgeOffsetX + 55} ${horizonY - 5} L ${ridgeOffsetX + 115} ${horizonY - 21} L ${ridgeOffsetX + 175} ${horizonY - 8} L ${ridgeOffsetX + 240} ${horizonY - 18} L ${ridgeOffsetX + 310} ${horizonY - 6} L ${ridgeOffsetX + 380} ${horizonY - 22} L ${ridgeOffsetX + 460} ${horizonY - 9} L ${ridgeOffsetX + 550} ${horizonY - 19} L ${ridgeOffsetX + 660} ${horizonY - 7} L ${ridgeOffsetX + 780} ${horizonY - 16} L ${width + 120} ${horizonY} Z`}
+              fill={activePalette === 'bhot' ? 'rgba(30, 36, 44, 0.25)' : 'rgba(255, 255, 255, 0.06)'}
+              stroke={reticleColor}
+              strokeWidth="0.6"
+              opacity="0.7"
+            />
+            {/* Ground Plane Below Horizon */}
+            <rect
+              x="0"
+              y={horizonY}
+              width={width}
+              height={height - horizonY}
+              fill={activePalette === 'bhot' ? 'rgba(40, 48, 58, 0.18)' : 'rgba(255, 255, 255, 0.035)'}
+            />
+            {/* Horizon Line & Perspective Ground Range Grid */}
+            <line x1="0" y1={horizonY} x2={width} y2={horizonY} stroke={reticleColor} strokeWidth="0.7" opacity="0.45" />
+            <line x1={cx} y1={horizonY} x2={cx - width * 0.35} y2={height} stroke={reticleColor} strokeWidth="0.4" opacity="0.22" />
+            <line x1={cx} y1={horizonY} x2={cx + width * 0.35} y2={height} stroke={reticleColor} strokeWidth="0.4" opacity="0.22" />
+            <line x1={cx} y1={horizonY} x2={cx} y2={height} stroke={reticleColor} strokeWidth="0.4" strokeDasharray="2 3" opacity="0.25" />
+          </g>
+        )}
 
         {/* 1. Compass Azimuth Ribbon at top */}
         <g stroke={reticleColor} strokeWidth="1" opacity="0.65">
@@ -346,7 +414,7 @@ export function EoPanel({
             {(isEngaged || isDropped) ? (
               /* Kinetic Impact / Neutralization Thermal Debris Flash */
               <g transform={`translate(${cx}, ${cy}) scale(${modelScale})`}>
-                <circle cx="0" cy="0" r="18" fill="#ff4422" opacity="0.9" filter="url(#flir-glow)" />
+                <circle cx="0" cy="0" r="18" fill="#ff4422" opacity="0.9" filter={`url(#${idPrefix}flir-glow)`} />
                 <circle cx="0" cy="0" r="10" fill="#ffffff" opacity="0.95" />
                 <line x1="-12" y1="-8" x2="-24" y2="-18" stroke="#ff8800" strokeWidth="2" />
                 <line x1="14" y1="-6" x2="26" y2="-16" stroke="#ff8800" strokeWidth="2" />
@@ -357,8 +425,36 @@ export function EoPanel({
                 </text>
               </g>
             ) : (
-              /* Live Flying Target with Differentiated 3D Perspective Airframe Geometry */
-              <g transform={`translate(${cx}, ${cy}) scale(${modelScale})`}>
+              /* Live Flying Target: Progressive Optical Transition from Distant Bright Light / Faded Dot -> Full Approaching 3D Airframe */
+              <g transform={`translate(${cx}, ${cy})`}>
+                <g className="flir-flight-bob">
+                  {/* 6a. Distant Thermal Point-Source Beacon ("Bright Light / Faded Glowing Dot" seen in real military FLIR at long range) */}
+                  <g opacity={beaconIntensity} className="flir-beacon-pulse">
+                    <circle cx="0" cy="0" r={Math.max(14, 24 * distanceFactor)} fill={`url(#${idPrefix}flir-beacon-grad)`} />
+                    {/* Infrared Star-Filter Optical Glint Spikes */}
+                    <line
+                      x1={-Math.max(12, 18 * distanceFactor)}
+                      y1="0"
+                      x2={Math.max(12, 18 * distanceFactor)}
+                      y2="0"
+                      stroke="#ffffff"
+                      strokeWidth="0.9"
+                      opacity="0.7"
+                    />
+                    <line
+                      x1="0"
+                      y1={-Math.max(10, 15 * distanceFactor)}
+                      x2="0"
+                      y2={Math.max(10, 15 * distanceFactor)}
+                      stroke="#ffffff"
+                      strokeWidth="0.9"
+                      opacity="0.7"
+                    />
+                    <circle cx="0" cy="0" r="3.2" fill="#ffffff" filter={`url(#${idPrefix}flir-glow)`} />
+                  </g>
+
+                  {/* 6b. Approaching 3D Airframe Silhouette (Emerges out of the bright thermal dot as target closes in or zooms) */}
+                  <g transform={`scale(${modelScale})`} opacity={silhouetteReveal}>
                 {/* A. Civilian Commercial Quadcopter (DJI Mavic / Matrice Perspective Profile) */}
                 {(effectiveHint === 'commercial_quad' || effectiveHint === 'multirotor') && (
                   <g fill={silhouetteColor} stroke={silhouetteColor}>
@@ -410,7 +506,7 @@ export function EoPanel({
                     <polygon points="0,-24 7,-12 5,-2 -5,-2 -7,-12" fill={silhouetteColor} stroke="#ef4444" strokeWidth="1" />
                     {/* Piezo Impact Fuze Probe Extending Forward */}
                     <line x1="0" y1="-24" x2="0" y2="-32" stroke="#ef4444" strokeWidth="1.8" />
-                    <circle cx="0" cy="-32" r="2.2" fill="#ef4444" filter="url(#flir-glow)" />
+                    <circle cx="0" cy="-32" r="2.2" fill="#ef4444" filter={`url(#${idPrefix}flir-glow)`} />
 
                     {/* 4 High-RPM Racing Motors & Tri-Blade Prop Discs */}
                     <circle cx="-24" cy="-19" r="3" fill="#ef4444" className="flir-hot-motor" />
@@ -450,7 +546,7 @@ export function EoPanel({
                     <ellipse cx="0" cy="-27" rx="11" ry="2.2" fill="none" strokeWidth="1.2" className="flir-spinning-prop" />
                     {/* Rear Internal-Combustion Engine Thermal Exhaust Plume */}
                     <circle cx="0" cy="27" r="4.5" fill={hotSpotColor} className="flir-hot-motor" />
-                    <ellipse cx="0" cy="34" rx="3.5" ry="8" fill={hotSpotColor} opacity="0.75" filter="url(#flir-glow)" />
+                    <ellipse cx="0" cy="34" rx="3.5" ry="8" fill={hotSpotColor} opacity="0.75" filter={`url(#${idPrefix}flir-glow)`} />
                   </g>
                 )}
 
@@ -467,7 +563,7 @@ export function EoPanel({
                     <line x1="-6" y1="-4" x2="6" y2="-4" stroke="#eab308" strokeWidth="1" />
                     <line x1="0" y1="-10" x2="0" y2="2" stroke="#eab308" strokeWidth="1" />
                     {/* Blazing Rear Pyrotechnic IR Decoy Flare */}
-                    <circle cx="0" cy="14" r="6" fill="#eab308" filter="url(#flir-glow)" className="flir-hot-motor" />
+                    <circle cx="0" cy="14" r="6" fill="#eab308" filter={`url(#${idPrefix}flir-glow)`} className="flir-hot-motor" />
                     <circle cx="0" cy="14" r="3" fill="#ffffff" />
                   </g>
                 )}
@@ -483,7 +579,7 @@ export function EoPanel({
                     {/* Fanned Tail Feathers */}
                     <polygon points="-3,9 -7,21 0,18 7,21 3,9" />
                     {/* Warm Biological Pectoral/Thorax Heat Core */}
-                    <ellipse cx="0" cy="-3" rx="3.2" ry="6.5" fill={hotSpotColor} opacity="0.8" filter="url(#flir-glow)" />
+                    <ellipse cx="0" cy="-3" rx="3.2" ry="6.5" fill={hotSpotColor} opacity="0.8" filter={`url(#${idPrefix}flir-glow)`} />
                   </g>
                 )}
 
@@ -497,6 +593,8 @@ export function EoPanel({
                     <path d="M -12 2 Q 0 -6 12 4" strokeWidth="1.2" fill="none" strokeDasharray="2 2" />
                   </g>
                 )}
+                  </g>
+                </g>
               </g>
             )}
           </g>
@@ -533,6 +631,41 @@ export function EoPanel({
         <text x={width - 14} y="42" fill="rgba(255,255,255,0.6)" fontSize="7" fontFamily="monospace" textAnchor="end">
           ATMOS: {weather.toUpperCase()}
         </text>
+
+        {/* Bottom-Center: Real-Time Base Approach Corridor & Time-To-Impact (TTI) */}
+        {isTracking && !isNightTv && (
+          <g>
+            <text
+              x={cx}
+              y={height - 22}
+              fill={isClosingIn && ttiSeconds !== null && ttiSeconds < 45 ? '#ef4444' : hudTextColor}
+              fontSize={isExpanded ? '8' : '6.5'}
+              fontFamily="monospace"
+              textAnchor="middle"
+              fontWeight="bold"
+            >
+              {ttiSeconds !== null ? `APPROACHING BASE // TTI: ${ttiSeconds}s` : 'LATERAL TRANSIT // LOITER'}
+            </text>
+            {/* Corridor Track Bar: [BASE] <-----(*)----- [4KM] */}
+            <line
+              x1={cx - 44}
+              y1={height - 13}
+              x2={cx + 44}
+              y2={height - 13}
+              stroke={reticleColor}
+              strokeWidth="1.2"
+              opacity="0.6"
+            />
+            <rect x={cx - 47} y={height - 16} width="4" height="6" fill="#38bdf8" />
+            <circle
+              cx={cx + 44 - approachProgress * 88}
+              cy={height - 13}
+              r="3"
+              fill={isClosingIn ? '#ef4444' : hudTextColor}
+              filter={`url(#${idPrefix}flir-glow)`}
+            />
+          </g>
+        )}
 
         {/* Bottom-Left: Target Altitude & Real-time Range */}
         <text x="14" y={height - 24} fill="rgba(255,255,255,0.85)" fontSize="8" fontFamily="monospace">
