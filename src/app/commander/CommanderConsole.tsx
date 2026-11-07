@@ -24,9 +24,12 @@ interface InspectedTrackInfo {
   rangeM: number;
   altM: number;
   speed: number;
+  closingRateMps: number | null;
+  rcsBucket: string;
   bearing: number;
   assessedClass: string | null;
   rfSignature: string | null;
+  rfStatus: string | null;
   isLocked: boolean;
 }
 
@@ -59,15 +62,18 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
   const [speed, setSpeed] = useState<1 | 2 | 4>(1);
   const [selected, setSelected] = useState<string | null>(null);
 
-  // Tactical Radar & Combat Telemetry State
-  const [trailHistory] = useState(() => new Map<number, Array<{ x: number; y: number; z: number }>>());
+  // Tactical Radar & Combat Telemetry State (keyed per siteId so multi-site track IDs never collide)
+  const [trailHistoryBySite] = useState(
+    () => new Map<string, Map<number, Array<{ x: number; y: number; z: number }>>>()
+  );
+  const [emptyTrailMap] = useState(() => new Map<number, Array<{ x: number; y: number; z: number }>>());
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
   const [inspectedTrack, setInspectedTrack] = useState<InspectedTrackInfo | null>(null);
   const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([
     { id: 'init', time: '00:00', text: 'THEATRE C2 DEFENSE GRID SYNCHRONIZED // RADAR SURVEILLANCE ACTIVE', type: 'info' },
   ]);
 
-  const prevTracksRef = useRef<Set<number>>(new Set());
+  const prevTracksRef = useRef<Set<string>>(new Set());
   const prevEngagementRef = useRef<Record<string, string | undefined>>({});
   const prevFiringRef = useRef<Record<string, boolean>>({});
   const prevJammingRef = useRef<Record<string, boolean>>({});
@@ -108,36 +114,44 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
         prevJammingRef.current[site.siteId] = false;
       }
 
-      // 1. Trail history and new threat acquisition
+      // 1. Per-site trail history and new contact acquisition
+      let siteTrailMap = trailHistoryBySite.get(site.siteId);
+      if (!siteTrailMap) {
+        siteTrailMap = new Map<number, Array<{ x: number; y: number; z: number }>>();
+        trailHistoryBySite.set(site.siteId, siteTrailMap);
+      }
+
       for (const track of site.operatorView.tracks) {
-        const history = trailHistory.get(track.trackId) ?? [];
+        const history = siteTrailMap.get(track.trackId) ?? [];
         history.push({ ...track.estimatedPosition });
         if (history.length > 25) history.shift();
-        trailHistory.set(track.trackId, history);
+        siteTrailMap.set(track.trackId, history);
 
-        if (!prevTracksRef.current.has(track.trackId)) {
-          prevTracksRef.current.add(track.trackId);
+        const detectKey = `${site.siteId}:${track.trackId}`;
+        if (!prevTracksRef.current.has(detectKey)) {
+          prevTracksRef.current.add(detectKey);
           playRadarBlip();
           setCombatLog((prev) => [
             ...prev.slice(-14),
             {
-              id: `${nextView.tick}-${track.trackId}-detect`,
+              id: `${nextView.tick}-${site.siteId}-${track.trackId}-detect`,
               time: currentTime,
-              text: `${site.siteId} RADAR: ACQUIRED HOSTILE TRACK T${track.trackId} (R: ${Math.round(track.rangeM)}m, ALT: ${Math.round(track.altitudeM)}m)`,
+              text: `${site.siteId} RADAR: ACQUIRED RADAR CONTACT T${track.trackId} (R: ${Math.round(track.rangeM)}m, ALT: ${Math.round(track.altitudeM)}m)`,
               type: 'detect',
             },
           ]);
         }
 
-        // Terminal lock alert
+        // Terminal lock alert (deduplicated per siteId:trackId)
         if (track.terminal_lock) {
-          const lockKey = `${track.trackId}-lock`;
-          if (!prevTracksRef.current.has(Number(lockKey))) {
+          const lockKey = `${site.siteId}:${track.trackId}:lock`;
+          if (!prevTracksRef.current.has(lockKey)) {
+            prevTracksRef.current.add(lockKey);
             playWarning();
             setCombatLog((prev) => [
               ...prev.slice(-14),
               {
-                id: `${nextView.tick}-${track.trackId}-lock`,
+                id: `${nextView.tick}-${site.siteId}-${track.trackId}-lock`,
                 time: currentTime,
                 text: `${site.siteId} ALERT: TRACK T${track.trackId} ACTIVATED OPTICAL TERMINAL LOCK! RF IMMUNE -> KINETIC CIWS ONLY!`,
                 type: 'warn',
@@ -391,14 +405,29 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                   const dy = (-track.estimatedPosition.y / 6000) * 120;
                   const droneLeft = `calc(${siteX}% + ${dx}px)`;
                   const droneTop = `calc(${siteY}% + ${dy}px)`;
-                  const isTrackInspected = inspectedTrack?.trackId === track.trackId;
-                  const heading = track.bearingDeg ?? 0;
+                  const isTrackInspected =
+                    inspectedTrack?.siteId === site.siteId && inspectedTrack?.trackId === track.trackId;
+                  const heading = track.courseDeg ?? ((track.bearingDeg + 180) % 360);
                   const speed = track.speedMps ?? 0;
                   const courseRad = (heading * Math.PI) / 180;
                   const vecLen = Math.min(22, Math.max(10, speed * 0.7));
                   const vecX = Math.sin(courseRad) * vecLen;
                   const vecY = -Math.cos(courseRad) * vecLen;
                   const trackCallsign = `${site.siteId}-T${track.trackId}`;
+                  const buildInspectedInfo = (): InspectedTrackInfo => ({
+                    trackId: track.trackId,
+                    siteId: site.siteId,
+                    rangeM: Math.round(track.rangeM),
+                    altM: Math.round(track.altitudeM),
+                    speed: Math.round(track.speedMps ?? 0),
+                    closingRateMps: track.closingRateMps !== undefined ? Math.round(track.closingRateMps) : null,
+                    rcsBucket: track.rcsBucket,
+                    bearing: Math.round(track.bearingDeg),
+                    assessedClass: track.assessedClass ?? null,
+                    rfSignature: track.rfSignature ?? null,
+                    rfStatus: track.rfStatus ?? null,
+                    isLocked: Boolean(track.terminal_lock),
+                  });
 
                   return (
                     <div
@@ -406,34 +435,8 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                       className={`commander-map-drone ${track.terminal_lock ? 'is-locked' : ''} ${isTrackInspected ? 'is-inspected' : ''}`}
                       style={{ left: droneLeft, top: droneTop }}
                       title={`${trackCallsign} · Range: ${Math.round(track.rangeM)}m · Alt: ${Math.round(track.altitudeM)}m`}
-                      onClick={() => {
-                        const spd = Math.round(track.speedMps ?? 0);
-                        setInspectedTrack({
-                          trackId: track.trackId,
-                          siteId: site.siteId,
-                          rangeM: Math.round(track.rangeM),
-                          altM: Math.round(track.altitudeM),
-                          speed: spd,
-                          bearing: Math.round(track.bearingDeg),
-                          assessedClass: track.assessedClass ?? null,
-                          rfSignature: track.rfSignature ?? (track.rfStatus ? String(track.rfStatus) : null),
-                          isLocked: Boolean(track.terminal_lock),
-                        });
-                      }}
-                      onMouseEnter={() => {
-                        const spd = Math.round(track.speedMps ?? 0);
-                        setInspectedTrack({
-                          trackId: track.trackId,
-                          siteId: site.siteId,
-                          rangeM: Math.round(track.rangeM),
-                          altM: Math.round(track.altitudeM),
-                          speed: spd,
-                          bearing: Math.round(track.bearingDeg),
-                          assessedClass: track.assessedClass ?? null,
-                          rfSignature: track.rfSignature ?? (track.rfStatus ? String(track.rfStatus) : null),
-                          isLocked: Boolean(track.terminal_lock),
-                        });
-                      }}
+                      onClick={() => setInspectedTrack(buildInspectedInfo())}
+                      onMouseEnter={() => setInspectedTrack(buildInspectedInfo())}
                     >
                       {/* Inbound Approach Line to targeted base */}
                       <svg className="drone-vector-line" aria-hidden="true">
@@ -584,33 +587,46 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                     <b>{inspectedTrack.altM} m</b>
                   </div>
                   <div className="dossier-data-cell">
-                    <small>VELOCITY</small>
-                    <b>{inspectedTrack.speed} m/s</b>
+                    <small>VELOCITY / CLOSING</small>
+                    <b>
+                      {inspectedTrack.speed} m/s
+                      {inspectedTrack.closingRateMps !== null ? ` (${inspectedTrack.closingRateMps} m/s)` : ''}
+                    </b>
                   </div>
                   <div className="dossier-data-cell">
-                    <small>DEFENSE SECTOR</small>
-                    <b>SITE {inspectedTrack.siteId}</b>
+                    <small>SECTOR / RCS</small>
+                    <b>SITE {inspectedTrack.siteId} · {inspectedTrack.rcsBucket.toUpperCase()}</b>
                   </div>
                   <div className="dossier-data-cell full">
                     <small>CLASSIFICATION</small>
                     <b className="threat-class">
-                      {inspectedTrack.assessedClass ? inspectedTrack.assessedClass.replace(/_/g, ' ').toUpperCase() : 'ANALYZING DOPPLER SIGNATURE'}
+                      {inspectedTrack.assessedClass && inspectedTrack.assessedClass !== 'unknown'
+                        ? inspectedTrack.assessedClass.replace(/_/g, ' ').toUpperCase()
+                        : 'UNCLASSIFIED BOGEY (ANALYZING CUES)'}
                     </b>
                   </div>
                   <div className="dossier-data-cell full">
                     <small>RF DATALINK / SENSOR FUSION</small>
-                    <b>{inspectedTrack.rfSignature && inspectedTrack.rfSignature !== 'none'
-                      ? `${inspectedTrack.rfSignature.replace(/_/g, ' ').toUpperCase()} (DETECTED)`
-                      : 'NO RF EMISSION · JAM-RESISTANT / FIBER-OPTIC'}</b>
+                    <b>
+                      {inspectedTrack.rfSignature && inspectedTrack.rfSignature !== 'none'
+                        ? `${inspectedTrack.rfSignature.replace(/_/g, ' ').toUpperCase()} (EMITTING)`
+                        : inspectedTrack.rfStatus === 'ambiguous'
+                        ? 'AMBIGUOUS RF STROBE · CROSS-CHECK RCS & ALTITUDE'
+                        : 'NO RF EMISSION (FIBER FPV / FAKE DECOY / BIOLOGICAL)'}
+                    </b>
                   </div>
                   <div className="dossier-data-cell full">
                     <small>ENGAGEMENT DIRECTIVE</small>
                     <b className={inspectedTrack.isLocked ? 'is-urgent' : 'is-nominal'}>
                       {inspectedTrack.isLocked
-                        ? '⚠ TERMINAL OPTICAL DIVE IN PROGRESS — RF Jammer Ineffective, Authorize 35mm CIWS Kinetic Intercept!'
-                        : inspectedTrack.assessedClass === 'avian'
-                        ? '● BIOLOGICAL NON-HOSTILE — Hold fire to conserve ammunition'
-                        : '▲ HOSTILE VECTOR CLOSING — Deploy RF Directional Jammer or Standby for CIWS Envelope'}
+                        ? '⚠ TERMINAL OPTICAL DIVE (<800m) — RF Jammer Ineffective, Kinetic CIWS / SAM Required!'
+                        : inspectedTrack.assessedClass === 'bird' || inspectedTrack.assessedClass === 'clutter'
+                        ? '● NON-HOSTILE / CLUTTER — Hold fire to conserve battery ammunition'
+                        : inspectedTrack.assessedClass === 'commercial_quad'
+                        ? '● CIVILIAN QUADCOPTER — Strict ROE Hold Fire (engaging incurs collateral penalty)'
+                        : inspectedTrack.assessedClass === 'decoy_drone'
+                        ? '● FAKE DECOY LURE (Med RCS + Low Alt + Silent) — Conserve Gun & SAM reserves'
+                        : '▲ MONITOR CLOSING RATE & RCS — Standard/Tight ROE filters decoys; replenish Gun/SAM if low'}
                     </b>
                   </div>
                 </div>
@@ -717,7 +733,7 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
               {/* Damage & Threat Overview */}
               <div className="commander-site-stats-row">
                 <div className={`commander-threat-chip ${hasInbound ? 'is-danger' : 'is-secure'}`}>
-                  {hasInbound ? `▲ ${site.operatorView.tracks.length} INBOUND HOSTILE` : '● AIRSPACE CLEAR'}
+                  {hasInbound ? `▲ ${site.operatorView.tracks.length} ACTIVE CONTACTS` : '● AIRSPACE CLEAR'}
                 </div>
                 <div className="commander-damage-readout">
                   DAMAGE: <b>{site.damagePercent}%</b>
@@ -874,7 +890,10 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                     key={s.siteId}
                     type="button"
                     className={`radar-switch-btn ${s.siteId === selected ? 'is-active' : ''}`}
-                    onClick={() => setSelected(s.siteId)}
+                    onClick={() => {
+                      setSelected(s.siteId);
+                      setSelectedTrackId(null);
+                    }}
                   >
                     SWITCH TO {s.siteId}
                   </button>
@@ -882,7 +901,10 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
                 <button
                   type="button"
                   className="radar-modal-close"
-                  onClick={() => setSelected(null)}
+                  onClick={() => {
+                    setSelected(null);
+                    setSelectedTrackId(null);
+                  }}
                   aria-label="Close radar scope"
                 >
                   ✕ CLOSE SCOPE
@@ -892,7 +914,7 @@ export function CommanderConsole({ session, autopilot, onAutopilotChange, onComp
             <div className="radar-modal-canvas-wrap">
               <RadarScope
                 view={selectedSite.operatorView}
-                trailHistory={trailHistory}
+                trailHistory={trailHistoryBySite.get(selectedSite.siteId) ?? emptyTrailMap}
                 selectedTrackId={selectedTrackId}
                 onSelectTrack={setSelectedTrackId}
                 scenarioId="dense_air_picture"

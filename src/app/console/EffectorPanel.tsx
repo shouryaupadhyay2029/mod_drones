@@ -23,9 +23,9 @@ export function EffectorPanel({
   const isJammerReady = jammerBusySec === 0;
   const isGunReady = gunBusySec === 0 && effectors.gun.ammo > 0;
 
-  // Generate 20 round pips for ammo rack
-  const totalRounds = 20;
-  const currentAmmo = Math.max(0, Math.min(totalRounds, effectors.gun.ammo));
+  // Generate 20 burst pips for magazine rack
+  const totalBursts = 20;
+  const currentAmmo = Math.max(0, Math.min(totalBursts, effectors.gun.ammo));
 
   return (
     <div className="mil-panel">
@@ -49,9 +49,9 @@ export function EffectorPanel({
               style={{
                 fontSize: '8.5px',
                 padding: '1px 5px',
-                backgroundColor: isJammerReady ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
-                color: isJammerReady ? '#34d399' : '#fbbf24',
-                borderColor: isJammerReady ? 'rgba(16, 185, 129, 0.35)' : 'rgba(245, 158, 11, 0.35)',
+                backgroundColor: isJammerReady ? 'rgba(21, 128, 61, 0.12)' : 'rgba(180, 83, 9, 0.14)',
+                color: isJammerReady ? '#15803d' : '#b45309',
+                borderColor: isJammerReady ? 'rgba(21, 128, 61, 0.35)' : 'rgba(180, 83, 9, 0.35)',
               }}
             >
               {isJammerReady ? 'READY' : `BUSY (${jammerBusySec}s)`}
@@ -65,11 +65,11 @@ export function EffectorPanel({
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span className="mil-cue-label">CYCLE</span>
-              <span style={{ color: '#181716', fontWeight: 700 }}>3.0 s</span>
+              <span style={{ color: '#181716', fontWeight: 700 }}>2.0 s</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span className="mil-cue-label">TARGET</span>
-              <span style={{ color: '#181716', fontWeight: 700 }}>RF-Links</span>
+              <span style={{ color: '#181716', fontWeight: 700 }}>RF (&gt;800m)</span>
             </div>
           </div>
         </div>
@@ -84,20 +84,20 @@ export function EffectorPanel({
                 fontSize: '8.5px',
                 padding: '1px 5px',
                 backgroundColor: isGunReady
-                  ? 'rgba(16, 185, 129, 0.12)'
+                  ? 'rgba(21, 128, 61, 0.12)'
                   : effectors.gun.ammo <= 0
-                  ? 'rgba(239, 68, 68, 0.15)'
-                  : 'rgba(245, 158, 11, 0.12)',
+                  ? 'rgba(184, 51, 39, 0.15)'
+                  : 'rgba(180, 83, 9, 0.14)',
                 color: isGunReady
-                  ? '#34d399'
+                  ? '#15803d'
                   : effectors.gun.ammo <= 0
-                  ? '#f87171'
-                  : '#fbbf24',
+                  ? '#b83327'
+                  : '#b45309',
                 borderColor: isGunReady
-                  ? 'rgba(16, 185, 129, 0.35)'
+                  ? 'rgba(21, 128, 61, 0.35)'
                   : effectors.gun.ammo <= 0
-                  ? 'rgba(239, 68, 68, 0.4)'
-                  : 'rgba(245, 158, 11, 0.35)',
+                  ? 'rgba(184, 51, 39, 0.4)'
+                  : 'rgba(180, 83, 9, 0.35)',
               }}
             >
               {effectors.gun.ammo <= 0
@@ -111,8 +111,8 @@ export function EffectorPanel({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '9px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span className="mil-cue-label">AMMO</span>
-              <span style={{ color: currentAmmo <= 5 ? '#f87171' : '#34d399', fontWeight: 800 }}>
-                {currentAmmo} / 20 rnds
+              <span style={{ color: currentAmmo <= 5 ? '#b83327' : '#15803d', fontWeight: 800 }}>
+                {currentAmmo} / 20 bursts
               </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -120,8 +120,8 @@ export function EffectorPanel({
               <span style={{ color: '#181716', fontWeight: 700 }}>1,000 m</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span className="mil-cue-label">BURST</span>
-              <span style={{ color: '#181716', fontWeight: 700 }}>5 rounds</span>
+              <span className="mil-cue-label">CYCLE</span>
+              <span style={{ color: '#181716', fontWeight: 700 }}>0.5 s</span>
             </div>
           </div>
         </div>
@@ -130,19 +130,19 @@ export function EffectorPanel({
       {/* Tactile Ammo Rack Magazine View */}
       <div className="mil-ammo-grid">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '8.5px' }}>
-          <span style={{ color: '#58544e', fontWeight: 700, letterSpacing: '0.06em' }}>MAGAZINE TRAY (20 ROUNDS)</span>
-          <span style={{ color: currentAmmo <= 5 ? '#f87171' : '#34d399', fontWeight: 800 }}>
-            {Math.floor(currentAmmo / 5)} BURSTS AVAILABLE
+          <span style={{ color: '#58544e', fontWeight: 700, letterSpacing: '0.06em' }}>MAGAZINE TRAY (20 BURSTS)</span>
+          <span style={{ color: currentAmmo <= 5 ? '#b83327' : '#15803d', fontWeight: 800 }}>
+            {currentAmmo} {currentAmmo === 1 ? 'BURST' : 'BURSTS'} AVAILABLE
           </span>
         </div>
         <div className="mil-ammo-rack">
-          {Array.from({ length: totalRounds }).map((_, idx) => {
+          {Array.from({ length: totalBursts }).map((_, idx) => {
             const isReady = idx < currentAmmo;
             return (
               <div
                 key={idx}
                 className={`mil-ammo-pip ${isReady ? 'is-ready' : 'is-spent'}`}
-                title={`Round ${idx + 1}: ${isReady ? 'Ready' : 'Expended'}`}
+                title={`Burst ${idx + 1}: ${isReady ? 'Ready' : 'Expended'}`}
               />
             );
           })}

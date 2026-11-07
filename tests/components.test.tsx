@@ -1,8 +1,11 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
+import { CONTACT_REFERENCES } from '../src/app/console/ContactLibrary.js';
 import { DebriefScreen } from '../src/app/console/DebriefScreen.js';
+import { EffectorPanel } from '../src/app/console/EffectorPanel.js';
 import { EoPanel, inferThreatAirframe } from '../src/app/console/EoPanel.js';
+import { EventFeed } from '../src/app/console/EventFeed.js';
 import { MissionSetup } from '../src/app/console/MissionSetup.js';
 import { inferScopeAirframe } from '../src/app/console/radar/drawScope.js';
 import { TopBar } from '../src/app/console/TopBar.js';
@@ -473,6 +476,51 @@ describe('Console UI Components & Logic Verification', () => {
       );
       expect(fpvHtml).toContain('LOCK [E] TO ANALYZE');
       expect(fpvHtml).not.toContain('FPV STRIKE DRONE');
+    });
+
+    it('formats live SimEvent payloads in EventFeed without undefined fields or raw JSON', () => {
+      const html = renderToStaticMarkup(
+        <EventFeed
+          events={[
+            { tick: 40, type: 'TRACK_IN_RANGE', payload: { trackId: 1, effector: 'jammer' } },
+            { tick: 45, type: 'ENGAGEMENT_STARTED', payload: { trackId: 1, effector: 'jammer', rangeAtFire: 1240 } },
+            { tick: 85, type: 'ENGAGEMENT_RESOLVED', payload: { trackId: 1, effector: 'jammer', result: 'hit' } },
+            { tick: 110, type: 'NO_EFFECT', payload: { trackId: 2, effector: 'jammer', reason: 'terminal_lock_rf_immune' } },
+          ]}
+        />
+      );
+
+      expect(html).not.toContain('undefined');
+      expect(html).toContain('Track T1 entered RF JAMMER envelope');
+      expect(html).toContain('RF JAMMER engaged Track T1 at 1240m');
+      expect(html).toContain('RF JAMMER neutralized Track T1');
+      expect(html).toContain('autonomous optical lock (&lt;800m)');
+    });
+
+    it('displays accurate 20-burst magazine capacity and 2.0s jammer cycle in EffectorPanel', () => {
+      const html = renderToStaticMarkup(
+        <EffectorPanel
+          effectors={{ jammer: { busyUntilTick: 0 }, gun: { ammo: 17, busyUntilTick: 0 } }}
+          currentTick={100}
+        />
+      );
+
+      expect(html).toContain('17 / 20 bursts');
+      expect(html).toContain('17 BURSTS AVAILABLE');
+      expect(html).toContain('2.0 s');
+    });
+
+    it('enforces Hold Fire ROE guidance for civilian quadcopters and decoys in CONTACT_REFERENCES', () => {
+      const quad = CONTACT_REFERENCES.find((c) => c.id === 'commercial_quad');
+      const decoy = CONTACT_REFERENCES.find((c) => c.id === 'decoy_drone');
+
+      expect(quad).toBeDefined();
+      expect(quad!.cues.join(' ')).toContain('HOLD FIRE [H]');
+      expect(quad!.cues.join(' ')).not.toContain('SOFT-KILL PREFERRED');
+
+      expect(decoy).toBeDefined();
+      expect(decoy!.cues.join(' ')).toContain('HOLD FIRE [H]');
+      expect(decoy!.cues.join(' ')).toContain('MEDIUM RCS');
     });
   });
 });

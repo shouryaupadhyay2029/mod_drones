@@ -331,7 +331,7 @@ export function TrackDetail({
               SENSOR ID SPECIFICATIONS (THREAT VS. DECOY)
             </div>
             <div>
-              <strong style={{ color: '#f87171' }}>[1] FPV KAMIKAZE (JAM / GUN):</strong> Direct Dive (-20 to -35 m/s) ·{' '}
+              <strong style={{ color: '#f87171' }}>[3] FPV STRIKE DRONE (JAM &gt;800m / GUN):</strong> Direct Dive (-20 to -35 m/s) ·{' '}
               <code>RCS: SMALL</code> · Low (20-80m) · <code>RF: VIDEO</code> · FLIR: 4 rotors + pointed RPG nose
             </div>
             <div>
@@ -339,27 +339,31 @@ export function TrackDetail({
               <code>RCS: SMALL</code> · Low (20-80m) · <code>RF: SILENT</code> · FLIR: 4 rotors + RPG nose + trailing wire
             </div>
             <div>
-              <strong style={{ color: '#fbbf24' }}>[3] RECON UAV (JAM / GUN):</strong> High-Alt Transit (22-32 m/s) ·{' '}
+              <strong style={{ color: '#fbbf24' }}>[4] FIXED-WING RECON (JAM / GUN):</strong> High-Alt Transit (22-32 m/s) ·{' '}
               <code>RCS: MEDIUM</code> · High (150-400m) · <code>RF: LONG RANGE C2</code> · FLIR: Straight wings + nose prop
             </div>
             <div>
-              <strong style={{ color: '#38bdf8' }}>[7] FAKE DECOY LURE (HOLD FIRE!):</strong> Perimeter Pass / Lure ·{' '}
+              <strong style={{ color: '#38bdf8' }}>[7] FAKE DECOY LURE (HOLD FIRE [H]!):</strong> Perimeter Pass / Lure ·{' '}
               <code>RCS: MEDIUM</code> (fake reflector) · Low (20-80m) · <code>RF: SILENT</code> · FLIR: Triangle delta-wing + radar ball + tail flare
             </div>
             <div>
-              <strong style={{ color: '#a3e635' }}>[2] COMMERCIAL QUAD (HOLD FIRE!):</strong> Slow Lateral (8-16 m/s) ·{' '}
+              <strong style={{ color: '#a3e635' }}>[2] CIVILIAN QUAD (HOLD FIRE [H]!):</strong> Slow Lateral (8-16 m/s) ·{' '}
               <code>RCS: SMALL</code> · 40-120m · <code>RF: TELEMETRY</code> · FLIR: X-frame + landing skids
             </div>
             <div>
-              <strong style={{ color: '#94a3b8' }}>[4] BIRD (HOLD FIRE!):</strong> Erratic Wander (4-14 m/s) ·{' '}
+              <strong style={{ color: '#94a3b8' }}>[1] BIRD (HOLD FIRE [H]!):</strong> Erratic Wander (4-14 m/s) ·{' '}
               <code>RCS: TINY</code> · <code>RF: SILENT</code> · FLIR: Flapping wings
+            </div>
+            <div>
+              <strong style={{ color: '#a8a29e' }}>[5] FALSE / CLUTTER (HOLD FIRE [H]!):</strong> Near-Stationary (&lt;6 m/s) ·{' '}
+              <code>RCS: TINY</code> · Low (&lt;50m) · <code>RF: SILENT</code>
             </div>
           </div>
         )}
         <div className="mil-classify-grid">
           {CLASSIFICATION_OPTIONS.map((opt: ClassificationOption, idx: number) => {
             const isAssessed = track.assessedClass === opt.id;
-            const keyLabel = opt.id === 'unknown' ? '0' : String(idx + 1);
+            const keyLabel = opt.hotkey ?? (opt.id === 'unknown' ? '0' : String(idx + 1));
 
             return (
               <button

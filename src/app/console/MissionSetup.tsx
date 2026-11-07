@@ -26,8 +26,8 @@ const SCENARIO_OPTIONS: ScenarioOption[] = [
     title: 'Multi-Threat Tactical Airspace',
     subtitle: 'High-Density Realistic Air Picture (13 Targets)',
     description:
-      'Full operational radar picture with 13 simultaneous air objects: multi-axis FPV kamikaze strikes, loitering recon UAV, jam-resistant fiber drones, civilian transit quadcopters, and avian clutter.',
-    chips: ['13 Targets', 'Multi-Axis Ingress', 'Fiber + FPV', 'Civilian Corridor', 'Rural Dusk'],
+      'Full operational radar picture with 13 simultaneous air objects: multi-axis FPV kamikaze strikes, jam-resistant fiber-optic FPVs, high-altitude recon UAV, fake radar-reflector decoy lures, civilian transit quadcopters, and avian clutter.',
+    chips: ['13 Targets', 'Multi-Axis Ingress', 'Fiber + Decoys', 'Civilian Corridor', 'Rural Dusk'],
   },
   {
     id: 'dawn_intrusion',
@@ -471,15 +471,14 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
             <ul style={styles.briefingList}>
               <li>
                 <strong>Detect & Acknowledge:</strong> Swiftly acknowledge incoming radar tracks
-                (under 3.0s latency for full marks).
+                (<code>[A]</code> / <code>[Shift+A]</code> under 3.0s latency for full marks).
               </li>
               <li>
-                <strong>Classify:</strong> Assess kinematics, closing rate, altitude, and radar cross
-                section (RCS) to classify bird, civilian quadcopter, hostile FPV, recon UAV, or clutter.
+                <strong>Sensor-Deduce & Classify:</strong> Cross-read closing rate, altitude, RCS, RF strobe, and EO/FLIR zoom (<code>1X/2.5X/5X</code>) to distinguish hostile FPVs (<code>[3]</code>), Fiber FPVs (<code>[6]</code>), and Recon UAVs (<code>[4]</code>) from Fake Decoys (<code>[7]</code>), Civilian Quads (<code>[2]</code>), Birds (<code>[1]</code>), and Clutter (<code>[5]</code>).
               </li>
               <li>
-                <strong>Decide & Engage:</strong> Neutralize confirmed hostile threats with Jammer
-                (&le;1.5km) or Gun (&le;1.0km). Exercise strict fire discipline for non-hostiles and clutter blips.
+                <strong>Decide & Engage:</strong> Neutralize RF-controlled threats with Jammer
+                (&le;1.5km, &gt;800m) and wire-guided / terminal-locked (&lt;800m) threats with Kinetic Gun (&le;1.0km). Issue <code>Hold Fire [H]</code> on civilian, decoy, biological, and clutter tracks.
               </li>
             </ul>
           </div>

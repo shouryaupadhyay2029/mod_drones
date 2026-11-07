@@ -117,9 +117,12 @@ export function DebriefScreen({
   const activeScenarioId = scenarioId ?? sessionLog?.scenarioId;
   const isProcedural = activeScenarioId?.startsWith('proc:v1:') ?? false;
   let procTier: string | null = null;
+  let procFocus: string | null = null;
   let procTactic: string | null = null;
   if (isProcedural && activeScenarioId) {
-    procTier = activeScenarioId.slice('proc:v1:'.length);
+    const [tierPart, focusPart] = activeScenarioId.slice('proc:v1:'.length).split(':');
+    procTier = tierPart || 'operator';
+    procFocus = focusPart && focusPart !== 'none' ? focusPart : null;
     try {
       const proc = generateScenario(seed, procTier as Tier);
       procTactic = proc.tactic ?? 'standard';
@@ -129,12 +132,16 @@ export function DebriefScreen({
   }
 
   const scTitle = isProcedural
-    ? `Procedural (${procTier?.toUpperCase()})`
-    : activeScenarioId === 'ridge_runner'
-      ? 'Ridge Runner'
-      : activeScenarioId === 'city_edge_night'
-        ? 'City Edge Night'
-        : 'Dawn Intrusion';
+    ? `Procedural Swarm (${procTier?.toUpperCase()}${procFocus ? ` · ${procFocus.toUpperCase()}` : ''})`
+    : activeScenarioId === 'dense_air_picture'
+      ? 'Multi-Threat Tactical Airspace'
+      : activeScenarioId === 'ridge_runner'
+        ? 'Ridge Runner'
+        : activeScenarioId === 'city_edge_night'
+          ? 'City Edge Night'
+          : activeScenarioId === 'sandbox'
+            ? 'Sandbox Airspace'
+            : 'Dawn Intrusion';
 
   const envStr = environment
     ? `${environment.timeOfDay} · ${environment.weather} · Vis ${environment.visibilityKm}km · ${environment.terrainKind}`
@@ -275,7 +282,7 @@ export function DebriefScreen({
     verdictSummary =
       'Civilian airframe or non-hostile biological contact was engaged with live effectors. Under standard military defense doctrine, ROE violations impose an immediate hard ceiling of 60 on mission score and trigger formal command review.';
     verdictDirective =
-      'DOCTRINE DIRECTIVE: Low-speed blips (<25 m/s) with no RF emissions are civilian quadcopters or birds. Slew EO/IR optics to confirm target visual profile before issuing engagement commands.';
+      'DOCTRINE DIRECTIVE: Civilian quadcopters (8–16 m/s, TELEMETRY RF), birds (tiny RCS, erratic course), and fake decoy lures (medium RCS, low altitude, RF silent) must never be engaged. Slew EO/IR optics [E] and issue Hold Fire [H] on non-hostile contacts.';
   } else if (isPass) {
     verdictClass = 'debrief-verdict-banner verdict-pass';
     verdictBadge = 'MISSION CAPABLE // COMBAT READY STATUS';
@@ -303,9 +310,8 @@ export function DebriefScreen({
     wastedEngagements: { ghost: 0, decoy: 0, neutral: 0 },
   };
 
-  const gunRoundsExpended = effectorUse.gunBurstsFired * 5;
-  const gunRoundsRemaining = Math.max(0, 20 - gunRoundsExpended);
-  const gunBurstsRemaining = Math.floor(gunRoundsRemaining / 5);
+  const gunBurstsExpended = effectorUse.gunBurstsFired;
+  const gunBurstsRemaining = Math.max(0, 20 - gunBurstsExpended);
 
   const assetHitLogged =
     effectiveScoreV2.penalties.some((p) => p.reason.toLowerCase().includes('asset was hit') || p.reason.toLowerCase().includes('asset hit')) ||
@@ -593,13 +599,13 @@ export function DebriefScreen({
                 </div>
                 <div className="logistics-details">
                   <div className="logistics-detail-row">
-                    <span>Rounds Expended:</span>
-                    <strong>{gunRoundsExpended} / 20 rnds</strong>
+                    <span>Bursts Expended:</span>
+                    <strong>{gunBurstsExpended} / 20 bursts</strong>
                   </div>
                   <div className="logistics-detail-row">
                     <span>Magazine Reserves:</span>
                     <strong style={{ color: gunBurstsRemaining > 0 ? '#1b6d1b' : '#a31a00' }}>
-                      {gunRoundsRemaining} rnds ({gunBurstsRemaining} bursts)
+                      {gunBurstsRemaining} / 20 bursts
                     </strong>
                   </div>
                 </div>
@@ -614,7 +620,7 @@ export function DebriefScreen({
                 <div className="logistics-details">
                   <div className="logistics-detail-row">
                     <span>Emission Duration:</span>
-                    <strong>{(effectorUse.jammerCycles * 3.0).toFixed(1)} s</strong>
+                    <strong>{(effectorUse.jammerCycles * 2.0).toFixed(1)} s</strong>
                   </div>
                   <div className="logistics-detail-row">
                     <span>Target Frequency Band:</span>
@@ -671,8 +677,10 @@ export function DebriefScreen({
                     </strong>
                   </div>
                   <div className="logistics-detail-row">
-                    <span>Ghost / Clutter Fired:</span>
-                    <strong>{effectorUse.wastedEngagements.ghost} ghost · {effectorUse.wastedEngagements.neutral} neutral</strong>
+                    <span>Non-Hostile / Decoy Fired:</span>
+                    <strong>
+                      {effectorUse.wastedEngagements.ghost} ghost · {effectorUse.wastedEngagements.decoy} decoy · {effectorUse.wastedEngagements.neutral} neutral
+                    </strong>
                   </div>
                 </div>
               </div>

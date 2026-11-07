@@ -167,9 +167,8 @@ export function VajraAboutSection(): React.JSX.Element {
                 Click <b>LAUNCH MISSION</b> in the top right to open the mission configuration modal. Choose between scripted training scenarios or procedural generation:
               </p>
               <ul className="vj-guide-list">
-                <li><b>Dawn Intrusion:</b> Baseline rural scenario with clear weather and light avian clutter.</li>
-                <li><b>Ridge Runner:</b> Low-altitude terrain masking in hilly fog with light EW jamming.</li>
-                <li><b>City Edge Night:</b> Dense urban clutter, rain, reduced visibility and heavy EW spoofing.</li>
+                <li><b>Multi-Threat Tactical Airspace:</b> High-density 13-target sector mixing FPVs, fiber drones, recon UAV, decoy lures, civilian quads, and birds.</li>
+                <li><b>Dawn Intrusion / Ridge Runner / City Edge Night:</b> Focused rural, terrain-masked fog, and heavy urban EW drills.</li>
                 <li><b>Procedural Swarm:</b> Dynamic generator across 4 difficulty tiers (Recruit, Operator, Veteran, Elite) with seeded jitter.</li>
               </ul>
               <div className="vj-guide-tip">
@@ -182,15 +181,15 @@ export function VajraAboutSection(): React.JSX.Element {
               <div className="vj-guide-num">STEP 02</div>
               <h3 className="vj-guide-title">Console Radar & Track Table</h3>
               <p className="vj-guide-desc">
-                When the mission starts, the 20 Hz Pulse-Doppler radar sweeps across your sector. Raw radar plots are fused into numbered track symbols:
+                When the mission starts, the 20 Hz Pulse-Doppler radar sweeps across your sector. Every object enters as an Unknown Bogey until you analyze its telemetry:
               </p>
               <ul className="vj-guide-list">
-                <li><b>Radar PPI Scope:</b> Displays range rings (500m, 1km, 1.5km, 3km, 5km), antenna heading, and moving target tracks with fading motion trails.</li>
+                <li><b>Radar PPI Scope:</b> Displays range rings (500m, 1km, 1.5km, 3km, 6km), antenna sweep, RF bearing strobes, and moving tracks with fading trails.</li>
                 <li><b>Track Selection:</b> Click any track on the scope or track table, or press <kbd>Tab</kbd> to cycle targets and <kbd>N</kbd> for unclassified targets.</li>
-                <li><b>Acknowledge Contact:</b> Press <kbd>A</kbd> (or <kbd>Shift+A</kbd> to ack all) to flag that you have detected and acknowledged incoming blips.</li>
+                <li><b>Acknowledge Contact:</b> Press <kbd>A</kbd> (or <kbd>Shift+A</kbd> to ack all) under 3.0s latency to log prompt radar detection.</li>
               </ul>
               <div className="vj-guide-tip">
-                <b>Clutter & Ghosts:</b> High EW or city terrain spawns false radar blips. Watch velocity vectors and consistency before committing munitions.
+                <b>Clutter & Decoy Bait:</b> Urban EW spawns false blips, while low-altitude medium-RCS silent tracks are fake decoy lures designed to drain your gun magazine.
               </div>
             </div>
 
@@ -199,16 +198,15 @@ export function VajraAboutSection(): React.JSX.Element {
               <div className="vj-guide-num">STEP 03</div>
               <h3 className="vj-guide-title">EO/IR Turret & Threat Classification</h3>
               <p className="vj-guide-desc">
-                Inspect ambiguous tracks visually using the slewable electro-optical gimbal in the right panel:
+                Inspect ambiguous tracks visually using the progressive TADS/FLIR targeting camera in the right panel:
               </p>
               <ul className="vj-guide-list">
-                <li><b>Lock Slew Turret:</b> Press <kbd>E</kbd> to slave the EO/IR camera directly onto the selected track.</li>
-                <li><b>Thermal / Daylight:</b> Press <kbd>T</kbd> to toggle between Daylight (TV) and Thermal Infrared (FLIR) optical sensors.</li>
-                <li><b>Kinematic Cues:</b> Analyze speed, altitude, turn rate, RF signature, and RCS bucket to identify the threat.</li>
-                <li><b>Assign Classification:</b> Press hotkeys <kbd>1</kbd> to <kbd>7</kbd> or <kbd>0</kbd> (FPV Strike, Fibre-guided, Decoy, Commercial Quad, Fixed-Wing UAV, Bird, Clutter, Neutral).</li>
+                <li><b>Lock & Optical Zoom:</b> Press <kbd>E</kbd> to slew the EO/IR turret onto the selected track and step through <b>1.0X / 2.5X / 5.0X</b> zoom to resolve airframe silhouettes.</li>
+                <li><b>Thermal / Daylight Palettes:</b> Press <kbd>T</kbd> or select <b>WHOT / BHOT / NVG / TV</b> modes alongside closing rate, altitude, RCS, and RF strobes.</li>
+                <li><b>Assign Classification:</b> Press <kbd>1</kbd> Bird, <kbd>2</kbd> Civilian Quad, <kbd>3</kbd> FPV Strike, <kbd>4</kbd> Fixed-Wing Recon, <kbd>5</kbd> Clutter, <kbd>6</kbd> Fiber FPV, <kbd>7</kbd> Decoy, or <kbd>0</kbd> Unknown.</li>
               </ul>
               <div className="vj-guide-tip">
-                <b>Hold Fire:</b> If a track is classified as a bird or civilian neutral, press <kbd>H</kbd> to issue a Hold Fire directive to protect non-combatants.
+                <b>Hold Fire Discipline:</b> Never shoot or jam Civilian Quads, Birds, Clutter, or Fake Decoys — press <kbd>H</kbd> to issue Hold Fire and avoid ROE / bait penalties.
               </div>
             </div>
 
@@ -217,15 +215,15 @@ export function VajraAboutSection(): React.JSX.Element {
               <div className="vj-guide-num">STEP 04</div>
               <h3 className="vj-guide-title">Effector Engagement & Scoring</h3>
               <p className="vj-guide-desc">
-                Once a hostile target crosses into range, select the optimal neutralization effector before asset impact:
+                Once a confirmed threat enters weapon range, pair the right countermeasure before asset impact:
               </p>
               <ul className="vj-guide-list">
-                <li><b>RF Directional Jammer (Soft Kill):</b> Effective up to <b>1,500 m</b>. Press <kbd>J</kbd> to jam standard wireless links and neutralize non-fibre drones.</li>
-                <li><b>30mm CIWS Auto-Gun (Hard Kill):</b> Effective up to <b>1,000 m</b>. Press <kbd>G</kbd> to fire a kinetic burst. Ammunition is limited (20 bursts) — conserve ammo.</li>
-                <li><b>Time Compression:</b> Press <kbd>Space</kbd> to pause or <kbd>+</kbd> / <kbd>-</kbd> to adjust simulation speed (1x, 2x, 5x, 10x).</li>
+                <li><b>RF Directional Jammer (Soft Kill):</b> Effective up to <b>1,500 m</b> (&gt;800 m). Press <kbd>J</kbd> to disrupt wireless links. Useless against Fiber FPVs and drones inside <b>&lt;800 m</b> autonomous optical lock!</li>
+                <li><b>30mm CIWS Auto-Gun (Hard Kill):</b> Effective up to <b>1,000 m</b>. Press <kbd>G</kbd> to fire a kinetic burst (20 bursts max) — save ammo for Fiber FPVs and close-in leakers.</li>
+                <li><b>Time Compression:</b> Press <kbd>Space</kbd> to pause or <kbd>+</kbd> / <kbd>-</kbd> to adjust simulation speed (<b>1x, 2x, 4x</b>).</li>
               </ul>
               <div className="vj-guide-tip">
-                <b>Scoring Breakdown:</b> Missions end upon threat resolution or asset breach. Your performance is scored out of 100 on detection speed, classification accuracy, effector choice, and asset integrity.
+                <b>Scoring & Replay:</b> Missions score out of 100 across 5 doctrine dimensions and unlock a tick-by-tick After-Action Replay showing every shot, jam, or decoy mistake.
               </div>
             </div>
           </div>
@@ -245,7 +243,7 @@ export function VajraAboutSection(): React.JSX.Element {
               <div><kbd>G</kbd> Fire 30mm Gun (1km)</div>
               <div><kbd>H</kbd> Hold Fire</div>
               <div><kbd>Space</kbd> Pause/Resume</div>
-              <div><kbd>+/-</kbd> Change Speed</div>
+              <div><kbd>+/-</kbd> Speed (1x/2x/4x)</div>
             </div>
           </div>
         </div>
@@ -263,10 +261,10 @@ export function VajraAboutSection(): React.JSX.Element {
               <button type="button" onClick={openBriefing} className="vj-grand-link-btn">
                 Launch Mission
               </button>
+              <a href="#/commander" className="vj-grand-link">Commander C2</a>
+              <a href="#/aar" className="vj-grand-link">AAR Archive</a>
+              <a href="#/contacts/fpv_kamikaze" className="vj-grand-link">Threat Intel</a>
               <a href="#/check" className="vj-grand-link">System Diagnostics</a>
-              <span className="vj-grand-link-disabled">Scenarios</span>
-              <span className="vj-grand-link-disabled">Threat Intel</span>
-              <span className="vj-grand-link-disabled">Documentation</span>
             </div>
           </div>
 
@@ -286,7 +284,7 @@ export function VajraAboutSection(): React.JSX.Element {
             <div className="vj-grand-sub-right">
               <span>20 Hz Simulation</span>
               <span>4 Difficulty Tiers</span>
-              <span>8 Threat Classes</span>
+              <span>7 Airframe Classes</span>
               <span>100% Bit-Exact Replay</span>
             </div>
           </div>

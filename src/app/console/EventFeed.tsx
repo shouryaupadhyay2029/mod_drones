@@ -13,18 +13,24 @@ function formatClock(tick: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-function getEventColor(type: string): string {
-  switch (type) {
+function getEventColor(event: SimEvent): string {
+  const p = (event.payload || {}) as Record<string, unknown>;
+  switch (event.type) {
     case 'TRACK_CONFIRMED':
       return '#15803d'; // Emerald
+    case 'TRACK_IN_RANGE':
+      return '#b45309'; // Amber range alert
     case 'TRACK_LOST':
       return '#58544e';
     case 'ENGAGEMENT_STARTED':
       return '#0284c7'; // Tactical Cyan
-    case 'ENGAGEMENT_RESOLVED':
-      return '#15803d'; // Emerald
+    case 'ENGAGEMENT_RESOLVED': {
+      const res = String(p.result ?? p.resolution ?? '');
+      if (res === 'hit') return '#15803d';
+      if (res === 'no_effect') return '#b83327';
+      return '#b45309';
+    }
     case 'NO_EFFECT':
-      return '#b83327'; // Soft Red
     case 'COMMAND_REJECTED':
     case 'ENGAGEMENT_REJECTED':
       return '#b83327'; // Soft Red
@@ -35,27 +41,65 @@ function getEventColor(type: string): string {
   }
 }
 
+function formatEffectorLabel(raw: unknown): string {
+  const s = String(raw ?? 'effector').toLowerCase();
+  if (s === 'jammer') return 'RF JAMMER';
+  if (s === 'gun') return 'KINETIC GUN';
+  if (s === 'missile') return 'SAM INTERCEPTOR';
+  return s.toUpperCase();
+}
+
 function formatEventMessage(event: SimEvent): string {
   const p = (event.payload || {}) as Record<string, unknown>;
+  const effLabel = formatEffectorLabel(p.effector ?? p.effectorType);
   switch (event.type) {
-    case 'TRACK_CONFIRMED':
-      return `Track T${p.trackId} confirmed at ${Math.round(Number(p.rangeM) || 0)}m (brg ${Math.round(Number(p.bearingDeg) || 0)}°)`;
+    case 'TRACK_CONFIRMED': {
+      const brgPart = p.bearingDeg !== undefined ? ` (brg ${Math.round(Number(p.bearingDeg))}°)` : '';
+      return `Track T${p.trackId} confirmed at ${Math.round(Number(p.rangeM) || 0)}m${brgPart}`;
+    }
+    case 'TRACK_IN_RANGE': {
+      const envRange = String(p.effector) === 'gun' ? '1,000m' : '1,500m';
+      return `Track T${p.trackId} entered ${effLabel} envelope (≤${envRange})`;
+    }
     case 'TRACK_LOST':
-      return `Track T${p.trackId} lost (radar signal dropped)`;
-    case 'ENGAGEMENT_STARTED':
-      return `Effector ${p.effectorType} engaged against track T${p.trackId}`;
-    case 'ENGAGEMENT_RESOLVED':
-      return `Engagement ${p.resolution} for effector ${p.effectorType} on track T${p.trackId}`;
-    case 'NO_EFFECT':
-      return `Effector ${p.effectorType} had no effect on track T${p.trackId} (${p.reason || 'non-RF target'})`;
+      return `Track T${p.trackId} lost (radar return dropped)`;
+    case 'ENGAGEMENT_STARTED': {
+      const rangePart = p.rangeAtFire !== undefined ? ` at ${Math.round(Number(p.rangeAtFire))}m` : '';
+      return `${effLabel} engaged Track T${p.trackId}${rangePart}`;
+    }
+    case 'ENGAGEMENT_RESOLVED': {
+      const res = String(p.result ?? p.resolution ?? 'resolved').toLowerCase();
+      if (res === 'hit') {
+        return `${effLabel} neutralized Track T${p.trackId} (SPLASH / HIT)`;
+      }
+      if (res === 'no_effect') {
+        return `${effLabel} cycle completed with NO EFFECT on Track T${p.trackId}`;
+      }
+      return `${effLabel} missed Track T${p.trackId} — target still active`;
+    }
+    case 'NO_EFFECT': {
+      if (p.reason === 'terminal_lock_rf_immune') {
+        return `${effLabel} ineffective on T${p.trackId}: autonomous optical lock (<800m) — switch to KINETIC GUN`;
+      }
+      return `${effLabel} had no effect on T${p.trackId} (non-RF / wire-guided airframe)`;
+    }
     case 'COMMAND_REJECTED':
-      return `Command rejected: ${p.reason || 'invalid action'}`;
+      return `Command rejected: ${String(p.reason || 'invalid action').replace(/_/g, ' ')}`;
     case 'ENGAGEMENT_REJECTED':
-      return `Engagement rejected: ${p.reason || 'out of range or busy'}`;
-    case 'MISSION_END':
-      return `Mission concluded: reason = ${p.reason}`;
+      return `Engagement rejected (${effLabel} on T${p.trackId}): ${String(p.reason || 'out of range or busy').replace(/_/g, ' ')}`;
+    case 'MISSION_END': {
+      const reasonText =
+        p.reason === 'asset_hit'
+          ? 'defended asset breached'
+          : p.reason === 'all_resolved'
+          ? 'all airspace contacts resolved'
+          : p.reason === 'time_limit'
+          ? 'sector patrol window complete'
+          : String(p.reason ?? 'ended');
+      return `Mission concluded — ${reasonText}`;
+    }
     default:
-      return `${event.type}: ${JSON.stringify(event.payload || {})}`;
+      return `${event.type.replace(/_/g, ' ')}${p.trackId !== undefined ? ` (T${p.trackId})` : ''}`;
   }
 }
 
@@ -83,7 +127,7 @@ export function EventFeed({ events }: EventFeedProps): React.JSX.Element {
           </div>
         ) : (
           reversedEvents.map((evt, idx) => {
-            const color = getEventColor(evt.type);
+            const color = getEventColor(evt);
             return (
               <div key={idx} className="mil-teleprinter-item">
                 <span className="mil-teleprinter-time">{formatClock(evt.tick)}</span>

@@ -320,8 +320,9 @@ export function CommanderSetup({ onLaunch }: CommanderSetupProps): React.JSX.Ele
               onChange={(e) => setTier(e.target.value as CommanderTier)}
             >
               <option value="recruit">Recruit (2 Sites · Light Density)</option>
-              <option value="operator">Operator (3 Sites · Standard Raid)</option>
-              <option value="veteran">Veteran (3 Sites · Heavy EW Swarm)</option>
+              <option value="operator">Operator (2–3 Sites · Standard Raid)</option>
+              <option value="veteran">Veteran (3–4 Sites · Heavy EW Swarm)</option>
+              <option value="elite">Elite (3–4 Sites · Severe EW &amp; DDIL)</option>
             </select>
           </div>
         </div>
@@ -370,27 +371,39 @@ export function CommanderSetup({ onLaunch }: CommanderSetupProps): React.JSX.Ele
             <div>
               <span className="commander-threat-heading">THREAT LEVEL</span>
               <ul className="commander-threat-list">
-                <li className="threat-item threat-high">
-                  <span className="threat-dot" />
-                  <div className="threat-meta">
-                    <strong>HIGH</strong>
-                    <small>{intel.filter((e) => e.threatBand.toLowerCase() === 'high').length} SITE</small>
-                  </div>
-                </li>
-                <li className="threat-item threat-med">
-                  <span className="threat-dot" />
-                  <div className="threat-meta">
-                    <strong>MEDIUM</strong>
-                    <small>{intel.filter((e) => e.threatBand.toLowerCase() === 'medium').length} SITE</small>
-                  </div>
-                </li>
-                <li className="threat-item threat-low">
-                  <span className="threat-dot" />
-                  <div className="threat-meta">
-                    <strong>LOW</strong>
-                    <small>{intel.filter((e) => e.threatBand.toLowerCase() === 'low').length} SITE</small>
-                  </div>
-                </li>
+                {(() => {
+                  const highCount = intel.filter((e) => e.threatBand.toLowerCase() === 'high').length;
+                  const medCount = intel.filter((e) => {
+                    const b = e.threatBand.toLowerCase();
+                    return b === 'med' || b === 'medium';
+                  }).length;
+                  const lowCount = intel.filter((e) => e.threatBand.toLowerCase() === 'low').length;
+                  return (
+                    <>
+                      <li className="threat-item threat-high">
+                        <span className="threat-dot" />
+                        <div className="threat-meta">
+                          <strong>HIGH</strong>
+                          <small>{highCount} {highCount === 1 ? 'SITE' : 'SITES'}</small>
+                        </div>
+                      </li>
+                      <li className="threat-item threat-med">
+                        <span className="threat-dot" />
+                        <div className="threat-meta">
+                          <strong>MEDIUM</strong>
+                          <small>{medCount} {medCount === 1 ? 'SITE' : 'SITES'}</small>
+                        </div>
+                      </li>
+                      <li className="threat-item threat-low">
+                        <span className="threat-dot" />
+                        <div className="threat-meta">
+                          <strong>LOW</strong>
+                          <small>{lowCount} {lowCount === 1 ? 'SITE' : 'SITES'}</small>
+                        </div>
+                      </li>
+                    </>
+                  );
+                })()}
               </ul>
             </div>
 

@@ -45,7 +45,18 @@ export function CommanderDebrief({
   const dropped = report.droppedCommands ?? [];
   const gradeKey = (report.grade || 'unsatisfactory').toLowerCase();
 
-  const totalDestroyed = report.sites.reduce((acc, s) => acc + s.attackerCostDestroyed, 0);
+  const totalDestroyedCost = report.sites.reduce((acc, s) => acc + s.attackerCostDestroyed, 0);
+  const targetsDestroyed = report.sites.reduce(
+    (acc, s) =>
+      acc +
+      s.scoreSessionV2.perContact.filter((c) => {
+        const isHostile =
+          c.classId === 'fpv_kamikaze' || c.classId === 'fpv_fiber' || c.classId === 'fixed_wing_recon';
+        const outcomeNode = c.decisionPath.find((n) => n.id === 'outcome');
+        return isHostile && Boolean(outcomeNode?.answer?.startsWith('Neutralised'));
+      }).length,
+    0
+  );
   const avgDamage = Math.round(report.sites.reduce((acc, s) => acc + s.damagePercent, 0) / Math.max(1, report.sites.length));
 
   const activeSiteReport = report.sites.find((s) => s.siteId === selectedReplaySite) ?? report.sites[0];
@@ -92,8 +103,10 @@ export function CommanderDebrief({
         </div>
         <div className="meta-ribbon-sep" />
         <div className="meta-ribbon-item">
-          <span>ATTACKER DRONES DESTROYED</span>
-          <b className="stat-green">{totalDestroyed} TARGETS</b>
+          <span>HOSTILE DRONES DESTROYED</span>
+          <b className="stat-green">
+            {targetsDestroyed} {targetsDestroyed === 1 ? 'TARGET' : 'TARGETS'} ({totalDestroyedCost}V)
+          </b>
         </div>
         <div className="meta-ribbon-sep" />
         <div className="meta-ribbon-item">

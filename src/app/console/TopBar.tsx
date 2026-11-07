@@ -111,14 +111,6 @@ function IconQuad(): React.JSX.Element {
   );
 }
 
-function IconBird(): React.JSX.Element {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 13C6 9 9 9 12 13C15 9 18 9 21 13" />
-      <path d="M7 16C9 14 11 14 12 15C13 14 15 14 17 16" />
-    </svg>
-  );
-}
 
 export interface TopBarProps {
   tick: number;
@@ -403,26 +395,13 @@ export function TopBar({
             onMouseLeave={handleDropdownLeave}
           >
             <button
-              className={`nav-mega-btn is-disabled ${activeDropdown === 'systems' ? 'is-active' : ''}`}
+              className={`nav-mega-btn ${activeDropdown === 'systems' ? 'is-active' : ''}`}
               onClick={() => handleDropdownToggleClick('systems')}
-              style={{ opacity: 0.74 }}
-              title="Defense Systems (Telemetry Offline - Informational Only)"
+              title="Defense Systems Overview"
               aria-expanded={activeDropdown === 'systems'}
               aria-haspopup="true"
             >
               <span>Defense systems</span>
-              <span
-                style={{
-                  fontSize: '9px',
-                  marginLeft: '4px',
-                  opacity: 0.7,
-                  border: '1px solid rgba(0,0,0,0.2)',
-                  padding: '0 3px',
-                  borderRadius: '2px',
-                }}
-              >
-                OFFLINE
-              </span>
               <span className="nav-mega-chevron">▾</span>
             </button>
 
@@ -488,7 +467,7 @@ export function TopBar({
                         <span style={styles.menuBadgeTag}>1,000m HARD KILL</span>
                       </span>
                       <span className="mega-menu-item-desc">
-                        1,000m automated rapid-fire anti-air cannon with 20-round magazine.
+                        1,000m automated rapid-fire anti-air cannon with 20-burst magazine.
                       </span>
                     </div>
                   </div>
@@ -544,26 +523,13 @@ export function TopBar({
             onMouseLeave={handleDropdownLeave}
           >
             <button
-              className={`nav-mega-btn is-disabled ${activeDropdown === 'intel' ? 'is-active' : ''}`}
+              className={`nav-mega-btn ${activeDropdown === 'intel' ? 'is-active' : ''}`}
               onClick={() => handleDropdownToggleClick('intel')}
-              style={{ opacity: 0.74 }}
-              title="Threat Intel (Database Offline - Informational Only)"
+              title="Threat Recognition & ROE Database"
               aria-expanded={activeDropdown === 'intel'}
               aria-haspopup="true"
             >
               <span>Threat intel</span>
-              <span
-                style={{
-                  fontSize: '9px',
-                  marginLeft: '4px',
-                  opacity: 0.7,
-                  border: '1px solid rgba(0,0,0,0.2)',
-                  padding: '0 3px',
-                  borderRadius: '2px',
-                }}
-              >
-                OFFLINE
-              </span>
               <span className="nav-mega-chevron">▾</span>
             </button>
 
@@ -589,22 +555,34 @@ export function TopBar({
               </button>
               <div className="mega-menu-grid">
                 <div className="mega-menu-list">
-                  <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
+                  <div
+                    className="mega-menu-card-item"
+                    onClick={() => {
+                      handleCloseDropdown();
+                      window.location.hash = '#/contacts/fpv_kamikaze';
+                    }}
+                  >
                     <div className="mega-menu-item-icon">
                       <IconFpv />
                     </div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">
-                        <span>FPV Kamikaze Drones</span>
+                        <span>FPV &amp; Fiber Strike Drones</span>
                         <span style={styles.menuBadgeAlert}>HOSTILE</span>
                       </span>
                       <span className="mega-menu-item-desc">
-                        Small RCS, high speed (&gt;20 m/s), fast closing rate, lethal direct impact.
+                        Direct attack dive (&gt;20 m/s), small RCS. Fiber &amp; &lt;800m terminal lock require Gun.
                       </span>
                     </div>
                   </div>
 
-                  <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
+                  <div
+                    className="mega-menu-card-item"
+                    onClick={() => {
+                      handleCloseDropdown();
+                      window.location.hash = '#/contacts/fixed_wing_recon';
+                    }}
+                  >
                     <div className="mega-menu-item-icon">
                       <IconRecon />
                     </div>
@@ -614,37 +592,49 @@ export function TopBar({
                         <span style={styles.menuBadgeTag}>SURVEILLANCE</span>
                       </span>
                       <span className="mega-menu-item-desc">
-                        High altitude, steady linear trajectory, persistent surveillance payload.
+                        High altitude (150–400m), medium RCS, long-range C2 RF link.
                       </span>
                     </div>
                   </div>
 
-                  <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
+                  <div
+                    className="mega-menu-card-item"
+                    onClick={() => {
+                      handleCloseDropdown();
+                      window.location.hash = '#/contacts/decoy_drone';
+                    }}
+                  >
+                    <div className="mega-menu-item-icon">
+                      <IconRecon />
+                    </div>
+                    <div className="mega-menu-item-body">
+                      <span className="mega-menu-item-title">
+                        <span>Decoy Radar Lures</span>
+                        <span style={styles.menuBadgeTag}>DECEPTION</span>
+                      </span>
+                      <span className="mega-menu-item-desc">
+                        Low altitude (20–80m), medium RCS reflector ball, RF silent. Hold Fire [H] (-8 pts if shot).
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    className="mega-menu-card-item"
+                    onClick={() => {
+                      handleCloseDropdown();
+                      window.location.hash = '#/contacts/commercial_quad';
+                    }}
+                  >
                     <div className="mega-menu-item-icon">
                       <IconQuad />
                     </div>
                     <div className="mega-menu-item-body">
                       <span className="mega-menu-item-title">
-                        <span>Commercial Quadcopters</span>
-                        <span style={styles.menuBadgeTag}>CIVILIAN</span>
+                        <span>Civilian Quad &amp; Avian Bio</span>
+                        <span style={styles.menuBadgeTag}>HOLD FIRE</span>
                       </span>
                       <span className="mega-menu-item-desc">
-                        Low speed, civilian telemetry, non-hostile. -25 point penalty if engaged.
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mega-menu-card-item" onClick={handleCloseDropdown}>
-                    <div className="mega-menu-item-icon">
-                      <IconBird />
-                    </div>
-                    <div className="mega-menu-item-body">
-                      <span className="mega-menu-item-title">
-                        <span>Avian Biologicals</span>
-                        <span style={styles.menuBadgeTag}>CLUTTER</span>
-                      </span>
-                      <span className="mega-menu-item-desc">
-                        Migratory bird tracks with high turn rates. Non-threat clutter.
+                        Protected non-hostiles. Engaging triggers ROE breach (-15 to -25 pts &amp; 60 score cap).
                       </span>
                     </div>
                   </div>
@@ -663,19 +653,16 @@ export function TopBar({
                   <div>
                     <h4 className="mega-preview-title">Rules of Engagement</h4>
                     <p className="mega-preview-text">
-                      Maintain &gt;400m standoff defense. Rapid detection, timely classification,
-                      and target discrimination govern scoring.
+                      Inspect interactive 3D wireframes, sensor cues, and ROE directives across all 7 airframe classes in the Reference Deck.
                     </p>
                   </div>
-                  {phase === 'running' ? (
-                    <button onClick={handleCloseDropdown} style={styles.previewCardBtn}>
-                      RESUME RADAR SCOPE ✕
-                    </button>
-                  ) : (
-                    <button onClick={() => openBriefingModal()} style={styles.previewCardBtn}>
-                      START INTERCEPTION ⚡
-                    </button>
-                  )}
+                  <a
+                    href="#/contacts/fpv_kamikaze"
+                    onClick={handleCloseDropdown}
+                    style={styles.previewCardLink}
+                  >
+                    OPEN THREAT DECK ↗
+                  </a>
                 </div>
               </div>
             </div>

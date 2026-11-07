@@ -39,14 +39,14 @@ export const CONTACT_REFERENCES: readonly ContactReference[] = [
     modelClass: 'commercial_quad',
     label: 'Civilian Quadcopter',
     category: 'Commercial Multirotor (Non-Hostile)',
-    summary: 'Commercial rotary drone with active ISM telemetry. Characterized by hover-and-step motion and 100% RF jammer vulnerability.',
+    summary: 'Commercial rotary drone with active ISM telemetry. Non-hostile civilian transit; engaging with Jammer or Gun violates ROE (-25 pts, 60 score cap).',
     cues: [
-      'Motion Dynamics: Moderate speed (8–16 m/s), 40–120m MSL, stationary hovering, sharp orthogonal turns, and stepped altitude changes.',
-      'Radar & Doppler: Small RCS (~0.01 m²); pronounced high-RPM blade flash micro-Doppler from 4 multirotor blades.',
-      'RF Spectrum: Continuous 2.4 GHz / 5.8 GHz ISM telemetry link; non-encrypted commercial drone protocol handshakes.',
-      'Effector Action: SOFT-KILL PREFERRED. 100% vulnerable to Directional RF Jammer (triggers automated RTH/failsafe landing). Kinetic fire causes collateral penalty.',
+      'Motion Dynamics: Moderate lateral speed (8–16 m/s), 40–120m MSL, perimeter transit or hovering without a high-speed attack dive.',
+      'Radar & Doppler: Small RCS (~0.01 m²); multirotor return paired with low closing rate.',
+      'RF Spectrum & FLIR: Continuous 2.4 GHz / 5.8 GHz civilian TELEMETRY link; FLIR shows symmetric X-frame with landing skids (no nose warhead).',
+      'Effector Action: WEAPONS HOLD / HOLD FIRE [H]. Never engage with RF Jammer or Kinetic Gun — any effector discharge triggers a -25 pt ROE violation and hard-caps mission score at 60.',
     ],
-    caveat: 'COLLATERAL RESTRICTION. Kinetic CIWS engagement of civilian quads violates ROE. Use Directional RF Jammer to disrupt control link and force failsafe return outside the defended perimeter.',
+    caveat: 'STRICT ROE PROTECTION. Any live effector engagement (kinetic or electronic) against a civilian quadcopter breaches Rules of Engagement. Classify as Civilian Quad [2] and issue Hold Fire [H].',
   },
   {
     id: 'fpv_kamikaze',
@@ -57,10 +57,10 @@ export const CONTACT_REFERENCES: readonly ContactReference[] = [
     cues: [
       'Motion Dynamics: High velocity (25–35 m/s / up to 126 km/h), low altitude (20–80m AGL), direct high-closing-rate attack vector straight toward defended asset.',
       'Radar & Doppler: Small RCS (~0.02 m²); steady Doppler return; rapid acceleration and sharp high-G terminal dive.',
-      'RF Spectrum: Active analog/digital video transmission (5.8 GHz) and RC uplink (868/915 MHz or 2.4 GHz).',
+      'RF Spectrum: Active analog/digital WIDEBAND VIDEO transmission (5.8 GHz) and RC uplink (868/915 MHz or 2.4 GHz).',
       'Effector Action: DUAL-PHASE DEFENSE. Soft-kill RF Jammer effective beyond 800m. At <800m, target activates optical terminal lock (RF immune) — instant Kinetic CIWS hard-kill mandatory!',
     ],
-    caveat: 'PRIORITY HOSTILE TARGET. Jam immediately beyond 800m to disrupt pilot control. If track breaches 800m without neutralization, RF Jammer is 0% effective: engage with 35mm Kinetic CIWS immediately.',
+    caveat: 'PRIORITY HOSTILE TARGET. Jam immediately beyond 800m to disrupt pilot control. If track breaches 800m without neutralization, RF Jammer is 0% effective: engage with 30mm Kinetic CIWS immediately.',
   },
   {
     id: 'fpv_fiber',
@@ -95,14 +95,14 @@ export const CONTACT_REFERENCES: readonly ContactReference[] = [
     modelClass: 'decoy_drone',
     label: 'Decoy Drone / Radar Simulator',
     category: 'Tactical Deception Bait (Non-Lethal)',
-    summary: 'Expendable radar-reflecting decoy designed to saturate air surveillance and bait operators into depleting kinetic CIWS rounds.',
+    summary: 'Expendable radar-reflecting decoy lure designed to mimic a larger airframe on radar and bait operators into depleting kinetic CIWS bursts.',
     cues: [
-      'Motion Dynamics: Sustained airspeed (20–30 m/s), low altitude (20–80m MSL), rigid straight or gentle zigzag flight path without evasive logic.',
-      'Radar & Doppler: Artificially elevated RCS (~0.05 m²) via corner reflector; lacks multirotor blade micro-Doppler signature.',
-      'RF Spectrum: Zero control link or simple fixed simulator pulse; no active sensor or payload emissions.',
-      'Effector Action: AMMUNITION CONSERVATION. Hold kinetic fire if primary threats are inbound. Verify thermal index (low ~0.3) before expending CIWS rounds.',
+      'Motion Dynamics: Sustained airspeed (20–30 m/s), LOW altitude (20–80m MSL — unlike high-altitude Recon UAVs at 150–400m), perimeter flyby or lure pass rather than direct asset impact dive.',
+      'Radar & Doppler: Artificially elevated MEDIUM RCS (~0.05 m²) via round Luneburg radar-reflector ball; lacks multirotor blade flash.',
+      'RF Spectrum & FLIR: COMPLETE RF SILENCE (no video or C2 link). On FLIR (2.5X/5X zoom), resolves as a triangle delta-wing carrying a round radar-reflector ball and tail flare.',
+      'Effector Action: HOLD FIRE [H] / AMMUNITION CONSERVATION. Classify as Decoy [7] and issue Hold Fire [H]. Engaging a decoy wastes finite gun bursts and incurs an -8 pt decoy bait penalty.',
     ],
-    caveat: 'TACTICAL DECEPTION. Decoys are deployed alongside lethal strike packages to draw fire away from weaponized FPVs. Cross-reference low thermal signature and track kinematics to avoid wasting CIWS capacity.',
+    caveat: 'TACTICAL DECEPTION. Distinguish from Recon UAVs (which fly HIGH at 150–400m with LONG RANGE C2 RF) and Fiber FPVs (which have SMALL RCS 0.02 m² and dive directly at the asset). Never waste gun ammo on decoys.',
   },
   {
     id: 'clutter',
@@ -433,7 +433,7 @@ export function ContactReferencePage({ contact, onBack }: ContactReferencePagePr
 
               <aside className="contact-copy-field-note">
                 <div className="contact-copy-label">TRAINEE DECISION PROCEDURE</div>
-                <p><RevealText text="1. Track Assessment: Verify speed and altitude envelope against known threat profiles. 2. Spectrum Correlation: Cross-reference RF link status. 3. Range Verification: If an FPV closes within 800m, optical lock renders RF Jammers ineffective—switch immediately to Kinetic CIWS hard-kill. 4. ROE Compliance: Never engage civilian or biological contacts with kinetic munitions." accentWords={['800m', 'Kinetic CIWS', 'RF Jammer', 'ROE', 'optical lock']} phase={2} /></p>
+                <p><RevealText text="1. Track Assessment: Cross-read closing rate, altitude, and RCS bucket against known profiles. 2. Spectrum & EO/FLIR Correlation: Check RF link strobe and lock EO/IR camera [E] with 2.5X/5X zoom to verify airframe silhouette. 3. Range Verification: Inside 800m, autonomous optical lock renders RF Jammer ineffective—switch immediately to 30mm Kinetic CIWS. 4. ROE & Bait Discipline: Never engage civilian quadcopters, fake decoy lures, radar clutter, or biological birds—issue Hold Fire [H]." accentWords={['800m', 'Kinetic CIWS', 'RF Jammer', 'ROE', 'Hold Fire']} phase={2} /></p>
               </aside>
             </div>
             <button className="contact-reference-done" type="button" onClick={onBack}>BACK TO CONSOLE</button>
