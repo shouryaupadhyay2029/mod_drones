@@ -9,7 +9,7 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   prettier,
   {
-    ignores: ['dist/**', 'dev-dist/**', 'node_modules/**', 'public/**'],
+    ignores: ['dist/**', 'dev-dist/**', 'node_modules/**', 'public/**', '.agents/**', '.archify/**'],
   },
   {
     files: ['scripts/**/*.mjs', 'scripts/**/*.ts'],
