@@ -196,6 +196,9 @@ export function scoreSessionV2(
   const unobservable: UnobservableContact[] = [];
 
   let roeCapApplied = false;
+  const endedEarlyByAssetHit = events.some(
+    (e) => e.type === 'MISSION_END' && e.payload?.reason === 'asset_hit'
+  );
 
   for (let i = 0; i < actors.length; i++) {
     const actor = actors[i];
@@ -227,6 +230,11 @@ export function scoreSessionV2(
     }
 
     const isHostile = THREAT_LIBRARY[actor.classId]?.hostile ?? false;
+    const thisActorHitAsset =
+      actor.state === 'impacted' ||
+      events.some((e) => e.type === 'ASSET_HIT' && e.payload?.actorId === actor.id);
+    const interruptedByOtherAssetHit =
+      endedEarlyByAssetHit && isHostile && actor.state === 'active' && !thisActorHitAsset;
     const weight = isHostile ? HOSTILE_WEIGHT : NEUTRAL_WEIGHT;
 
     // 1. Detection D: Best (lowest latency) acknowledgement across confirmed tracks
@@ -274,6 +282,30 @@ export function scoreSessionV2(
     );
     const firstEngagement = actorEngagements[0];
     const isEngaged = actorEngagements.length > 0;
+
+    if (
+      interruptedByOtherAssetHit &&
+      !isEngaged &&
+      (!assessedClass || assessedClass === 'unknown') &&
+      minAckLatencySec === undefined
+    ) {
+      unobservable.push({
+        actorId: actor.id,
+        classId: actor.classId,
+        reason: 'unobservable',
+        note: 'Mission ended upon perimeter breach before this contact could be resolved',
+        decisionPath: [{
+          id: 'observability',
+          question: 'Was contact resolvable before mission termination?',
+          answer: 'Mission ended early due to another contact hitting the asset',
+          points: 0,
+          maxPoints: 0,
+          cause: 'unobservable',
+        }],
+      });
+      continue;
+    }
+
     const trackForEngagement = (engagement: SimEvent): Track | undefined =>
       actorTracks.find((track) => track.trackId === engagement.payload?.trackId);
     const engagementEffector = firstEngagement?.payload?.effector;
@@ -448,7 +480,14 @@ export function scoreSessionV2(
         note: engLatencySec !== undefined ? `Latency: ${engLatencySec.toFixed(1)}s` : 'None',
       });
 
-      eScore = ENG_OUTCOME_W * outcomeVal + ENG_FIT_W * fitVal + ENG_LATENCY_W * latencyVal;
+      if (interruptedByOtherAssetHit) {
+        eScore = isEngaged
+          ? 0.5 * fitVal + 0.5 * latencyVal
+          : (CONTACT_DETECTION_W * bestD + CONTACT_CLASSIFICATION_W * cScore) /
+            (CONTACT_DETECTION_W + CONTACT_CLASSIFICATION_W);
+      } else {
+        eScore = ENG_OUTCOME_W * outcomeVal + ENG_FIT_W * fitVal + ENG_LATENCY_W * latencyVal;
+      }
     } else {
       // Neutral contact
       decisionPath.push({

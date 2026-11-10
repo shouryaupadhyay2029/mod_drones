@@ -238,6 +238,14 @@ export function scoreSession(
     }
 
     const isHostile = THREAT_LIBRARY[actor.classId]?.hostile ?? false;
+    const endedEarlyByAssetHit = events.some(
+      (e) => e.type === 'MISSION_END' && e.payload?.reason === 'asset_hit'
+    );
+    const thisActorHitAsset =
+      actor.state === 'impacted' ||
+      events.some((e) => e.type === 'ASSET_HIT' && e.payload?.actorId === actor.id);
+    const interruptedByOtherAssetHit =
+      endedEarlyByAssetHit && isHostile && actor.state === 'active' && !thisActorHitAsset;
 
     if (isHostile) {
       if (actor.state === 'neutralized') {
@@ -251,6 +259,13 @@ export function scoreSession(
           decisionScore = 0.5;
           reasons.push(
             `Hostile drone (${actor.classId}) neutralized late at ${Math.round(neutralizedDist)}m (<400m standoff): 50% decision score`
+          );
+        }
+      } else if (interruptedByOtherAssetHit) {
+        decisionScore = Math.max(detectionScore, classificationScore);
+        if (decisionScore > 0) {
+          reasons.push(
+            `Hostile drone (${actor.classId}) was still in flight when mission ended early: credited ${Math.round(decisionScore * 100)}% from detection/classification`
           );
         }
       } else {

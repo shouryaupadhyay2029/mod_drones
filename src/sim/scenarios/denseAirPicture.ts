@@ -45,12 +45,12 @@ export function buildDenseAirPictureSpawns(scenarioRng: Rng): ScenarioSpawnSched
   const quad2Start = vec3(1500, quad2Y, 110);
   const quad2End = vec3(-1500, quad2Y, 110);
 
-  // 5. Fixed-Wing Recon UAV: t ~ 18s (360 ticks), high-altitude loiter (alt 240m), bearing ~ 15 deg, range 4600m
+  // 5. Fixed-Wing Recon UAV: t ~ 18s (360 ticks), high-altitude loiter (alt 240m), bearing ~ 15 deg, range 2500m
   const reconBearing = 15 + (scenarioRng.next() - 0.5) * 15;
-  const reconRange = 4600 + (scenarioRng.next() - 0.5) * 300;
+  const reconRange = 2500 + (scenarioRng.next() - 0.5) * 200;
   const reconRad = reconBearing * DEG_TO_RAD;
   const reconStart = vec3(reconRange * dSin(reconRad), reconRange * dCos(reconRad), 240);
-  const reconEnd = vec3(1200, 1000, 240);
+  const reconEnd = vec3(-900, 600, 240);
 
   // 6. FPV Kamikaze 1 (Primary Ingress - West): t ~ 30s (600 ticks), bearing ~ 280 deg, range 4100m
   const fpv1Bearing = 280 + (scenarioRng.next() - 0.5) * 15;

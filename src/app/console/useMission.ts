@@ -246,9 +246,25 @@ export function useMission(initialSeed?: string): UseMissionReturn {
     }
   }, [view]);
 
+  // Automatically acknowledge a track when the trainee selects or interacts with it
+  const ensureTrackAcknowledged = useCallback((trackId: number) => {
+    const client = clientRef.current;
+    if (!client) return;
+    const trk = viewRef.current?.tracks.find((t) => t.trackId === trackId);
+    if (trk && !trk.acked) {
+      client.enqueue({
+        type: 'ACK_TRACK',
+        payload: { trackId },
+      });
+    }
+  }, []);
+
   const selectTrack = useCallback((trackId: number | null) => {
     setSelectedTrackId(trackId);
-  }, []);
+    if (trackId !== null) {
+      ensureTrackAcknowledged(trackId);
+    }
+  }, [ensureTrackAcknowledged]);
 
   const acknowledgeTrack = useCallback((trackId: number) => {
     const client = clientRef.current;
@@ -264,44 +280,48 @@ export function useMission(initialSeed?: string): UseMissionReturn {
     (trackId: number, classId: ThreatClassId | 'unknown') => {
       const client = clientRef.current;
       if (!client) return;
+      ensureTrackAcknowledged(trackId);
       const cmd: CommandInput = {
         type: 'CLASSIFY_TRACK',
         payload: { trackId, assessedClass: classId },
       };
       client.enqueue(cmd);
     },
-    []
+    [ensureTrackAcknowledged]
   );
 
   const engageTrack = useCallback((trackId: number, effector: 'jammer' | 'gun') => {
     const client = clientRef.current;
     if (!client) return;
+    ensureTrackAcknowledged(trackId);
     const cmd: CommandInput = {
       type: 'ENGAGE_TRACK',
       payload: { trackId, effector },
     };
     client.enqueue(cmd);
-  }, []);
+  }, [ensureTrackAcknowledged]);
 
   const holdFireTrack = useCallback((trackId: number) => {
     const client = clientRef.current;
     if (!client) return;
+    ensureTrackAcknowledged(trackId);
     const cmd: CommandInput = {
       type: 'HOLD_FIRE',
       payload: { trackId },
     };
     client.enqueue(cmd);
-  }, []);
+  }, [ensureTrackAcknowledged]);
 
   const lockEoTrack = useCallback((trackId: number) => {
     const client = clientRef.current;
     if (!client) return;
+    ensureTrackAcknowledged(trackId);
     const cmd: CommandInput = {
       type: 'EO_LOCK',
       payload: { trackId },
     };
     client.enqueue(cmd);
-  }, []);
+  }, [ensureTrackAcknowledged]);
 
   const releaseEo = useCallback(() => {
     const client = clientRef.current;

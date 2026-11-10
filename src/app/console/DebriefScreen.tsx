@@ -328,6 +328,208 @@ export function DebriefScreen({
     ? effectiveScoreV2.penalties
     : score.penalties;
 
+  // Build Trainee-Centric Positive & Negative Action Ledgers
+  interface TraineeCreditItem {
+    badge: string;
+    title: string;
+    detail: string;
+    category: 'detect' | 'classify' | 'engage' | 'roe';
+  }
+
+  interface TraineeLossItem {
+    badge: string;
+    title: string;
+    fixTip: string;
+    severity: 'penalty' | 'missed';
+  }
+
+  const positiveActions: TraineeCreditItem[] = [];
+  const negativeActions: TraineeLossItem[] = [];
+
+  for (const c of effectiveScoreV2.perContact) {
+    const v1Contact = score.perContact.find((vc) => vc.actorId === c.actorId);
+    const classNode = c.decisionPath.find((n) => n.id === 'classification');
+    const detectNode = c.decisionPath.find((n) => n.id === 'detection');
+    const recordedClass =
+      v1Contact?.assessedClass ??
+      (classNode?.answer && !classNode.answer.toLowerCase().includes('not classified') && classNode.answer !== 'none'
+        ? classNode.answer
+        : undefined);
+    const ackLatStr =
+      v1Contact?.ackLatencySec !== undefined
+        ? `${v1Contact.ackLatencySec.toFixed(1)}s`
+        : detectNode?.answer && detectNode.answer.includes('s')
+          ? detectNode.answer
+          : null;
+
+    const isHostile =
+      c.classId === 'fpv_kamikaze' ||
+      c.classId === 'fpv_fiber' ||
+      c.classId === 'fixed_wing_recon';
+    const dPts = Math.round(c.d * 20);
+    const cPts = Math.round(c.c * 25);
+    const ePts = Math.round(c.e * 55);
+
+    const actionSummary = summarizeContactAction({
+      actorId: c.actorId,
+      classId: c.classId,
+      reportContact: c,
+    });
+
+    // 1. Detection evaluation
+    if (c.d >= 0.99) {
+      positiveActions.push({
+        badge: `+${dPts}/20 PTS`,
+        title: `Fast Radar Acknowledgment on Contact #${c.actorId} (${c.classId.toUpperCase()})`,
+        detail: `Confirmed and acknowledged on radar within optimal reaction window${ackLatStr ? ` (${ackLatStr})` : ''}.`,
+        category: 'detect',
+      });
+    } else if (c.d > 0) {
+      positiveActions.push({
+        badge: `+${dPts}/20 PTS`,
+        title: `Radar Track Acknowledged on Contact #${c.actorId} (${c.classId.toUpperCase()})`,
+        detail: `Track selected/acknowledged${ackLatStr ? ` (${ackLatStr})` : ''}. Acknowledge within ≤3.0s for full 20/20 pts.`,
+        category: 'detect',
+      });
+    } else {
+      negativeActions.push({
+        badge: `0/20 DETECT PTS`,
+        title: `Contact #${c.actorId} (${c.classId.toUpperCase()}) was never acknowledged on radar`,
+        fixTip: `Click the radar blip or press [A] within 3 seconds of track confirmation to bank +20/20 detection points.`,
+        severity: 'missed',
+      });
+    }
+
+    // 2. Classification evaluation
+    if (c.c >= 0.99) {
+      positiveActions.push({
+        badge: `+${cPts}/25 PTS`,
+        title: `Exact Threat Classification on Contact #${c.actorId} (${c.classId.toUpperCase()})`,
+        detail: `Accurately identified airframe as ${c.classId.toUpperCase()} using sensor telemetry and EO/FLIR cues.`,
+        category: 'classify',
+      });
+    } else if (c.c >= 0.49) {
+      positiveActions.push({
+        badge: `+${cPts}/25 PTS`,
+        title: `Partial Threat Family Match on Contact #${c.actorId} (${c.classId.toUpperCase()})`,
+        detail: `Identified within the FPV strike family${recordedClass ? ` (tagged as ${recordedClass.toUpperCase()})` : ''}. Check RF status (Emitting vs Silent) to distinguish RF FPV from Fiber-Optic FPV.`,
+        category: 'classify',
+      });
+    } else {
+      negativeActions.push({
+        badge: `0/25 ID PTS`,
+        title: recordedClass
+          ? `Contact #${c.actorId} (${c.classId.toUpperCase()}) misclassified as ${recordedClass.toUpperCase()}`
+          : `Contact #${c.actorId} (${c.classId.toUpperCase()}) left unclassified`,
+        fixTip: `Lock EO/FLIR camera [E] and verify Speed + RCS + RF strobe before tagging [Keys 1–6] to earn +25/25 classification points.`,
+        severity: 'missed',
+      });
+    }
+
+    // 3. Engagement / ROE Hold-Fire evaluation
+    if (isHostile) {
+      if (c.e > 0) {
+        positiveActions.push({
+          badge: `+${ePts}/55 PTS`,
+          title: `Hostile Neutralized: Contact #${c.actorId} (${c.classId.toUpperCase()}) — ${actionSummary.actionShort}`,
+          detail: `${actionSummary.explanation} (4× Hostile Priority Weight).`,
+          category: 'engage',
+        });
+      } else {
+        const hostileFix =
+          c.classId === 'fpv_fiber'
+            ? `Fiber-Optic FPVs are RF-silent and immune to jamming. Engage with 30mm Kinetic CIWS [G] inside 1,000m.`
+            : c.classId === 'fixed_wing_recon'
+              ? `Fixed-Wing Recon flies at ~220m altitude with Medium RCS. Engage with RF Jammer [J] inside 1,500m or 30mm CIWS [G] inside 1,000m.`
+              : `Engage RF FPV Kamikazes with RF Jammer [J] at 800m–1,500m (before <800m terminal optical lock) or 30mm CIWS [G] inside 1,000m.`;
+        negativeActions.push({
+          badge: `0/55 INTERCEPT PTS`,
+          title: `Hostile #${c.actorId} (${c.classId.toUpperCase()}) was not neutralized (${actionSummary.finalState.replace('_', ' ').toUpperCase()})`,
+          fixTip: hostileFix,
+          severity: 'missed',
+        });
+      }
+    } else {
+      if (c.e >= 0.99) {
+        positiveActions.push({
+          badge: `+${ePts}/55 PTS`,
+          title: `Strict ROE Hold-Fire Discipline on Contact #${c.actorId} (${c.classId.toUpperCase()})`,
+          detail: `Correctly withheld fire on non-hostile/decoy airframe, preventing collateral damage and preserving effector ammunition.`,
+          category: 'roe',
+        });
+      } else {
+        negativeActions.push({
+          badge: `0/55 ROE PTS`,
+          title: `Non-Hostile Contact #${c.actorId} (${c.classId.toUpperCase()}) was engaged (${actionSummary.actionShort})`,
+          fixTip: `Never engage ${c.classId.toUpperCase()} contacts. Classify and press Hold Fire [H] to earn +55/55 ROE points and avoid heavy deductions.`,
+          severity: 'missed',
+        });
+      }
+    }
+  }
+
+  if (ghostsEngaged === 0 && ghostsObserved > 0) {
+    positiveActions.push({
+      badge: `100% CLEAN`,
+      title: `Clutter & Ghost Track Discipline (${ghostsObserved} False Radar Return${ghostsObserved > 1 ? 's' : ''} Ignored)`,
+      detail: `Zero effectors discharged on radar multipath clutter or false tracks.`,
+      category: 'roe',
+    });
+  }
+
+  // Prepend direct penalty deductions to negativeActions so trainee clearly sees why points were subtracted
+  const penaltyLossItems: TraineeLossItem[] = groupPenalties(penaltiesToRender).map((pen) => {
+    const lower = pen.reason.toLowerCase();
+    let fixTip = `Review ROE and effector pairing before engaging tracks.`;
+    if (lower.includes('asset')) {
+      fixTip = `A hostile drone breached the base perimeter (-30 pts & max score capped at 50). Prioritize fast-closing tracks (Closing Rate < -18 m/s) first!`;
+    } else if (lower.includes('civilian') || lower.includes('commercial') || lower.includes('collateral')) {
+      fixTip = `Civilian quadcopters fly slow (8–16 m/s) with TELEMETRY RF. Lock EO [E], classify as Commercial Quad [1], and issue Hold Fire [H].`;
+    } else if (lower.includes('decoy')) {
+      fixTip = `Radar Decoys show Medium RCS at low altitude (~60m) with Silent RF. Tag as Decoy [6] and press Hold Fire [H] to avoid the -25 pt lure penalty.`;
+    } else if (lower.includes('bird')) {
+      fixTip = `Birds have Tiny RCS, slow speed (~9 m/s), erratic turns, and flapping wings on EO. Tag as Bird [4] and press Hold Fire [H].`;
+    } else if (lower.includes('unclassified')) {
+      fixTip = `Always classify a track [Keys 1–6] BEFORE pressing Jammer [J] or Gun [G] to avoid the -10 pt unclassified fire deduction.`;
+    } else if (lower.includes('ghost')) {
+      fixTip = `Never fire at unconfirmed/ghost blips with no EO visual confirmation. Tag as Clutter [5] and hold fire.`;
+    }
+    return {
+      badge: `-${pen.total} PTS DEDUCTION`,
+      title: `${pen.reason}${pen.count > 1 ? ` (×${pen.count})` : ''}`,
+      fixTip,
+      severity: 'penalty',
+    };
+  });
+
+  const allNegativeItems = [...penaltyLossItems, ...negativeActions];
+
+  // Determine strongest pillar and #1 coaching focus for next sortie
+  const pillarList = [
+    {
+      name: 'Detection & Surveillance',
+      score: effectiveScoreV2.subscores.detection,
+      advice: 'Select or press [A] on newly confirmed radar tracks within 3.0 seconds to capture the full 20% detection weight.',
+    },
+    {
+      name: 'IFF Classification',
+      score: effectiveScoreV2.subscores.classification,
+      advice: 'Lock the EO/FLIR camera [E] and cross-check Speed + RCS + RF Strobe before classifying [Keys 1–6] to capture the full 25% ID weight.',
+    },
+    {
+      name: 'Effector Resolution',
+      score: effectiveScoreV2.subscores.engagement,
+      advice: 'Use RF Jammer [J] at 800m–1,500m against RF-emitting threats, and 30mm CIWS Gun [G] inside 1,000m against RF-silent Fiber-Optic FPVs.',
+    },
+    {
+      name: 'Fire Discipline & ROE',
+      score: effectiveScoreV2.subscores.discipline,
+      advice: 'Always classify before firing and press Hold Fire [H] on Civilian Quads, Birds, and Radar Decoys to avoid -10 to -25 pt deductions.',
+    },
+  ];
+  const strongestPillar = [...pillarList].sort((a, b) => b.score - a.score)[0]!;
+  const weakestPillar = [...pillarList].sort((a, b) => a.score - b.score)[0]!;
+
   return (
     <div className="debrief-container">
       <div className="debrief-shell">
@@ -584,6 +786,192 @@ export function DebriefScreen({
             </div>
           </div>
 
+          {/* Trainee Score Calculation Breakdown Formula Strip */}
+          <section className="debrief-formula-strip">
+            <div className="debrief-formula-header">
+              <span className="debrief-formula-kicker">HOW YOUR SCORE WAS CALCULATED — TRAINEE SCORE BREAKDOWN</span>
+              <span className="debrief-formula-sub">
+                Each contact is scored out of 100 pts (20 Detect + 25 Classify + 55 Action). Hostiles carry 4× weight; Neutrals/Decoys carry 1× weight.
+              </span>
+            </div>
+
+            <div className="debrief-formula-equation">
+              <div className="formula-step formula-step-positive">
+                <span className="formula-step-label">1. EARNED CONTACT PERFORMANCE</span>
+                <span className="formula-step-val">+{effectiveScoreV2.weightedMean.toFixed(1)} pts</span>
+                <span className="formula-step-note">
+                  Weighted score from your {positiveActions.length} positive action{positiveActions.length === 1 ? '' : 's'} across {effectiveScoreV2.perContact.length} contact{effectiveScoreV2.perContact.length === 1 ? '' : 's'}
+                </span>
+              </div>
+
+              <div className="formula-operator">−</div>
+
+              <div className={`formula-step ${totalPenaltiesPoints > 0 ? 'formula-step-negative' : 'formula-step-neutral'}`}>
+                <span className="formula-step-label">2. PENALTY DEDUCTIONS</span>
+                <span className="formula-step-val">
+                  {totalPenaltiesPoints > 0 ? `-${totalPenaltiesPoints} pts` : '0 pts'}
+                </span>
+                <span className="formula-step-note">
+                  {totalPenaltiesPoints > 0
+                    ? groupPenalties(penaltiesToRender).map((p) => `${p.reason.split(':')[0]} (-${p.total})`).join(' · ')
+                    : 'Zero ROE or perimeter breach deductions'}
+                </span>
+              </div>
+
+              <div className="formula-operator">→</div>
+
+              <div className="formula-step formula-step-neutral">
+                <span className="formula-step-label">3. DOCTRINE CEILING CAP</span>
+                <span className="formula-step-val">
+                  {effectiveScoreV2.roeCapApplied
+                    ? 'MAX 60 (ROE)'
+                    : assetHitLogged
+                      ? 'MAX 50 (BASE HIT)'
+                      : 'NONE (MAX 100)'}
+                </span>
+                <span className="formula-step-note">
+                  {effectiveScoreV2.roeCapApplied
+                    ? 'Collateral engagement caps max score at 60'
+                    : assetHitLogged
+                      ? 'Perimeter breach caps max score at 50'
+                      : 'Full 100-point readiness ceiling unlocked'}
+                </span>
+              </div>
+
+              <div className="formula-operator">=</div>
+
+              <div className="formula-step formula-step-final" style={{ borderColor: v2ScoreColor }}>
+                <span className="formula-step-label">FINAL NET READINESS SCORE</span>
+                <span className="formula-step-val" style={{ color: v2ScoreColor }}>
+                  {effectiveScoreV2.total} / 100
+                </span>
+                <span className="formula-step-note">
+                  Grade: <strong>{effectiveScoreV2.grade.toUpperCase()}</strong>
+                </span>
+              </div>
+            </div>
+
+            {totalPenaltiesPoints > 0 && effectiveScoreV2.weightedMean > 0 && (
+              <div className="debrief-trainee-reassurance">
+                <span className="reassurance-badge">TRAINEE CONFIDENCE NOTE</span>
+                <p className="reassurance-text">
+                  <strong>Your correct actions were recorded!</strong> You earned{' '}
+                  <strong style={{ color: '#1b6d1b' }}>+{effectiveScoreV2.weightedMean.toFixed(1)} points</strong> from your{' '}
+                  <strong>{positiveActions.length} verified tactical actions</strong> (detections, classifications, intercepts, and ROE holds).{' '}
+                  {assetHitLogged
+                    ? `However, because a hostile drone struck the base (-30 pts deduction${totalPenaltiesPoints > 30 ? ` and -${totalPenaltiesPoints - 30} pts other penalties` : ''}), your net score was reduced to ${effectiveScoreV2.total}/100. Stop that leaking hostile next run and your score jumps immediately!`
+                    : `Subtracting -${totalPenaltiesPoints} penalty points brought your net score to ${effectiveScoreV2.total}/100. Avoid those penalty triggers next run to keep your full +${Math.round(effectiveScoreV2.weightedMean)}/100 score!`}
+                </p>
+              </div>
+            )}
+          </section>
+
+          {/* Balanced Trainee Review: WHERE YOU WERE RIGHT vs. WHERE POINTS WERE LOST */}
+          <section className="debrief-section">
+            <div className="debrief-section-header">
+              <h3 className="debrief-section-title">TRAINEE PERFORMANCE REVIEW: WHAT YOU GOT RIGHT vs. WHERE POINTS WERE LOST</h3>
+              <span className="debrief-section-subtext">
+                Balanced side-by-side breakdown of every earned point and every deduction or missed opportunity
+              </span>
+            </div>
+
+            <div className="debrief-balanced-grid">
+              {/* LEFT COLUMN: WHERE YOU WERE RIGHT */}
+              <div className="debrief-balance-col debrief-balance-right">
+                <div className="balance-col-header balance-header-positive">
+                  <div className="balance-header-title-row">
+                    <span className="balance-status-dot dot-positive">✓</span>
+                    <h4 className="balance-col-title">WHERE YOU WERE RIGHT (EARNED CREDITS)</h4>
+                  </div>
+                  <span className="balance-count-pill pill-positive">
+                    {positiveActions.length} CORRECT {positiveActions.length === 1 ? 'ACTION' : 'ACTIONS'} · +{effectiveScoreV2.weightedMean.toFixed(1)} WGT PTS
+                  </span>
+                </div>
+
+                {positiveActions.length === 0 ? (
+                  <div className="balance-empty-box">
+                    No positive contact points were banked this run. Start by clicking a confirmed radar blip (auto-acknowledges for +20 pts), locking EO [E], and classifying [Keys 1–6] (+25 pts)!
+                  </div>
+                ) : (
+                  <div className="balance-items-list">
+                    {positiveActions.map((item, idx) => (
+                      <div key={idx} className="balance-card balance-card-positive">
+                        <div className="balance-card-top">
+                          <span className="balance-pts-badge badge-positive">{item.badge}</span>
+                          <span className="balance-card-title">{item.title}</span>
+                        </div>
+                        <p className="balance-card-detail">{item.detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT COLUMN: WHERE POINTS WERE LOST */}
+              <div className="debrief-balance-col debrief-balance-wrong">
+                <div className="balance-col-header balance-header-negative">
+                  <div className="balance-header-title-row">
+                    <span className="balance-status-dot dot-negative">!</span>
+                    <h4 className="balance-col-title">WHERE POINTS WERE LOST (DEDUCTIONS &amp; FIXES)</h4>
+                  </div>
+                  <span className="balance-count-pill pill-negative">
+                    {allNegativeItems.length === 0
+                      ? '0 MISTAKES'
+                      : `${penaltyLossItems.length} PENALT${penaltyLossItems.length === 1 ? 'Y' : 'IES'} (-${totalPenaltiesPoints} PTS) · ${negativeActions.length} MISSED`}
+                  </span>
+                </div>
+
+                {allNegativeItems.length === 0 ? (
+                  <div className="balance-empty-box balance-empty-success">
+                    Flawless execution! Zero penalty deductions and zero missed contact phases across the entire sortie.
+                  </div>
+                ) : (
+                  <div className="balance-items-list">
+                    {allNegativeItems.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`balance-card ${item.severity === 'penalty' ? 'balance-card-penalty' : 'balance-card-missed'}`}
+                      >
+                        <div className="balance-card-top">
+                          <span
+                            className={`balance-pts-badge ${item.severity === 'penalty' ? 'badge-penalty' : 'badge-missed'}`}
+                          >
+                            {item.badge}
+                          </span>
+                          <span className="balance-card-title">{item.title}</span>
+                        </div>
+                        <p className="balance-card-fix">
+                          <strong>HOW TO FIX NEXT RUN:</strong> {item.fixTip}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Next-Run Trainee Coaching Banner */}
+            <div className="debrief-coaching-banner">
+              <div className="coaching-col">
+                <span className="coaching-kicker coaching-kicker-good">★ YOUR STRONGEST PILLAR THIS RUN</span>
+                <strong className="coaching-pillar-title">
+                  {strongestPillar.name} ({strongestPillar.score}%)
+                </strong>
+                <span className="coaching-pillar-desc">
+                  Keep this habit locked in—it anchored your positive score contribution this mission.
+                </span>
+              </div>
+              <div className="coaching-divider" />
+              <div className="coaching-col">
+                <span className="coaching-kicker coaching-kicker-focus">🎯 #1 COACHING FOCUS FOR NEXT RUN</span>
+                <strong className="coaching-pillar-title">
+                  {weakestPillar.name} ({weakestPillar.score}%)
+                </strong>
+                <span className="coaching-pillar-desc">{weakestPillar.advice}</span>
+              </div>
+            </div>
+          </section>
+
           {/* Logistics & Munitions Expenditure Ledger */}
           <section className="debrief-section">
             <div className="debrief-section-header">
@@ -690,21 +1078,23 @@ export function DebriefScreen({
           {/* Airspace Order of Battle (AOB) Tactical Manifest */}
           <section className="debrief-section">
             <div className="debrief-section-header">
-              <h3 className="debrief-section-title">AIRSPACE ORDER OF BATTLE (AOB) TACTICAL MANIFEST</h3>
-              <span className="debrief-section-subtext">Click any contact row to inspect doctrine decision tree nodes</span>
+              <h3 className="debrief-section-title">AIRSPACE ORDER OF BATTLE (AOB) — CONTACT-BY-CONTACT SCORECARD</h3>
+              <span className="debrief-section-subtext">
+                Click any contact row to inspect its step-by-step 20 + 25 + 55 = 100 pt decision tree trace
+              </span>
             </div>
             <div className="debrief-table-wrapper">
               <table className="debrief-table">
                 <thead>
                   <tr>
                     <th>ACTOR</th>
-                    <th>TARGET CLASS</th>
+                    <th>TRUE THREAT &amp; WEIGHT</th>
+                    <th>YOUR ID TAG</th>
                     <th>BASE ACTION &amp; OUTCOME</th>
-                    <th>OBSERVABLE</th>
-                    <th>D (DETECT)</th>
-                    <th>C (CLASS)</th>
-                    <th>E (ENGAGE)</th>
-                    <th>TOTAL</th>
+                    <th>D (DETECT 20)</th>
+                    <th>C (ID 25)</th>
+                    <th>E (ACTION 55)</th>
+                    <th>TOTAL (100)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -726,6 +1116,20 @@ export function DebriefScreen({
                           ? '#945300'
                           : '#a31a00';
 
+                    const v1Contact = score.perContact.find((vc) => vc.actorId === c.actorId);
+                    const classNode = c.decisionPath.find((n) => n.id === 'classification');
+                    const assessedRaw =
+                      v1Contact?.assessedClass ??
+                      (classNode?.answer &&
+                      !classNode.answer.toLowerCase().includes('not classified') &&
+                      classNode.answer !== 'none'
+                        ? classNode.answer
+                        : undefined);
+
+                    const dPts = Math.round(c.d * 20);
+                    const cPts = Math.round(c.c * 25);
+                    const ePts = Math.round(c.e * 55);
+
                     return (
                       <React.Fragment key={c.actorId}>
                         <tr
@@ -737,13 +1141,41 @@ export function DebriefScreen({
                               {isExpanded ? '▼ ' : '▶ '}#{c.actorId}
                             </span>
                           </td>
-                          <td
-                            style={{
-                              color: isHostile ? '#a31a00' : '#174873',
-                              fontWeight: 800,
-                            }}
-                          >
-                            {c.classId.toUpperCase()}
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                              <span
+                                style={{
+                                  color: isHostile ? '#a31a00' : '#174873',
+                                  fontWeight: 800,
+                                }}
+                              >
+                                {c.classId.toUpperCase()}
+                              </span>
+                              <span
+                                className={`aob-weight-pill ${isHostile ? 'weight-hostile' : 'weight-neutral'}`}
+                              >
+                                {c.weight}× {isHostile ? 'HOSTILE WGT' : 'NEUTRAL WGT'}
+                              </span>
+                            </div>
+                          </td>
+                          <td>
+                            {c.c >= 0.99 ? (
+                              <span className="aob-id-badge id-badge-exact">
+                                ✓ MATCH ({c.classId.toUpperCase()})
+                              </span>
+                            ) : c.c >= 0.49 ? (
+                              <span className="aob-id-badge id-badge-partial">
+                                ~ FPV FAMILY{assessedRaw ? ` (${assessedRaw.toUpperCase()})` : ''}
+                              </span>
+                            ) : assessedRaw ? (
+                              <span className="aob-id-badge id-badge-wrong">
+                                ✗ TAGGED: {assessedRaw.toUpperCase()}
+                              </span>
+                            ) : (
+                              <span className="aob-id-badge id-badge-wrong">
+                                ✗ UNTAGGED
+                              </span>
+                            )}
                           </td>
                           <td>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -756,20 +1188,35 @@ export function DebriefScreen({
                             </div>
                           </td>
                           <td>
-                            <span className={`debrief-pill ${c.observable ? 'debrief-pill-accent' : ''}`}>
-                              {c.observable ? 'YES' : 'NO'}
-                            </span>
+                            <div className="aob-pts-cell">
+                              <strong style={{ color: getScoreColor(c.d * 100) }}>{dPts}/20 pts</strong>
+                              <span>({(c.d * 100).toFixed(0)}%)</span>
+                            </div>
                           </td>
-                          <td>{(c.d * 100).toFixed(0)}%</td>
-                          <td>{(c.c * 100).toFixed(0)}%</td>
-                          <td>{(c.e * 100).toFixed(0)}%</td>
+                          <td>
+                            <div className="aob-pts-cell">
+                              <strong style={{ color: getScoreColor(c.c * 100) }}>{cPts}/25 pts</strong>
+                              <span>({(c.c * 100).toFixed(0)}%)</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="aob-pts-cell">
+                              <strong style={{ color: getScoreColor(c.e * 100) }}>{ePts}/55 pts</strong>
+                              <span>({(c.e * 100).toFixed(0)}%)</span>
+                            </div>
+                          </td>
                           <td
                             style={{
                               color: getScoreColor(c.totalScore),
                               fontWeight: 800,
                             }}
                           >
-                            {c.totalScore}%
+                            <div className="aob-pts-cell">
+                              <strong style={{ fontSize: '13px', color: getScoreColor(c.totalScore) }}>
+                                {c.totalScore}/100
+                              </strong>
+                              <span>({c.totalScore}%)</span>
+                            </div>
                           </td>
                         </tr>
 
