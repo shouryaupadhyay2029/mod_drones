@@ -767,3 +767,99 @@
   from { opacity: 0; transform: scale(0.97); }
   to { opacity: 1; transform: scale(1); }
 }
+
+/* Radar Zoom Buttons & Mobile Tactical Console Responsiveness */
+.radar-zoom-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.radar-zoom-btn:hover {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: rgba(56, 189, 248, 0.55);
+  color: #38bdf8;
+}
+
+@media (max-width: 768px) {
+  .radar-scope-container {
+    height: clamp(310px, 86vw, 410px) !important;
+    min-height: clamp(310px, 86vw, 410px) !important;
+    max-height: clamp(310px, 86vw, 410px) !important;
+  }
+
+  .radar-hud-top-bar {
+    top: 8px !important;
+    left: 8px !important;
+    right: 8px !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    align-items: flex-start !important;
+  }
+
+  .radar-hud-left,
+  .radar-hud-right {
+    flex-wrap: wrap !important;
+    gap: 5px !important;
+  }
+
+  .radar-hud-pill {
+    font-size: 9px !important;
+    padding: 3px 7px !important;
+  }
+
+  .radar-hud-doppler,
+  .radar-scroll-hint {
+    display: none !important;
+  }
+
+  .mil-header {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .flir-hud-controls {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .flir-pip-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .mil-telemetry-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mil-class-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mil-class-grid > button:last-child {
+    grid-column: span 2 !important;
+  }
+
+  .mil-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .radar-terrain-pill {
+    display: none !important;
+  }
+}

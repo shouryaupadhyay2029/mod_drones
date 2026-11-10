@@ -93,7 +93,18 @@
 }
 
 @media (max-width: 700px) {
+  .training-panel-heading {
+    flex-wrap: wrap;
+  }
+
   .training-create-row {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .training-profile-grid,
+  .training-create-row {
+    grid-template-columns: 1fr;
   }
 }

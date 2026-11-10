@@ -665,6 +665,17 @@ export function TopBar({
                   </a>
                 </div>
               </div>
+              <div className="mega-mobile-quick-links">
+                <a href="#/commander" onClick={handleCloseDropdown} className="mega-mobile-quick-link">
+                  COMMANDER C2 ↗
+                </a>
+                <a href="#/aar" onClick={handleCloseDropdown} className="mega-mobile-quick-link">
+                  AAR ARCHIVE ↗
+                </a>
+                <a href="#/check" onClick={handleCloseDropdown} className="mega-mobile-quick-link">
+                  DIAGNOSTICS ↗
+                </a>
+              </div>
             </div>
           </div>
 
@@ -677,7 +688,7 @@ export function TopBar({
               <span style={{ fontSize: '10px', color: '#d4ff3f' }}>↗</span>
             </a>
           </div>
-          <div className="nav-mega-item nav-item-secondary anim-curved-slide anim-delay-5">
+          <div className="nav-mega-item nav-item-aar anim-curved-slide anim-delay-5">
             <a href="#/aar" style={styles.navDirectLink} aria-label="Open after action review dashboard">
               <span>AAR</span>
               <span style={{ fontSize: '10px', color: '#d4ff3f' }}>↗</span>
@@ -740,10 +751,10 @@ export function TopBar({
       </nav>
       {/* Dedicated Tactical Mission HUD Bar (when running or ended) */}
       {phase !== 'setup' && (
-        <div style={styles.missionBar}>
-          <div style={styles.missionBarInner}>
+        <div style={styles.missionBar} className="topbar-mission-bar">
+          <div style={styles.missionBarInner} className="topbar-mission-inner">
             {/* Left: Mission Metadata */}
-            <div style={styles.missionMetaCluster}>
+            <div style={styles.missionMetaCluster} className="topbar-mission-meta">
               <div style={styles.missionTitle}>
                 <TextRoll center stagger={0.03}>{scTitle}</TextRoll>
               </div>
@@ -783,7 +794,7 @@ export function TopBar({
             </div>
 
             {/* Right: Operational Controls */}
-            <div style={styles.missionControlsCluster}>
+            <div style={styles.missionControlsCluster} className="topbar-mission-controls">
               {/* Speed Buttons */}
               <div style={styles.buttonGroup}>
                 <button

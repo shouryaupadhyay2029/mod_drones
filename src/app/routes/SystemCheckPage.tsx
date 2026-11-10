@@ -304,7 +304,7 @@ export function SystemCheckPage(): React.JSX.Element {
 
         {/* Controls Section - Embedded Directly on Background */}
         <section className="syscheck-controls-strip">
-          <div style={styles.seedRow}>
+          <div style={styles.seedRow} className="syscheck-seed-row">
             <input
               id="seedInput"
               type="text"
@@ -319,7 +319,7 @@ export function SystemCheckPage(): React.JSX.Element {
             </button>
           </div>
 
-          <div style={styles.buttonRow}>
+          <div style={styles.buttonRow} className="syscheck-button-row">
             <button
               onClick={handleStart}
               disabled={simState.isRunning}
@@ -353,9 +353,9 @@ export function SystemCheckPage(): React.JSX.Element {
         </section>
 
         {/* Verification Checks - Embedded Directly on Background */}
-        <section style={styles.verificationSection}>
+        <section style={styles.verificationSection} className="syscheck-verify-grid">
           <div className="syscheck-verify-block" style={{ animationDelay: '0.85s' }}>
-            <div style={styles.verifyHeaderRow}>
+            <div style={styles.verifyHeaderRow} className="syscheck-verify-header">
               <div>
                 <h3 style={styles.verifyTitle}>Replay Verification</h3>
               </div>
@@ -405,7 +405,7 @@ export function SystemCheckPage(): React.JSX.Element {
           </div>
 
           <div className="syscheck-verify-block" style={{ animationDelay: '0.95s' }}>
-            <div style={styles.verifyHeaderRow}>
+            <div style={styles.verifyHeaderRow} className="syscheck-verify-header">
               <div>
                 <h3 style={styles.verifyTitle}>Snapshot & Restore</h3>
               </div>

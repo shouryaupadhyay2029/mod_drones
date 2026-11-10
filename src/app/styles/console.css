@@ -116,8 +116,31 @@ body {
 }
 
 @media (max-width: 1024px) {
+  .console-layout {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .console-grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
+    flex: none;
+    overflow: visible;
+    padding: 10px 12px 48px 12px;
+    gap: 14px;
+  }
+
+  .radar-section,
+  .sidebar-section {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    padding-right: 0 !important;
   }
 }
 
@@ -820,10 +843,33 @@ a:hover .text-roll-char-bottom,
   transform: scale(0.97);
 }
 
+.mega-mobile-quick-links {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mega-dropdown-panel {
+    position: fixed !important;
+    top: 64px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: calc(100dvh - 76px) !important;
+    overflow-y: auto !important;
+    transform: none !important;
+  }
+
+  .mega-dropdown-panel.is-open {
+    transform: none !important;
+  }
+}
+
 @media (max-width: 768px) {
   .console-main-nav {
     padding: 8px 10px !important;
     gap: 6px !important;
+    min-height: 58px !important;
   }
   .nav-center-group {
     gap: 4px !important;
@@ -840,10 +886,66 @@ a:hover .text-roll-char-bottom,
     padding: 6px 8px !important;
     font-size: 11px !important;
   }
+  .mega-mobile-quick-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .mega-mobile-quick-link {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #fff4ec;
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+  }
+  .topbar-mission-bar {
+    padding: 0 10px 8px 10px !important;
+  }
+  .topbar-mission-inner {
+    padding: 8px 10px !important;
+    gap: 8px !important;
+  }
+  .topbar-mission-meta {
+    gap: 6px !important;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .topbar-mission-controls {
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px !important;
+  }
+  .briefing-modal-overlay {
+    padding: 14px 10px !important;
+  }
+  .briefing-modal-card {
+    padding: 18px 16px !important;
+    border-radius: 10px !important;
+  }
+  .briefing-scenario-list {
+    grid-template-columns: 1fr !important;
+  }
+  .briefing-seed-row {
+    flex-wrap: wrap !important;
+  }
+  .briefing-seed-row input,
+  .briefing-seed-row button {
+    width: 100% !important;
+  }
 }
 
-@media (max-width: 380px) {
-  .nav-center-group .nav-item-contacts {
+@media (max-width: 420px) {
+  .nav-center-group .nav-item-aar {
     display: none !important;
   }
   .console-main-nav {

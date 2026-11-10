@@ -146,7 +146,8 @@ export function RadarScope({
       candidates.push({ trackId: trk.trackId, posPx });
     }
 
-    const clickedTrackId = nearestPlot(clickPx, candidates, 14);
+    const hitRadius = window.innerWidth <= 768 ? 22 : 14;
+    const clickedTrackId = nearestPlot(clickPx, candidates, hitRadius);
     onSelectTrack(clickedTrackId);
   };
 
@@ -195,6 +196,7 @@ export function RadarScope({
   return (
     <div
       ref={containerRef}
+      className="radar-scope-container"
       style={{
         position: 'relative',
         width: '100%',
@@ -213,6 +215,7 @@ export function RadarScope({
     >
       {/* Scope Controls HUD Overlay */}
       <div
+        className="radar-hud-top-bar"
         style={{
           position: 'absolute',
           top: '12px',
@@ -225,9 +228,10 @@ export function RadarScope({
           zIndex: 10,
         }}
       >
-        <div style={{ display: 'flex', gap: '8px', pointerEvents: 'auto' }}>
+        <div className="radar-hud-left" style={{ display: 'flex', gap: '8px', pointerEvents: 'auto' }}>
           <button
             onClick={() => setShowEffectorRings((prev) => !prev)}
+            className="radar-hud-pill"
             style={{
               backgroundColor: showEffectorRings ? 'rgba(56, 189, 248, 0.12)' : 'rgba(15, 23, 42, 0.75)',
               border: showEffectorRings ? '1px solid rgba(56, 189, 248, 0.45)' : '1px solid rgba(255, 255, 255, 0.12)',
@@ -260,6 +264,7 @@ export function RadarScope({
           </button>
 
           <span
+            className="radar-hud-pill radar-scale-pill"
             style={{
               backgroundColor: 'rgba(15, 23, 42, 0.75)',
               border: '1px solid rgba(255, 255, 255, 0.12)',
@@ -271,12 +276,34 @@ export function RadarScope({
               letterSpacing: '0.04em',
               backdropFilter: 'blur(10px)',
               WebkitBackdropFilter: 'blur(10px)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            SCALE: {scaleM / 1000} km <span style={{ opacity: 0.5 }}>(scroll to zoom)</span>
+            <button
+              type="button"
+              onClick={() => setScaleM((s) => Math.max(1000, s - 1000))}
+              aria-label="Zoom radar in"
+              className="radar-zoom-btn"
+            >
+              −
+            </button>
+            <span>
+              SCALE: {scaleM / 1000} km <span className="radar-scroll-hint" style={{ opacity: 0.5 }}>(scroll to zoom)</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setScaleM((s) => Math.min(6000, s + 1000))}
+              aria-label="Zoom radar out"
+              className="radar-zoom-btn"
+            >
+              +
+            </button>
           </span>
 
           <span
+            className="radar-hud-pill radar-terrain-pill"
             style={{
               backgroundColor: 'rgba(15, 23, 42, 0.75)',
               border: '1px solid rgba(56, 189, 248, 0.22)',
@@ -307,8 +334,9 @@ export function RadarScope({
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="radar-hud-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span
+            className="radar-hud-pill"
             style={{
               backgroundColor: 'rgba(15, 23, 42, 0.75)',
               border: '1px solid rgba(255, 255, 255, 0.12)',
@@ -326,6 +354,7 @@ export function RadarScope({
             ACTIVE TARGETS: {view?.tracks.length || 0}
           </span>
           <div
+            className="radar-hud-pill radar-hud-doppler"
             style={{
               display: 'flex',
               alignItems: 'center',

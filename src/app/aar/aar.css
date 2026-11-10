@@ -1489,3 +1489,84 @@
   background: #a83322;
   border-radius: 1px;
 }
+
+
+/* ==========================================================================
+   Comprehensive Tablet & Mobile Responsiveness (AAR & Diagnostics)
+   ========================================================================== */
+
+@media (max-width: 860px) {
+  .aar-topline,
+  .aar-toolbar,
+  .aar-card-heading,
+  .aar-identity-row,
+  .aar-replay-heading {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .aar-heading-wrap,
+  .syscheck-heading-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding-top: 18px;
+  }
+
+  .aar-heading-right,
+  .syscheck-heading-right {
+    padding-top: 0;
+  }
+
+  .aar-theatre-badge,
+  .syscheck-theatre-badge {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .aar-title-main,
+  .syscheck-title-main,
+  .aar-title-sub,
+  .syscheck-title-sub {
+    font-size: clamp(32px, 8.5vw, 56px);
+  }
+
+  .syscheck-verify-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .aar-root,
+  .syscheck-root {
+    padding: 16px 12px 42px;
+  }
+
+  .aar-shell,
+  .syscheck-shell {
+    padding: 16px 12px 48px;
+  }
+
+  .aar-grid-kpis {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .aar-roster-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .syscheck-seed-row,
+  .syscheck-button-row,
+  .syscheck-verify-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .syscheck-button-row button,
+  .syscheck-seed-row button,
+  .syscheck-verify-header button {
+    width: 100% !important;
+  }
+}

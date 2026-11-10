@@ -244,8 +244,13 @@ export function scoreSession(
     const thisActorHitAsset =
       actor.state === 'impacted' ||
       events.some((e) => e.type === 'ASSET_HIT' && e.payload?.actorId === actor.id);
+    const actorDistSq = actor.pos.x * actor.pos.x + actor.pos.y * actor.pos.y;
     const interruptedByOtherAssetHit =
-      endedEarlyByAssetHit && isHostile && actor.state === 'active' && !thisActorHitAsset;
+      endedEarlyByAssetHit &&
+      isHostile &&
+      actor.state === 'active' &&
+      !thisActorHitAsset &&
+      actorDistSq > 1500 * 1500;
 
     if (isHostile) {
       if (actor.state === 'neutralized') {

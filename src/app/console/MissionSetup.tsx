@@ -338,7 +338,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
           </div>
 
           {/* Scenario Selection Cards */}
-          <div style={styles.scenarioList}>
+          <div style={styles.scenarioList} className="briefing-scenario-list">
             {SCENARIO_OPTIONS.map((sc) => {
               const isSelected = sc.id === selectedScenario;
               return (
@@ -522,7 +522,7 @@ export function MissionSetup({ onStart }: MissionSetupProps): React.JSX.Element 
               <label htmlFor="missionSeed" style={styles.label}>
                 SIMULATION SEED
               </label>
-              <div style={styles.inputRow}>
+              <div style={styles.inputRow} className="briefing-seed-row">
                 <input
                   id="missionSeed"
                   type="text"

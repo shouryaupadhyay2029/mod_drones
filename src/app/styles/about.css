@@ -1376,3 +1376,70 @@
   color: #181716;
   font-weight: 700;
 }
+
+@media (max-width: 768px) {
+  .vj-manifesto {
+    height: 260vh;
+  }
+
+  .vj-guide-section {
+    padding: 56px 14px 48px;
+  }
+
+  .vj-guide-card {
+    padding: 20px 18px;
+  }
+
+  .vj-grand-footer {
+    padding: 40px 16px 28px;
+  }
+
+  .vj-grand-brand-text {
+    font-size: clamp(54px, 16.5vw, 140px);
+  }
+
+  .vj-grand-top-links,
+  .vj-grand-sub-left,
+  .vj-grand-sub-right,
+  .vj-grand-bottom-left {
+    gap: 12px 16px;
+  }
+
+  .hero-cockpit-hub {
+    padding: 14px 14px;
+    gap: 10px;
+  }
+
+  .hero-scenario-chip {
+    padding: 6px 10px;
+    font-size: 10px;
+    flex: 1 1 calc(50% - 8px);
+    justify-content: center;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero-scenario-chip {
+    flex: 1 1 100%;
+  }
+
+  .hero-btn-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .hero-launch-cta-primary,
+  .hero-launch-cta-secondary {
+    width: 100%;
+    justify-content: center;
+    padding: 11px 16px;
+    font-size: 11.5px;
+    box-sizing: border-box;
+  }
+
+  .vj-training-strip-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

@@ -233,8 +233,13 @@ export function scoreSessionV2(
     const thisActorHitAsset =
       actor.state === 'impacted' ||
       events.some((e) => e.type === 'ASSET_HIT' && e.payload?.actorId === actor.id);
+    const actorDistSq = actor.pos.x * actor.pos.x + actor.pos.y * actor.pos.y;
     const interruptedByOtherAssetHit =
-      endedEarlyByAssetHit && isHostile && actor.state === 'active' && !thisActorHitAsset;
+      endedEarlyByAssetHit &&
+      isHostile &&
+      actor.state === 'active' &&
+      !thisActorHitAsset &&
+      actorDistSq > 1500 * 1500;
     const weight = isHostile ? HOSTILE_WEIGHT : NEUTRAL_WEIGHT;
 
     // 1. Detection D: Best (lowest latency) acknowledgement across confirmed tracks
