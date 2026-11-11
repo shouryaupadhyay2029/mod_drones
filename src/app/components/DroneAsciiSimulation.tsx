@@ -568,10 +568,16 @@ export function DroneAsciiSimulation({
       if (!scrollerRef.current) {
         scrollerRef.current = document.querySelector<HTMLElement>('[data-scroll-root]');
       }
-      if (scrollerRef.current) {
-        const scroller = scrollerRef.current;
-        const sTop = scroller.scrollTop;
-        const maxScroll = Math.max(1, scroller.scrollHeight - scroller.clientHeight);
+      const primaryScroller = scrollerRef.current;
+      const fallbackScroller =
+        primaryScroller && primaryScroller.scrollTop === 0
+          ? document.querySelector<HTMLElement>('.console-layout')
+          : null;
+      const activeScroller =
+        fallbackScroller && fallbackScroller.scrollTop > 0 ? fallbackScroller : primaryScroller;
+      if (activeScroller) {
+        const sTop = activeScroller.scrollTop;
+        const maxScroll = Math.max(1, activeScroller.scrollHeight - activeScroller.clientHeight);
         scrollProgress = Math.min(1.0, Math.max(0, sTop / maxScroll));
 
         const nowScrollTime = currentTime;
@@ -686,16 +692,16 @@ export function DroneAsciiSimulation({
 
       // Flank translation & scale:
       // Desktop: drifts 34-38.5vw right, shrinks to 0.35x
-      // Mobile: drifts 15vw right, descends to 36vh (clear below text) and scales to 0.58x to prevent overlapping words
+      // Mobile: drifts 22-25vw right, descends +26..30vh below center (~76% down viewport, safely above bottom edge) and scales to 0.50x
       const section4Shift = Math.min(1.0, Math.max(0, (sP - 0.45) / 0.15));
       const targetTransX = isMobile
-        ? escortPhase * (isTinyMobile ? 22 : 24)
+        ? escortPhase * (isTinyMobile ? 22 : 25)
         : escortPhase * (34 + section4Shift * 4.5);
       const targetTransY = isMobile
-        ? escortPhase * (43 + sP * 3)
+        ? escortPhase * (26 + sP * 4)
         : escortPhase * (29 + sP * 4);
       const droneScale = isMobile
-        ? 1.0 - escortPhase * 0.56 // Mobile: 1.0 -> 0.44 (clears text, perfectly proportioned)
+        ? 1.0 - escortPhase * 0.50 // Mobile: 1.0 -> 0.50 (clearly visible companion while scrolling)
         : 1.0 - escortPhase * 0.65; // Desktop: 1.0 -> 0.35
 
       // Dynamic flying bob & aerodynamic bank wobble while moving

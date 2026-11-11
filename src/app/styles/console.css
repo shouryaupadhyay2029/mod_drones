@@ -119,18 +119,18 @@ body {
   .console-layout {
     height: 100dvh;
     max-height: 100dvh;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
   }
 
   .console-grid {
     display: flex;
     flex-direction: column;
-    height: auto;
-    min-height: auto;
-    flex: none;
-    overflow: visible;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     padding: 10px 12px 48px 12px;
     gap: 14px;
   }
@@ -253,10 +253,12 @@ body {
 
 @media (max-width: 700px) {
   .console-header.is-scrolled .console-main-nav {
-    width: calc(100% - 24px);
-    padding-right: 12px;
-    padding-left: 12px;
-    transform: translateY(8px);
+    width: 100%;
+    padding-right: 10px;
+    padding-left: 10px;
+    transform: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 
@@ -848,20 +850,59 @@ a:hover .text-roll-char-bottom,
 }
 
 @media (max-width: 900px) {
-  .mega-dropdown-panel {
-    position: fixed !important;
-    top: 64px !important;
-    left: 10px !important;
-    right: 10px !important;
-    width: auto !important;
-    max-width: none !important;
-    max-height: calc(100dvh - 76px) !important;
-    overflow-y: auto !important;
+  /* Prevent ancestor transform/filter/will-change from trapping position:fixed dropdown panels in a narrow button box */
+  .console-header,
+  .console-header.is-scrolled,
+  .console-main-nav,
+  .console-header.is-scrolled .console-main-nav,
+  .nav-center-group,
+  .nav-mega-item,
+  .console-header .anim-curved-slide {
+    animation: none !important;
     transform: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    will-change: auto !important;
   }
 
-  .mega-dropdown-panel.is-open {
-    transform: none !important;
+  .mega-dropdown-panel,
+  .mega-dropdown-panel.panel-right-align {
+    position: fixed !important;
+    top: 62px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 76px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    transform: translateY(-6px) !important;
+    box-sizing: border-box !important;
+  }
+
+  .mega-dropdown-panel.is-open,
+  .mega-dropdown-panel.panel-right-align.is-open {
+    transform: translateY(0) !important;
+  }
+
+  .mega-menu-grid,
+  .contact-menu-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 42px 14px 14px 14px !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .mega-dropdown-close-btn {
+    top: 10px !important;
+    right: 12px !important;
+    width: 28px !important;
+    height: 28px !important;
+    background: #ebe6dc !important;
+    border: 1px solid rgba(45, 40, 35, 0.22) !important;
   }
 }
 
@@ -890,22 +931,23 @@ a:hover .text-roll-char-bottom,
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    margin-top: 0;
+    padding: 12px 14px 14px 14px;
+    border-top: 1px solid rgba(45, 40, 35, 0.12);
+    box-sizing: border-box;
   }
   .mega-mobile-quick-link {
     flex: 1 1 auto;
     text-align: center;
-    padding: 8px 10px;
+    padding: 9px 10px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    color: #fff4ec;
+    background: #ebe6dc;
+    border: 1px solid rgba(45, 40, 35, 0.18);
+    color: #181716;
     font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
     font-size: 10px;
     font-weight: 800;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-decoration: none;
   }
   .topbar-mission-bar {
@@ -967,12 +1009,14 @@ a:hover .text-roll-char-bottom,
 
 @media (max-width: 900px) {
   .hero-drone-layer {
+    top: 58px !important;
+    height: calc(100dvh - 58px) !important;
     width: 100% !important;
     left: 0 !important;
     right: 0 !important;
     opacity: 1 !important;
     pointer-events: none !important;
-    z-index: 5 !important;
+    z-index: 20 !important;
   }
 
   .ascii-sim-wrapper {

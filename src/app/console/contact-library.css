@@ -739,9 +739,12 @@
 
 @media (max-width: 760px) {
   .contact-menu-grid {
-    grid-template-columns: minmax(280px, 1fr);
-    max-height: min(76vh, 680px);
-    overflow-y: auto;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none;
+    overflow-y: visible;
+    box-sizing: border-box;
   }
 
   .contact-menu-grid .mega-preview-card {

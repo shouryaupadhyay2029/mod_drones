@@ -1395,7 +1395,10 @@
   }
 
   .vj-grand-brand-text {
-    font-size: clamp(54px, 16.5vw, 140px);
+    font-size: 21.5vw;
+    letter-spacing: 0.01em;
+    text-align: center;
+    text-align-last: center;
   }
 
   .vj-grand-top-links,

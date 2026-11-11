@@ -383,6 +383,17 @@ export function TopBar({
                   </button>
                 </div>
               </div>
+              <div className="mega-mobile-quick-links">
+                <a href="#/commander" onClick={handleCloseDropdown} className="mega-mobile-quick-link">
+                  COMMANDER C2 ↗
+                </a>
+                <a href="#/aar" onClick={handleCloseDropdown} className="mega-mobile-quick-link">
+                  AAR ARCHIVE ↗
+                </a>
+                <a href="#/check" onClick={handleCloseDropdown} className="mega-mobile-quick-link">
+                  DIAGNOSTICS ↗
+                </a>
+              </div>
             </div>
           </div>
 
